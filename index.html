@@ -742,7 +742,7 @@
 #view-home .memory-grid-item{min-width:0;text-align:center;padding:13px 5px 12px;border-right:1px dotted rgba(42,36,31,.15);cursor:pointer;}
 #view-home .memory-grid-item:last-child{border-right:0;}
 #view-home .memory-grid-item:active{background:rgba(255,255,255,.75);}
-#view-home .memory-icon{line-height:1;margin-bottom:8px;color:var(--ink);}
+#view-home .memory-icon{line-height:1;margin-bottom:8px;color:var(--ink);position:relative;}
 #view-home .memory-grid-item b{display:block;font-family:'Noto Serif SC',serif;font-size:10px;font-weight:600;white-space:nowrap;}
 #view-home .memory-grid-item small{display:block;font-size:7px;color:var(--ink-soft);margin-top:4px;white-space:nowrap;transform:scale(.9);}
 
@@ -875,6 +875,32 @@
 .invite-card:active{ background:var(--blush); }
 .invite-status{ font-size:12px; color:var(--ink-soft); margin-top:6px; }
 
+
+.msg.invite-card-msg{ max-width:82%; padding:0; overflow:hidden; background:linear-gradient(160deg, rgba(255,248,252,0.95), rgba(245,236,255,0.9)); border:1px solid rgba(180,120,160,0.25); border-radius:14px; box-shadow:0 4px 16px rgba(80,40,60,0.08); }
+.invite-card-inner{ padding:12px 14px; }
+.invite-card-title{ font-weight:700; font-size:14px; margin-bottom:4px; }
+.invite-card-meta{ font-size:12px; color:var(--ink-soft); line-height:1.45; }
+.invite-card-status{ display:inline-block; margin-top:8px; padding:2px 8px; border-radius:999px; font-size:11px; background:rgba(0,0,0,0.06); }
+.invite-card-status.pending{ background:rgba(230,180,80,0.25); color:#8a5a00; }
+.invite-card-status.accepted{ background:rgba(80,160,120,0.22); color:#1a6b45; }
+.invite-card-status.declined{ background:rgba(180,80,80,0.18); color:#8a3030; }
+.invite-card-status.ended{ background:rgba(0,0,0,0.08); color:var(--ink-soft); }
+.invite-card-status.reschedule{ background:rgba(100,120,200,0.2); color:#334; }
+.invite-card-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.invite-card-actions .btn{ padding:6px 12px; font-size:12px; margin:0; }
+.msg.combo{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.msg.combo.user{ align-items:flex-end; }
+.msg.combo .combo-sticker{ font-size:36px; line-height:1; }
+.msg.combo .combo-sticker img{ width:56px; height:56px; object-fit:contain; }
+.msg.combo .combo-text{ padding:8px 12px; border-radius:14px; max-width:100%; background:var(--paper); border:1px solid var(--rule); }
+.msg.combo.user .combo-text{ background:var(--blush); }
+.pending-sticker-bar{ display:none; align-items:center; gap:8px; padding:6px 12px; border-top:1px solid var(--rule); background:rgba(255,248,252,0.9); font-size:13px; }
+.pending-sticker-bar.show{ display:flex; }
+.pending-sticker-preview{ font-size:28px; line-height:1; }
+.pending-sticker-preview img{ width:32px; height:32px; object-fit:contain; vertical-align:middle; }
+.watch-frame-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; margin:10px 0; }
+.watch-frame-wrap iframe{ width:100%; height:100%; border:0; }
+
 </style>
 </head>
 <body>
@@ -970,7 +996,7 @@
     <div class="memory-grid">
       <div class="memory-grid-item" onclick="go('lifephotos')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg></div><b>生活照片</b></div>
       <div class="memory-grid-item" onclick="openTodayStatusPanel()"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M8 3v4M16 3v4M4 9h16M8 13h3M8 16h5"/></svg></div><b>今日状态</b></div>
-      <div class="memory-grid-item" onclick="go('moments')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h10a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H9l-4 3v-3a4 4 0 0 1-4-4v-3a4 4 0 0 1 4-4Z"/><path d="M10 4h7a4 4 0 0 1 4 4v2"/></svg></div><b>朋友圈</b></div>
+      <div class="memory-grid-item" onclick="go('moments')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h10a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H9l-4 3v-3a4 4 0 0 1-4-4v-3a4 4 0 0 1 4-4Z"/><path d="M10 4h7a4 4 0 0 1 4 4v2"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><b>朋友圈</b></div>
       <div class="memory-grid-item" onclick="go('cards')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8l3-4z"/><path d="M8 4v4H4"/><path d="M10 11h6M10 14h6M10 17h4"/></svg></div><b>字卡</b></div>
     </div>
 
@@ -1045,9 +1071,15 @@
       </div>
       <div class="chat-msgs" id="chatMsgs"></div>
       <div id="quoteBar" class="quote-bar hidden"></div>
+      <div class="pending-sticker-bar" id="pendingStickerBar">
+        <span>将与文字一起发送：</span>
+        <span class="pending-sticker-preview" id="pendingStickerPreview"></span>
+        <span style="flex:1"></span>
+        <span class="close-x" onclick="clearPendingSticker()" title="取消">✕</span>
+      </div>
       <div class="chat-input-bar">
         <div class="mini-btn" onclick="openCardPicker()">🎴</div>
-        <div class="mini-btn" onclick="openStickerPicker('send')">😊</div>
+        <div class="mini-btn" onclick="openStickerPicker('attach')" title="表情可与文字同发">😊</div>
         <div class="mini-btn" onclick="openSendRedPacket()">🧧</div>
         <div class="mini-btn" onclick="document.getElementById('chatImageInput').click()">🖼</div>
         <input type="file" id="chatImageInput" accept="image/*" class="hidden" onchange="onChatImageFile(event)">
@@ -1276,6 +1308,7 @@
       </div>
       <div class="btn-row" style="margin-top:8px;">
         <div class="btn outline" onclick="playTestSound()">播放测试音（notify.wav）</div>
+        <div class="btn" style="margin-top:8px;" onclick="runSystemSelfTest()">🔧 功能自检（提示音/通知/保活）</div>
       </div>
     </div>
     <div class="box">
@@ -1716,7 +1749,7 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
    STATE
    ============================================================ */
 let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
-let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, redPacketEnabled:false, background:null, stickers:[
+let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
 ]};
 let chatMessages = [];
@@ -1805,6 +1838,8 @@ async function init(){
   chatSettings.delayMax = Math.max(chatSettings.delayMin, Math.min(5, Math.round(chatSettings.delayMax)));
   delete chatSettings.delayUnit;
   if(typeof chatSettings.redPacketEnabled !== 'boolean') chatSettings.redPacketEnabled = false;
+  if(typeof chatSettings.comboReplyProb !== 'number') chatSettings.comboReplyProb = 35;
+  chatSettings.comboReplyProb = Math.max(0, Math.min(100, Math.round(chatSettings.comboReplyProb)));
 
   await migrateToRecordStores();
 
@@ -2837,6 +2872,13 @@ function renderChat(preserveScroll, scrollToId){
         ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escAttr(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
         <div class="t" style="padding:4px 12px 8px;">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div>
       </div>`;
+    } else if(m.type==='combo'){
+      const stVal = m.sticker || '';
+      const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${stVal}">` : escapeHtml(stVal);
+      const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
+      bubbleHtml = `<div class="msg combo ${m.from}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${readTag}${quoteBtn}</div></div>`;
+    } else if(m.type==='invite'){
+      bubbleHtml = renderInviteCardHtml(m, time);
     } else {
       const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
       const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
@@ -2901,6 +2943,8 @@ function scrollChatBottom(){
 /* ---- 引用消息：我可以引用，TA 也可以引用 ---- */
 function buildQuotePreview(m){
   if(m.type==='sticker') return '[表情]';
+  if(m.type==='combo') return '[表情+文字] '+(m.content||'').slice(0,20);
+  if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
   if(m.type==='redpacket') return '[红包]' + (m.note ? ('·'+m.note) : '');
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
@@ -2950,14 +2994,26 @@ function maybeQuoteMessage(){
 
 async function sendUserMessage(){
   const inp = document.getElementById('chatInput');
-  const text = inp.value.trim(); if(!text) return;
+  if(!inp) return;
+  const text = inp.value.trim();
+  const hasSticker = !!(pendingSticker && pendingSticker.value);
+  if(!text && !hasSticker) return;
   inp.value='';
-  const msg = {id:uid(), from:'user', type:'text', content:text, time:Date.now(), read:false};
-  if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
+  let msg;
+  if(hasSticker && text){
+    msg = {id:uid(), from:'user', type:'combo', content:text, sticker:pendingSticker.value, time:Date.now(), read:false};
+  } else if(hasSticker){
+    msg = {id:uid(), from:'user', type:'sticker', content:pendingSticker.value, time:Date.now(), read:false};
+  } else {
+    msg = {id:uid(), from:'user', type:'text', content:text, time:Date.now(), read:false};
+  }
+  clearPendingSticker();
+  if(typeof quoteTarget !== 'undefined' && quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
+  if(!Array.isArray(chatMessages)) chatMessages = [];
   chatMessages.push(msg);
-  await recPut('chatMessages', msg);
-  renderChat();
-  handleIncomingForBot(text);
+  try{ renderChat(); }catch(e){ console.error('renderChat', e); }
+  try{ await recPut('chatMessages', msg); }catch(e){ console.warn('recPut chat fail', e); }
+  try{ handleIncomingForBot(text || '[表情]'); }catch(e){ console.error('handleIncoming', e); }
 }
 function onChatImageFile(e){
   const f = e.target.files[0]; if(!f) return;
@@ -2999,18 +3055,26 @@ function getReplyDelayMs(){
 }
 function scheduleAutoReply(userText){
   const delayMs = getReplyDelayMs();
-  showTyping(true);
+  try{ showTyping(true); }catch(e){}
   if(pendingReplyTimer) clearTimeout(pendingReplyTimer);
   pendingReplyTimer = setTimeout(async ()=>{
-    showTyping(false);
-    const reply = pickReplyFor(userText);
-    if(reply){
-      const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
-      chatMessages.push(newMsg);
-      const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
-      if(last) last.read = true;
-      await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]);
-      renderChat();
+    try{ showTyping(false); }catch(e){}
+    let reply = null;
+    try{ reply = pickReplyFor(userText); }catch(e){ console.error('pickReply', e); }
+    if(!reply){
+      reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
+    }
+    const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+    if(!Array.isArray(chatMessages)) chatMessages = [];
+    chatMessages.push(newMsg);
+    const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
+    if(last) last.read = true;
+    try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
+    try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
+    if(currentView !== 'chat'){
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+      try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
     }
   }, delayMs);
 }
@@ -3074,8 +3138,14 @@ function pickReplyFor(userText){
     return { type:'redpacket', amount, note, opened:false };
   }
   // 有一定概率发表情包，增加真实感
-  if(chatSettings.stickers.length && roll < 0.05+0.12){
+  const comboProb = (typeof chatSettings.comboReplyProb === 'number' ? chatSettings.comboReplyProb : 35) / 100;
+  if(chatSettings.stickers && chatSettings.stickers.length && roll < comboProb){
     const st = chatSettings.stickers[Math.floor(Math.random()*chatSettings.stickers.length)];
+    // 一部分纯表情，一部分表情+文字
+    if(Math.random() < 0.55){
+      const text = (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯。';
+      return { type:'combo', content: text, sticker: st.value };
+    }
     return { type:'sticker', content: st.value };
   }
   // 也有一定概率是拍一拍/戳一戳这类小动作，而不是文字
@@ -3521,6 +3591,9 @@ function openChatSettings(){
     <label class="field">最慢回复：<span id="csDelayMaxVal">${chatSettings.delayMax}</span> 分钟</label>
     <input type="range" min="1" max="5" step="1" value="${Math.min(5, Math.max(1, chatSettings.delayMax||5))}" oninput="document.getElementById('csDelayMaxVal').textContent=this.value" id="csDelayMax" style="width:100%;">
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">1～5 分钟。每次回复会在这个区间里随机挑一个时间</div>
+    <label class="field">对方「表情+文字」同回概率：<span id="csComboProbVal">${chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35}</span>%</label>
+    <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35))}" oninput="document.getElementById('csComboProbVal').textContent=this.value" id="csComboProb" style="width:100%;">
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复时，有多大概率带上表情包（或表情+文字一起回）</div>
     <div class="switch-row">
       <span>已读不回<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后每条消息有 30% 几率已读不回，不是每次都不回</div></span>
       <div class="switch ${chatSettings.readNoReply?'on':''}" id="csReadNoReply" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
@@ -3635,6 +3708,8 @@ async function saveChatSettings(){
   chatSettings.delayMax = Math.max(dMin, dMax);
   delete chatSettings.delayUnit;
   chatSettings.readNoReply = document.getElementById('csReadNoReply').classList.contains('on');
+  const cp = document.getElementById('csComboProb');
+  if(cp) chatSettings.comboReplyProb = Math.max(0, Math.min(100, parseInt(cp.value,10)||35));
   chatSettings.redPacketEnabled = document.getElementById('csRedPacketEnabled').classList.contains('on');
   await sSet('chat-settings', chatSettings);
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -3738,25 +3813,56 @@ async function sendCardText(text){
 }
 
 /* ---- sticker picker (user sends a sticker) ---- */
-function openStickerPicker(){
-  if(chatSettings.stickers.length===0){
+function openStickerPicker(mode){
+  // mode: 'send' = 只发表情；'attach' = 选表情挂到输入框，可与文字一起发
+  mode = mode || 'attach';
+  if(!chatSettings.stickers || chatSettings.stickers.length===0){
     openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置里添加表情包吧。</div>`);
     return;
   }
   openOverlay(`
-    <div class="drawer-head"><h3>发送表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'}</p>
     <div>${chatSettings.stickers.map(s=>{
       const disp = s.type==='emoji' ? `<span style="font-size:30px;">${s.value}</span>` : `<img loading="lazy" decoding="async" src="${s.value}" style="width:44px;height:44px;object-fit:contain;">`;
-      return `<span class="chip" style="padding:8px;" onclick='sendStickerMsg(${JSON.stringify(s.value)})'>${disp}</span>`;
+      const val = JSON.stringify(s.value);
+      if(mode==='attach'){
+        return `<span class="chip" style="padding:8px;" onclick='pickStickerForCombo(${val})'>${disp}</span>`;
+      }
+      return `<span class="chip" style="padding:8px;" onclick='sendStickerMsg(${val})'>${disp}</span>`;
     }).join('')}</div>
   `);
+}
+function pickStickerForCombo(value){
+  pendingSticker = { value: value };
+  const bar = document.getElementById('pendingStickerBar');
+  const prev = document.getElementById('pendingStickerPreview');
+  if(prev){
+    prev.innerHTML = (value && String(value).startsWith('data:'))
+      ? '<img src="'+value+'" alt="">'
+      : ('<span>'+String(value).replace(/</g,'&lt;')+'</span>');
+  }
+  if(bar) bar.classList.add('show');
+  closeOverlay();
+  const inp = document.getElementById('chatInput');
+  if(inp){ inp.focus(); inp.placeholder = '写点文字，和表情一起发送…'; }
+}
+function clearPendingSticker(){
+  pendingSticker = null;
+  const bar = document.getElementById('pendingStickerBar');
+  if(bar) bar.classList.remove('show');
+  const prev = document.getElementById('pendingStickerPreview');
+  if(prev) prev.innerHTML = '';
+  const inp = document.getElementById('chatInput');
+  if(inp) inp.placeholder = '说点什么…';
 }
 async function sendStickerMsg(value){
   const msg = {id:uid(), from:'user', type:'sticker', content:value, time:Date.now(), read:false};
   if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   chatMessages.push(msg);
-  await recPut('chatMessages', msg);
-  renderChat(); closeOverlay();
+  try{ renderChat(); }catch(e){}
+  try{ await recPut('chatMessages', msg); }catch(e){}
+  closeOverlay();
   handleIncomingForBot('[表情]');
 }
 
@@ -6078,8 +6184,150 @@ function tryBgNotify(title, body){
 let togetherState = {
   music: { active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false },
   study: { active:false, inviter:null, accepted:false, note:'' },
-  sleep: { active:false, inviter:null, accepted:false, note:'' }
+  sleep: { active:false, inviter:null, accepted:false, note:'' },
+  watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' }
 };
+let pendingSticker = null; // { value, isImage }
+
+
+
+/* ========== 邀请卡片系统（听/学/睡/看 共用） ========== */
+function inviteKindMeta(kind){
+  const map = {
+    music: { icon:'🎵', name:'一起听歌' },
+    study: { icon:'📚', name:'一起学习' },
+    sleep: { icon:'🌙', name:'一起睡觉' },
+    watch: { icon:'📺', name:'一起看视频' }
+  };
+  return map[kind] || { icon:'💌', name:'邀请' };
+}
+function inviteStatusLabel(st){
+  return ({ pending:'等待回应', accepted:'已接受', declined:'已拒绝', ended:'已结束', reschedule:'改约中' })[st] || st;
+}
+function renderInviteCardHtml(m, time){
+  const meta = inviteKindMeta(m.kind);
+  const st = m.status || 'pending';
+  const fromMe = m.from === 'user' || m.inviter === 'user';
+  let extra = m.detail || m.content || '';
+  if(m.kind==='watch'){
+    if(m.bvid) extra += (extra?' · ':'') + 'BV '+m.bvid;
+    if(m.scheduledAt){
+      try{ extra += ' · 约定 '+new Date(m.scheduledAt).toLocaleString(); }catch(e){}
+    }
+  }
+  if(m.note) extra += (extra?' · ':'') + m.note;
+  let actions = '';
+  // 对方邀请我：pending 时可同意/拒绝/改时间(看)
+  if(st==='pending' && m.inviter==='bot'){
+    actions = '<div class="invite-card-actions">'
+      + '<div class="btn" onclick="respondInviteCard(\''+m.id+'\',\'accept\')">接受</div>'
+      + '<div class="btn outline" onclick="respondInviteCard(\''+m.id+'\',\'decline\')">拒绝</div>'
+      + (m.kind==='watch' ? '<div class="btn outline" onclick="respondInviteCard(\''+m.id+'\',\'reschedule\')">改时间</div>' : '')
+      + '</div>';
+  }
+  if(st==='accepted' && m.kind==='watch' && m.bvid){
+    actions += '<div class="invite-card-actions"><div class="btn" onclick="openWatchTogetherPanel(false)">打开一起看</div></div>';
+  }
+  if(st==='accepted' && (m.kind==='music'||m.kind==='study'||m.kind==='sleep')){
+    const openers = { music:'openListenTogetherPanel(false)', study:'openStudyTogetherPanel(false)', sleep:'openSleepTogetherPanel(false)' };
+    actions += '<div class="invite-card-actions"><div class="btn outline" onclick="'+openers[m.kind]+'">打开</div></div>';
+  }
+  return '<div class="msg invite-card-msg '+m.from+'"><div class="invite-card-inner">'
+    + '<div class="invite-card-title">'+meta.icon+' '+meta.name+'</div>'
+    + '<div class="invite-card-meta">'+(fromMe?'你发起的邀请':'对方发起的邀请')+(extra?'<br>'+escapeHtml(String(extra)):'')+'</div>'
+    + '<span class="invite-card-status '+st+'">'+inviteStatusLabel(st)+'</span>'
+    + actions
+    + '<div class="t" style="margin-top:8px;">'+time+'</div>'
+    + '</div></div>';
+}
+async function postTogetherSystemMsg(text, extra){
+  // 兼容旧调用：只有 text；新调用可带 { kind, status, inviter, bvid, scheduledAt, note, detail }
+  extra = extra || {};
+  const kind = extra.kind || extra.inviteKind || null;
+  let msg;
+  if(kind){
+    msg = {
+      id: uid(),
+      from: extra.from || (extra.inviter==='bot' ? 'bot' : 'user'),
+      type: 'invite',
+      kind: kind,
+      status: extra.status || 'pending',
+      inviter: extra.inviter || 'user',
+      title: (inviteKindMeta(kind).name),
+      content: text || '',
+      detail: extra.detail || text || '',
+      note: extra.note || '',
+      bvid: extra.bvid || '',
+      scheduledAt: extra.scheduledAt || null,
+      time: Date.now(),
+      read: true
+    };
+  } else {
+    // 纯系统提示（结束语等仍可用）
+    msg = { id:uid(), from:'system', type:'gesture', content: text, time:Date.now(), read:true };
+  }
+  if(!Array.isArray(chatMessages)) chatMessages = [];
+  chatMessages.push(msg);
+  try{ await recPut('chatMessages', msg); }catch(e){}
+  if(typeof currentView!=='undefined' && currentView==='chat'){
+    try{ renderChat(); }catch(e){}
+  }
+  return msg;
+}
+async function updateInviteCardStatus(msgId, status, patch){
+  const m = chatMessages.find(x=>x.id===msgId);
+  if(!m || m.type!=='invite') return;
+  m.status = status;
+  if(patch){ Object.assign(m, patch); }
+  try{ await recPut('chatMessages', m); }catch(e){}
+  try{ renderChat(); }catch(e){}
+}
+async function respondInviteCard(msgId, action){
+  const m = chatMessages.find(x=>x.id===msgId);
+  if(!m || m.type!=='invite') return;
+  const kind = m.kind;
+  if(action==='accept'){
+    await updateInviteCardStatus(msgId, 'accepted');
+    if(kind==='watch'){
+      togetherState.watch.active = true;
+      togetherState.watch.accepted = true;
+      togetherState.watch.bvid = m.bvid || togetherState.watch.bvid;
+      togetherState.watch.scheduledAt = m.scheduledAt;
+      await postTogetherSystemMsg(chatSettings.companionName+' 的一起看邀请已接受', { kind:'watch', status:'accepted', inviter:'bot', bvid:m.bvid, scheduledAt:m.scheduledAt, from:'user' });
+      openWatchTogetherPanel(false);
+    } else if(kind==='music'){
+      togetherState.music.active = true; togetherState.music.accepted = true;
+      openListenTogetherPanel(false);
+    } else if(kind==='study'){
+      togetherState.study.active = true; togetherState.study.accepted = true;
+      openStudyTogetherPanel(false);
+    } else if(kind==='sleep'){
+      togetherState.sleep.active = true; togetherState.sleep.accepted = true;
+      openSleepTogetherPanel(false);
+    }
+  } else if(action==='decline'){
+    await updateInviteCardStatus(msgId, 'declined');
+    if(kind==='watch') togetherState.watch.active = false;
+    if(kind==='music') togetherState.music.active = false;
+    if(kind==='study') togetherState.study.active = false;
+    if(kind==='sleep') togetherState.sleep.active = false;
+  } else if(action==='reschedule' && kind==='watch'){
+    const next = prompt('想改到什么时间？例如 21:30 或 明天晚上', '');
+    if(!next) return;
+    // 简单存文本时间
+    let ts = Date.now() + 3600*1000;
+    const m2 = String(next).match(/(\d{1,2}):(\d{2})/);
+    if(m2){
+      const d = new Date(); d.setHours(+m2[1], +m2[2], 0, 0);
+      if(d.getTime() < Date.now()) d.setDate(d.getDate()+1);
+      ts = d.getTime();
+    }
+    await updateInviteCardStatus(msgId, 'reschedule', { scheduledAt: ts, note: ((profile&&profile.myName)||'我')+' 改到 '+next });
+    togetherState.watch.scheduledAt = ts;
+    // 对方再回应改约
+    scheduleTogetherReply('watch');
+  }
+}
 
 function openChatFunctionPanel(){
   openOverlay(
@@ -6093,6 +6341,7 @@ function openChatFunctionPanel(){
       '<div class="fn-panel-item" onclick="closeOverlay(); openListenTogetherPanel();"><div class="fn-panel-icon">🎵</div><div class="fn-panel-label">一起听歌</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openStudyTogetherPanel();"><div class="fn-panel-icon">📚</div><div class="fn-panel-label">一起学习</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openSleepTogetherPanel();"><div class="fn-panel-icon">🌙</div><div class="fn-panel-label">一起睡觉</div></div>'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openWatchTogetherPanel(true);"><div class="fn-panel-icon">📺</div><div class="fn-panel-label">一起看</div></div>'+
     '</div>'
   );
 }
@@ -6103,7 +6352,8 @@ function openInvitePanel(){
     '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">选一种方式邀请 '+chatSettings.companionName+'。对方会在和聊天相同的回复时长内随机回应；也可以之后主动邀请你。</p>'+
     '<div class="invite-card" onclick="closeOverlay(); openListenTogetherPanel(true);"><b>🎵 一起听歌</b><div class="invite-status">黑胶唱片界面 · 可导入歌单 · 双人头像并排</div></div>'+
     '<div class="invite-card" onclick="closeOverlay(); openStudyTogetherPanel(true);"><b>📚 一起学习</b><div class="invite-status">安静陪伴 · 可写学习主题</div></div>'+
-    '<div class="invite-card" onclick="closeOverlay(); openSleepTogetherPanel(true);"><b>🌙 一起睡觉</b><div class="invite-status">互道晚安 · 可写一句哄睡的话</div></div>'
+    '<div class="invite-card" onclick="closeOverlay(); openSleepTogetherPanel(true);"><b>🌙 一起睡觉</b><div class="invite-status">互道晚安 · 可写一句哄睡的话</div></div>'+
+    '<div class="invite-card" onclick="closeOverlay(); openWatchTogetherPanel(true);"><b>📺 一起看</b><div class="invite-status">导入 B 站 BV · 可约定时间 · 边看边聊</div></div>'
   );
 }
 
@@ -6462,64 +6712,99 @@ function seekVinyl(e){
 
 async function inviteListenTogether(){
   const st = togetherState.music;
-  if(!st.playlist.length){ alert('请先导入至少一首歌'); return; }
-  st.active = true; st.accepted = false; st.inviter = 'user';
-  const song = st.playlist[st.index];
-  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起听「'+song.name+'」');
+  const song = st.playlist[st.index] || st.playlist[0] || { name:'歌单' };
+  togetherState.music.active = true;
+  togetherState.music.accepted = false;
+  togetherState.music.inviter = 'user';
+  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起听「'+(song.name||'音乐')+'」', {
+    kind:'music', status:'pending', inviter:'user', detail:'曲目：'+(song.name||'')
+  });
   closeOverlay();
   scheduleTogetherReply('music');
 }
 
 function scheduleTogetherReply(kind){
-  const delayMs = getReplyDelayMs();
-  showTyping(true);
+  const delayMs = (typeof getReplyDelayMs==='function') ? getReplyDelayMs() : (3000+Math.random()*5000);
+  // 自检/演示时可缩短：若刚点过自检，不改全局
   setTimeout(async function(){
-    showTyping(false);
     const accept = Math.random() < 0.75;
+    const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user');
     if(kind==='music'){
       togetherState.music.accepted = accept;
       if(accept){
         togetherState.music.active = true;
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
+        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起听歌', { kind:'music', status:'accepted', inviter:'user', from:'bot' });
         const song = togetherState.music.playlist[togetherState.music.index];
-        const line = getRandomCardText() || '好呀，一起听。';
-        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起听歌');
-        const msg = {id:uid(), from:'bot', type:'text', content: line + (song?'\n正在放：'+song.name:''), time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好啊，一起听'+(song?'「'+song.name+'」':'')) , time:Date.now(), read:true};
+        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
       } else {
         togetherState.music.active = false;
-        await postTogetherSystemMsg(chatSettings.companionName+' 现在不太方便一起听');
-        const msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '改天好不好？我这边有点忙。', time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
+        await postTogetherSystemMsg(chatSettings.companionName+' 现在不太方便一起听', { kind:'music', status:'declined', inviter:'user', from:'bot' });
       }
     } else if(kind==='study'){
       togetherState.study.accepted = accept;
       if(accept){
         togetherState.study.active = true;
-        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起学习');
-        const msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '好，一起安静待一会儿。', time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
+        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起学习', { kind:'study', status:'accepted', inviter:'user', from:'bot' });
       } else {
         togetherState.study.active = false;
-        await postTogetherSystemMsg(chatSettings.companionName+' 婉拒了一起学习');
-        const msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '我这边事情还没弄完，晚点陪你。', time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
+        await postTogetherSystemMsg(chatSettings.companionName+' 婉拒了一起学习', { kind:'study', status:'declined', inviter:'user', from:'bot' });
       }
     } else if(kind==='sleep'){
       togetherState.sleep.accepted = accept;
       if(accept){
         togetherState.sleep.active = true;
-        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起睡觉');
-        const msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '晚安，闭上眼，我在。', time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
+        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起睡觉', { kind:'sleep', status:'accepted', inviter:'user', from:'bot' });
       } else {
         togetherState.sleep.active = false;
-        await postTogetherSystemMsg(chatSettings.companionName+' 还想再待一会儿');
-        const msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '再聊两句再睡好不好？', time:Date.now(), read:true};
-        chatMessages.push(msg); await recPut('chatMessages', msg);
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
+        await postTogetherSystemMsg(chatSettings.companionName+' 还想再待一会儿', { kind:'sleep', status:'declined', inviter:'user', from:'bot' });
+      }
+    } else if(kind==='watch'){
+      togetherState.watch.accepted = accept;
+      if(accept){
+        togetherState.watch.active = true;
+        if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
+        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起看', {
+          kind:'watch', status:'accepted', inviter:'user', from:'bot',
+          bvid: togetherState.watch.bvid, scheduledAt: togetherState.watch.scheduledAt
+        });
+        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || '好，到点一起看。一边看也可以继续聊天。', time:Date.now(), read:true};
+        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
+      } else {
+        // 30% 改时间而不是直接拒
+        if(Math.random() < 0.35){
+          // 对方改时间：随便填一个不太远的时间（半小时～今晚/明晚随机）
+          const d = new Date();
+          const offsetMin = 30 + Math.floor(Math.random()* (12*60)); // 0.5h ~ 12.5h
+          d.setMinutes(d.getMinutes() + offsetMin);
+          d.setSeconds(0, 0);
+          // 再把分钟凑成比较「随口说」的：整点 / 半点 / 随便
+          const rough = Math.random();
+          if(rough < 0.4) d.setMinutes(0);
+          else if(rough < 0.7) d.setMinutes(30);
+          else d.setMinutes([5,10,15,20,40,45,50][Math.floor(Math.random()*7)]);
+          togetherState.watch.scheduledAt = d.getTime();
+          const label = d.toLocaleString(undefined, { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+          if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'reschedule', { scheduledAt: d.getTime(), note: chatSettings.companionName+' 改到 '+label });
+          await postTogetherSystemMsg(chatSettings.companionName+' 改到 '+label, {
+            kind:'watch', status:'reschedule', inviter:'user', from:'bot',
+            bvid: togetherState.watch.bvid, scheduledAt: d.getTime(), note: chatSettings.companionName+' 改到 '+label
+          });
+        } else {
+          togetherState.watch.active = false;
+          if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
+          await postTogetherSystemMsg(chatSettings.companionName+' 暂时不能一起看', { kind:'watch', status:'declined', inviter:'user', from:'bot' });
+        }
       }
     }
     if(currentView==='chat') renderChat();
-    else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); }
+    else { chatUnread = true; try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){} }
   }, delayMs);
 }
 
@@ -6528,7 +6813,8 @@ async function endListenTogether(){
   togetherState.music.active = false;
   togetherState.music.playing = false;
   togetherState.music.accepted = false;
-  await postTogetherSystemMsg('一起听歌结束了');
+  await postTogetherSystemMsg('一起听歌结束了', { kind:'music', status:'ended', inviter: togetherState.music.inviter||'user', from:'user' });
+  togetherState.music.active=false; togetherState.music.accepted=false;
   closeOverlay();
 }
 
@@ -6555,14 +6841,14 @@ async function inviteStudyTogether(){
   togetherState.study.active = true;
   togetherState.study.accepted = false;
   togetherState.study.inviter = 'user';
-  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起学习'+(togetherState.study.note?' · '+togetherState.study.note:''));
+  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起学习', { kind:'study', status:'pending', inviter:'user', note:togetherState.study.note||'' });
   closeOverlay();
   scheduleTogetherReply('study');
 }
 async function endStudyTogether(){
   togetherState.study.active = false;
   togetherState.study.accepted = false;
-  await postTogetherSystemMsg('一起学习结束了');
+  await postTogetherSystemMsg('一起学习结束了', { kind:'study', status:'ended', inviter: togetherState.study.inviter||'user', from:'user' });
   closeOverlay();
 }
 
@@ -6589,26 +6875,102 @@ async function inviteSleepTogether(){
   togetherState.sleep.active = true;
   togetherState.sleep.accepted = false;
   togetherState.sleep.inviter = 'user';
-  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起睡觉'+(togetherState.sleep.note?' · '+togetherState.sleep.note:''));
+  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起睡觉', { kind:'sleep', status:'pending', inviter:'user', note:togetherState.sleep.note||'' });
   closeOverlay();
   scheduleTogetherReply('sleep');
 }
 async function endSleepTogether(){
   togetherState.sleep.active = false;
   togetherState.sleep.accepted = false;
-  await postTogetherSystemMsg('一起睡觉结束了 · 晚安');
+  await postTogetherSystemMsg('一起睡觉结束了 · 晚安', { kind:'sleep', status:'ended', inviter: togetherState.sleep.inviter||'user', from:'user' });
   closeOverlay();
 }
 
 /* TA 也可能主动邀请你一起听/学/睡 */
+
+function parseBilibiliBvid(input){
+  if(!input) return '';
+  const s = String(input).trim();
+  const m = s.match(/BV[a-zA-Z0-9]+/);
+  return m ? m[0] : (s.startsWith('BV') ? s : '');
+}
+function openWatchTogetherPanel(asInvite){
+  const st = togetherState.watch;
+  asInvite = !!asInvite;
+  openOverlay(
+    '<div class="drawer-head"><h3>📺 一起看</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">导入 B 站 BV 号，邀请对方一起看；播放时仍可回到传讯聊天。</p>'+
+    '<label class="field">BV 号或视频链接</label>'+
+    '<input type="text" id="watchBvidInput" placeholder="例如 BV1xx411c7mD" value="'+(st.bvid||'')+'">'+
+    '<label class="field">约定时间（可选）</label>'+
+    '<input type="datetime-local" id="watchTimeInput">'+
+    '<label class="field">想说的话（可选）</label>'+
+    '<input type="text" id="watchNoteInput" placeholder="今晚一起看这个？" value="'+(st.note||'')+'">'+
+    (st.bvid ? ('<div class="watch-frame-wrap" style="margin-top:12px;"><iframe src="https://player.bilibili.com/player.html?bvid='+encodeURIComponent(st.bvid)+'&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen" scrolling="no" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe></div><p class="watch-chat-hint">播放中可关掉此面板，回传讯继续聊。</p>') : '')+
+    '<div class="btn-row" style="margin-top:12px;flex-wrap:wrap;gap:8px;">'+
+      '<div class="btn" onclick="loadWatchBilibili()">加载视频</div>'+
+      ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteWatchTogether()">发出邀请</div>' : '')+
+      (st.active ? '<div class="btn outline" onclick="endWatchTogether()">结束一起看</div>' : '')+
+    '</div>'
+  );
+  // 填约定时间
+  if(st.scheduledAt){
+    try{
+      const d = new Date(st.scheduledAt);
+      const local = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+      const el = document.getElementById('watchTimeInput');
+      if(el) el.value = local;
+    }catch(e){}
+  }
+}
+function loadWatchBilibili(){
+  const input = (document.getElementById('watchBvidInput')||{}).value || '';
+  const bvid = parseBilibiliBvid(input);
+  if(!bvid){ alert('请输入有效的 BV 号或含 BV 的链接'); return; }
+  togetherState.watch.bvid = bvid;
+  const noteEl = document.getElementById('watchNoteInput');
+  if(noteEl) togetherState.watch.note = noteEl.value.trim();
+  const timeEl = document.getElementById('watchTimeInput');
+  if(timeEl && timeEl.value){
+    togetherState.watch.scheduledAt = new Date(timeEl.value).getTime();
+  }
+  openWatchTogetherPanel(false);
+}
+async function inviteWatchTogether(){
+  const input = (document.getElementById('watchBvidInput')||{}).value || togetherState.watch.bvid || '';
+  const bvid = parseBilibiliBvid(input);
+  if(!bvid){ alert('请先填写 BV 号'); return; }
+  const noteEl = document.getElementById('watchNoteInput');
+  const timeEl = document.getElementById('watchTimeInput');
+  togetherState.watch.bvid = bvid;
+  togetherState.watch.note = (noteEl && noteEl.value.trim()) || '';
+  togetherState.watch.scheduledAt = (timeEl && timeEl.value) ? new Date(timeEl.value).getTime() : null;
+  togetherState.watch.active = true;
+  togetherState.watch.accepted = false;
+  togetherState.watch.inviter = 'user';
+  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起看 '+bvid, {
+    kind:'watch', status:'pending', inviter:'user',
+    bvid: bvid, scheduledAt: togetherState.watch.scheduledAt, note: togetherState.watch.note
+  });
+  closeOverlay();
+  if(typeof go==='function') go('chat');
+  scheduleTogetherReply('watch');
+}
+async function endWatchTogether(){
+  togetherState.watch.active = false;
+  togetherState.watch.accepted = false;
+  await postTogetherSystemMsg('一起看结束了', { kind:'watch', status:'ended', inviter: togetherState.watch.inviter||'user', from:'user', bvid: togetherState.watch.bvid });
+  closeOverlay();
+}
+
 async function maybeBotInviteTogether(){
   if(Math.random() > 0.12) return;
-  if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active) return;
-  const kinds = ['music','study','sleep'];
+  if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return;
+  const kinds = ['music','study','sleep','watch'];
   const kind = kinds[Math.floor(Math.random()*kinds.length)];
   const delayMs = getReplyDelayMs();
   setTimeout(async function(){
-    if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active) return;
+    if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return;
     var text = '';
     if(kind==='music'){
       togetherState.music.active = true; togetherState.music.accepted = false; togetherState.music.inviter = 'bot';
@@ -6617,25 +6979,94 @@ async function maybeBotInviteTogether(){
         togetherState.music.index = 0; togetherState.music.duration = 180;
       }
       text = chatSettings.companionName+' 邀请你一起听歌';
-      await postTogetherSystemMsg(text);
-      var msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '在听歌，要不要过来一起？', time:Date.now(), read:true};
-      chatMessages.push(msg); await recPut('chatMessages', msg);
+      await postTogetherSystemMsg(text, { kind:'music', status:'pending', inviter:'bot', from:'bot' });
     } else if(kind==='study'){
       togetherState.study.active = true; togetherState.study.accepted = false; togetherState.study.inviter = 'bot';
       text = chatSettings.companionName+' 邀请你一起学习';
-      await postTogetherSystemMsg(text);
-      msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '我在看书，你也来安静待一会儿？', time:Date.now(), read:true};
-      chatMessages.push(msg); await recPut('chatMessages', msg);
-    } else {
+      await postTogetherSystemMsg(text, { kind:'study', status:'pending', inviter:'bot', from:'bot' });
+    } else if(kind==='sleep'){
       togetherState.sleep.active = true; togetherState.sleep.accepted = false; togetherState.sleep.inviter = 'bot';
       text = chatSettings.companionName+' 邀请你一起睡觉';
-      await postTogetherSystemMsg(text);
-      msg = {id:uid(), from:'bot', type:'text', content: getRandomCardText() || '困了，一起睡好不好？', time:Date.now(), read:true};
-      chatMessages.push(msg); await recPut('chatMessages', msg);
+      await postTogetherSystemMsg(text, { kind:'sleep', status:'pending', inviter:'bot', from:'bot' });
+    } else {
+      togetherState.watch.active = true; togetherState.watch.accepted = false; togetherState.watch.inviter = 'bot';
+      togetherState.watch.bvid = togetherState.watch.bvid || 'BV1GJ411x7h7';
+      togetherState.watch.scheduledAt = Date.now() + 3600*1000;
+      text = chatSettings.companionName+' 邀请你一起看视频';
+      await postTogetherSystemMsg(text, { kind:'watch', status:'pending', inviter:'bot', from:'bot', bvid:togetherState.watch.bvid, scheduledAt:togetherState.watch.scheduledAt });
     }
     if(currentView==='chat') renderChat();
     else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 的邀请', text); }
   }, delayMs);
+}
+
+
+
+/* ========== 功能自检：提示音 / 后台消息通知 / 保活 ========== */
+async function runSystemSelfTest(){
+  const lines = [];
+  const ok = (s)=>lines.push('✓ '+s);
+  const bad = (s)=>lines.push('✗ '+s);
+  const info = (s)=>lines.push('· '+s);
+
+  // 1. 基础
+  ok('脚本已运行');
+  info('当前视图: '+(typeof currentView!=='undefined'?currentView:'?'));
+
+  // 2. 提示音
+  try{
+    if(typeof playTestSound==='function'){ playTestSound(); ok('已触发消息提示音 (notify.wav)'); }
+    else bad('playTestSound 不存在');
+  }catch(e){ bad('提示音失败: '+e.message); }
+
+  // 3. 后台消息通知（直接弹系统通知，不经过传讯写消息）
+  try{
+    if(!('Notification' in window)) bad('浏览器不支持 Notification');
+    else if(Notification.permission==='granted'){
+      new Notification(chatSettings.companionName||'新消息', { body:'收到此消息，说明后台消息通知已开启', silent:true, tag:'self-test' });
+      ok('后台消息通知已开启（已直接弹出系统通知）');
+    } else if(Notification.permission==='denied'){
+      bad('通知权限被拒绝，请在浏览器设置里允许');
+    } else {
+      const p = await Notification.requestPermission();
+      if(p==='granted'){
+        new Notification(chatSettings.companionName||'新消息', { body:'收到此消息，说明后台消息通知已开启', silent:true, tag:'self-test' });
+        ok('已授权，后台消息通知已开启');
+      } else bad('未获得通知权限: '+p);
+    }
+  }catch(e){ bad('通知异常: '+e.message); }
+
+  // 4. 保活
+  try{
+    if(typeof bgSettings!=='undefined' && bgSettings.keepAlive && keepAliveAudio && keepAliveAudio.el && !keepAliveAudio.el.paused){
+      ok('后台保活音频正在播放');
+    } else if(typeof startKeepAlive==='function'){
+      if(typeof bgSettings!=='undefined'){ bgSettings.keepAlive = true; }
+      startKeepAlive();
+      await new Promise(r=>setTimeout(r, 400));
+      if(keepAliveAudio && keepAliveAudio.el && !keepAliveAudio.el.paused){
+        ok('已启动保活音频 (keepalive.wav)');
+      } else {
+        bad('保活音频未能播放（需先点击页面允许声音，或 assets/keepalive.wav 缺失）');
+      }
+    } else bad('startKeepAlive 不存在');
+  }catch(e){ bad('保活异常: '+e.message); }
+
+  // 5. 显示结果
+  const report = lines.join('\\n');
+  console.log('[self-test]\\n'+report);
+  if(typeof openOverlay==='function'){
+    openOverlay(
+      '<div class="drawer-head"><h3>🔧 功能自检</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
+      '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin:8px 0;padding:12px;background:rgba(0,0,0,0.04);border-radius:10px;">'+
+      lines.map(l=>l.replace(/</g,'&lt;')).join('\\n')+
+      '</pre>'+
+      '<p style="font-size:12px;color:var(--ink-soft);">说明：这里的通知是自检直接弹出的，不经过「传讯」；真正收到主动消息/来信时，只有 App 在后台（不在当前页面）才会弹系统通知。保活在手机锁屏后仍可能被系统杀掉。</p>'+
+      '<div class="btn" onclick="closeOverlay()">知道了</div>'
+    );
+  } else {
+    alert(lines.join('\\n'));
+  }
 }
 
 loadBgSettings();
