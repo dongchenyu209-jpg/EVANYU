@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light">
 <title>在一起的每一天</title>
 
@@ -34,6 +34,18 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  /* 全站禁止长按选中 / 调出「用 Google 搜索」菜单 */
+  html, body, * {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  /* 只有输入框还能正常打字选字 */
+  input, textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+  }
   body{
     background:var(--paper);
     background-image:
@@ -158,10 +170,26 @@
 
   /* ---- home hero (love diary layout) ---- */
   .polaroid-hero{ display:flex; flex-direction:column; align-items:center; margin-top:6px; }
-  .polaroid-hero .polaroid.large{ width:220px; padding:10px 10px 30px; transform:rotate(-2deg); }
-  .polaroid-hero .polaroid.large .cap{ bottom:8px; font-size:15px; }
+  /* ---- 拍立得扇子（3 张可选，像扇子一样展开、可滑动切换） ---- */
+  .pola-fan{ --pw:min(52vw,190px); --pcard:calc(var(--pw) + 22px); position:relative; width:var(--pcard); max-width:100%; height:calc(var(--pw) + 96px); margin:2px auto 0; perspective:900px; touch-action:pan-y; }
+  .pola-fan .pola-card{ position:absolute; top:0; left:50%; transform-origin:50% 120%; transition:transform .38s cubic-bezier(.22,.61,.36,1), opacity .3s; will-change:transform; }
+  .pola-fan .pola-card .ph{ cursor:pointer; }
+  .pola-fan .pola-card .cap{ font-family:'Ma Shan Zheng',cursive; font-size:15px; }
+  .pola-fan .pola-card{ background:#fff; border:1px solid rgba(42,36,31,.14); box-shadow:0 10px 22px rgba(42,36,31,.16); padding:9px 9px 30px; width:var(--pw); }
+  .pola-fan .pola-card .ph{ width:100%; aspect-ratio:1/1; background:var(--paper-2); border:1px solid rgba(42,36,31,.1); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--ink-soft); overflow:hidden; }
+  .pola-fan .pola-card .ph img{ width:100%; height:100%; object-fit:cover; }
+  .pola-fan .pola-card .cap{ position:absolute; bottom:10px; left:0; right:0; text-align:center; color:var(--ink); }
+  .pola-fan .pola-card.active{ z-index:3; }
+  .pola-fan .pola-card.side-left{ z-index:2; }
+  .pola-fan .pola-card.side-right{ z-index:2; }
+  .pola-fan .pola-card.far{ z-index:1; opacity:.55; }
+  .pola-dots{ display:flex; justify-content:center; gap:7px; margin-top:8px; padding-bottom:2px; }
+  .pola-dots i{ width:7px; height:7px; border-radius:50%; background:var(--rule); cursor:pointer; transition:background .2s, transform .2s; }
+  .pola-dots i.on{ background:var(--rouge); transform:scale(1.25); }
+  .pola-hint{ font-size:11px; color:var(--ink-soft); margin-top:8px; letter-spacing:.5px; }
+
   .hero-caption{
-    margin-top:12px; font-family:'Ma Shan Zheng',cursive; font-size:16px; color:var(--ink);
+    margin-top:8px; font-family:'Ma Shan Zheng',cursive; font-size:16px; color:var(--ink);
     cursor:pointer; text-align:center; padding:2px 10px; border-bottom:1px dashed var(--rule);
   }
   .diary-divider-line{ border-top:none; margin:26px 0; position:relative; }
@@ -294,8 +322,78 @@
     color: var(--ink); font-weight: 600; font-size: 11px; line-height: 1.25;
   }
   #tarotSlots .tarot-slot .slot-pos { font-size: 9px; color: var(--ink-soft); margin-bottom: 2px; font-weight: 400; }
+  #tarotSlots .tarot-slot .slot-rev { font-size: 9px; color: var(--rouge); font-weight: 500; margin-top: 2px; }
+  #tarotSlots .tarot-slot.pop { animation: tarotSlotPop .5s cubic-bezier(.2,.9,.3,1.2); }
+  @keyframes tarotSlotPop {
+    0%   { transform: translateY(-34px) rotateY(90deg) scale(.7); opacity: 0; }
+    100% { transform: none; opacity: 1; }
+  }
+
+  /* 洗牌动画：一叠牌背左右交错「哗啦啦」洗几轮，洗完牌堆一张张发出来 */
+  #tarotShuffleStage { position: relative; height: 108px; max-width: 280px; margin: 0 auto 4px; }
+  #tarotShuffleStage .sh-card {
+    position: absolute; left: 50%; top: 50%; width: 48px; height: 78px; margin: -39px 0 0 -24px;
+    border: 1.5px solid var(--ink); border-radius: 6px; background: var(--paper-2);
+    box-shadow: var(--card-shadow);
+    display: flex; align-items: center; justify-content: center;
+    translate: calc(var(--i) * 0.7px) calc(var(--i) * -0.9px);
+  }
+  #tarotShuffleStage .sh-card::after { content: '✦'; font-size: 14px; color: var(--ink-soft); }
+  #tarotShuffleStage.shuffling .sh-card { animation: tarotRiffleL 1.3s ease-in-out both; animation-delay: calc(var(--i) * 35ms); }
+  #tarotShuffleStage.shuffling .sh-card:nth-child(even) { animation-name: tarotRiffleR; }
+  @keyframes tarotRiffleL {
+    0%   { transform: none; }
+    14%  { transform: translateX(-60px) rotate(-9deg); }
+    28%  { transform: translateX(-3px) rotate(0); }
+    42%  { transform: translateX(-56px) translateY(5px) rotate(-6deg); }
+    56%  { transform: translateX(-2px) rotate(0); }
+    70%  { transform: translateY(-24px) rotate(-4deg); }
+    85%  { transform: translateY(3px) rotate(0); }
+    100% { transform: none; }
+  }
+  @keyframes tarotRiffleR {
+    0%   { transform: none; }
+    14%  { transform: translateX(60px) rotate(9deg); }
+    28%  { transform: translateX(3px) rotate(0); }
+    42%  { transform: translateX(56px) translateY(-5px) rotate(6deg); }
+    56%  { transform: translateX(2px) rotate(0); }
+    70%  { transform: translateY(-24px) rotate(4deg); }
+    85%  { transform: translateY(3px) rotate(0); }
+    100% { transform: none; }
+  }
+  #tarotDeckStrip { min-height: 104px; transition: opacity .25s; }
+  #tarotDeckStrip.shuffling-wait { opacity: .15; pointer-events: none; }
+  #tarotDeckStrip .tarot-deck-card.deal { animation: tarotDeal .42s cubic-bezier(.2,.8,.3,1) backwards; animation-delay: calc(var(--d) * 16ms); }
+  @keyframes tarotDeal {
+    from { opacity: 0; transform: translateY(-32px) scale(.8) rotate(-8deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #tarotShuffleStage .sh-card, #tarotDeckStrip .tarot-deck-card.deal, #tarotSlots .tarot-slot.pop { animation: none !important; }
+  }
 
 
+
+
+  /* ===== 娱乐 ===== */
+  .gm{position:fixed;inset:0;z-index:9000;background:var(--paper);display:flex;flex-direction:column;padding:12px 12px 20px;overflow:auto;}
+  .gm-top{display:flex;align-items:center;justify-content:space-between;font-size:16px;margin-bottom:8px;}
+  .gm-top span{padding:4px 10px;cursor:pointer;}
+  .gm-msg{text-align:center;font-size:13.5px;min-height:38px;margin-bottom:8px;line-height:1.6;}
+  .gm-go{display:grid;grid-template-columns:repeat(15,1fr);width:min(100%,430px);aspect-ratio:1;margin:0 auto;background:#e6c98f;border:1.5px solid var(--ink);}
+  .gm-go div{border:.5px solid rgba(60,40,10,.45);display:flex;align-items:center;justify-content:center;font-size:min(3.6vw,15px);line-height:1;}
+  .gm-go div.last{background:rgba(156,47,59,.25);}
+  .gm-ludo{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:min(100%,400px);margin:0 auto 12px;}
+  .gm-ludo div{aspect-ratio:1;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;background:var(--glass-bg);}
+  .gm-ludo div small{position:absolute;top:1px;left:3px;font-size:9px;color:var(--ink-soft);}
+  .gm-m3{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,420px);margin:0 auto;}
+  .gm-m3 div{aspect-ratio:1;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:min(7vw,28px);background:var(--paper-2);cursor:pointer;}
+  .gm-m3 div.sel{background:var(--blush);outline:2px solid var(--rouge);}
+  .gm-btn{display:block;margin:10px auto 0;padding:10px 26px;border:1.5px solid var(--ink);background:var(--paper-2);cursor:pointer;font-size:14px;text-align:center;}
+  .gm-btn.off{opacity:.4;pointer-events:none;}
+  .gm-menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .gm-menu div{border:1.5px solid var(--ink);padding:26px 6px;text-align:center;font-size:15px;background:var(--glass-bg);cursor:pointer;box-shadow:var(--card-shadow);}
+  .gm-menu div small{display:block;font-size:11px;color:var(--ink-soft);margin-top:6px;}
+  .gm-log{font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7;margin-top:8px;}
 
   .pet-task-list{ display:flex; flex-direction:column; gap:2px; }
   .pet-task-item{ display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dotted var(--rule); font-size:13px; }
@@ -456,8 +554,8 @@
   box-shadow: none;
 }
 .msg .t{ font-size:9.5px; opacity:.65; margin-top:3px; }
-.msg.sticker{ font-size:34px; background:none !important; border:none !important; padding:0; box-shadow:none; }
-.msg.sticker img{ width:64px; height:64px; object-fit:contain; }
+.msg.sticker{ font-size:26px; background:none !important; border:none !important; padding:0; box-shadow:none; }
+.msg.sticker img{ width:48px; height:48px; object-fit:contain; }
 .msg.image{ background:none !important; border:none !important; padding:0; box-shadow:none; max-width:65%; }
 .chat-image{ max-width:100%; max-height:220px; border-radius:8px; display:block; cursor:pointer; box-shadow:0 2px 6px -2px rgba(42,36,31,0.3); }
 .msg.redpacket{ background:linear-gradient(135deg,#C0392B,#8A2331); color:#fff; border:none !important; border-radius:12px; padding:10px 16px; min-width:130px; cursor:default; box-shadow:0 3px 8px -2px rgba(122,37,48,0.55); }  .quote-ref{
@@ -611,14 +709,8 @@
 
 #view-home .diary-divider-line{margin:20px 0;border-top:1px dashed rgba(42,36,31,.18);}
 #view-home .polaroid-hero{margin-top:10px;}
-#view-home .polaroid-hero .polaroid.large{
-  width:min(78vw,270px);padding:11px 11px 34px;
-  background:#fff;box-shadow:0 12px 28px rgba(42,36,31,.17);transform:rotate(-2deg);
-}
-#view-home .polaroid-hero .polaroid.large .ph{border-color:rgba(42,36,31,.16);}
-#view-home .polaroid-hero .polaroid.large .cap{font-size:14px;letter-spacing:1px;}
 #view-home .hero-caption{
-  margin-top:17px;font-size:15px;letter-spacing:1px;line-height:1.8;
+  margin-top:8px;font-size:15px;letter-spacing:1px;line-height:1.8;
   max-width:340px;border-bottom:1px dashed rgba(42,36,31,.18);padding-bottom:4px;
 }
 
@@ -685,7 +777,6 @@
 @media (max-width:360px){
   #view-home .home-live-grid{gap:8px;}
   #view-home .home-live-card{padding:10px 10px;min-height:72px;}
-  #view-home .polaroid-hero .polaroid.large{width:230px;}
 }
 
 
@@ -714,9 +805,6 @@
 #view-home .anniv-text b{font-size:21px;font-weight:500;}
 
 #view-home .polaroid-hero{margin:0 -2px;padding-top:0;}
-#view-home .polaroid-hero .polaroid.large{width:min(79vw,300px);padding:11px 11px 38px;background:#fff;border:1px solid rgba(42,36,31,.14);box-shadow:0 12px 26px rgba(42,36,31,.14);transform:rotate(-2deg);}
-#view-home .polaroid-hero .polaroid.large .cap{bottom:10px;font-size:15px;letter-spacing:1px;}
-#view-home .polaroid-hero .polaroid.large .ph{border-color:rgba(42,36,31,.1);}
 #view-home .hero-caption{margin-top:18px;max-width:330px;padding:0 12px 12px;border-bottom:0;font-family:'Noto Serif SC',serif;font-size:15px;line-height:1.7;letter-spacing:1px;color:var(--ink);}
 #view-home .hero-caption::before{content:'“';color:rgba(42,36,31,.16);font-size:27px;vertical-align:-5px;margin-right:5px;}
 #view-home .hero-caption::after{content:'”';color:rgba(42,36,31,.16);font-size:27px;vertical-align:-5px;margin-left:5px;}
@@ -792,7 +880,6 @@
 #view-home .home-live-note:empty{display:none;}
 #view-home .hero-caption:empty{display:none;}
 #view-home .love-meter-number:empty{display:none;}
-#view-home .polaroid-hero .polaroid.large .ph:empty{min-height:0;border:0;}
 
 
 /* 参考图：空状态也显示占位文案，不再整块隐藏 */
@@ -901,14 +988,14 @@
 .invite-card-actions .btn{ padding:6px 12px; font-size:12px; margin:0; }
 .msg.combo{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
 .msg.combo.user{ align-items:flex-end; }
-.msg.combo .combo-sticker{ font-size:36px; line-height:1; }
-.msg.combo .combo-sticker img{ width:56px; height:56px; object-fit:contain; }
+.msg.combo .combo-sticker{ font-size:26px; line-height:1; }
+.msg.combo .combo-sticker img{ width:44px; height:44px; object-fit:contain; }
 .msg.combo .combo-text{ padding:8px 12px; border-radius:14px; max-width:100%; background:var(--paper); border:1px solid var(--rule); }
 .msg.combo.user .combo-text{ background:var(--blush); }
 .pending-sticker-bar{ display:none; align-items:center; gap:8px; padding:6px 12px; border-top:1px solid var(--rule); background:rgba(255,248,252,0.9); font-size:13px; }
 .pending-sticker-bar.show{ display:flex; }
-.pending-sticker-preview{ font-size:28px; line-height:1; }
-.pending-sticker-preview img{ width:32px; height:32px; object-fit:contain; vertical-align:middle; }
+.pending-sticker-preview{ font-size:22px; line-height:1; }
+.pending-sticker-preview img{ width:28px; height:28px; object-fit:contain; vertical-align:middle; }
 .watch-frame-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; margin:10px 0; }
 .watch-frame-wrap iframe{ width:100%; height:100%; border:0; }
 
@@ -1229,10 +1316,12 @@
     </div>
 
     <div class="polaroid-hero">
-      <div class="polaroid large">
-        <div class="ph" id="polaroidPh" onclick="document.getElementById('photoInput').click()"></div>
-        <div class="cap">My love.</div>
+      <div class="pola-fan" id="polaFan">
+        <div class="pola-card" data-i="0"><div class="ph" id="polaroidPh0" onclick="polaPickSlot(0)"></div><div class="cap">My love.</div></div>
+        <div class="pola-card" data-i="1"><div class="ph" id="polaroidPh1" onclick="polaPickSlot(1)"></div><div class="cap">My love.</div></div>
+        <div class="pola-card" data-i="2"><div class="ph" id="polaroidPh2" onclick="polaPickSlot(2)"></div><div class="cap">My love.</div></div>
       </div>
+      <div class="pola-dots" id="polaDots"><i onclick="polaGoto(0)"></i><i onclick="polaGoto(1)"></i><i onclick="polaGoto(2)"></i></div>
       <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="onPhotoUpload(event)">
       <div class="hero-caption" id="polaroidCaption" onclick="editPolaroidCaption()"></div>
     </div>
@@ -1262,7 +1351,7 @@
     <div class="home-section-label"><span>MEMORY</span></div>
     <div class="search-bar">
       <span class="home-search-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>
-      <input type="text" id="searchInput" placeholder="搜索聊天回忆…" onkeydown="if(event.key==='Enter')doSearch()">
+      <input type="text" id="searchInput" placeholder="搜索聊天回忆…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)doSearch()">
       <div class="go-btn home-svg-icon" onclick="doSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></div>
     </div>
     <div class="search-results" id="searchResults"></div>
@@ -1282,8 +1371,9 @@
       <div class="fn-item" onclick="go('ledger')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="14" height="18" rx="1"/><path d="M9 3v18M4 7h3M4 12h3M4 17h3M12 7h5M12 11h5M12 15h4"/></svg></div><div class="fn-label">记账</div></div>
       <div class="fn-item" onclick="go('companion')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z"/><path d="M10 13c1-2 4-1 4 1 0-2 3-3 4-1 1 2-2 4-4 5-2-1-5-3-4-5Z"/></svg></div><div class="fn-label">陪伴记录</div></div>
       <div class="fn-item" onclick="go('tarot')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="10" height="16" rx="1.5"/><rect x="9" y="5" width="10" height="16" rx="1.5" opacity=".65"/><path d="M10 9h4M10 12h3"/></svg></div><div class="fn-label">塔罗</div></div>
-      <div class="fn-item" onclick="go('settings')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="fn-label">设置</div></div>
+      <div class="fn-item" onclick="openGameMenu()"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M7 10v4M5 12h4M15.5 11.5h.01M17.5 13.5h.01"/></svg></div><div class="fn-label">娱乐</div></div><div class="fn-item" onclick="go('settings')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="fn-label">设置</div></div>
     </div>
+
   </section>
 
   <!-- ============ LIFE PHOTOS 生活照片 ============ -->
@@ -1374,7 +1464,7 @@
           <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m7 16 3.5-3.5 2.5 2.5 3-4L17 16"/></svg>
         </div>
         <input type="file" id="chatImageInput" accept="image/*" class="hidden" onchange="onChatImageFile(event)">
-        <input type="text" id="chatInput" placeholder="说点什么…" onkeydown="if(event.key==='Enter')sendUserMessage()">
+        <input type="text" id="chatInput" placeholder="说点什么…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)sendUserMessage()">
         <div class="mini-btn" onclick="sendUserMessage()" title="发送">
           <svg viewBox="0 0 24 24"><path d="M4 12h13M13 6l6 6-6 6"/></svg>
         </div>
@@ -1405,6 +1495,10 @@
       <div class="box-title">新增分组</div>
       <input type="text" id="newGroupName" placeholder="分组名称，例如：日常问候">
       <div class="btn-row"><div class="btn outline" onclick="addGroupManual()">新增</div></div>
+    </div>
+    <div class="box" id="cardsSearchBox" style="display:none;">
+      <input type="text" id="cardsSearchInput" placeholder="搜索字卡内容…" autocomplete="off" style="width:100%;"
+        oninput="onCardsSearchInput()">
     </div>
     <div id="cardsGroupsList"></div>
   </section>
@@ -1571,13 +1665,13 @@
       </div>
       <p style="font-size:11.5px;color:var(--ink-soft);margin:6px 0 10px;" id="modelStatusLabel">尚未配置 · 关闭时仅使用本地简版解读</p>
       <label class="field">API 地址（OpenAI 兼容 /chat/completions）</label>
-      <input type="text" id="tarotApiEndpoint" placeholder="例如 https://api.deepseek.com/chat/completions">
+      <input type="text" id="tarotApiEndpoint" placeholder="例如 https://api.deepseek.com/chat/completions" onchange="saveBgSettings()">
       <label class="field" style="margin-top:8px;">API Key</label>
-      <input type="password" id="tarotApiKey" placeholder="sk-...">
+      <input type="password" id="tarotApiKey" placeholder="sk-..." onchange="saveBgSettings()">
       <label class="field" style="margin-top:8px;">模型名称</label>
-      <input type="text" id="tarotApiModel" placeholder="例如 deepseek-chat">
+      <input type="text" id="tarotApiModel" placeholder="例如 deepseek-chat" onchange="saveBgSettings()">
       <label class="field" style="margin-top:8px;">温度 <span id="tempValueLabel">0.8</span></label>
-      <input type="range" id="aiTempSlider" min="0" max="1" step="0.1" value="0.8" style="width:100%;accent-color:var(--rouge);" oninput="document.getElementById('tempValueLabel').textContent=this.value;">
+      <input type="range" id="aiTempSlider" min="0" max="1" step="0.1" value="0.8" style="width:100%;accent-color:var(--rouge);" oninput="document.getElementById('tempValueLabel').textContent=this.value;" onchange="saveBgSettings()">
       <div class="btn-row" style="margin-top:10px;">
         <div class="btn outline" onclick="saveBgSettings()">保存当前</div>
         <div class="btn outline" onclick="saveBgSettings();alert('配置已另存（本地）')">另存为配置</div>
@@ -1645,6 +1739,11 @@
       <div id="tarotSlots" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:90px;"></div>
     </div>
 
+    <!-- 洗牌舞台：洗牌时这叠牌会左右交错哗啦啦地洗 -->
+    <div id="tarotShuffleStage" aria-hidden="true">
+      <div class="sh-card" style="--i:0"></div><div class="sh-card" style="--i:1"></div><div class="sh-card" style="--i:2"></div><div class="sh-card" style="--i:3"></div><div class="sh-card" style="--i:4"></div><div class="sh-card" style="--i:5"></div><div class="sh-card" style="--i:6"></div><div class="sh-card" style="--i:7"></div>
+    </div>
+
     <!-- 可滑动的牌堆（正规抽卡站风格） -->
     <div style="font-size:12px;color:var(--ink-soft);margin:4px 0 6px;text-align:center;">牌堆 · 左右滑动 · 轻触选牌</div>
     <div id="tarotDeckStrip" style="display:flex;gap:6px;overflow-x:auto;padding:10px 6px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;">
@@ -1690,7 +1789,7 @@
     <input type="file" id="myAvatarFileInput" accept="image/*" class="hidden" onchange="onMyAvatarFile(event)">
     <div class="moments-search">
       <span>🔍</span>
-      <input type="text" id="momentsSearchInput" placeholder="搜索朋友圈…" onkeydown="if(event.key==='Enter')searchMoments()">
+      <input type="text" id="momentsSearchInput" placeholder="搜索朋友圈…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)searchMoments()">
     </div>
     <div id="momentsList"></div>
     <div class="moments-fab" onclick="openMomentComposer()">＋</div>
@@ -2053,9 +2152,12 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
 /* ============================================================
    STATE
    ============================================================ */
-let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
-let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[
+let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, photos:[null,null,null], myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
+let polaCur = 0;
+let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[], myStickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
+], taStickers:[
+  {id:'t1', type:'emoji', value:'🌙'}, {id:'t2', type:'emoji', value:'☕'}, {id:'t3', type:'emoji', value:'📖'}
 ]};
 let chatMessages = [];
 let cardsData = { groups:{} };
@@ -2111,7 +2213,18 @@ function withDefaults(name, stored){
   const base = JSON.parse(JSON.stringify(_DEFAULTS[name]));
   const out = (stored && typeof stored==='object' && !Array.isArray(stored)) ? Object.assign(base, stored) : base;
   if(name==='chatSettings'){
-    if(!Array.isArray(out.stickers)) out.stickers = JSON.parse(JSON.stringify(_DEFAULTS.chatSettings.stickers));
+    if(!Array.isArray(out.stickers)) out.stickers = [];
+    // 兼容旧版：只有 stickers 时，复制到「我的」和「对方可用」两套
+    if(!Array.isArray(out.myStickers)){
+      out.myStickers = (Array.isArray(out.stickers) && out.stickers.length)
+        ? JSON.parse(JSON.stringify(out.stickers))
+        : JSON.parse(JSON.stringify(_DEFAULTS.chatSettings.myStickers));
+    }
+    if(!Array.isArray(out.taStickers)){
+      out.taStickers = (Array.isArray(out.stickers) && out.stickers.length)
+        ? JSON.parse(JSON.stringify(out.stickers))
+        : JSON.parse(JSON.stringify(_DEFAULTS.chatSettings.taStickers));
+    }
     if(!out.companionName) out.companionName = _DEFAULTS.chatSettings.companionName;
   }
   if(name==='profile' && !out.name) out.name = _DEFAULTS.profile.name;
@@ -2360,13 +2473,82 @@ function renderUnreadDots(){
 /* ============================================================
    HOME / PROFILE
    ============================================================ */
+function polaArr(){
+  if(!Array.isArray(profile.photos)) profile.photos = [null,null,null];
+  while(profile.photos.length < 3) profile.photos.push(null);
+  return profile.photos;
+}
+function renderPolaFan(){
+  const photos = polaArr();
+  if(!photos[0] && profile.photo){ photos[0] = profile.photo; profile.photo = null; }
+  if(polaCur < 0 || polaCur > 2) polaCur = 0;
+  const fan = document.getElementById('polaFan');
+  if(!fan) return;
+  const cards = fan.querySelectorAll('.pola-card');
+  for(let k=0;k<cards.length;k++){
+    const card = cards[k];
+    const i = parseInt(card.getAttribute('data-i'), 10) || 0;
+    let rel = i - polaCur;
+    if(rel > 1) rel -= 3; if(rel < -1) rel += 3;
+    card.className = 'pola-card';
+    let tf = '';
+    if(rel === 0){ card.classList.add('active'); tf = 'translate(-50%,0) rotate(0deg)'; }
+    else if(rel === -1){ card.classList.add('side-left'); tf = 'translate(-50%,6px) translateX(-30%) rotate(-11deg) scale(.92)'; }
+    else { card.classList.add('side-right'); tf = 'translate(-50%,6px) translateX(30%) rotate(11deg) scale(.92)'; }
+    card.style.transform = tf;
+    const ph = document.getElementById('polaroidPh'+i);
+    if(ph){
+      const d = photos[i];
+      ph.innerHTML = d ? '<img loading="lazy" decoding="async" src="'+d+'">' : '<span style="opacity:.6">+ 点击选图</span>';
+    }
+  }
+  const dots = document.getElementById('polaDots');
+  if(dots){
+    const ds = dots.querySelectorAll('i');
+    for(let k=0;k<ds.length;k++) ds[k].classList.toggle('on', k===polaCur);
+  }
+}
+function polaGoto(i){
+  i = ((i % 3) + 3) % 3;
+  polaCur = i;
+  renderPolaFan();
+}
+function polaPickSlot(i){
+  if(i !== polaCur){ polaGoto(i); return; }
+  const input = document.getElementById('photoInput');
+  if(input) input.click();
+}
+function polaBindSwipe(){
+  const fan = document.getElementById('polaFan');
+  if(!fan || fan._swipeBound) return;
+  fan._swipeBound = true;
+  let sx = 0, sy = 0, tracking = false;
+  fan.addEventListener('touchstart', function(e){
+    if(!e.touches || !e.touches.length) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+  }, {passive:true});
+  fan.addEventListener('touchend', function(e){
+    if(!tracking) return; tracking = false;
+    const t = (e.changedTouches && e.changedTouches[0]); if(!t) return;
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if(Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.4){
+      polaGoto(polaCur + (dx < 0 ? 1 : -1));
+    }
+  }, {passive:true});
+  let mdx = 0, mdown = false;
+  fan.addEventListener('mousedown', function(e){ mdown = true; mdx = e.clientX; });
+  fan.addEventListener('mouseup', function(e){
+    if(!mdown) return; mdown = false;
+    const dx = e.clientX - mdx;
+    if(Math.abs(dx) > 54) polaGoto(polaCur + (dx < 0 ? 1 : -1));
+  });
+}
 function renderHomeProfile(){
   const nameHero = document.getElementById('pNameHero');
   if(nameHero) nameHero.textContent = profile.name;
   const caption = document.getElementById('polaroidCaption');
   if(caption) caption.textContent = profile.status || '';
-  const ph = document.getElementById('polaroidPh');
-  if(ph) ph.innerHTML = profile.photo ? `<img loading="lazy" decoding="async" src="${profile.photo}">` : '';
+  renderPolaFan();
   const chatCNameEl = document.getElementById('chatCName');
   if(chatCNameEl) chatCNameEl.textContent = chatSettings.companionName;
   const chatTitleEl = document.getElementById('chatTitle');
@@ -2375,6 +2557,7 @@ function renderHomeProfile(){
   if(chatAvatarEl) chatAvatarEl.innerHTML = profile.avatar && profile.avatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.avatar}">` : (profile.avatar||'🌙');
   renderMomentsHeader();
   renderAnniversary();
+  polaBindSwipe();
 }
 /* ---- 纪念日：头像跟朋友圈/传讯用的是同一份数据，改一处三处都会同步 ---- */
 function renderAnniversary(){
@@ -2903,24 +3086,36 @@ function toggleGroupCollapse(g){
   cardsCollapsed[g] = !cardsCollapsed[g];
   renderCardsView();
 }
+let _cardsComposing = false;   // 中文输入法拼音还没上屏时不要重绘，否则会打断输入
 function onCardsSearchInput(){
+  if(_cardsComposing) return;
   const inp = document.getElementById('cardsSearchInput');
-  cardsSearchKeyword = (inp && inp.value || '').trim().toLowerCase();
+  const kw = (inp && inp.value || '').trim().toLowerCase();
+  if(kw === cardsSearchKeyword) return;
+  cardsSearchKeyword = kw;
   renderCardsView();
 }
+// 浏览器没有 oncompositionstart 这种行内属性，只能用 addEventListener 挂
+(function(){
+  const inp = document.getElementById('cardsSearchInput');
+  if(!inp) return;
+  inp.addEventListener('compositionstart', function(){ _cardsComposing = true; });
+  inp.addEventListener('compositionend', function(){ _cardsComposing = false; onCardsSearchInput(); });
+})();
+const CARD_KEY_SEP = '\u0001';
 function renderCardsView(){
   const wrap = document.getElementById('cardsGroupsList');
   const btn = document.getElementById('cardSelectModeBtn');
+  const searchBox = document.getElementById('cardsSearchBox');
   if(btn) btn.textContent = cardSelectMode ? '✕' : '☑';
   const groups = Object.keys(cardsData.groups||{});
+  if(searchBox) searchBox.style.display = groups.length ? '' : 'none';
   if(groups.length===0){ wrap.innerHTML = '<div class="empty-note">还没有导入字卡，先在上面导入 JSON 文件，或载入示例数据看看效果。</div>'; return; }
   _cardSelectMap = [];
 
-  // 搜索框
-  const searchHtml = `
-    <div class="box" style="margin-bottom:10px;">
-      <input type="text" id="cardsSearchInput" placeholder="搜索字卡内容…" value="${escapeHtml(cardsSearchKeyword)}" oninput="onCardsSearchInput()" style="width:100%;">
-    </div>`;
+  // 重绘前先把各分组「批量添加」框里还没提交的内容记下来，重绘后放回去（折叠/展开别的分组时不会丢字）
+  const keepText = {};
+  wrap.querySelectorAll('textarea[id^="addcard-"]').forEach(t=>{ if(t.value) keepText[t.id] = t.value; });
 
   const toolbarHtml = cardSelectMode ? `
     <div class="box" style="position:sticky; top:0; z-index:5;">
@@ -2938,13 +3133,14 @@ function renderCardsView(){
       cards = cards.filter(c => c.toLowerCase().includes(cardsSearchKeyword));
       if(cards.length === 0) return ''; // 该分组无匹配则隐藏
     }
-    const collapsed = !!cardsCollapsed[g];
+    // 搜索时不管分组有没有折叠，都把匹配到的展开给你看
+    const collapsed = !cardsSearchKeyword && !!cardsCollapsed[g];
     const pills = cards.map((c,i)=>{
       // 注意：过滤后 i 是过滤后的索引，编辑/删除时需要用原索引，这里简化处理，搜索时禁用编辑删除
       if(cardSelectMode){
         const idx = _cardSelectMap.length;
         _cardSelectMap.push({group:g, text:c});
-        const checked = selectedCardIdx.has(idx);
+        const checked = selectedCardIdx.has(g + CARD_KEY_SEP + c);
         return `<span class="card-pill ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">${checked?'☑':'☐'} ${escapeHtml(c)}</span>`;
       }
       if(cardsSearchKeyword){
@@ -2977,7 +3173,10 @@ function renderCardsView(){
     </div>`;
   }).join('');
 
-  wrap.innerHTML = searchHtml + toolbarHtml + groupsHtml;
+  const emptyHtml = (cardsSearchKeyword && !groupsHtml)
+    ? `<div class="empty-note">没有找到包含「${escapeHtml(cardsSearchKeyword)}」的字卡</div>` : '';
+  wrap.innerHTML = toolbarHtml + groupsHtml + emptyHtml;
+  Object.keys(keepText).forEach(id=>{ const t = document.getElementById(id); if(t) t.value = keepText[id]; });
 }
 function toggleCardSelectMode(){
   cardSelectMode = !cardSelectMode;
@@ -2985,8 +3184,17 @@ function toggleCardSelectMode(){
   renderCardsView();
 }
 function toggleCardSelect(idx){
-  if(selectedCardIdx.has(idx)) selectedCardIdx.delete(idx); else selectedCardIdx.add(idx);
+  const it = _cardSelectMap[idx];
+  if(!it) return;
+  const key = it.group + CARD_KEY_SEP + it.text;
+  if(selectedCardIdx.has(key)) selectedCardIdx.delete(key); else selectedCardIdx.add(key);
   renderCardsView();
+}
+function selectedCardItems(){
+  return [...selectedCardIdx].map(k=>{
+    const p = k.indexOf(CARD_KEY_SEP);
+    return p<0 ? null : { group:k.slice(0,p), text:k.slice(p+1) };
+  }).filter(Boolean);
 }
 async function editCardText(g, idx){
   const current = cardsData.groups[g][idx] || '';
@@ -3012,7 +3220,7 @@ async function confirmEditCardText(g, idx){
 async function deleteSelectedCards(){
   if(selectedCardIdx.size===0){ alert('先选几张字卡'); return; }
   if(!confirm(`确定删除选中的 ${selectedCardIdx.size} 张字卡吗？`)) return;
-  const items = [...selectedCardIdx].map(i=>_cardSelectMap[i]).filter(Boolean);
+  const items = selectedCardItems();
   items.forEach(({group,text})=>{
     if(cardsData.groups[group]) cardsData.groups[group] = cardsData.groups[group].filter(c=>c!==text);
   });
@@ -3037,7 +3245,7 @@ function openMoveToGroupPanel(){
   `);
 }
 async function moveSelectedCardsTo(targetGroup){
-  const items = [...selectedCardIdx].map(i=>_cardSelectMap[i]).filter(Boolean);
+  const items = selectedCardItems();
   items.forEach(({group,text})=>{
     if(group===targetGroup) return;
     if(cardsData.groups[group]) cardsData.groups[group] = cardsData.groups[group].filter(c=>c!==text);
@@ -3495,10 +3703,11 @@ function pickReplyFor(userText, opts){
       return { type:'gesture', content: `${chatSettings.companionName}${g.verb}你` };
     }
   }
-  // 表情包 / 表情+文字
+  // 表情包 / 表情+文字（只用「对方可用」那套）
   const comboProb = (typeof chatSettings.comboReplyProb === 'number' ? chatSettings.comboReplyProb : 35) / 100;
-  if(chatSettings.stickers && chatSettings.stickers.length && Math.random() < comboProb){
-    const st = chatSettings.stickers[Math.floor(Math.random()*chatSettings.stickers.length)];
+  const taPool = (chatSettings.taStickers && chatSettings.taStickers.length) ? chatSettings.taStickers : (chatSettings.stickers || []);
+  if(taPool.length && Math.random() < comboProb){
+    const st = taPool[Math.floor(Math.random()*taPool.length)];
     // 一部分纯表情，一部分表情+文字
     if(Math.random() < 0.55){
       const text = (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯。';
@@ -3656,7 +3865,7 @@ function runProactiveBurst(){
   const count = Math.random() < 0.75 ? 1 : (Math.random() < 0.95 ? 2 : 3);
   _proMsgBusy = true;
   showTyping(true);
-  const sendOne = async function(i){
+  const sendOneInner = async function(i){
     let reply = null;
     try{ reply = pickReplyFor('', { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
     showTyping(false);
@@ -3678,6 +3887,11 @@ function runProactiveBurst(){
     } else {
       _proMsgBusy = false;
     }
+  };
+  // 中途任何一步出错都要把「忙碌」标记放开，不然之后所有主动消息都会被当成「上一轮还没发完」而一直不来
+  const sendOne = async function(i){
+    try{ await sendOneInner(i); }
+    catch(e){ console.error('主动消息发送失败', e); _proMsgBusy = false; try{ showTyping(false); }catch(_){} }
   };
   // 第一条：走传讯设置里的"最快/最慢回复"区间，跟平时回复用同一套
   setTimeout(()=>{ sendOne(0); }, getReplyDelayMs());
@@ -4030,61 +4244,172 @@ function openChatSettings(){
       <div class="btn outline" onclick="clearChatBackground()">恢复默认</div>
     </div>
     <input type="file" id="chatBgFileInput" accept="image/*" class="hidden" onchange="onChatBgFile(event)">
-    <div class="box-title" style="margin-top:14px;">表情包 / 贴纸</div>
-    <div id="stickerManageList">${renderStickerChips()}</div>
-    <label class="field">批量添加 Emoji（直接粘贴一串，比如 😀😁🥰😴）</label>
+    <div class="box-title" style="margin-top:14px;">我的表情包</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin:0 0 6px;">你发送时从这里选，TA 不会用这些</div>
+    <div id="stickerManageListMy">${renderStickerChips('my')}</div>
+    <label class="field">批量添加 Emoji 到「我的」</label>
     <div style="display:flex;gap:6px;">
-      <input type="text" id="bulkEmojiInput" placeholder="😀😁🥰😴…">
-      <div class="btn outline" style="padding:8px 12px;white-space:nowrap;" onclick="addBulkEmojiStickers()">添加</div>
+      <input type="text" id="bulkEmojiInputMy" placeholder="😀😁🥰😴…">
+      <div class="btn outline" style="padding:8px 12px;white-space:nowrap;" onclick="addBulkEmojiStickers('my')">添加</div>
     </div>
     <div class="btn-row">
-      <div class="btn outline" onclick="document.getElementById('stickerFileInput').click()">🖼 批量上传图片贴纸</div>
+      <div class="btn outline" onclick="document.getElementById('stickerFileInputMy').click()">🖼 上传图片到「我的」</div>
     </div>
-    <input type="file" id="stickerFileInput" accept="image/*" multiple class="hidden" onchange="onStickerFile(event)">
+    <input type="file" id="stickerFileInputMy" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp" multiple class="hidden" onchange="onStickerFile(event,'my')">
+    <div class="box-title" style="margin-top:18px;">对方可用的表情包</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin:0 0 6px;">TA 回复时只会从这里随机挑；你自己发消息时选不到这些</div>
+    <div id="stickerManageListTa">${renderStickerChips('ta')}</div>
+    <label class="field">批量添加 Emoji 到「对方可用」</label>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="bulkEmojiInputTa" placeholder="😀😁🥰😴…">
+      <div class="btn outline" style="padding:8px 12px;white-space:nowrap;" onclick="addBulkEmojiStickers('ta')">添加</div>
+    </div>
+    <div class="btn-row">
+      <div class="btn outline" onclick="document.getElementById('stickerFileInputTa').click()">🖼 上传图片到「对方可用」</div>
+    </div>
+    <input type="file" id="stickerFileInputTa" accept="image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp" multiple class="hidden" onchange="onStickerFile(event,'ta')">
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:8px;">建议用 JPG / PNG / WebP；部分手机 HEIC 可能导入失败。点表情右侧 ✕ 可删除。</div>
     <div class="btn-row" style="margin-top:16px;">
       <div class="btn" onclick="saveChatSettings()">保存设置</div>
     </div>
   `);
 }
-function renderStickerChips(){
-  if(chatSettings.stickers.length===0) return '<div class="empty-note">还没有表情包</div>';
-  return chatSettings.stickers.map(s=>{
-    const disp = s.type==='emoji' ? escapeHtml(s.value) : `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:20px;height:20px;vertical-align:middle;">`;
-    return `<span class="chip">${disp}<span class="x" onclick="removeSticker('${s.id}')">✕</span></span>`;
-  }).join('');
+function stickerListKey(which){
+  return which === 'ta' ? 'taStickers' : 'myStickers';
 }
-async function removeSticker(id){
-  chatSettings.stickers = chatSettings.stickers.filter(s=>s.id!==id);
+function getStickerList(which){
+  const key = stickerListKey(which);
+  if(!Array.isArray(chatSettings[key])) chatSettings[key] = [];
+  return chatSettings[key];
+}
+function refreshStickerManageUI(which){
+  if(which === 'my' || !which){
+    const el = document.getElementById('stickerManageListMy');
+    if(el) el.innerHTML = renderStickerChips('my');
+  }
+  if(which === 'ta' || !which){
+    const el = document.getElementById('stickerManageListTa');
+    if(el) el.innerHTML = renderStickerChips('ta');
+  }
+}
+function renderStickerChips(which){
+  which = which || 'my';
+  const list = getStickerList(which);
+  if(!list.length) return '<div class="empty-note">还没有表情包</div>';
+  return list.map(s=>{
+    let disp;
+    if(s.type==='image' && s.value && String(s.value).startsWith('data:')){
+      disp = `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;">`;
+    } else if(s.value){
+      disp = `<span style="font-size:22px;line-height:1;">${escapeHtml(s.value)}</span>`;
+    } else {
+      disp = '<span style="color:var(--ink-soft);font-size:11px;">无效</span>';
+    }
+    return `<span class="chip" style="padding:6px 8px;">${disp}<span class="x" style="padding:4px 6px;font-size:14px;" onclick="event.stopPropagation();removeSticker('${s.id}','${which}')" title="删除">✕</span></span>`;
+  }).join('') + `<div style="margin-top:8px;"><span class="chip" style="color:var(--rouge);border-color:var(--rouge);" onclick="clearAllStickers('${which}')">清空这组表情</span></div>`;
+}
+async function removeSticker(id, which){
+  which = which || 'my';
+  const key = stickerListKey(which);
+  chatSettings[key] = (chatSettings[key]||[]).filter(s=>s.id!==id);
   await sSet('chat-settings', chatSettings);
-  document.getElementById('stickerManageList').innerHTML = renderStickerChips();
+  refreshStickerManageUI(which);
 }
-function addBulkEmojiStickers(){
-  const inp = document.getElementById('bulkEmojiInput');
+async function clearAllStickers(which){
+  which = which || 'my';
+  const label = which === 'ta' ? '对方可用的表情包' : '我的表情包';
+  if(!confirm('确定清空「'+label+'」？')) return;
+  chatSettings[stickerListKey(which)] = [];
+  await sSet('chat-settings', chatSettings);
+  refreshStickerManageUI(which);
+}
+/** 按「完整字符」拆分 emoji（支持合字、肤色、国旗等），避免 Array.from 把一个表情拆碎 */
+function splitEmojiGraphemes(raw){
+  const s = String(raw||'');
+  if(!s) return [];
+  try{
+    if(typeof Intl!=='undefined' && Intl.Segmenter){
+      const seg = new Intl.Segmenter('zh', { granularity:'grapheme' });
+      return [...seg.segment(s)].map(x=>x.segment).filter(c=> c && c.trim().length>0);
+    }
+  }catch(e){}
+  // 回退：尽量匹配 emoji 序列
+  const out = [];
+  const re = /\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier}|\u200D\p{Extended_Pictographic})*/gu;
+  let m, last = 0;
+  while((m = re.exec(s))){
+    if(m.index>last){
+      for(const ch of s.slice(last, m.index)){ if(ch.trim()) out.push(ch); }
+    }
+    out.push(m[0]);
+    last = m.index + m[0].length;
+  }
+  if(last<s.length){
+    for(const ch of s.slice(last)){ if(ch.trim()) out.push(ch); }
+  }
+  return out;
+}
+function addBulkEmojiStickers(which){
+  which = which || 'my';
+  const inpId = which === 'ta' ? 'bulkEmojiInputTa' : 'bulkEmojiInputMy';
+  const inp = document.getElementById(inpId);
+  if(!inp) return;
   const raw = inp.value.trim();
   if(!raw) return;
-  const chars = Array.from(raw).filter(c=> c.trim().length>0);
-  chars.forEach(c=> chatSettings.stickers.push({id:uid(), type:'emoji', value:c}));
+  const chars = splitEmojiGraphemes(raw);
+  if(chars.length===0){ alert('没有识别到可用表情，请直接粘贴 emoji'); return; }
+  const list = getStickerList(which);
+  chars.forEach(c=> list.push({id:uid(), type:'emoji', value:c}));
   inp.value = '';
   sSet('chat-settings', chatSettings);
-  document.getElementById('stickerManageList').innerHTML = renderStickerChips();
+  refreshStickerManageUI(which);
+  alert('已添加 '+chars.length+' 个表情');
 }
-function onStickerFile(e){
+function onStickerFile(e, which){
+  which = which || 'my';
   const files = Array.from(e.target.files || []);
   if(files.length===0) return;
+  const list = getStickerList(which);
   let remaining = files.length;
+  let ok = 0, fail = 0;
   files.forEach(f=>{
+    // 部分手机相册 HEIC/特殊格式浏览器解不了，会失败
     const reader = new FileReader();
     reader.onload = async ()=>{
-      const compressed = await compressImage(reader.result, 500);
-      chatSettings.stickers.push({id:uid(), type:'image', value:compressed});
+      try{
+        let dataUrl = reader.result;
+        let compressed = await compressImage(dataUrl, 500);
+        // 压缩失败时尽量用原图 dataURL（只要是 data:image）
+        if(!compressed && typeof dataUrl==='string' && dataUrl.indexOf('data:image')===0){
+          compressed = dataUrl;
+        }
+        if(compressed && String(compressed).indexOf('data:image')===0){
+          list.push({id:uid(), type:'image', value:compressed});
+          ok++;
+        } else {
+          fail++;
+        }
+      }catch(err){ console.error(err); fail++; }
       remaining--;
       if(remaining===0){
         await sSet('chat-settings', chatSettings);
-        document.getElementById('stickerManageList').innerHTML = renderStickerChips();
+        refreshStickerManageUI(which);
+        if(fail>0) alert('成功 '+ok+' 张，失败 '+fail+' 张（格式可能不支持，请尽量用 JPG/PNG/WebP）');
+        else if(ok>0) alert('已添加 '+ok+' 张贴纸');
+      }
+    };
+    reader.onerror = ()=>{
+      fail++; remaining--;
+      if(remaining===0){
+        sSet('chat-settings', chatSettings).then(()=>{
+          refreshStickerManageUI(which);
+          alert('成功 '+ok+' 张，失败 '+fail+' 张');
+        });
       }
     };
     reader.readAsDataURL(f);
   });
+  e.target.value = '';
 }
 async function saveChatSettings(){
   chatSettings.companionName = document.getElementById('csName').value.trim() || chatSettings.companionName;
@@ -4201,16 +4526,24 @@ async function sendCardText(text){
 /* ---- sticker picker (user sends a sticker) ---- */
 function openStickerPicker(mode){
   // mode: 'send' = 只发表情；'attach' = 选表情挂到输入框，可与文字一起发
+  // 用户只能从「我的表情包」里选
   mode = mode || 'attach';
-  if(!chatSettings.stickers || chatSettings.stickers.length===0){
-    openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置里添加表情包吧。</div>`);
+  const all = getStickerList('my');
+  const validIdx = [];
+  all.forEach((s,i)=>{ if(s && s.value) validIdx.push(i); });
+  if(validIdx.length===0){
+    openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置 →「我的表情包」里添加吧。</div>`);
     return;
   }
   openOverlay(`
     <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'}</p>
-    <div>${chatSettings.stickers.map((s,idx)=>{
-      const disp = s.type==='emoji' ? `<span style="font-size:30px;">${escapeHtml(s.value)}</span>` : `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`;
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'} 去「传讯设置 → 我的表情包」可管理。</p>
+    <div>${validIdx.map(idx=>{
+      const s = all[idx];
+      const isImg = String(s.value).startsWith('data:');
+      const disp = isImg
+        ? `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`
+        : `<span style="font-size:30px;">${escapeHtml(s.value)}</span>`;
       if(mode==='attach'){
         return `<span class="chip" style="padding:8px;" onclick="pickStickerByIndex(${idx})">${disp}</span>`;
       }
@@ -4218,8 +4551,8 @@ function openStickerPicker(mode){
     }).join('')}</div>
   `);
 }
-function pickStickerByIndex(i){ const s = (chatSettings.stickers||[])[i]; if(s) pickStickerForCombo(s.value); }
-function sendStickerByIndex(i){ const s = (chatSettings.stickers||[])[i]; if(s) sendStickerMsg(s.value); }
+function pickStickerByIndex(i){ const s = getStickerList('my')[i]; if(s && s.value) pickStickerForCombo(s.value); }
+function sendStickerByIndex(i){ const s = getStickerList('my')[i]; if(s && s.value) sendStickerMsg(s.value); }
 function pickStickerForCombo(value){
   pendingSticker = { value: value };
   const bar = document.getElementById('pendingStickerBar');
@@ -4733,7 +5066,7 @@ function renderMoments(){
         ${autoInteractions}
         ${thread}
         <div class="moment-comment-input-row">
-          <input type="text" id="momentCommentInput_${p.id}" placeholder="评论…" onkeydown="if(event.key==='Enter')addMomentComment('${p.id}')">
+          <input type="text" id="momentCommentInput_${p.id}" placeholder="评论…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)addMomentComment('${p.id}')">
           <span onclick="addMomentComment('${p.id}')">发送</span>
         </div>
       </div>
@@ -5969,7 +6302,9 @@ async function onPhotoUpload(e){
     try{
       const compressed = await compressImage(reader.result, 900);
       if(!compressed){ alert('图片格式不支持或解码失败，请换一张试试'); return; }
-      profile.photo = compressed;
+      if(!Array.isArray(profile.photos)) profile.photos=[null,null,null];
+      profile.photos[polaCur] = compressed;
+      profile.photo = profile.photos[0];
       await sSet('profile', profile);
       renderHomeProfile();
       alert('照片已更新');
@@ -6022,7 +6357,7 @@ async function doSearch(){
    ============================================================ */
 const TAROT_SPREADS = [
   { id:'single', name:'单张', count:1, cat:['all','fortune'], positions:['核心指引'], hint:'适合日常随手问一问，答案简洁直接。' },
-  { id:'free', name:'无牌阵', count:3, cat:['all','love','study','fortune'], positions:['牌一','牌二','牌三'], hint:'不设固定位置含义，三张牌自由串联解读，适合随手一问。（由原三张时间线改为无牌阵）' },
+  { id:'free', name:'无牌阵', count:3, cat:['all','love','study','fortune'], positions:['牌一','牌二','牌三'], hint:'不设固定位置含义，三张牌自由串联解读，适合随手一问。' },
   { id:'three-rel', name:'三张·你与对方', count:3, cat:['love'], positions:['你','对方','关系动态'], hint:'爱情专用经典三张，看双方与关系本身。' },
   { id:'cross5', name:'五张十字', count:5, cat:['all','study','fortune'], positions:['核心','过去','未来','助力','阻力'], hint:'传统十字变体，适合学业决策或运势全貌。' },
   { id:'celtic', name:'凯尔特十字', count:10, cat:['all','love','study','fortune'], positions:['现状','阻碍','根基','过去','目标','近未来','自身','环境','希望与恐惧','结果'], hint:'塔罗最经典正规老牌阵，深度全面，适合重要问题。' },
@@ -6133,7 +6468,7 @@ function renderTarotSpreads(){
       <div class="s-count">${s.count} 张</div>
     </div>`).join('');
   const hint = document.getElementById('tarotHint');
-  if(hint) hint.textContent = tarotState.spread ? tarotState.spread.hint : '选择牌阵后开始抽牌。推荐：三张 / 五张十字 / 凯尔特十字。';
+  if(hint) hint.textContent = tarotState.spread ? tarotState.spread.hint : '选择牌阵后开始抽牌。推荐：无牌阵 / 五张十字 / 凯尔特十字。';
 }
 function selectTarotSpread(id){
   tarotState.spread = TAROT_SPREADS.find(s=>s.id===id);
@@ -6175,7 +6510,14 @@ function buildShuffledDeck(){
   }
   return deck;
 }
-function renderTarotSlots(){
+let tarotShuffling = false;
+let tarotShuffleToken = 0;   // 洗牌动画中途又开了新一局时，只认最新那次
+let tarotShTimer = null;
+let tarotRunId = 0;          // 每次洗牌 / 重开一局就 +1，用来丢掉上一局还没回来的 AI 解读
+function tarotReduceMotion(){
+  try{ return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; }
+}
+function renderTarotSlots(popIdx){
   const slots = document.getElementById('tarotSlots');
   if(!slots) return;
   const n = tarotState.count || 3;
@@ -6183,44 +6525,77 @@ function renderTarotSlots(){
   slots.innerHTML = '';
   for(let i=0;i<n;i++){
     const d = document.createElement('div');
-    d.className = 'tarot-slot' + (tarotState.drawn[i] ? ' filled' : '');
+    const c = tarotState.drawn[i];
+    d.className = 'tarot-slot' + (c ? ' filled' : '') + (c && i===popIdx ? ' pop' : '');
     d.dataset.idx = i;
-    if(tarotState.drawn[i]){
-      d.innerHTML = '<div class="slot-pos">'+pos[i]+'</div>'+tarotState.drawn[i].n;
+    if(c){
+      d.innerHTML = '<div class="slot-pos">'+escapeHtml(pos[i])+'</div>'+escapeHtml(c.n)+(c.reversed ? '<div class="slot-rev">逆位</div>' : '');
     } else {
-      d.innerHTML = '<div class="slot-pos">'+pos[i]+'</div>待选';
+      d.innerHTML = '<div class="slot-pos">'+escapeHtml(pos[i])+'</div>待选';
     }
     slots.appendChild(d);
   }
 }
-function renderTarotDeckStrip(){
+function renderTarotDeckStrip(animate){
   const strip = document.getElementById('tarotDeckStrip');
   if(!strip) return;
   strip.innerHTML = '';
   const deck = tarotState.deckList || [];
+  const frag = document.createDocumentFragment();
   deck.forEach((card, i)=>{
     const el = document.createElement('div');
-    el.className = 'tarot-deck-card' + (tarotState.deckUsed && tarotState.deckUsed[i] ? ' used' : '');
+    el.className = 'tarot-deck-card' + (tarotState.deckUsed && tarotState.deckUsed[i] ? ' used' : '') + (animate ? ' deal' : '');
+    if(animate) el.style.setProperty('--d', Math.min(i, 26));
     el.dataset.deckIdx = i;
     el.onclick = function(){ pickTarotFromDeck(i); };
-    strip.appendChild(el);
+    frag.appendChild(el);
+  });
+  strip.appendChild(frag);
+  if(animate) strip.scrollLeft = 0;
+}
+function playTarotShuffleAnim(){
+  return new Promise(function(resolve){
+    const stage = document.getElementById('tarotShuffleStage');
+    if(!stage || tarotReduceMotion()){ resolve(); return; }
+    clearTimeout(tarotShTimer);
+    stage.classList.remove('shuffling');
+    void stage.offsetWidth;            // 让动画能重新从头播
+    stage.classList.add('shuffling');
+    try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
+    tarotShTimer = setTimeout(function(){ stage.classList.remove('shuffling'); resolve(); }, 1600);
   });
 }
-function shuffleTarotDeck(){
-  if((tarotState.drawn.filter(Boolean).length || 0) > 0){
-    if(!confirm('重新洗牌会清空已选牌，确定吗？')) return;
-  }
+async function runTarotShuffle(){
+  const my = ++tarotShuffleToken;
+  tarotShuffling = true;
+  tarotRunId++;
+  const n = tarotState.count || 3;
   tarotState.drawn = [];
   tarotState.deckList = buildShuffledDeck();
   tarotState.deckUsed = {};
-  const n = tarotState.count || 3;
-  document.getElementById('tarotProgress').textContent = '已抽 0/'+n+' · 请从下方牌堆轻触选牌';
   const box = document.getElementById('tarotResultBox');
-  if(box){ box.classList.add('hidden'); box.innerHTML=''; }
+  if(box){ box.classList.add('hidden'); box.innerHTML = ''; }
   renderTarotSlots();
-  renderTarotDeckStrip();
+  const prog = document.getElementById('tarotProgress');
+  const strip = document.getElementById('tarotDeckStrip');
+  if(prog) prog.textContent = '洗牌中…';
+  if(strip) strip.classList.add('shuffling-wait');
+  await playTarotShuffleAnim();
+  if(my !== tarotShuffleToken) return;   // 期间又开了新一局，收尾交给那一局
+  tarotShuffling = false;
+  if(strip) strip.classList.remove('shuffling-wait');
+  if(prog) prog.textContent = '已抽 0/'+n+' · 请从下方牌堆轻触选牌';
+  renderTarotDeckStrip(true);            // 洗完了，牌堆一张张发出来
+}
+function shuffleTarotDeck(){
+  if(tarotShuffling) return;
+  if((tarotState.drawn.filter(Boolean).length || 0) > 0){
+    if(!confirm('重新洗牌会清空已选牌，确定吗？')) return;
+  }
+  runTarotShuffle();
 }
 function pickTarotFromDeck(deckIdx){
+  if(tarotShuffling) return;
   if(tarotState.deckUsed && tarotState.deckUsed[deckIdx]) return;
   const n = tarotState.count || 3;
   const done = tarotState.drawn.filter(Boolean).length;
@@ -6238,8 +6613,11 @@ function pickTarotFromDeck(deckIdx){
   document.getElementById('tarotProgress').textContent = now >= n
     ? ('已抽 '+n+'/'+n+' · 抽牌完成')
     : ('已抽 '+now+'/'+n+' · 还需轻触 '+(n-now)+' 张牌');
-  renderTarotSlots();
-  renderTarotDeckStrip();
+  // 只给这一张打上「已用」标记，不重绘整条牌堆（重绘会让横向滑动的位置跳回最左边）
+  const strip = document.getElementById('tarotDeckStrip');
+  const el = strip && strip.children[deckIdx];
+  if(el) el.classList.add('used');
+  renderTarotSlots(slot);
   if(now >= n) showTarotResult();
 }
 function startTarotDraw(){
@@ -6248,17 +6626,18 @@ function startTarotDraw(){
   const n = tarotState.count;
   tarotState.question = (document.getElementById('tarotQuestion')||{}).value || '';
   tarotState.drawn = [];
-  tarotState.deckList = buildShuffledDeck();
+  tarotState.deckList = [];
   tarotState.deckUsed = {};
   go('tarot-draw');
   const title = tarotState.spread.name;
+  const q = tarotState.question.trim();
   document.getElementById('tarotDrawTitle').textContent = title;
-  document.getElementById('tarotDrawSub').textContent = (tarotState.question ? tarotState.question.slice(0,18)+'… · ' : '') + '需要抽 '+n+' 张';
-  document.getElementById('tarotProgress').textContent = '已抽 0/'+n+' · 请从下方牌堆轻触选牌';
+  document.getElementById('tarotDrawSub').textContent = (q ? (q.length>18 ? q.slice(0,18)+'…' : q)+' · ' : '') + '需要抽 '+n+' 张';
   const box = document.getElementById('tarotResultBox');
   if(box){ box.classList.add('hidden'); box.innerHTML=''; }
   renderTarotSlots();
   renderTarotDeckStrip();
+  runTarotShuffle();   // 进来先洗一遍牌（带动画），洗完再发牌
 }
 function flipTarotCard(){ /* 兼容旧调用，已改用牌堆点选 */ }
 
@@ -6269,16 +6648,18 @@ function cardLine(c, i, pos){
 async function showTarotResult(){
   const box = document.getElementById('tarotResultBox');
   if(!box) return;
+  const runId = tarotRunId;   // 等 AI 的时候如果又洗牌 / 重开了，这一局的结果就作废
   const n = tarotState.count || tarotState.drawn.length;
   const pos = getTarotPositions(n);
   let html = '<div class="box-title">✦ 抽牌结果（'+n+' 张）</div>';
-  if(tarotState.question) html += '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;">问题：'+tarotState.question+'</p>';
+  if(tarotState.question) html += '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;">问题：'+escapeHtml(tarotState.question)+'</p>';
   tarotState.drawn.forEach((c,i)=>{
     if(!c) return;
     html += cardLine(c, i, pos);
   });
   box.innerHTML = html;
   box.classList.remove('hidden');
+  try{ box.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(e){}
 
   // AI 解读（若已开启并配好接口），否则回退到本地简版解读
   const interpBox = document.createElement('div');
@@ -6289,9 +6670,11 @@ async function showTarotResult(){
     box.appendChild(interpBox);
     try{
       const text = await callTarotAI(pos);
+      if(runId !== tarotRunId) return;
       interpBox.textContent = text;
       saveTarotHistory(pos, text);
     }catch(err){
+      if(runId !== tarotRunId) return;
       const fb = localModelInterpret(pos);
       interpBox.innerHTML = '<span style="color:var(--rouge);">AI 解读失败：'+String(err&&err.message||err).replace(/</g,'&lt;')+'</span><br><span style="font-size:11.5px;color:var(--ink-soft);">已改用本地简版解读：</span><br><br>'+fb.replace(/</g,'&lt;');
       saveTarotHistory(pos, fb);
@@ -6335,23 +6718,35 @@ async function callTarotAI(pos){
     return (i+1)+'. 【'+posName+'】'+c.n+'（'+(c.reversed?'逆位':'正位')+'）关键词：'+c.k;
   }).filter(Boolean).join('\n');
   const userPrompt = (tarotState.question ? ('提问者的问题：'+tarotState.question+'\n\n') : '（提问者没有写具体问题，就当作是问近期的整体状况）\n\n')
-    + '本次抽到的牌阵与结果如下：\n' + cardsDesc
+    + '本次抽到的牌阵与结果如下' + (tarotState.spread ? ('（牌阵：'+tarotState.spread.name+'）') : '') + '：\n' + cardsDesc
     + '\n\n请逐张结合位置含义给出解读，每张牌不要只写一句话，再给一段整体的串联总结。';
-  const resp = await fetch(bgSettings.aiEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + bgSettings.aiKey
-    },
-    body: JSON.stringify({
-      model: bgSettings.aiModel,
-      temperature: (typeof bgSettings.temp === 'number') ? bgSettings.temp : 0.8,
-      messages: [
-        { role: 'system', content: TAROT_AI_SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt }
-      ]
-    })
-  });
+  // 加个 60 秒超时，接口卡住时不会一直显示「正在解读…」
+  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const tm = ctrl ? setTimeout(function(){ ctrl.abort(); }, 60000) : null;
+  let resp;
+  try{
+    resp = await fetch(bgSettings.aiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + bgSettings.aiKey
+      },
+      signal: ctrl ? ctrl.signal : undefined,
+      body: JSON.stringify({
+        model: bgSettings.aiModel,
+        temperature: (typeof bgSettings.temp === 'number') ? bgSettings.temp : 0.8,
+        messages: [
+          { role: 'system', content: TAROT_AI_SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+  }catch(e){
+    if(e && e.name === 'AbortError') throw new Error('等了 60 秒接口还没回应，请检查接口地址或网络');
+    throw new Error('连不上接口（地址填错、网络不通，或该接口不允许网页直接调用）');
+  }finally{
+    if(tm) clearTimeout(tm);
+  }
   if(!resp.ok){
     let msg = '接口返回 ' + resp.status;
     try{ const j = await resp.json(); msg = (j.error && (j.error.message||j.error)) || msg; }catch(e){}
@@ -6400,8 +6795,8 @@ async function openTarotHistory(){
       const q = h.question ? h.question : '（无问题）';
       return '<div class="box" style="margin-bottom:10px;padding:12px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'
-        + '<b style="font-size:13.5px;">'+(h.spreadName||'牌阵')+'</b>'
-        + '<span style="font-size:11px;color:var(--ink-soft);">'+(h.time||'')+'</span></div>'
+        + '<b style="font-size:13.5px;">'+escapeHtml(h.spreadName||'牌阵')+'</b>'
+        + '<span style="font-size:11px;color:var(--ink-soft);">'+escapeHtml(h.time||'')+'</span></div>'
         + '<div style="font-size:12.5px;margin-top:6px;">问题：'+q.replace(/</g,'&lt;')+'</div>'
         + '<div style="font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.5;">'+cards.replace(/</g,'&lt;')+'</div>'
         + (h.interp ? '<div style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px dotted var(--rule);white-space:pre-wrap;max-height:120px;overflow:auto;">'+String(h.interp).replace(/</g,'&lt;')+'</div>' : '')
@@ -6431,8 +6826,8 @@ function toggleTarotModel(){
   tarotModelOn = !tarotModelOn;
   const sw = document.getElementById('swTarotAI');
   if(sw) sw.classList.toggle('on', tarotModelOn);
-  updateModelStatusLabel();
   sSet('tarot-model-on', tarotModelOn);
+  saveBgSettings();   // 顺手把刚填的接口地址 / Key / 模型也存下来，不然没点「保存当前」就开开关，AI 解读永远用不上
 }
 function updateModelStatusLabel(){
   const lab = document.getElementById('modelStatusLabel');
@@ -6445,7 +6840,11 @@ function updateModelStatusLabel(){
 const _goTarot = go;
 go = function(name){
   _goTarot(name);
-  if(name==='tarot'){ tarotState.cat='all'; tarotState.spread=null; renderTarotSpreads(); }
+  if(name==='tarot'){
+    tarotState.cat='all'; tarotState.spread=null; renderTarotSpreads();
+    // 分类标签的高亮也要一起回到「常用」，不然上次点的是「爱情」，列表已经变回常用了，标签还亮着爱情
+    document.querySelectorAll('#tarotTabs .btn').forEach(t=>{ t.className = (t.dataset.cat==='all') ? 'btn' : 'btn outline'; });
+  }
 };
 
 /* ============================================================
@@ -6471,7 +6870,7 @@ function applyBgSettingsUI(){
   if(n) n.classList.toggle('on', !!bgSettings.notify);
   if(s) s.classList.toggle('on', bgSettings.sound!==false);
   if(k) k.classList.toggle('on', !!bgSettings.keepAlive);
-  if(t){ t.value = bgSettings.temp||0.8; const lab=document.getElementById('tempValueLabel'); if(lab) lab.textContent = t.value; }
+  if(t){ t.value = (typeof bgSettings.temp === 'number') ? bgSettings.temp : 0.8; const lab=document.getElementById('tempValueLabel'); if(lab) lab.textContent = t.value; }
   if(swAI) swAI.classList.toggle('on', !!tarotModelOn);
   if(epEl && !epEl.value) epEl.value = bgSettings.aiEndpoint || '';
   if(keyEl && !keyEl.value) keyEl.value = bgSettings.aiKey || '';
@@ -6482,7 +6881,7 @@ function applyBgSettingsUI(){
 }
 async function saveBgSettings(){
   const t = document.getElementById('aiTempSlider');
-  if(t) bgSettings.temp = parseFloat(t.value)||0.8;
+  if(t){ const tv = parseFloat(t.value); bgSettings.temp = isNaN(tv) ? 0.8 : tv; }
   const epEl = document.getElementById('tarotApiEndpoint');
   const keyEl = document.getElementById('tarotApiKey');
   const modelEl = document.getElementById('tarotApiModel');
@@ -6818,6 +7217,19 @@ async function respondInviteCard(msgId, action){
     // 对方再回应改约
     scheduleTogetherReply('watch');
   }
+}
+
+function openGameMenu(){
+  openOverlay(
+    '<div class="drawer-head"><h3>🎲 娱乐</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">挑一个和 TA 一起玩——抽签决定谁先手，TA 会想几秒再出手。</p>'+
+    '<div class="fn-panel-grid">'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'ludo\')"><div class="fn-panel-icon">🎲</div><div class="fn-panel-label">飞行棋</div></div>'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'gomoku\')"><div class="fn-panel-icon">⚫</div><div class="fn-panel-label">五子棋</div></div>'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'guess\')"><div class="fn-panel-icon">🔢</div><div class="fn-panel-label">猜数字</div></div>'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'match3\')"><div class="fn-panel-icon">🍓</div><div class="fn-panel-label">消消乐</div></div>'+
+    '</div>'
+  );
 }
 
 function openChatFunctionPanel(){
@@ -7456,7 +7868,7 @@ function openCompanionRoom(kind){
       '<div class="comp-room-bottom">'+
         '<div class="comp-chat-input">'+
           '<input type="text" id="compChatInput" placeholder="和 '+escapeHtml(name)+' 说点什么…" autocomplete="off" '+
-            'onkeydown="if(event.key===\'Enter\'){event.preventDefault();roomSend();}" '+
+            'onkeydown="if(event.key===\'Enter\'&&!event.isComposing&&event.keyCode!==229){event.preventDefault();roomSend();}" '+
             'onfocus="document.getElementById(\'compRoom\').classList.add(\'kb\')" '+
             'onblur="var r=document.getElementById(\'compRoom\');if(r)r.classList.remove(\'kb\')">'+
           '<button type="button" onpointerdown="event.preventDefault()" onclick="roomSend()">发送</button>'+
@@ -8078,6 +8490,208 @@ if('serviceWorker' in navigator){
 }
 
 loadBgSettings();
+
+/* ============================================================
+/* ---------------- 娱乐：抽签定先手，TA 想 1~30 秒后纯随机出手 ---------------- */
+let GM = { name:null, t:null, s:null, busy:false };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐' };
+function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
+function closeGame(){ clearTimeout(GM.t); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
+function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
+function gmBody(h){ const e = document.getElementById('gmBody'); if(e) e.innerHTML = h; }
+function gmName(){ return escapeHtml((chatSettings && chatSettings.companionName) || 'TA'); }
+function taThink(fn){
+  clearTimeout(GM.t);
+  GM.thinking = true;
+  const ms = 1000 + Math.random()*29000;
+  GM.t = setTimeout(()=>{ GM.thinking = false; if(GM.name) fn(); }, ms);
+}
+function openGame(name){
+  clearTimeout(GM.t);
+  GM = { name:name, t:null, s:null, busy:false };
+  gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
+  const meFirst = Math.random() < 0.5;
+  window['gm_'+name+'_init'](meFirst);
+  gmMsg('🪙 抽签结果：<b>'+(meFirst?'你先手':gmName()+' 先手')+'</b>'+(meFirst?'':'<br>'+gmName()+' 思考中…'));
+  if(!meFirst) taThink(window['gm_'+name+'_ta']);   // TA 先手也要「想」1~30 秒
+}
+function gmOver(text){ GM.over = true; gmMsg('<b>'+text+'</b>'); const b = document.getElementById('gmBody'); if(b) b.insertAdjacentHTML('beforeend','<div class="gm-btn" onclick="openGame(\''+GM.name+'\')">再来一局</div>'); }
+function gmThinking(){ gmMsg(gmName()+' 思考中…'); }
+
+/* ---- 五子棋 ---- */
+function gm_gomoku_init(me){ GM.s = { b:new Array(225).fill(0), turn: me?1:2, last:-1 }; gm_gomoku_draw(); }
+function gm_gomoku_draw(){
+  const s = GM.s; let h = '<div class="gm-go">';
+  for(let i=0;i<225;i++) h += '<div onclick="gm_gomoku_click('+i+')" class="'+(i===s.last?'last':'')+'">'+(s.b[i]===1?'⚫':s.b[i]===2?'⚪':'')+'</div>';
+  gmBody(h+'</div><div class="gm-log">你 ⚫　'+gmName()+' ⚪</div>');
+}
+function gm_gomoku_win(b,i,c){
+  const x = i%15, y = Math.floor(i/15);
+  return [[1,0],[0,1],[1,1],[1,-1]].some(([dx,dy])=>{
+    let n = 1;
+    for(const sg of [1,-1]){ let k = 1; while(true){ const nx = x+dx*k*sg, ny = y+dy*k*sg; if(nx<0||ny<0||nx>14||ny>14||b[ny*15+nx]!==c) break; n++; k++; } }
+    return n>=5;
+  });
+}
+function gm_gomoku_place(i,c){
+  const s = GM.s; s.b[i] = c; s.last = i; gm_gomoku_draw();
+  if(gm_gomoku_win(s.b,i,c)){ gmOver(c===1?'🎉 你赢啦':gmName()+' 赢了'); return true; }
+  if(s.b.every(v=>v)){ gmOver('平局'); return true; }
+  s.turn = c===1?2:1; return false;
+}
+function gm_gomoku_click(i){
+  const s = GM.s; if(!s || GM.over || s.turn!==1 || s.b[i]) return;
+  if(gm_gomoku_place(i,1)) return;
+  gmThinking(); taThink(gm_gomoku_ta);
+}
+function gm_gomoku_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  const e = []; s.b.forEach((v,i)=>{ if(!v) e.push(i); });
+  if(gm_gomoku_place(e[Math.floor(Math.random()*e.length)],2)) return;
+  gmMsg('轮到你了');
+}
+
+/* ---- 猜数字：共用一个 1~100 的数，轮流猜，先猜中的赢 ---- */
+function gm_guess_init(me){ GM.s = { n:1+Math.floor(Math.random()*100), lo:1, hi:100, turn:me?1:2, log:[] }; gm_guess_draw(); }
+function gm_guess_draw(){
+  const s = GM.s;
+  gmBody('<div class="gm-msg" style="font-size:15px;">范围：<b>'+s.lo+' ~ '+s.hi+'</b></div><div style="display:flex;gap:8px;justify-content:center;"><input type="number" id="gmGuessIn" inputmode="numeric" placeholder="猜一个数" style="width:130px;text-align:center;"><div class="gm-btn '+(s.turn===1&&!GM.over?'':'off')+'" style="margin:0;padding:8px 18px;" onclick="gm_guess_click()">猜</div></div><div class="gm-log">'+s.log.join('<br>')+'</div>');
+}
+function gm_guess_apply(g,who){
+  const s = GM.s, name = who===1?'你':gmName();
+  if(g===s.n){ s.log.unshift(name+' 猜 '+g+' → 🎯 猜中了'); gm_guess_draw(); gmOver(who===1?'🎉 你猜中啦，答案是 '+s.n:gmName()+' 猜中了，答案是 '+s.n); return true; }
+  if(g<s.n){ s.lo = Math.max(s.lo,g+1); s.log.unshift(name+' 猜 '+g+' → 小了'); } else { s.hi = Math.min(s.hi,g-1); s.log.unshift(name+' 猜 '+g+' → 大了'); }
+  s.turn = who===1?2:1; gm_guess_draw(); return false;
+}
+function gm_guess_click(){
+  const s = GM.s; if(!s || GM.over || s.turn!==1) return;
+  const g = parseInt((document.getElementById('gmGuessIn')||{}).value,10);
+  if(isNaN(g) || g<s.lo || g>s.hi){ gmMsg('请输入 '+s.lo+' ~ '+s.hi+' 之间的整数'); return; }
+  if(gm_guess_apply(g,1)) return;
+  gmThinking(); taThink(gm_guess_ta);
+}
+function gm_guess_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  if(gm_guess_apply(s.lo+Math.floor(Math.random()*(s.hi-s.lo+1)),2)) return;
+  gmMsg('轮到你了');
+}
+
+/* ---- 飞行棋（简化版）：一人一架，掷 6 起飞，撞到对方把对方打回机库，先到终点(30)赢 ---- */
+function gm_ludo_init(me){ GM.s = { me:0, ta:0, turn:me?1:2, dice:0 }; gm_ludo_draw(); }
+function gm_ludo_draw(){
+  const s = GM.s; let h = '<div class="gm-ludo">';
+  for(let i=1;i<=30;i++) h += '<div><small>'+i+'</small>'+(s.me===i?'🩷':'')+(s.ta===i?'💙':'')+'</div>';
+  h += '</div><div class="gm-log">🩷 你：'+(s.me?'第 '+s.me+' 格':'机库')+'　💙 '+gmName()+'：'+(s.ta?'第 '+s.ta+' 格':'机库')+'</div>'
+    + '<div style="text-align:center;font-size:44px;margin-top:6px;">'+(s.dice?['','⚀','⚁','⚂','⚃','⚄','⚅'][s.dice]:'🎲')+'</div>'
+    + '<div class="gm-btn '+(s.turn===1&&!GM.over?'':'off')+'" onclick="gm_ludo_roll()">掷骰子</div>';
+  gmBody(h);
+}
+function gm_ludo_move(who,d){
+  const s = GM.s, k = who===1?'me':'ta', o = who===1?'ta':'me', name = who===1?'你':gmName();
+  s.dice = d; let pos = s[k], note = '';
+  if(pos===0){ if(d===6){ pos = 1; note = '起飞！'; } else note = '没掷到 6，还在机库'; }
+  else { pos += d; if(pos>30) pos = 30-(pos-30); }
+  s[k] = pos;
+  if(pos>0 && pos<30 && s[o]===pos){ s[o] = 0; note += ' 撞飞了对方，对方回机库！'; }
+  if(pos===30){ gm_ludo_draw(); gmOver(who===1?'🎉 你先到终点啦':gmName()+' 先到终点了'); return true; }
+  const again = d===6;
+  gm_ludo_draw();
+  gmMsg(name+' 掷出 <b>'+d+'</b> '+note+(again?'（6 点，再掷一次）':''));
+  s.turn = again ? who : (who===1?2:1);
+  return false;
+}
+function gm_ludo_roll(){
+  const s = GM.s; if(!s || GM.over || s.turn!==1) return;
+  if(gm_ludo_move(1,1+Math.floor(Math.random()*6))) return;
+  gm_ludo_draw(); if(s.turn===2){ gmThinking(); taThink(gm_ludo_ta); }
+}
+function gm_ludo_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  if(gm_ludo_move(2,1+Math.floor(Math.random()*6))) return;
+  gm_ludo_draw();
+  if(s.turn===2){ gmThinking(); taThink(gm_ludo_ta); }   // TA 掷到 6 再掷一次
+}
+
+/* ---- 消消乐：8×8 棋盘 6 种水果，你一步 TA 一步轮流，各走 15 步，共 15 局；消掉后掉落补充，按连击计分，走完比总分 ---- */
+const M3 = ['🍓','🍋','🍇','🍑','🫐','🍊'], M3N = 8, M3_ROUNDS = 15;
+function m3_matches(b){
+  const set = new Set();
+  for(let y=0;y<M3N;y++) for(let x=0;x<M3N;x++){
+    const v = b[y*M3N+x]; if(v===null) continue;
+    if(x<=M3N-3 && b[y*M3N+x+1]===v && b[y*M3N+x+2]===v){ set.add(y*M3N+x); set.add(y*M3N+x+1); set.add(y*M3N+x+2); }
+    if(y<=M3N-3 && b[(y+1)*M3N+x]===v && b[(y+2)*M3N+x]===v){ set.add(y*M3N+x); set.add((y+1)*M3N+x); set.add((y+2)*M3N+x); }
+  }
+  return set;
+}
+function m3_fresh(){
+  let b;
+  do{ b = Array.from({length:M3N*M3N},()=>Math.floor(Math.random()*M3.length)); }while(m3_matches(b).size || m3_valid(b).length===0);
+  return b;
+}
+function m3_swap(b,i,j){ const c = b.slice(); const t = c[i]; c[i] = c[j]; c[j] = t; return c; }
+function m3_valid(b){
+  const r = [];
+  for(let y=0;y<M3N;y++) for(let x=0;x<M3N;x++){
+    const i = y*M3N+x;
+    if(x<M3N-1 && m3_matches(m3_swap(b,i,i+1)).size) r.push([i,i+1]);
+    if(y<M3N-1 && m3_matches(m3_swap(b,i,i+M3N)).size) r.push([i,i+M3N]);
+  }
+  return r;
+}
+function gm_match3_over(){
+  const s = GM.s; gm_match3_draw();
+  gmOver(s.sc[1]>s.sc[2]?'🎉 你赢啦 '+s.sc[1]+' : '+s.sc[2]:s.sc[1]<s.sc[2]?gmName()+' 赢了 '+s.sc[2]+' : '+s.sc[1]:'平局 '+s.sc[1]+' : '+s.sc[2]);
+}
+function gm_match3_init(me){ GM.s = { b:m3_fresh(), turn:me?1:2, sc:[0,0,0], round:1, steps:[0,0,0], sel:-1 }; gm_match3_draw(); }
+function gm_match3_draw(){
+  const s = GM.s;
+  const who = s.turn===2 ? gmName() : '你';
+  gmBody('<div class="gm-log" style="margin:0 0 8px;">🩷 你 <b>'+s.sc[1]+'</b> 分（'+s.steps[1]+'/'+M3_ROUNDS+'）　💙 '+gmName()+' <b>'+s.sc[2]+'</b> 分（'+s.steps[2]+'/'+M3_ROUNDS+'）　·　第 <b>'+s.round+'</b> 局　·　轮到 <b>'+who+'</b></div><div class="gm-m3">'
+    + s.b.map((v,i)=>'<div class="'+(i===s.sel?'sel':'')+'" onclick="gm_match3_click('+i+')">'+(v===null?'':M3[v])+'</div>').join('') + '</div>');
+}
+async function gm_match3_resolve(who,i,j){
+  const s = GM.s; s.b = m3_swap(s.b,i,j); s.sel = -1; gm_match3_draw();
+  let combo = 0;
+  while(true){
+    const m = m3_matches(s.b); if(!m.size) break;
+    combo++; s.sc[who] += m.size * combo;
+    m.forEach(k=>{ s.b[k] = null; }); gm_match3_draw();
+    await new Promise(r=>setTimeout(r,320)); if(!GM.name) return false;
+    for(let x=0;x<M3N;x++){
+      const col = []; for(let y=M3N-1;y>=0;y--) if(s.b[y*M3N+x]!==null) col.push(s.b[y*M3N+x]);
+      for(let y=M3N-1,k=0;y>=0;y--,k++) s.b[y*M3N+x] = k<col.length ? col[k] : Math.floor(Math.random()*M3.length);
+    }
+    gm_match3_draw(); await new Promise(r=>setTimeout(r,320)); if(!GM.name) return false;
+  }
+  return true;
+}
+function gm_match3_next(who){
+  const s = GM.s;
+  s.steps[who]++;
+  if(s.steps[1]>=M3_ROUNDS && s.steps[2]>=M3_ROUNDS){ gm_match3_over(); return; }
+  let nx = who===1?2:1; if(s.steps[nx]>=M3_ROUNDS) nx = who;
+  if(nx===1 && who===2) s.round++;
+  s.turn = nx; gm_match3_draw();
+  if(nx===2){ gmThinking(); taThink(gm_match3_ta); } else gmMsg('轮到你了，点两个相邻的格子交换');
+}
+async function gm_match3_click(i){
+  const s = GM.s; if(!s || GM.over || s.turn!==1 || GM.busy) return;
+  if(s.sel<0){ s.sel = i; gm_match3_draw(); return; }
+  const a = s.sel, adj = Math.abs(a-i)===M3N || (Math.abs(a-i)===1 && Math.floor(a/M3N)===Math.floor(i/M3N));
+  if(!adj){ s.sel = i; gm_match3_draw(); return; }
+  if(!m3_matches(m3_swap(s.b,a,i)).size){ s.sel = -1; gm_match3_draw(); gmMsg('这样换不会消除，换一个'); return; }
+  GM.busy = true; s.turn = 0;
+  const ok = await gm_match3_resolve(1,a,i); GM.busy = false;
+  if(ok) gm_match3_next(1);
+}
+async function gm_match3_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  const v = m3_valid(s.b); if(!v.length){ s.b = m3_fresh(); gm_match3_draw(); }
+  const vv = m3_valid(s.b); const [a,b] = vv[Math.floor(Math.random()*vv.length)];
+  GM.busy = true; const ok = await gm_match3_resolve(2,a,b); GM.busy = false;
+  if(ok) gm_match3_next(2);
+}
+
 
 
 
