@@ -427,7 +427,7 @@
   #view-chat.hidden{ display:none !important; }
   #view-chat .view-head{ padding:10px 14px; margin:0; background:transparent; flex-shrink:0; }
   .chat-wrap{ display:flex; flex-direction:column; flex:1; height:auto; border:none; background:transparent; box-shadow:none; margin:0; border-radius:0; min-height:0; }
-  .chat-head{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--rule); background:transparent; position:sticky; top:0; z-index:5; flex-shrink:0; }
+  .chat-head{ display:flex; align-items:center; gap:0; padding:10px 10px; border-bottom:1px solid var(--rule); background:transparent; position:sticky; top:0; z-index:5; flex-shrink:0; }
   .chat-head .info{ flex:1; min-width:0; }
   .chat-head .cname{ font-family:'Noto Serif SC',serif; font-weight:700; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .chat-head .cstat{ font-size:11px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -505,9 +505,9 @@
   margin-left: 8px;
   box-shadow:none;
 }
-.chat-input-bar{ display:flex; align-items:center; gap:6px; padding:10px 12px; border-top:1px solid var(--rule); background:transparent; position:sticky; bottom:0; }
-  .chat-input-bar input{ flex:1; }
-  .mini-btn{ border:1px solid var(--ink); background:transparent; width:38px; height:38px; border-radius:10px; display:flex;align-items:center;justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0; transition: transform .1s, background .1s;}
+.chat-input-bar{ display:flex; align-items:center; gap:0; padding:8px 4px; border-top:1px solid var(--rule); background:transparent; position:sticky; bottom:0; }
+  .chat-input-bar input{ flex:1; min-width:0; }
+  .mini-btn{ border:1px solid var(--ink); background:transparent; width:36px; height:36px; border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0; transition: transform .1s, background .1s;}
   .mini-btn:active{ transform:scale(0.9); background:var(--blush); }
 
   /* modal / drawer */
@@ -1059,16 +1059,24 @@
   background:rgba(180,60,80,0.85); color:#fff; font-size:14px; font-weight:600;
 }
 .comp-float-peer{
-  position:fixed; top:calc(12px + env(safe-area-inset-top,0)); right:14px; z-index:61;
-  display:flex; align-items:center; gap:8px; padding:6px 8px 6px 6px;
-  background:rgba(255,255,255,0.92); color:#333; border-radius:999px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.2); font-size:12px;
+  position:fixed; top:auto; bottom:calc(80px + env(safe-area-inset-bottom,0)); right:12px; z-index:200;
+  display:flex; align-items:center; gap:7px; padding:7px 14px 7px 8px;
+  background:var(--ink); color:var(--paper); border-radius:22px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.32); font-size:12px;
+  cursor:grab; touch-action:none; user-select:none; -webkit-tap-highlight-color:transparent;
 }
+.comp-float-peer.hidden{ display:none !important; }
+.comp-float-peer.dragging{ cursor:grabbing; }
 .comp-float-peer .av{
-  width:28px; height:28px; border-radius:50%; overflow:hidden; background:#eee;
-  display:flex; align-items:center; justify-content:center; font-size:14px;
+  width:28px; height:28px; border-radius:50%; overflow:hidden; background:rgba(255,255,255,0.18);
+  display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;
 }
 .comp-float-peer .av img{ width:100%; height:100%; object-fit:cover; }
+.comp-float-peer .lab{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+.comp-float-dot{
+  width:7px; height:7px; border-radius:50%; background:#4CD964;
+  animation:pulseDot 1.2s infinite; flex-shrink:0;
+}
 
 
 .pwa-install-bar{
@@ -1110,9 +1118,58 @@
 .comp-light-row{ gap:5px; margin-top:7px; }
 .comp-light-row button{ min-width:60px; padding:6px; border-radius:9px; font-size:10px; }
 .comp-end-btn{ margin-top:7px; padding:9px; border-radius:10px; font-size:12.5px; }
-.comp-float-peer{ font-size:10.5px; padding:5px 7px 5px 5px; }
-.comp-float-peer .av{ width:26px; height:26px; font-size:13px; }
 
+
+/* ---- 陪伴空间里的聊天：TA 会主动说话，你也可以回 ---- */
+.comp-room-center{ flex:none; gap:6px; padding:4px 16px 6px; }
+.comp-timer{ font-size:28px; }
+.comp-chat{
+  position:relative; z-index:2; flex:1; min-height:0; overflow-y:auto; padding:10px 16px 6px;
+  display:flex; flex-direction:column; gap:8px; -webkit-overflow-scrolling:touch;
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 22px);
+          mask-image:linear-gradient(to bottom, transparent 0, #000 22px);
+}
+.comp-chat .cm{
+  max-width:78%; padding:8px 12px; border-radius:16px 16px 16px 5px; font-size:13.5px; line-height:1.5;
+  word-break:break-word; align-self:flex-start; color:#fff;
+  background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(6px);
+  animation:compFloatIn .2s ease-out;
+}
+.comp-chat .cm.me{ align-self:flex-end; border-radius:16px 16px 5px 16px; background:rgba(255,226,200,0.26); }
+.comp-chat .cm .st{ font-size:28px; line-height:1.2; }
+.comp-chat .cm img{ max-width:84px; max-height:84px; border-radius:8px; display:block; }
+.comp-chat .cm .st + .tx{ margin-top:4px; }
+.comp-chat .cm-sys{ align-self:center; font-size:11px; opacity:.7; text-align:center; padding:2px 8px; }
+.comp-chat .cm-typing{ align-self:flex-start; font-size:11.5px; opacity:.75; padding:2px 6px; }
+.comp-chat-input{ display:flex; gap:6px; margin-bottom:7px; }
+.comp-chat-input input{
+  flex:1; min-width:0; width:auto; height:auto; margin:0; padding:5px 12px; border-radius:999px; line-height:1.3;
+  border:1px solid rgba(255,255,255,0.22); background:rgba(0,0,0,0.34); color:#fff; font-size:16px; outline:none;
+  box-shadow:none;
+}
+.comp-chat-input input::placeholder{ color:rgba(255,255,255,0.5); }
+.comp-chat-input button{
+  flex:none; border:none; border-radius:999px; padding:0 13px; cursor:pointer;
+  background:rgba(255,255,255,0.24); color:#fff; font-size:12px; font-weight:600;
+}
+.comp-room.kb .comp-light-card, .comp-room.kb .comp-end-btn{ display:none; }
+/* 传讯页小图标：更大更紧凑 */
+#view-chat .mini-btn{
+  border:none; background:transparent;
+  width:34px; height:34px; border-radius:8px;
+  display:inline-flex; align-items:center; justify-content:center;
+  color:var(--ink); padding:0; line-height:0;
+}
+#view-chat .mini-btn:active{ background:var(--blush); transform:scale(0.92); }
+#view-chat .mini-btn svg{
+  width:26px; height:26px;
+  fill:none; stroke:currentColor; stroke-width:1.6;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+#view-chat .chat-head .mini-btn{ width:32px; height:32px; }
+#view-chat .chat-head .mini-btn svg{ width:24px; height:24px; }
+#view-chat .chat-input-bar .mini-btn{ width:34px; height:34px; }
+#view-chat .chat-input-bar .mini-btn svg{ width:26px; height:26px; }
 </style>
 </head>
 <body>
@@ -1135,6 +1192,11 @@
   <div class="call-bubble hidden" id="callBubble" onclick="restoreCall()">
     <span class="call-bubble-dot"></span>
     <span id="callBubbleText">通话中 00:00</span>
+  </div>
+  <div class="comp-float-peer hidden" id="compFloatPeer">
+    <span class="comp-float-dot"></span>
+    <div class="av" id="compFloatAv">🌙</div>
+    <span class="lab" id="compFloatText">陪伴中 00:00:00</span>
   </div>
 
   <!-- ============ HOME ============ -->
@@ -1264,22 +1326,31 @@
 
   <!-- ============ CHAT ============ -->
   <section id="view-chat" class="view hidden">
-    <div class="view-head">
-      <div class="icon-btn" onclick="go('home')">←</div>
-      <h2 id="chatTitle">传讯</h2>
-      <div class="icon-btn" style="margin-left:auto;" onclick="openChatSettings()">⚙️</div>
-    </div>
     <div class="chat-wrap">
       <div class="chat-head">
-        <div class="avatar" id="chatAvatarBox" style="width:36px;height:36px;font-size:16px;">🌙</div>
+        <div class="mini-btn" onclick="go('home')" title="返回">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        </div>
+        <div class="avatar" id="chatAvatarBox" style="width:34px;height:34px;font-size:16px;">🌙</div>
         <div class="info">
           <div class="cname" id="chatCName">陆沉</div>
           <div class="cstat" id="chatCStat" onclick="openTodayStatusPanel()" style="cursor:pointer;">在线</div>
         </div>
-        <div class="mini-btn" style="width:32px;height:32px;font-size:14px;" onclick="triggerProactiveMessage()" title="让TA主动找我">💌</div>
-        <div class="mini-btn" style="width:32px;height:32px;font-size:14px;" onclick="startOutgoingCall()" title="打电话">📞</div>
-        <div class="mini-btn" style="width:32px;height:32px;font-size:14px;" onclick="go('calls')" title="通话记录">🕑</div>
-        <div class="mini-btn" style="width:32px;height:32px;font-size:14px;" onclick="openChatFunctionPanel()" title="更多功能">✨</div>
+        <div class="mini-btn" onclick="triggerProactiveMessage()" title="让TA主动找我">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/><path d="M12 13v5" opacity=".4"/></svg>
+        </div>
+        <div class="mini-btn" onclick="startOutgoingCall()" title="打电话">
+          <svg viewBox="0 0 24 24"><path d="M6.5 3.5c.6-.6 1.6-.6 2.2 0l1.6 1.6c.5.5.5 1.4 0 1.9l-1.3 1.3a12 12 0 0 0 5.7 5.7l1.3-1.3c.5-.5 1.4-.5 1.9 0l1.6 1.6c.6.6.6 1.6 0 2.2l-1.4 1.4c-.7.7-1.7.9-2.6.5A16 16 0 0 1 4.6 7.5c-.4-.9-.2-1.9.5-2.6z"/></svg>
+        </div>
+        <div class="mini-btn" onclick="go('calls')" title="通话记录">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.5 2"/></svg>
+        </div>
+        <div class="mini-btn" onclick="openChatFunctionPanel()" title="更多功能">
+          <svg viewBox="0 0 24 24"><path d="M12 4.5v2M12 17.5v2M4.5 12h2M17.5 12h2M6.8 6.8l1.4 1.4M15.8 15.8l1.4 1.4M6.8 17.2l1.4-1.4M15.8 8.2l1.4-1.4"/><circle cx="12" cy="12" r="2.2"/></svg>
+        </div>
+        <div class="mini-btn" onclick="openChatSettings()" title="传讯设置">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
       </div>
       <div class="chat-msgs" id="chatMsgs"></div>
       <div id="quoteBar" class="quote-bar hidden"></div>
@@ -1290,13 +1361,23 @@
         <span class="close-x" onclick="clearPendingSticker()" title="取消">✕</span>
       </div>
       <div class="chat-input-bar">
-        <div class="mini-btn" onclick="openCardPicker()">🎴</div>
-        <div class="mini-btn" onclick="openStickerPicker('attach')" title="表情可与文字同发">😊</div>
-        <div class="mini-btn" onclick="openSendRedPacket()">🧧</div>
-        <div class="mini-btn" onclick="document.getElementById('chatImageInput').click()">🖼</div>
+        <div class="mini-btn" onclick="openCardPicker()" title="字卡">
+          <svg viewBox="0 0 24 24"><rect x="5" y="4" width="10" height="14" rx="1.5"/><rect x="9" y="6" width="10" height="14" rx="1.5" opacity=".55"/><path d="M8 9h4M8 12h3"/></svg>
+        </div>
+        <div class="mini-btn" onclick="openStickerPicker('attach')" title="表情可与文字同发">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.5 14.5c1.2 1.3 2.8 2 3.5 2s2.3-.7 3.5-2"/></svg>
+        </div>
+        <div class="mini-btn" onclick="openSendRedPacket()" title="红包">
+          <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M5 9h14"/><circle cx="12" cy="13.5" r="2.2"/></svg>
+        </div>
+        <div class="mini-btn" onclick="document.getElementById('chatImageInput').click()" title="图片">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m7 16 3.5-3.5 2.5 2.5 3-4L17 16"/></svg>
+        </div>
         <input type="file" id="chatImageInput" accept="image/*" class="hidden" onchange="onChatImageFile(event)">
         <input type="text" id="chatInput" placeholder="说点什么…" onkeydown="if(event.key==='Enter')sendUserMessage()">
-        <div class="mini-btn" onclick="sendUserMessage()">➤</div>
+        <div class="mini-btn" onclick="sendUserMessage()" title="发送">
+          <svg viewBox="0 0 24 24"><path d="M4 12h13M13 6l6 6-6 6"/></svg>
+        </div>
       </div>
     </div>
   </section>
@@ -2286,8 +2367,10 @@ function renderHomeProfile(){
   if(caption) caption.textContent = profile.status || '';
   const ph = document.getElementById('polaroidPh');
   if(ph) ph.innerHTML = profile.photo ? `<img loading="lazy" decoding="async" src="${profile.photo}">` : '';
-  document.getElementById('chatCName').textContent = chatSettings.companionName;
-  document.getElementById('chatTitle').textContent = '传讯 · '+chatSettings.companionName;
+  const chatCNameEl = document.getElementById('chatCName');
+  if(chatCNameEl) chatCNameEl.textContent = chatSettings.companionName;
+  const chatTitleEl = document.getElementById('chatTitle');
+  if(chatTitleEl) chatTitleEl.textContent = '传讯 · '+chatSettings.companionName;
   const chatAvatarEl = document.getElementById('chatAvatarBox');
   if(chatAvatarEl) chatAvatarEl.innerHTML = profile.avatar && profile.avatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.avatar}">` : (profile.avatar||'🌙');
   renderMomentsHeader();
@@ -2438,13 +2521,20 @@ function onMyAvatarFile(e){
   const f = e.target.files[0]; if(!f) return;
   const reader = new FileReader();
   reader.onload = async ()=>{
-    profile.myAvatar = await compressImage(reader.result, 400);
-    await sSet('profile', profile);
-    renderMomentsHeader();
-    renderMoments();
-    renderAnniversary();
+    try{
+      const compressed = await compressImage(reader.result, 400);
+      if(!compressed){ alert('图片格式不支持或解码失败，请换一张试试'); return; }
+      profile.myAvatar = compressed;
+      await sSet('profile', profile);
+      renderMomentsHeader();
+      renderMoments();
+      renderAnniversary();
+      renderHomeProfile();
+    }catch(err){ console.error(err); alert('头像上传失败：'+(err&&err.message?err.message:'未知错误')); }
   };
+  reader.onerror = ()=> alert('读取文件失败');
   reader.readAsDataURL(f);
+  e.target.value = '';
 }
 
 /* ============================================================
@@ -3329,7 +3419,7 @@ function scheduleAutoReply(userText){
     if(last) last.read = true;
     try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
     try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
-    if(currentView !== 'chat'){
+    if(currentView !== 'chat' && !roomIsOpen()){
       chatUnread = true;
       try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
       try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
@@ -3574,7 +3664,7 @@ function runProactiveBurst(){
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
     chatMessages.push(newMsg);
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
-    if(currentView==='chat'){ try{ renderChat(); }catch(e){} }
+    if(currentView==='chat' || roomIsOpen()){ try{ renderChat(); }catch(e){} }
     else{
       chatUnread = true;
       try{ await sSet('chat-unread', true); }catch(e){}
@@ -5858,13 +5948,16 @@ async function onAvatarFile(e){
   const reader = new FileReader();
   reader.onload = async ()=>{
     try{
-      profile.avatar = await compressImage(reader.result, 400);
+      const compressed = await compressImage(reader.result, 400);
+      if(!compressed){ alert('图片格式不支持或解码失败，请换一张试试'); return; }
+      profile.avatar = compressed;
       await sSet('profile', profile);
       renderHomeProfile();
       if(typeof fillSettingsForm === 'function') fillSettingsForm();
       alert('头像已更新');
-    }catch(err){ console.error(err); alert('头像上传失败'); }
+    }catch(err){ console.error(err); alert('头像上传失败：'+(err&&err.message?err.message:'未知错误')); }
   };
+  reader.onerror = ()=> alert('读取文件失败');
   reader.readAsDataURL(f);
   e.target.value = '';
 }
@@ -5874,12 +5967,15 @@ async function onPhotoUpload(e){
   const reader = new FileReader();
   reader.onload = async ()=>{
     try{
-      profile.photo = await compressImage(reader.result, 900);
+      const compressed = await compressImage(reader.result, 900);
+      if(!compressed){ alert('图片格式不支持或解码失败，请换一张试试'); return; }
+      profile.photo = compressed;
       await sSet('profile', profile);
       renderHomeProfile();
       alert('照片已更新');
-    }catch(err){ console.error(err); alert('照片上传失败'); }
+    }catch(err){ console.error(err); alert('照片上传失败：'+(err&&err.message?err.message:'未知错误')); }
   };
+  reader.onerror = ()=> alert('读取文件失败');
   reader.readAsDataURL(f);
   e.target.value = '';
 }
@@ -6691,10 +6787,14 @@ async function respondInviteCard(msgId, action){
       openListenTogetherPanel(false);
     } else if(kind==='study'){
       togetherState.study.active = true; togetherState.study.accepted = true;
+      if(!togetherState.study.startedAt) togetherState.study.startedAt = Date.now();
       openStudyTogetherPanel(false);
+      try{ refreshCompanionFloat(); }catch(e){}
     } else if(kind==='sleep'){
       togetherState.sleep.active = true; togetherState.sleep.accepted = true;
+      if(!togetherState.sleep.startedAt) togetherState.sleep.startedAt = Date.now();
       openSleepTogetherPanel(false);
+      try{ refreshCompanionFloat(); }catch(e){}
     }
   } else if(action==='decline'){
     await updateInviteCardStatus(msgId, 'declined');
@@ -6725,6 +6825,7 @@ function openChatFunctionPanel(){
     '<div class="drawer-head"><h3>✨ 功能</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
     '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">一起听 / 学 / 睡可以互相邀请；发出后，对方会按「传讯设置」里的回复时长随机回应（约 75% 接受）。</p>'+
     '<div class="fn-panel-grid">'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openChatSettings();"><div class="fn-panel-icon">⚙️</div><div class="fn-panel-label">传讯设置</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openQuestionnaireComposer();"><div class="fn-panel-icon">📋</div><div class="fn-panel-label">梦向问卷</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openGesturePicker();"><div class="fn-panel-icon">👋</div><div class="fn-panel-label">小动作</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openWebLinkComposer();"><div class="fn-panel-icon">🔗</div><div class="fn-panel-label">网页链接</div></div>'+
@@ -7226,10 +7327,12 @@ function scheduleTogetherReply(kind){
         togetherState.study.startedAt = Date.now();
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起学习', { kind:'study', status:'accepted', inviter:'user', from:'bot' });
+        try{ refreshCompanionFloat(); }catch(e){}
       } else {
         togetherState.study.active = false;
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 婉拒了一起学习', { kind:'study', status:'declined', inviter:'user', from:'bot' });
+        try{ refreshCompanionFloat(); }catch(e){}
       }
     } else if(kind==='sleep'){
       togetherState.sleep.accepted = accept;
@@ -7238,10 +7341,12 @@ function scheduleTogetherReply(kind){
         togetherState.sleep.startedAt = Date.now();
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起睡觉', { kind:'sleep', status:'accepted', inviter:'user', from:'bot' });
+        try{ refreshCompanionFloat(); }catch(e){}
       } else {
         togetherState.sleep.active = false;
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 还想再待一会儿', { kind:'sleep', status:'declined', inviter:'user', from:'bot' });
+        try{ refreshCompanionFloat(); }catch(e){}
       }
     } else if(kind==='watch'){
       togetherState.watch.accepted = accept;
@@ -7299,6 +7404,7 @@ async function endListenTogether(){
 
 function stopCompanionRoomTimer(){
   if(togetherState.roomTimer){ clearInterval(togetherState.roomTimer); togetherState.roomTimer = null; }
+  if(typeof roomChatStop==='function') roomChatStop();
 }
 function formatRoomTimer(ms){
   var s = Math.max(0, Math.floor(ms/1000));
@@ -7346,7 +7452,15 @@ function openCompanionRoom(kind){
         '<div class="comp-timer-label" id="compTimerLabel">'+(st.durationLimit?('限时陪伴 · 点击可改'):'不限时陪伴 · 点击可改')+'</div>'+
         '<div class="comp-timer" id="compTimer">00:00:00</div>'+
       '</div>'+
+      '<div class="comp-chat" id="compChat"></div>'+
       '<div class="comp-room-bottom">'+
+        '<div class="comp-chat-input">'+
+          '<input type="text" id="compChatInput" placeholder="和 '+escapeHtml(name)+' 说点什么…" autocomplete="off" '+
+            'onkeydown="if(event.key===\'Enter\'){event.preventDefault();roomSend();}" '+
+            'onfocus="document.getElementById(\'compRoom\').classList.add(\'kb\')" '+
+            'onblur="var r=document.getElementById(\'compRoom\');if(r)r.classList.remove(\'kb\')">'+
+          '<button type="button" onpointerdown="event.preventDefault()" onclick="roomSend()">发送</button>'+
+        '</div>'+
         '<div class="comp-light-card">'+
           '<div class="lab">ROOM LIGHT</div>'+
           '<div class="name" id="compLightName">'+({dim:'只留一点光',soft:'柔一点的光',warm:'暖黄的光'})[st.light]+'</div>'+
@@ -7365,10 +7479,13 @@ function openCompanionRoom(kind){
   if(lab) lab.onclick = function(){ pickCompanionDuration(kind); };
   togetherState.roomTimer = setInterval(function(){ tickCompanionRoom(kind); }, 1000);
   tickCompanionRoom(kind);
+  try{ refreshCompanionFloat(); }catch(e){}
+  roomChatStart(kind);
 }
 function tickCompanionRoom(kind){
   var st = togetherState[kind];
   if(!st || !st.startedAt) return;
+  try{ roomSyncChat(false); }catch(e){}
   var elapsed = Date.now() - st.startedAt;
   var el = document.getElementById('compTimer');
   if(el) el.textContent = formatRoomTimer(elapsed);
@@ -7426,7 +7543,200 @@ function resetCompanionBg(){
 function closeCompanionRoom(end){
   stopCompanionRoomTimer();
   closeOverlay();
+  try{ refreshCompanionFloat(); }catch(e){}
 }
+/* ============ 陪伴悬浮按钮 ============
+   一起学习 / 一起睡觉 进行中、而陪伴空间被「收起」时，右下角出现一个小胶囊：
+   头像 + 「陪伴中 00:12:03」，点一下回到陪伴空间。空间打开、或有抽屉面板盖着时自动隐藏。 */
+function activeCompanionKind(){
+  if(togetherState.sleep.active && togetherState.sleep.accepted) return 'sleep';
+  if(togetherState.study.active && togetherState.study.accepted) return 'study';
+  return null;
+}
+function refreshCompanionFloat(){
+  var el = document.getElementById('compFloatPeer');
+  if(!el) return;
+  var kind = activeCompanionKind();
+
+  // 没有进行中的陪伴 → 隐藏
+  if(!kind){
+    el.classList.add('hidden');
+    return;
+  }
+
+  // 限时到点自动结束
+  var st = togetherState[kind];
+  if(st && st.startedAt && st.durationLimit && Date.now()-st.startedAt >= st.durationLimit){
+    if(kind==='sleep') endSleepTogether(); else endStudyTogether();
+    el.classList.add('hidden');
+    return;
+  }
+
+  // 一直挂着显示（像通话挂件一样）
+  var elapsed = st && st.startedAt ? (Date.now() - st.startedAt) : 0;
+  var timerText = (typeof formatRoomTimer === 'function') ? formatRoomTimer(elapsed) : '00:00:00';
+  var avEl = document.getElementById('compFloatAv');
+  var textEl = document.getElementById('compFloatText');
+  if(avEl){
+    avEl.innerHTML = (profile.avatar && String(profile.avatar).startsWith('data:'))
+      ? '<img src="'+profile.avatar+'" alt="">' : (profile.avatar || '🌙');
+  }
+  if(textEl) textEl.textContent = '陪伴中 '+timerText;
+  el.classList.remove('hidden');
+}
+setInterval(function(){ try{ refreshCompanionFloat(); }catch(e){} }, 1000);
+
+// 陪伴挂件：可拖动 + 点击回到陪伴空间（拖过就不触发点击）
+(function initCompFloatDrag(){
+  function bind(){
+    var bubble = document.getElementById('compFloatPeer');
+    if(!bubble || bubble.dataset.dragBound) return;
+    bubble.dataset.dragBound = '1';
+    var dragging = false, moved = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    bubble.addEventListener('pointerdown', function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      var rect = bubble.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+      dragging = true; moved = false;
+      bubble.classList.add('dragging');
+      try{ bubble.setPointerCapture(e.pointerId); }catch(_){}
+      e.preventDefault();
+    });
+    bubble.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      if(!moved) return;
+      var maxLeft = Math.max(0, window.innerWidth - bubble.offsetWidth);
+      var maxTop = Math.max(0, window.innerHeight - bubble.offsetHeight);
+      var left = Math.min(maxLeft, Math.max(0, startLeft + dx));
+      var top = Math.min(maxTop, Math.max(0, startTop + dy));
+      bubble.style.left = left + 'px';
+      bubble.style.top = top + 'px';
+      bubble.style.right = 'auto';
+      bubble.style.bottom = 'auto';
+      e.preventDefault();
+    });
+    function endDrag(e){
+      if(!dragging) return;
+      dragging = false;
+      bubble.classList.remove('dragging');
+      try{ bubble.releasePointerCapture(e.pointerId); }catch(_){}
+    }
+    bubble.addEventListener('pointerup', endDrag);
+    bubble.addEventListener('pointercancel', endDrag);
+    bubble.addEventListener('click', function(e){
+      if(moved){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        moved = false;
+        return;
+      }
+      var k = activeCompanionKind();
+      if(k) openCompanionRoom(k);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+
+/* ============ 陪伴空间里的聊天 ============
+   不单独做一套：这里就是传讯聊天的另一个窗口。
+   · TA 主动来找你：走「传讯设置」里的「主动发消息给我」开关 + 间隔（同一个计时器）
+   · 你在这里发的话：直接走传讯的发送 sendUserMessage()，TA 按「最快/最慢回复」回你（同一套字卡回复）
+   · 陪伴期间聊天页收到的消息，这里也会同步显示；空间开着时不会弹未读红点 / 系统通知 */
+function roomIsOpen(kind){
+  var r = document.getElementById('compRoom');
+  return !!r && (!kind || r.getAttribute('data-kind')===kind);
+}
+function roomStickerHtml(v){
+  v = String(v||'');
+  return v.indexOf('data:')===0 ? '<img alt="" src="'+escapeHtml(v)+'">' : '<div class="st">'+escapeHtml(v)+'</div>';
+}
+function roomMessages(kind){
+  var st = togetherState[kind];
+  var since = (st && st.startedAt) || 0;
+  return (chatMessages||[]).filter(function(m){ return m.time>=since; });
+}
+function renderRoomChat(){
+  var box = document.getElementById('compChat');
+  var room = document.getElementById('compRoom');
+  if(!box || !room) return;
+  var kind = room.getAttribute('data-kind') || 'sleep';
+  var name = (chatSettings && chatSettings.companionName) || '对方';
+  var html = '';
+  var shown = 0;
+  roomMessages(kind).forEach(function(m){
+    var me = m.from==='user';
+    var inner;
+    if(m.type==='sticker') inner = roomStickerHtml(m.content);
+    else if(m.type==='combo') inner = roomStickerHtml(m.sticker)+'<div class="tx">'+escapeHtml(m.content||'')+'</div>';
+    else if(m.type==='image') inner = '<img alt="" src="'+escapeHtml(m.content)+'">';
+    else if(m.type==='text' || (!m.type && m.content)) inner = '<div class="tx">'+escapeHtml(m.content||'')+'</div>';
+    else if(m.type==='gesture' || m.type==='pat'){ html += '<div class="cm-sys">'+escapeHtml(m.content||'')+'</div>'; shown++; return; }
+    else if(m.type==='redpacket'){ html += '<div class="cm-sys">🧧 '+escapeHtml(name)+' 发来一个红包，去聊天页领取</div>'; shown++; return; }
+    else return;   // 邀请卡片等不在这里显示
+    html += '<div class="cm'+(me?' me':'')+'">'+inner+'</div>';
+    shown++;
+  });
+  if(!shown && !(typeof typingVisible!=='undefined' && typingVisible)){
+    html = '<div class="cm-sys">'+escapeHtml(name)+' 就在旁边，想说什么都可以</div>';
+  }
+  if(typeof typingVisible!=='undefined' && typingVisible) html += '<div class="cm-typing">'+escapeHtml(name)+' 正在输入…</div>';
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+}
+/* 每秒（跟着空间计时器）看一眼：聊天有新消息 / 「正在输入」变了，就刷新一下 */
+function roomSyncChat(force){
+  if(!document.getElementById('compChat')) return;
+  var last = chatMessages && chatMessages.length ? chatMessages[chatMessages.length-1] : null;
+  var sig = (chatMessages?chatMessages.length:0)+':'+(last?last.id:'')+':'+((typeof typingVisible!=='undefined' && typingVisible)?1:0);
+  if(!force && sig===togetherState.roomSig) return;
+  togetherState.roomSig = sig;
+  renderRoomChat();
+}
+function roomFitViewport(){
+  var r = document.getElementById('compRoom'), vv = window.visualViewport;
+  if(!r || !vv) return;
+  r.style.bottom = 'auto';
+  r.style.top = vv.offsetTop + 'px';
+  r.style.height = vv.height + 'px';
+  var box = document.getElementById('compChat');
+  if(box) box.scrollTop = box.scrollHeight;
+}
+function roomBindViewport(on){
+  var vv = window.visualViewport;
+  if(!vv) return;
+  vv.removeEventListener('resize', roomFitViewport);
+  vv.removeEventListener('scroll', roomFitViewport);
+  if(on){ vv.addEventListener('resize', roomFitViewport); vv.addEventListener('scroll', roomFitViewport); roomFitViewport(); }
+}
+function roomChatStop(){
+  roomBindViewport(false);
+  togetherState.roomSig = null;
+}
+function roomChatStart(kind){
+  roomBindViewport(true);
+  roomSyncChat(true);
+  var chatBox = document.getElementById('compChat');
+  if(chatBox) chatBox.addEventListener('click', function(){
+    var i = document.getElementById('compChatInput'); if(i) i.blur();   // 点一下聊天区收起键盘，好露出「结束这次陪伴」
+  });
+}
+async function roomSend(){
+  var inp = document.getElementById('compChatInput');
+  var main = document.getElementById('chatInput');
+  if(!inp || !main) return;
+  var text = inp.value.trim();
+  if(!text) return;
+  inp.value = '';
+  main.value = text;                 // 交给传讯自己的发送逻辑（存库、已读、排队回复都在里面）
+  try{ await sendUserMessage(); }catch(e){ console.error('room send', e); }
+  roomSyncChat(true);
+}
+
 async function endCompanionRoom(){
   var room = document.getElementById('compRoom');
   var kind = (room && room.getAttribute('data-kind')) || 'sleep';
@@ -7470,6 +7780,7 @@ async function endStudyTogether(){
   togetherState.study.accepted = false;
   await postTogetherSystemMsg('一起学习结束了', { kind:'study', status:'ended', inviter: togetherState.study.inviter||'user', from:'user' });
   closeOverlay();
+  try{ refreshCompanionFloat(); }catch(e){}
 }
 
 function openSleepTogetherPanel(asInvite){
@@ -7505,6 +7816,7 @@ async function endSleepTogether(){
   togetherState.sleep.accepted = false;
   await postTogetherSystemMsg('一起睡觉结束了 · 晚安', { kind:'sleep', status:'ended', inviter: togetherState.sleep.inviter||'user', from:'user' });
   closeOverlay();
+  try{ refreshCompanionFloat(); }catch(e){}
 }
 
 /* TA 也可能主动邀请你一起听/学/睡 */
