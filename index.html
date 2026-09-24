@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="color-scheme" content="light">
 <title>在一起的每一天</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#8b3a56">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Love Diary">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
@@ -566,8 +575,10 @@
   .call-bubble{
     position:fixed; top:10px; right:12px; z-index:110;
     background:var(--ink); color:var(--paper); font-size:11.5px; padding:6px 12px 6px 10px; border-radius:20px;
-    display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+    display:flex; align-items:center; gap:6px; cursor:grab; touch-action:none; user-select:none;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
   }
+  .call-bubble.dragging{ cursor:grabbing; }
   .call-bubble-dot{ width:7px;height:7px;border-radius:50%; background:#4CD964; animation: pulseDot 1.2s infinite; flex-shrink:0; }
   @keyframes pulseDot{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
 
@@ -900,6 +911,207 @@
 .pending-sticker-preview img{ width:32px; height:32px; object-fit:contain; vertical-align:middle; }
 .watch-frame-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; margin:10px 0; }
 .watch-frame-wrap iframe{ width:100%; height:100%; border:0; }
+
+
+/* —— 邀请函（原创，非照搬） —— */
+.letter-invite{
+  margin:-6px -4px 0; padding:18px 16px 20px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,230,240,0.9), transparent 55%),
+    linear-gradient(180deg, #fbf7f2 0%, #f3ebe3 100%);
+  border-radius:18px 18px 14px 14px;
+  border:1px solid rgba(120,70,90,0.12);
+  box-shadow:0 12px 40px rgba(60,30,40,0.12);
+  position:relative; overflow:hidden;
+}
+.letter-invite::before{
+  content:''; position:absolute; inset:10px; border:1px dashed rgba(140,90,110,0.18);
+  border-radius:12px; pointer-events:none;
+}
+.letter-kicker{
+  text-align:center; font-size:10px; letter-spacing:3px; color:#9a6b7a;
+  text-transform:uppercase; margin-bottom:6px; position:relative;
+}
+.letter-title{
+  text-align:center; font-family:'Noto Serif SC',serif; font-size:22px; font-weight:700;
+  color:#4a2c38; margin:0 0 10px; position:relative;
+}
+.letter-route{
+  display:flex; justify-content:center; margin-bottom:14px; position:relative;
+}
+.letter-route span{
+  background:#fff; border:1px solid rgba(120,70,90,0.15); border-radius:999px;
+  padding:4px 14px; font-size:12px; color:#6b4555;
+}
+.letter-hint{ text-align:center; font-size:12px; color:#8a6a75; margin:0 0 12px; position:relative; }
+.letter-acts{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; position:relative; margin-bottom:12px;
+}
+.letter-act{
+  display:flex; align-items:flex-start; gap:8px; padding:10px 10px;
+  background:rgba(255,255,255,0.72); border:1.5px solid rgba(120,70,90,0.1);
+  border-radius:12px; cursor:pointer; transition:border-color .15s, background .15s;
+}
+.letter-act.on{
+  border-color:rgba(140,60,90,0.45); background:rgba(255,240,246,0.95);
+  box-shadow:0 0 0 1px rgba(140,60,90,0.12);
+}
+.letter-act .ico{
+  width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:16px; background:rgba(140,80,100,0.1); flex-shrink:0;
+}
+.letter-act .txt b{ display:block; font-size:13px; color:#3d2a32; }
+.letter-act .txt small{ font-size:10.5px; color:#8a6a75; }
+.letter-act .chk{
+  margin-left:auto; width:18px; height:18px; border-radius:50%; border:1.5px solid rgba(120,70,90,0.25);
+  flex-shrink:0; align-self:center;
+}
+.letter-act.on .chk{ background:#8b3a56; border-color:#8b3a56; box-shadow:inset 0 0 0 3px #fff; }
+.letter-note{ position:relative; margin-bottom:12px; }
+.letter-note textarea{
+  width:100%; min-height:64px; border-radius:12px; border:1px solid rgba(120,70,90,0.15);
+  background:rgba(255,255,255,0.85); padding:10px 12px; font-size:13px; resize:vertical;
+  font-family:inherit; color:var(--ink);
+}
+.letter-actions{ display:flex; gap:8px; position:relative; }
+.letter-actions .btn-ghost{
+  flex:0 0 auto; padding:10px 12px; border-radius:12px; border:1px solid rgba(120,70,90,0.2);
+  background:rgba(255,255,255,0.7); font-size:12px; cursor:pointer; color:#6b4555;
+}
+.letter-actions .btn-send{
+  flex:1; padding:12px; border-radius:12px; border:none; cursor:pointer;
+  background:linear-gradient(135deg, #8b3a56, #6b2d44); color:#fff; font-size:14px; font-weight:600;
+  letter-spacing:1px; box-shadow:0 6px 18px rgba(100,40,60,0.28);
+}
+
+/* —— 陪伴空间（原创氛围页） —— */
+.comp-room{
+  position:fixed; inset:0; z-index:60; display:flex; flex-direction:column;
+  color:#f5efe8; background:#1a1218;
+}
+.comp-room-bg{
+  position:absolute; inset:0; background-size:cover; background-position:center;
+  filter:brightness(0.55);
+}
+.comp-room-bg.grad-moon{
+  background: linear-gradient(165deg, #1a1f3a 0%, #2a1a28 40%, #0d0a12 100%);
+  filter:none;
+}
+.comp-room-bg.grad-study{
+  background: linear-gradient(165deg, #1e2430 0%, #243028 45%, #12161a 100%);
+  filter:none;
+}
+.comp-room-veil{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 30%, rgba(255,240,220,0.12), transparent 55%);
+  transition:opacity .4s;
+}
+.comp-room-veil.dim{ opacity:0.35; }
+.comp-room-veil.soft{ opacity:0.7; }
+.comp-room-veil.warm{ opacity:1; background:radial-gradient(ellipse at 50% 40%, rgba(255,200,140,0.22), transparent 60%); }
+.comp-room-top{
+  position:relative; z-index:2; padding:calc(14px + env(safe-area-inset-top,0)) 16px 8px;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+}
+.comp-room-brand{ font-size:10px; letter-spacing:2.5px; opacity:0.75; }
+.comp-room-title{ font-family:'Noto Serif SC',serif; font-size:22px; font-weight:700; margin-top:2px; text-shadow:0 2px 12px rgba(0,0,0,0.35); }
+.comp-room-sub{ font-size:12px; opacity:0.8; margin-top:4px; max-width:220px; line-height:1.4; }
+.comp-room-pill{
+  display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+  padding:5px 10px; border-radius:999px; background:rgba(0,0,0,0.28);
+  border:1px solid rgba(255,255,255,0.12); font-size:11.5px;
+}
+.comp-room-tools{ display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+.comp-room-tools button{
+  border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.28);
+  color:#fff; border-radius:999px; padding:6px 10px; font-size:11px; cursor:pointer;
+}
+.comp-room-center{
+  position:relative; z-index:2; flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px; padding:20px;
+}
+.comp-timer{
+  font-variant-numeric:tabular-nums; font-size:36px; letter-spacing:2px;
+  text-shadow:0 4px 20px rgba(0,0,0,0.4); font-weight:300;
+}
+.comp-timer-label{
+  font-size:12px; opacity:0.85; background:rgba(0,0,0,0.28);
+  padding:6px 12px; border-radius:999px; border:1px solid rgba(255,255,255,0.1);
+}
+.comp-room-bottom{
+  position:relative; z-index:2; padding:12px 16px calc(18px + env(safe-area-inset-bottom,0));
+}
+.comp-light-card{
+  background:rgba(20,14,18,0.55); border:1px solid rgba(255,255,255,0.12);
+  border-radius:16px; padding:12px 14px; backdrop-filter:blur(8px);
+}
+.comp-light-card .lab{ font-size:10px; letter-spacing:2px; opacity:0.7; }
+.comp-light-card .name{ font-size:15px; font-weight:600; margin-top:2px; }
+.comp-light-card .tip{ font-size:11px; opacity:0.7; margin-top:4px; }
+.comp-light-row{ display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.comp-light-row button{
+  flex:1; min-width:72px; padding:8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.08); color:#fff; font-size:11px; cursor:pointer;
+}
+.comp-light-row button.on{ background:rgba(255,255,255,0.22); border-color:rgba(255,255,255,0.35); }
+.comp-end-btn{
+  margin-top:10px; width:100%; padding:12px; border-radius:12px; border:none; cursor:pointer;
+  background:rgba(180,60,80,0.85); color:#fff; font-size:14px; font-weight:600;
+}
+.comp-float-peer{
+  position:fixed; top:calc(12px + env(safe-area-inset-top,0)); right:14px; z-index:61;
+  display:flex; align-items:center; gap:8px; padding:6px 8px 6px 6px;
+  background:rgba(255,255,255,0.92); color:#333; border-radius:999px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.2); font-size:12px;
+}
+.comp-float-peer .av{
+  width:28px; height:28px; border-radius:50%; overflow:hidden; background:#eee;
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.comp-float-peer .av img{ width:100%; height:100%; object-fit:cover; }
+
+
+.pwa-install-bar{
+  position:fixed; left:12px; right:12px; bottom:calc(16px + env(safe-area-inset-bottom,0));
+  z-index:80; display:none; align-items:center; gap:10px;
+  padding:12px 14px; border-radius:14px;
+  background:rgba(255,252,250,0.96); border:1px solid rgba(120,70,90,0.15);
+  box-shadow:0 10px 30px rgba(40,20,30,0.18); font-size:13px; color:var(--ink);
+}
+.pwa-install-bar.show{ display:flex; }
+.pwa-install-bar .txt{ flex:1; line-height:1.4; }
+.pwa-install-bar .txt b{ display:block; font-size:14px; margin-bottom:2px; }
+.pwa-install-bar button{
+  border:none; border-radius:10px; padding:8px 12px; font-size:12px; cursor:pointer;
+}
+.pwa-install-bar .go{ background:#8b3a56; color:#fff; }
+.pwa-install-bar .no{ background:transparent; color:var(--ink-soft); }
+
+
+
+/* ---- 微调：朋友圈头像完整显示 + 陪伴空间整体紧凑一些 ---- */
+.moments-cover{ overflow:visible; }
+
+.comp-room-top{ padding:calc(10px + env(safe-area-inset-top,0)) 14px 6px; gap:8px; }
+.comp-room-brand{ font-size:9px; letter-spacing:2.2px; }
+.comp-room-title{ font-size:18px; margin-top:1px; }
+.comp-room-sub{ font-size:10.5px; margin-top:3px; max-width:200px; }
+.comp-room-pill{ gap:5px; margin-top:7px; padding:4px 8px; font-size:10px; }
+.comp-room-tools{ gap:5px; }
+.comp-room-tools button{ padding:5px 8px; font-size:10px; }
+.comp-room-center{ gap:9px; padding:16px; }
+.comp-timer{ font-size:32px; letter-spacing:1.5px; }
+.comp-timer-label{ font-size:10.5px; padding:5px 10px; }
+.comp-room-bottom{ padding:9px 14px calc(12px + env(safe-area-inset-bottom,0)); }
+.comp-light-card{ border-radius:13px; padding:9px 11px; }
+.comp-light-card .lab{ font-size:8.5px; letter-spacing:1.7px; }
+.comp-light-card .name{ font-size:13px; }
+.comp-light-card .tip{ font-size:9.5px; margin-top:3px; }
+.comp-light-row{ gap:5px; margin-top:7px; }
+.comp-light-row button{ min-width:60px; padding:6px; border-radius:9px; font-size:10px; }
+.comp-end-btn{ margin-top:7px; padding:9px; border-radius:10px; font-size:12.5px; }
+.comp-float-peer{ font-size:10.5px; padding:5px 7px 5px 5px; }
+.comp-float-peer .av{ width:26px; height:26px; font-size:13px; }
 
 </style>
 </head>
@@ -1422,6 +1634,11 @@
 </div>
 
 <!-- overlay root -->
+<div class="pwa-install-bar" id="pwaInstallBar">
+  <div class="txt"><b>安装到主屏幕</b>像应用一样打开，通知更稳</div>
+  <button type="button" class="no" onclick="dismissPwaInstall()">稍后</button>
+  <button type="button" class="go" onclick="promptPwaInstall()">安装</button>
+</div>
 <div id="overlayRoot"></div>
 
 <script>
@@ -1596,9 +1813,16 @@ let pageState = {
   lifePhotos: { exhausted:false }
 };
 async function loadInitialPage(storeName){
-  const items = await recGetPage(storeName, PAGE_SIZE[storeName]);
-  pageState[storeName].exhausted = items.length < PAGE_SIZE[storeName];
-  return items;
+  try{
+    const items = await recGetPage(storeName, PAGE_SIZE[storeName]);
+    pageState[storeName].exhausted = items.length < PAGE_SIZE[storeName];
+    return items;
+  }catch(e){
+    // IndexedDB 打不开（部分内置浏览器/隐私模式）：别让整个 init 因为这里中断，当作空的继续启动
+    console.warn('读取记录表失败，先按空列表启动', storeName, e);
+    pageState[storeName].exhausted = true;
+    return [];
+  }
 }
 // arr 必须是"按时间从旧到新"排好序的当前已加载数组，返回更早的一批（同样从旧到新排好）
 async function loadOlderPage(storeName, arr){
@@ -1796,6 +2020,27 @@ let themeSettings = { accent:'#9C2F3B', paperStyle:'grid', bodyFont:'sans', seco
 let customBubbleCSS = '';
 let pendingReplyTimer = null;
 let lastGroupUsed = null, lastCardUsed = {};
+// 默认值快照：读取旧数据/导入备份时先铺一层默认值，避免老版本数据缺字段（比如没有 stickers）导致页面报错
+const _DEFAULTS = {
+  profile: JSON.parse(JSON.stringify(profile)),
+  chatSettings: JSON.parse(JSON.stringify(chatSettings)),
+  themeSettings: JSON.parse(JSON.stringify(themeSettings))
+};
+function withDefaults(name, stored){
+  const base = JSON.parse(JSON.stringify(_DEFAULTS[name]));
+  const out = (stored && typeof stored==='object' && !Array.isArray(stored)) ? Object.assign(base, stored) : base;
+  if(name==='chatSettings'){
+    if(!Array.isArray(out.stickers)) out.stickers = JSON.parse(JSON.stringify(_DEFAULTS.chatSettings.stickers));
+    if(!out.companionName) out.companionName = _DEFAULTS.chatSettings.companionName;
+  }
+  if(name==='profile' && !out.name) out.name = _DEFAULTS.profile.name;
+  return out;
+}
+// 本地日期 YYYY-MM-DD（不要用 toISOString，那是 UTC，东八区/东九区凌晨会变成"昨天"）
+function localDateStr(d){
+  d = d || new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 const ACCENTS = ['#9C2F3B','#B08A2E','#3B6B5E','#4C5B8A','#7A4E8C','#2A241F'];
 const FONT_MAP = {
@@ -1809,12 +2054,12 @@ const FONT_MAP = {
    ============================================================ */
 async function init(){
   // ---- 阶段 1：只拿首页必需数据，尽快首屏 ----
-  profile = await sGet('profile', profile);
+  profile = withDefaults('profile', await sGet('profile', null));
   if(!profile.myName) profile.myName = '我';
   if(!profile.myAvatar) profile.myAvatar = '🙂';
   if(profile.momentsCover === undefined) profile.momentsCover = null;
   try {
-    themeSettings = await sGet('theme-settings', themeSettings);
+    themeSettings = withDefaults('themeSettings', await sGet('theme-settings', null));
   } catch(e) {}
   if(!themeSettings.customBg) themeSettings.customBg = '';
   if(!themeSettings.customBgImage) themeSettings.customBgImage = '';
@@ -1831,7 +2076,7 @@ async function init(){
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   // ---- 阶段 2：其余数据并行加载 ----
-  chatSettings = await sGet('chat-settings', chatSettings);
+  chatSettings = withDefaults('chatSettings', await sGet('chat-settings', null));
   if(typeof chatSettings.delayMin !== 'number') chatSettings.delayMin = 1;
   if(typeof chatSettings.delayMax !== 'number') chatSettings.delayMax = 5;
   chatSettings.delayMin = Math.max(1, Math.min(5, Math.round(chatSettings.delayMin)));
@@ -1875,27 +2120,29 @@ async function init(){
     sGet('splice-cards-enabled', false)
   ]);
   chatMessages = _chatMessages;
-  cardsData = _cardsData;
-  ledgerEntries = _ledgerEntries;
-  periodEntries = _periodEntries;
-  diaryEntries = _diaryEntries;
-  momentsPosts = _momentsPosts;
-  momentEvents = _momentEvents;
-  letters = _letters;
-  inboxLetters = _inboxLetters;
-  callLogs = _callLogs;
+  cardsData = (_cardsData && typeof _cardsData==='object' && _cardsData.groups && typeof _cardsData.groups==='object') ? _cardsData : {groups:{}};
+  ledgerEntries = Array.isArray(_ledgerEntries) ? _ledgerEntries : [];
+  periodEntries = Array.isArray(_periodEntries) ? _periodEntries : [];
+  diaryEntries = Array.isArray(_diaryEntries) ? _diaryEntries : [];
+  // 分页读出来是「旧→新」，而朋友圈/照片墙在内存里一直是「新→旧」（新发的用 unshift 放最前），这里翻过来
+  momentsPosts = _momentsPosts.slice().reverse();
+  momentEvents = Array.isArray(_momentEvents) ? _momentEvents : [];
+  letters = Array.isArray(_letters) ? _letters : [];
+  inboxLetters = Array.isArray(_inboxLetters) ? _inboxLetters : [];
+  callLogs = Array.isArray(_callLogs) ? _callLogs : [];
   proactiveState = _proactiveState;
   chatUnread = _chatUnread;
   letterUnread = _letterUnread;
   inboxLetterUnread = _inboxLetterUnread;
   momentsUnread = _momentsUnread;
-  lifePhotos = _lifePhotos;
-  statusPool = _statusPool;
+  lifePhotos = _lifePhotos.slice().reverse();
+  statusPool = Array.isArray(_statusPool) ? _statusPool : [];
   todayStatus = _todayStatus;
   todayStatusHistory = _todayStatusHistory || [];
-  moyuState = _moyuState;
-  proactiveMsgSettings = _proactiveMsgSettings;
-  momentInteractSettings = _momentInteractSettings;
+  moyuState = (_moyuState && typeof _moyuState==='object') ? _moyuState : moyuState;
+  proactiveMsgSettings = (_proactiveMsgSettings && typeof _proactiveMsgSettings==='object') ? _proactiveMsgSettings : proactiveMsgSettings;
+  momentInteractSettings = (_momentInteractSettings && typeof _momentInteractSettings==='object') ? _momentInteractSettings : momentInteractSettings;
+  if(!_proactiveState || typeof _proactiveState!=='object') proactiveState = { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null, nextCareAt:null };
   spliceCardsEnabled = !!_spliceCardsEnabled;
 
   await loadCompanionData();
@@ -1909,40 +2156,7 @@ async function init(){
     sSet('inbox-letters', inboxLetters);
   }
 
-  // moyu / proactiveMsg / momentInteract 规范化（与原先一致，精简写法）
-  if(!Array.isArray(moyuState.activities)) moyuState.activities = [];
-  if(!Array.isArray(moyuState.locations)) moyuState.locations = [];
-  if(!Array.isArray(moyuState.history)) moyuState.history = [];
-  if(typeof moyuState.showDetails !== 'boolean') moyuState.showDetails = true;
-  if(typeof moyuState.enabled !== 'boolean') moyuState.enabled = false;
-  if(Array.isArray(moyuState.records) && moyuState.records.length && !moyuState.currentSession){
-    moyuState.currentSession = {
-      id: uid(), location: '未知地点', startTime: moyuState.records[moyuState.records.length-1].time,
-      workMs: 4*3600*1000, records: moyuState.records.slice().reverse()
-    };
-    delete moyuState.records;
-  }
-  {
-    let iv = Number(proactiveMsgSettings.intervalMinutes);
-    if(!Number.isFinite(iv)){
-      const oldMax = Number(proactiveMsgSettings.maxMinutes);
-      iv = Number.isFinite(oldMax) ? oldMax : 60;
-    }
-    proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(120, Math.round(iv)));
-    delete proactiveMsgSettings.minMinutes;
-    delete proactiveMsgSettings.maxMinutes;
-  }
-  if(typeof proactiveMsgSettings.enabled !== 'boolean') proactiveMsgSettings.enabled = true;
-  if(typeof momentInteractSettings.likeProb !== 'number') momentInteractSettings.likeProb = 60;
-  if(typeof momentInteractSettings.commentProb !== 'number') momentInteractSettings.commentProb = 60;
-  if(typeof momentInteractSettings.replyProb !== 'number') momentInteractSettings.replyProb = 60;
-  if(typeof momentInteractSettings.minDays !== 'number') momentInteractSettings.minDays = 1;
-  if(typeof momentInteractSettings.maxDays !== 'number') momentInteractSettings.maxDays = 15;
-  momentInteractSettings.likeProb = Math.max(0, Math.min(100, momentInteractSettings.likeProb));
-  momentInteractSettings.commentProb = Math.max(0, Math.min(100, momentInteractSettings.commentProb));
-  momentInteractSettings.replyProb = Math.max(0, Math.min(100, momentInteractSettings.replyProb));
-  momentInteractSettings.minDays = Math.max(1, Math.min(30, momentInteractSettings.minDays));
-  momentInteractSettings.maxDays = Math.max(momentInteractSettings.minDays, Math.min(30, momentInteractSettings.maxDays));
+  normalizeLoadedSettings();
 
   // 首页轻量补渲染
   renderTodayStatusHome();
@@ -1962,15 +2176,54 @@ async function init(){
     checkMomentEvents();
     checkQuestionnaireReplies();
     resumeMoyuSchedule();
+    resumePendingInviteReplies();
     if(!hasReplyScheduled()) maybeScheduleFromHistory();
   });
   setInterval(checkMomentEvents, 20000);
   setInterval(checkMoyuTick, 20000);
   setInterval(checkQuestionnaireReplies, 20000);
   const periodEl = document.getElementById('periodDate');
-  if(periodEl) try{ periodEl.valueAsDate = new Date(); }catch(e){}
+  if(periodEl) try{ periodEl.value = localDateStr(); }catch(e){}
 }
-init();
+init().catch(function(e){ console.error('init 失败', e); });
+
+/* moyu / 主动消息 / 朋友圈互动 设置的规范化（启动和导入备份后都会调用）*/
+function normalizeLoadedSettings(){
+  if(!Array.isArray(moyuState.activities)) moyuState.activities = [];
+  if(!Array.isArray(moyuState.locations)) moyuState.locations = [];
+  if(!Array.isArray(moyuState.history)) moyuState.history = [];
+  if(typeof moyuState.showDetails !== 'boolean') moyuState.showDetails = true;
+  if(typeof moyuState.enabled !== 'boolean') moyuState.enabled = false;
+  if(Array.isArray(moyuState.records) && moyuState.records.length && !moyuState.currentSession){
+    moyuState.currentSession = {
+      id: uid(), location: '未知地点', startTime: moyuState.records[moyuState.records.length-1].time,
+      workMs: 4*3600*1000, records: moyuState.records.slice().reverse()
+    };
+    delete moyuState.records;
+  }
+  {
+    let iv = Number(proactiveMsgSettings.intervalMinutes);
+    if(!Number.isFinite(iv)){
+      const oldMax = Number(proactiveMsgSettings.maxMinutes);
+      iv = Number.isFinite(oldMax) ? oldMax : 60;
+    }
+    proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(180, Math.round(iv)));
+    delete proactiveMsgSettings.minMinutes;
+    delete proactiveMsgSettings.maxMinutes;
+  }
+  if(typeof proactiveMsgSettings.enabled !== 'boolean') proactiveMsgSettings.enabled = true;
+  if(typeof momentInteractSettings.likeProb !== 'number') momentInteractSettings.likeProb = 60;
+  if(typeof momentInteractSettings.commentProb !== 'number') momentInteractSettings.commentProb = 60;
+  if(typeof momentInteractSettings.replyProb !== 'number') momentInteractSettings.replyProb = 60;
+  if(typeof momentInteractSettings.minDays !== 'number') momentInteractSettings.minDays = 1;
+  if(typeof momentInteractSettings.maxDays !== 'number') momentInteractSettings.maxDays = 15;
+  momentInteractSettings.likeProb = Math.max(0, Math.min(100, momentInteractSettings.likeProb));
+  momentInteractSettings.commentProb = Math.max(0, Math.min(100, momentInteractSettings.commentProb));
+  momentInteractSettings.replyProb = Math.max(0, Math.min(100, momentInteractSettings.replyProb));
+  momentInteractSettings.minDays = Math.max(1, Math.min(30, momentInteractSettings.minDays));
+  momentInteractSettings.maxDays = Math.max(momentInteractSettings.minDays, Math.min(30, momentInteractSettings.maxDays));
+
+}
 
 /* ============================================================
    NAV
@@ -2000,13 +2253,6 @@ function go(name){
   if(name==='companion'){ renderCompanionBody(); }
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
-  if(name==='chat'){
-    // 之前只清了红点、没重新渲染：主动消息在你不在聊天页时已经 push 进 chatMessages 并存库了，
-    // 但界面还是旧的，得手动刷新页面才会显示。
-    renderChat();
-    scrollChatBottom();
-    if(chatUnread){chatUnread=false; sSet('chat-unread', false); renderUnreadDots(); }
-  }
   if(name==='letters'){
     renderLetters();
     if(letterUnread){ letterUnread=false; sSet('letter-unread', false); renderUnreadDots(); }
@@ -2072,7 +2318,7 @@ function editTheirName(){
   openOverlay(`
     <div class="drawer-head"><h3>修改TA的名字</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">名字</label>
-    <input type="text" id="editNameInput" value="${(profile.name||'').replace(/"/g,'&quot;')}" maxlength="20">
+    <input type="text" id="editNameInput" value="${escapeHtml(profile.name||'')}" maxlength="20">
     <div class="btn-row"><div class="btn" onclick="confirmEditTheirName()">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('editNameInput'); if(el){ el.focus(); el.select(); } }, 50);
@@ -2091,7 +2337,7 @@ function editMyName(){
     <div class="drawer-head"><h3>修改我的名字</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">会同步到朋友圈、传讯等所有地方</p>
     <label class="field">我的昵称</label>
-    <input type="text" id="editMyNameInput" value="${(profile.myName||'我').replace(/"/g,'&quot;')}" maxlength="20">
+    <input type="text" id="editMyNameInput" value="${escapeHtml(profile.myName||'我')}" maxlength="20">
     <div class="btn-row"><div class="btn" onclick="confirmEditMyName()">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('editMyNameInput'); if(el){ el.focus(); el.select(); } }, 50);
@@ -2125,7 +2371,7 @@ function editPolaroidCaption(){
   openOverlay(`
     <div class="drawer-head"><h3>修改这句话</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">文案</label>
-    <textarea id="editCaptionInput" style="min-height:72px;">${(profile.status||'').replace(/</g,'&lt;')}</textarea>
+    <textarea id="editCaptionInput" style="min-height:72px;">${escapeHtml(profile.status||'')}</textarea>
     <div class="btn-row"><div class="btn" onclick="confirmEditCaption()">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('editCaptionInput'); if(el) el.focus(); }, 50);
@@ -2151,7 +2397,7 @@ async function editMomentsBio(){
   openOverlay(`
     <div class="drawer-head"><h3>写一句签名</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">签名</label>
-    <textarea id="editBioInput" style="min-height:72px;">${(profile.myBio||'').replace(/</g,'&lt;')}</textarea>
+    <textarea id="editBioInput" style="min-height:72px;">${escapeHtml(profile.myBio||'')}</textarea>
     <div class="btn-row"><div class="btn" onclick="confirmEditBio()">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('editBioInput'); if(el) el.focus(); }, 50);
@@ -2163,13 +2409,19 @@ async function confirmEditBio(){
   renderMomentsHeader();
   closeOverlay();
 }
-function searchMoments(){
+let _momentSearchToken = 0;
+async function searchMoments(){
   const q = document.getElementById('momentsSearchInput').value.trim();
-  if(!q) { renderMoments(); return; }
+  if(!q) { _momentSearchToken++; renderMoments(); return; }
   const wrap = document.getElementById('momentsList');
-  const hits = momentsPosts.filter(p => (p.text||'').includes(q));
+  const token = ++_momentSearchToken;
+  // 朋友圈是分页加载的，内存里只有最近一页；搜索要查整张表
+  let all = momentsPosts;
+  try{ all = (await recGetAll('momentsPosts')).slice().reverse(); }catch(e){}
+  if(token !== _momentSearchToken) return;
+  const hits = all.filter(p => (p.text||'').includes(q));
   wrap.innerHTML = hits.length
-    ? hits.map(p=>`<div class="box"><div style="font-size:12.5px;color:var(--ink-soft);">${new Date(p.time).toLocaleString('zh-CN')}</div><div style="font-size:13.5px;margin-top:4px;">${p.text||''}</div></div>`).join('')
+    ? hits.map(p=>`<div class="box"><div style="font-size:12.5px;color:var(--ink-soft);">${new Date(p.time).toLocaleString('zh-CN')}</div><div style="font-size:13.5px;margin-top:4px;">${escapeHtml(p.text||'')}</div></div>`).join('')
     : '<div class="empty-note">没有找到相关的朋友圈</div>';
 }
 function onMomentsCoverFile(e){
@@ -2281,8 +2533,7 @@ async function compressImage(dataUrl, maxWidth = 800) {
    这样哪怕 App 被搁置很久，一打开就能立刻补上该有的变化。
    ============================================================ */
 function todayKey(){
-  const d = new Date();
-  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  return localDateStr(); // 补零：要和日记日历的 diaryKey 一致，否则「今天」高亮永远对不上
 }
 function pickRandomStatusText(){
   return statusPool[Math.floor(Math.random()*statusPool.length)];
@@ -2328,7 +2579,7 @@ function renderTodayStatusHome(){
 function openTodayStatusPanel(){
   openOverlay(`
     <div class="drawer-head"><h3>今日状态</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div style="font-size:16px;font-weight:700;color:var(--rouge);margin-bottom:10px;">${todayStatus ? todayStatus.text : '暂无状态，先导入一些吧'}</div>
+    <div style="font-size:16px;font-weight:700;color:var(--rouge);margin-bottom:10px;">${todayStatus ? escapeHtml(todayStatus.text) : '暂无状态，先导入一些吧'}</div>
     <div class="btn-row">
       ${todayStatus ? `<div class="btn outline" onclick="rerollTodayStatus()">🎲 换一个</div>` : ''}
       <div class="btn outline" onclick="openTodayStatusHistoryPanel()">📋 今日状态记录</div>
@@ -2349,7 +2600,7 @@ function renderStatusHistoryList(){
   if(todayStatusHistory.length===0) return '<div class="empty-note">今天还没有状态变化记录</div>';
   return [...todayStatusHistory].reverse().map(h=>{
     const t = new Date(h.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);"><span style="color:var(--ink-soft);font-size:13px;flex-shrink:0;">${t}</span><span style="text-align:right;">${h.text}</span></div>`;
+    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);"><span style="color:var(--ink-soft);font-size:13px;flex-shrink:0;">${t}</span><span style="text-align:right;">${escapeHtml(h.text)}</span></div>`;
   }).join('');
 }
 function openTodayStatusHistoryPanel(){
@@ -2360,7 +2611,7 @@ function openTodayStatusHistoryPanel(){
 }
 function renderStatusChips(){
   if(statusPool.length===0) return '<div class="empty-note">还没有状态，先导入一些</div>';
-  return statusPool.map((s,i)=>`<span class="card-pill">${s}<span class="del" style="margin-left:6px;" onclick="deleteStatus(${i})">✕</span></span>`).join('');
+  return statusPool.map((s,i)=>`<span class="card-pill">${escapeHtml(s)}<span class="del" style="margin-left:6px;" onclick="deleteStatus(${i})">✕</span></span>`).join('');
 }
 async function importStatusBulk(){
   const raw = document.getElementById('statusBulkInput').value;
@@ -2516,7 +2767,7 @@ function showImportChoiceModal(normalized){
   const cardCount = Object.values(normalized.groups).reduce((a,b)=>a+b.length,0);
   openOverlay(`
     <div class="drawer-head"><h3>识别到 ${groupCount} 个分组，共 ${cardCount} 张字卡</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;">${Object.keys(normalized.groups).map(g=>`「${g}」×${normalized.groups[g].length}`).join('　')}</div>
+    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;">${Object.keys(normalized.groups).map(g=>`「${escapeHtml(g)}」×${normalized.groups[g].length}`).join('　')}</div>
     <div class="btn-row">
       <div class="btn" onclick="applyImport('merge')">合并到现有字卡库</div>
       <div class="btn rouge" onclick="applyImport('replace')">替换全部字卡库</div>
@@ -2578,7 +2829,7 @@ function renderCardsView(){
   // 搜索框
   const searchHtml = `
     <div class="box" style="margin-bottom:10px;">
-      <input type="text" id="cardsSearchInput" placeholder="搜索字卡内容…" value="${cardsSearchKeyword.replace(/"/g,'&quot;')}" oninput="onCardsSearchInput()" style="width:100%;">
+      <input type="text" id="cardsSearchInput" placeholder="搜索字卡内容…" value="${escapeHtml(cardsSearchKeyword)}" oninput="onCardsSearchInput()" style="width:100%;">
     </div>`;
 
   const toolbarHtml = cardSelectMode ? `
@@ -2604,20 +2855,20 @@ function renderCardsView(){
         const idx = _cardSelectMap.length;
         _cardSelectMap.push({group:g, text:c});
         const checked = selectedCardIdx.has(idx);
-        return `<span class="card-pill ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">${checked?'☑':'☐'} ${c}</span>`;
+        return `<span class="card-pill ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">${checked?'☑':'☐'} ${escapeHtml(c)}</span>`;
       }
       if(cardsSearchKeyword){
-        return `<span class="card-pill">${c}</span>`;
+        return `<span class="card-pill">${escapeHtml(c)}</span>`;
       }
       // 找到原索引
       const realIdx = (cardsData.groups[g]||[]).indexOf(c);
-      return `<span class="card-pill">${c}<span class="del" style="margin-left:6px;opacity:.65;" onclick="editCardText('${escAttr(g)}',${realIdx})">✎</span><span class="del" style="margin-left:4px;" onclick="deleteCard('${escAttr(g)}',${realIdx})">✕</span></span>`;
+      return `<span class="card-pill">${escapeHtml(c)}<span class="del" style="margin-left:6px;opacity:.65;" onclick="editCardText('${escAttr(g)}',${realIdx})">✎</span><span class="del" style="margin-left:4px;" onclick="deleteCard('${escAttr(g)}',${realIdx})">✕</span></span>`;
     }).join('');
 
     return `<div class="group-block">
       <div class="group-name" style="cursor:pointer;user-select:none;" onclick="toggleGroupCollapse('${escAttr(g)}')">
         <span style="margin-right:6px;">${collapsed ? '▶' : '▼'}</span>
-        <span style="border-bottom:1px dashed var(--rule);">${g}（${cards.length}${cardsSearchKeyword ? ' 匹配' : ''}）</span>
+        <span style="border-bottom:1px dashed var(--rule);">${escapeHtml(g)}（${cards.length}${cardsSearchKeyword ? ' 匹配' : ''}）</span>
         ${cardSelectMode?'':`<span style="display:flex;gap:10px;align-items:center;margin-left:auto;" onclick="event.stopPropagation()">
           <span class="del" onclick="renameGroup('${escAttr(g)}')" style="opacity:.75;">✎ 改名</span>
           <span class="del" onclick="deleteGroup('${escAttr(g)}')">✕ 删除分组</span>
@@ -2627,7 +2878,7 @@ function renderCardsView(){
         ${pills}
         ${cardSelectMode || cardsSearchKeyword ? '' : `
         <div style="margin-top:8px;">
-          <textarea id="addcard-${escAttr(g)}" placeholder="批量添加（每行一条，自动去重）" style="width:100%;min-height:60px;resize:vertical;"></textarea>
+          <textarea id="addcard-${escapeHtml(g)}" placeholder="批量添加（每行一条，自动去重）" style="width:100%;min-height:60px;resize:vertical;"></textarea>
           <div class="btn-row" style="margin-top:6px;">
             <div class="btn outline" style="padding:8px 12px;" onclick="addCardTo('${escAttr(g)}')">批量添加</div>
           </div>
@@ -2653,7 +2904,7 @@ async function editCardText(g, idx){
   openOverlay(`
     <div class="drawer-head"><h3>修改字卡内容</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">内容</label>
-    <textarea id="editCardTextInput" style="min-height:90px;">${String(current).replace(/</g,'&lt;')}</textarea>
+    <textarea id="editCardTextInput" style="min-height:90px;">${escapeHtml(current)}</textarea>
     <div class="btn-row"><div class="btn" onclick="confirmEditCardText('${escAttr(g)}', ${idx})">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('editCardTextInput'); if(el) el.focus(); }, 50);
@@ -2686,7 +2937,7 @@ function openMoveToGroupPanel(){
   openOverlay(`
     <div class="drawer-head"><h3>移动到分组（已选 ${selectedCardIdx.size} 张）</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <div class="btn-row">
-      ${groups.map(g=>`<div class="btn outline" onclick="moveSelectedCardsTo('${escAttr(g)}')">${g}</div>`).join('')}
+      ${groups.map(g=>`<div class="btn outline" onclick="moveSelectedCardsTo('${escAttr(g)}')">${escapeHtml(g)}</div>`).join('')}
     </div>
     <label class="field">或新建一个分组</label>
     <div style="display:flex;gap:6px;">
@@ -2715,9 +2966,15 @@ async function moveSelectedCardsToNew(){
   if(!name) return;
   await moveSelectedCardsTo(name);
 }
-function escAttr(s){ return s.replace(/'/g,"\\'"); }
+/* 放进 onclick="fn('…')" 这种「HTML 属性里的 JS 字符串」用：先按 JS 字符串转义，再按 HTML 转义 */
+function escAttr(s){
+  const js = String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'\\r').replace(/\n/g,'\\n').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  return escapeHtml(js);
+}
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function deleteGroup(g){
+  const n = (cardsData.groups[g]||[]).length;
+  if(!confirm('确定删除分组「'+g+'」和里面的 '+n+' 张字卡吗？删除后无法恢复。')) return;
   delete cardsData.groups[g]; await sSet('cards-data', cardsData); renderCardsView();
 }
 async function renameGroup(oldName){
@@ -2725,7 +2982,7 @@ async function renameGroup(oldName){
   openOverlay(`
     <div class="drawer-head"><h3>修改分组名称</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">新名称</label>
-    <input type="text" id="renameGroupInput" value="${String(oldName).replace(/"/g,'&quot;')}" maxlength="30">
+    <input type="text" id="renameGroupInput" value="${escapeHtml(oldName)}" maxlength="30">
     <div class="btn-row"><div class="btn" onclick="confirmRenameGroup('${escAttr(oldName)}')">保存</div></div>
   `);
   setTimeout(()=>{ const el=document.getElementById('renameGroupInput'); if(el){ el.focus(); el.select(); } }, 50);
@@ -2818,31 +3075,31 @@ function renderChat(preserveScroll, scrollToId){
   wrap.innerHTML = loadMoreHtml + chatMessages.map(m=>{
     const time = formatMsgTime(m.time);
     if(m.type==='pat' || m.type==='gesture'){
-      return `<div id="msg-${m.id}" style="text-align:center;font-size:11.5px;color:var(--ink-soft);margin:6px 0;">${m.content}</div>`;
+      return `<div id="msg-${m.id}" style="text-align:center;font-size:11.5px;color:var(--ink-soft);margin:6px 0;">${escapeHtml(m.content)}</div>`;
     }
     const quoteRefHtml = m.quoteOf
-      ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName}: ${m.quoteOf.preview}</div>` : '';
+      ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${escapeHtml(m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName)}: ${escapeHtml(m.quoteOf.preview)}</div>` : '';
     const quoteBtn = `<span class="quote-trigger" onclick="setQuoteTarget('${m.id}')">↩引用</span>`;
     const avatarHtml = `<div class="msg-avatar">${m.from==='user'?myAvatar:botAvatar}</div>`;
     let bubbleHtml;
     if(m.type==='sticker'){
-      const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${m.content}">` : m.content;
+      const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
       bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${quoteBtn}</div></div>`;
     } else if(m.type==='image'){
-      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${m.content}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div></div>`;
     } else if(m.type==='redpacket'){
       const revealed = m.from==='user' || m.opened;
       const tapAttr = revealed ? '' : `onclick="openRedPacket('${m.id}')"`;
       bubbleHtml = `<div class="msg redpacket ${m.from}" ${tapAttr}>
         ${quoteRefHtml}
-        <div class="rp-top">🧧 ${m.note||'红包'}</div>
+        <div class="rp-top">🧧 ${escapeHtml(m.note||'红包')}</div>
         ${revealed ? `<div class="rp-amount">¥${Number(m.amount).toFixed(2)}</div>` : `<div class="rp-tap">点击查收</div>`}
         <div class="t" style="color:rgba(255,255,255,0.75);">${time}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
-        return `<div class="q-option${chosen?' chosen':''}">${chosen?'✓ ':''}${o}</div>`;
+        return `<div class="q-option${chosen?' chosen':''}">${chosen?'✓ ':''}${escapeHtml(o)}</div>`;
       }).join('');
       let statusHtml = '';
       if(m.answered){
@@ -2854,7 +3111,7 @@ function renderChat(preserveScroll, scrollToId){
       bubbleHtml = `<div class="msg questionnaire ${m.from}">
         ${quoteRefHtml}
         <div class="q-title">📋 梦向问卷</div>
-        <div class="q-question">${m.question||''}</div>
+        <div class="q-question">${escapeHtml(m.question||'')}</div>
         ${opts}
         ${statusHtml}
         <div class="t">${time}${quoteBtn}</div>
@@ -2866,15 +3123,15 @@ function renderChat(preserveScroll, scrollToId){
         ${quoteRefHtml}
         <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(0,0,0,0.04);font-size:12.5px;">
           <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🌐 ${escapeHtml(host)}</span>
-          <span onclick="event.stopPropagation();window.open('${escAttr(m.content)}','_blank')" style="cursor:pointer;padding:2px 4px;" title="新标签页打开">↗</span>
+          <span onclick="event.stopPropagation();window.open('${escAttr(m.content)}','_blank','noopener')" style="cursor:pointer;padding:2px 4px;" title="新标签页打开">↗</span>
           <span onclick="event.stopPropagation();toggleWebLinkCollapse('${m.id}')" style="cursor:pointer;padding:2px 4px;" title="展开/收起">${collapsed ? '▾' : '▴'}</span>
         </div>
-        ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escAttr(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
+        ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escapeHtml(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
         <div class="t" style="padding:4px 12px 8px;">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='combo'){
       const stVal = m.sticker || '';
-      const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${stVal}">` : escapeHtml(stVal);
+      const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(stVal)}">` : escapeHtml(stVal);
       const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
       bubbleHtml = `<div class="msg combo ${m.from}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${readTag}${quoteBtn}</div></div>`;
     } else if(m.type==='invite'){
@@ -2882,7 +3139,7 @@ function renderChat(preserveScroll, scrollToId){
     } else {
       const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
       const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
-      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${m.content}<div class="t">${time}${readTag}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${time}${readTag}${quoteBtn}</div></div>`;
     }
     return `<div id="msg-${m.id}" class="msg-row ${m.from}">${avatarHtml}${bubbleHtml}</div>`;
   }).join('');
@@ -2958,7 +3215,7 @@ function viewChatImage(id){
   if(!m) return;
   openOverlay(`
     <div class="drawer-head"><h3>图片</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <img loading="lazy" decoding="async" src="${m.content}" style="width:100%; border-radius:6px;">
+    <img loading="lazy" decoding="async" src="${escapeHtml(m.content)}" style="width:100%; border-radius:6px;">
   `);
 }
 function setQuoteTarget(id){
@@ -2979,7 +3236,7 @@ function renderQuoteBar(){
   if(!quoteTarget){ bar.classList.add('hidden'); bar.innerHTML=''; return; }
   bar.classList.remove('hidden');
   const who = quoteTarget.from==='user' ? (profile.myName||'我') : chatSettings.companionName;
-  bar.innerHTML = `<div class="quote-bar-inner"><span>回复 ${who}：${quoteTarget.preview}</span><span class="close-x" onclick="clearQuoteTarget()">✕</span></div>`;
+  bar.innerHTML = `<div class="quote-bar-inner"><span>回复 ${escapeHtml(who)}：${escapeHtml(quoteTarget.preview)}</span><span class="close-x" onclick="clearQuoteTarget()">✕</span></div>`;
 }
 /* TA 自己回复时，随机决定要不要引用聊天记录里的某一条，纯随机不看内容对不对得上 */
 function maybeQuoteMessage(){
@@ -3058,6 +3315,7 @@ function scheduleAutoReply(userText){
   try{ showTyping(true); }catch(e){}
   if(pendingReplyTimer) clearTimeout(pendingReplyTimer);
   pendingReplyTimer = setTimeout(async ()=>{
+    pendingReplyTimer = null; // 触发后清掉，hasReplyScheduled() 才不会一直是 true
     try{ showTyping(false); }catch(e){}
     let reply = null;
     try{ reply = pickReplyFor(userText); }catch(e){ console.error('pickReply', e); }
@@ -3081,7 +3339,8 @@ function scheduleAutoReply(userText){
 function hasReplyScheduled(){ return !!pendingReplyTimer; }
 function maybeScheduleFromHistory(){
   const last = chatMessages[chatMessages.length-1];
-  if(last && last.from==='user'){
+  // 只补回「还没被标记已读」的：已读不回 / 已回复过的，重启后不要又冒出来回一遍
+  if(last && last.from==='user' && !last.read){
     handleIncomingForBot(last.content);
   }
 }
@@ -3129,17 +3388,26 @@ function getSplicedCardText(){
   return picked.join('\n');
 }
 const REDPACKET_NOTES = ['给你买奶茶','塞进你口袋','抢一个','爱的红包','恭喜发财','小心心'];
-function pickReplyFor(userText){
-  const roll = Math.random();
-  // 开启“允许发送红包”后，沿用原来的小概率随机红包机制；关闭时完全不会自动发红包
-  if(chatSettings.redPacketEnabled && roll < 0.05){
-    const amount = (Math.random()*188+1).toFixed(2);
-    const note = REDPACKET_NOTES[Math.floor(Math.random()*REDPACKET_NOTES.length)];
-    return { type:'redpacket', amount, note, opened:false };
+function pickReplyFor(userText, opts){
+  opts = opts || {};
+  const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发红包、拍一拍
+  // 各类型各自独立抽签（以前共用一个 roll，表情概率一调高，拍一拍就永远抽不到）
+  if(!followup){
+    // 开启“允许发送红包”后才会随机发；关闭时完全不会自动发红包
+    if(chatSettings.redPacketEnabled && Math.random() < 0.05){
+      const amount = (Math.random()*188+1).toFixed(2);
+      const note = REDPACKET_NOTES[Math.floor(Math.random()*REDPACKET_NOTES.length)];
+      return { type:'redpacket', amount, note, opened:false };
+    }
+    // 拍一拍/戳一戳这类小动作
+    if(Math.random() < 0.05){
+      const g = QUICK_ACTIONS[Math.floor(Math.random()*QUICK_ACTIONS.length)];
+      return { type:'gesture', content: `${chatSettings.companionName}${g.verb}你` };
+    }
   }
-  // 有一定概率发表情包，增加真实感
+  // 表情包 / 表情+文字
   const comboProb = (typeof chatSettings.comboReplyProb === 'number' ? chatSettings.comboReplyProb : 35) / 100;
-  if(chatSettings.stickers && chatSettings.stickers.length && roll < comboProb){
+  if(chatSettings.stickers && chatSettings.stickers.length && Math.random() < comboProb){
     const st = chatSettings.stickers[Math.floor(Math.random()*chatSettings.stickers.length)];
     // 一部分纯表情，一部分表情+文字
     if(Math.random() < 0.55){
@@ -3147,11 +3415,6 @@ function pickReplyFor(userText){
       return { type:'combo', content: text, sticker: st.value };
     }
     return { type:'sticker', content: st.value };
-  }
-  // 也有一定概率是拍一拍/戳一戳这类小动作，而不是文字
-  if(roll < 0.05+0.12+0.06){
-    const g = QUICK_ACTIONS[Math.floor(Math.random()*QUICK_ACTIONS.length)];
-    return { type:'gesture', content: `${chatSettings.companionName}${g.verb}你` };
   }
   // 拼字卡开启后也不是每条都拼，对半几率触发；没触发就正常抽一张
   let text;
@@ -3167,17 +3430,27 @@ function pickReplyFor(userText){
 
 /* ============================================================
    主动性：梦角可以不等我先说话，自己主动发消息、写信、打电话过来
+   ------------------------------------------------------------
+   主动发消息（参照「传讯」的主动发送）：
+   · 开关 + 固定间隔（1~180 分钟），每隔 N 分钟主动来一次，不再是"1~N 分钟里随机"
+   · 来的时候：先把我没读的消息标成已读 → 显示"正在输入…" → 发 1~3 条
+     （75% 发 1 条，约 24% 发 2 条，约 1% 发 3 条）
+   · 每条的内容沿用平时回复那一套：字卡 / 拼字卡 / 表情包 / 引用 / 偶尔拍一拍
+   · 计时从"打开 App / 改设置 / 开关"那一刻起算；App 在后台被冻住时，切回前台会补发一次
    ============================================================ */
 function randomBetween(minMs, maxMs){ return minMs + Math.random()*(maxMs-minMs); }
+const MAX_TIMEOUT_MS = 2000000000; // setTimeout 上限约 24.8 天，超了会"立刻触发"，所以长等待要分段
+function proactiveIntervalMs(){
+  const n = Math.max(1, Math.min(180, Number(proactiveMsgSettings.intervalMinutes) || 60));
+  return n*60*1000;
+}
 function scheduleNextProactiveMsg(){
   if(proactiveMsgSettings.enabled === false){
     proactiveState.nextMsgAt = null;
-    if(typeof _proactiveMsgTimer !== 'undefined' && _proactiveMsgTimer){ clearTimeout(_proactiveMsgTimer); _proactiveMsgTimer = null; }
+    if(_proTimers.msg){ clearTimeout(_proTimers.msg); _proTimers.msg = null; }
     return;
   }
-  // 单滑条：1～intervalMinutes（上限 120）分钟内随机
-  const hi = Math.max(1, Math.min(120, Number(proactiveMsgSettings.intervalMinutes) || 60));
-  proactiveState.nextMsgAt = Date.now() + randomBetween(1*60*1000, hi*60*1000);
+  proactiveState.nextMsgAt = Date.now() + proactiveIntervalMs(); // 固定间隔
 }
 function scheduleNextProactiveLetter(){
   proactiveState.nextLetterAt = Date.now() + randomBetween(1*3600*1000, 10*24*3600*1000);
@@ -3186,174 +3459,140 @@ function scheduleNextProactiveCall(){
   proactiveState.nextCallAt = Date.now() + randomBetween(5*60*1000, 4*24*3600*1000);
 }
 function ensureProactiveSchedule(){
-  // 刷新重算：不接着上次剩余时间，每次启动都重新随机排程
-  if(proactiveMsgSettings.enabled !== false){
-    scheduleNextProactiveMsg();
-  } else {
-    proactiveState.nextMsgAt = null;
-  }
-  scheduleNextProactiveLetter();
-  scheduleNextProactiveCall();
-  scheduleNextProactiveMoment();
+  const now = Date.now();
+  // 主动消息：固定间隔，每次打开 App 就从现在开始重新计一个间隔
+  if(proactiveMsgSettings.enabled !== false) scheduleNextProactiveMsg(); else proactiveState.nextMsgAt = null;
+  // 信 / 朋友圈：时间点是存下来的。以前每次启动都重摇，间隔以"天"计的，隔几天才开一次 App 就永远等不到
+  if(!proactiveState.nextLetterAt) scheduleNextProactiveLetter();
+  if(!proactiveState.nextMomentAt) scheduleNextProactiveMoment();
+  // 来电：过期的别在刚打开的瞬间弹出来，重新排一个
+  if(!proactiveState.nextCallAt || proactiveState.nextCallAt <= now) scheduleNextProactiveCall();
   sSet('proactive-state', proactiveState);
 }
 
-/* 不用轮询：按 next*At 直接 setTimeout */
-let _proactiveMsgTimer = null;
-let _proactiveLetterTimer = null;
-let _proactiveCallTimer = null;
-let _proactiveMomentTimer = null;
-
-function armProactiveMsgTimer(){
-  if(_proactiveMsgTimer){ clearTimeout(_proactiveMsgTimer); _proactiveMsgTimer = null; }
-  if(proactiveMsgSettings.enabled === false){
-    proactiveState.nextMsgAt = null;
-    return;
-  }
-  if(!proactiveState.nextMsgAt){
-    scheduleNextProactiveMsg();
-    sSet('proactive-state', proactiveState);
-  }
-  const delay = Math.max(0, proactiveState.nextMsgAt - Date.now());
-  _proactiveMsgTimer = setTimeout(()=>{
-    _proactiveMsgTimer = null;
-    if(proactiveMsgSettings.enabled === false) return;
-    scheduleNextProactiveMsg();
-    sSet('proactive-state', proactiveState);
-    armProactiveMsgTimer();
-    sendProactiveMessage();
-  }, delay);
+const _proTimers = { msg:null, letter:null, call:null, moment:null };
+const _proKeys = { msg:'nextMsgAt', letter:'nextLetterAt', call:'nextCallAt', moment:'nextMomentAt' };
+function _proReschedule(kind){
+  if(kind==='msg') scheduleNextProactiveMsg();
+  else if(kind==='letter') scheduleNextProactiveLetter();
+  else if(kind==='call') scheduleNextProactiveCall();
+  else scheduleNextProactiveMoment();
 }
-function armProactiveLetterTimer(){
-  if(_proactiveLetterTimer){ clearTimeout(_proactiveLetterTimer); _proactiveLetterTimer = null; }
-  if(!proactiveState.nextLetterAt){
-    scheduleNextProactiveLetter();
-    sSet('proactive-state', proactiveState);
-  }
-  const delay = Math.max(0, proactiveState.nextLetterAt - Date.now());
-  _proactiveLetterTimer = setTimeout(async ()=>{
-    _proactiveLetterTimer = null;
-    scheduleNextProactiveLetter();
-    await sSet('proactive-state', proactiveState);
-    armProactiveLetterTimer();
-    await sendProactiveLetter();
-  }, delay);
+function _armPro(kind){
+  if(_proTimers[kind]){ clearTimeout(_proTimers[kind]); _proTimers[kind] = null; }
+  if(kind==='msg' && proactiveMsgSettings.enabled === false){ proactiveState.nextMsgAt = null; return; }
+  const key = _proKeys[kind];
+  if(!proactiveState[key]){ _proReschedule(kind); sSet('proactive-state', proactiveState); }
+  const remain = proactiveState[key] - Date.now();
+  _proTimers[kind] = setTimeout(()=>{
+    _proTimers[kind] = null;
+    if(kind==='msg' && proactiveMsgSettings.enabled === false) return;
+    // 还没到点（长等待被分段了）就继续等
+    if(proactiveState[key] && Date.now() < proactiveState[key] - 1500){ _armPro(kind); return; }
+    _fireProactive(kind);
+  }, Math.min(Math.max(0, remain), MAX_TIMEOUT_MS));
 }
-function armProactiveCallTimer(){
-  if(_proactiveCallTimer){ clearTimeout(_proactiveCallTimer); _proactiveCallTimer = null; }
-  if(!proactiveState.nextCallAt){
-    scheduleNextProactiveCall();
-    sSet('proactive-state', proactiveState);
-  }
-  const delay = Math.max(0, proactiveState.nextCallAt - Date.now());
-  _proactiveCallTimer = setTimeout(()=>{
-    _proactiveCallTimer = null;
-    scheduleNextProactiveCall();
-    sSet('proactive-state', proactiveState);
-    armProactiveCallTimer();
-    if(!activeCall) receiveIncomingCall();
-  }, delay);
+function _fireProactive(kind){
+  _proReschedule(kind);
+  sSet('proactive-state', proactiveState);
+  _armPro(kind);
+  try{
+    if(kind==='msg') sendProactiveMessage();
+    else if(kind==='letter') sendProactiveLetter();
+    else if(kind==='call'){ if(!activeCall) receiveIncomingCall(); }
+    else sendProactiveMoment();
+  }catch(e){ console.error('主动触发失败', kind, e); }
 }
-function armProactiveMomentTimer(){
-  if(_proactiveMomentTimer){ clearTimeout(_proactiveMomentTimer); _proactiveMomentTimer = null; }
-  if(!proactiveState.nextMomentAt){
-    scheduleNextProactiveMoment();
-    sSet('proactive-state', proactiveState);
-  }
-  const delay = Math.max(0, proactiveState.nextMomentAt - Date.now());
-  _proactiveMomentTimer = setTimeout(async ()=>{
-    _proactiveMomentTimer = null;
-    scheduleNextProactiveMoment();
-    await sSet('proactive-state', proactiveState);
-    armProactiveMomentTimer();
-    await sendProactiveMoment();
-  }, delay);
-}
+function armProactiveMsgTimer(){ _armPro('msg'); }
+function armProactiveLetterTimer(){ _armPro('letter'); }
+function armProactiveCallTimer(){ _armPro('call'); }
+function armProactiveMomentTimer(){ _armPro('moment'); }
 function armAllProactiveTimers(){
-  armProactiveMsgTimer();
-  armProactiveLetterTimer();
-  armProactiveCallTimer();
-  armProactiveMomentTimer();
+  _armPro('msg'); _armPro('letter'); _armPro('call'); _armPro('moment');
 }
-/** 兼容旧调用：改为挂 setTimeout，不再轮询 */
+/** 兼容旧调用 */
 async function checkProactive(){
   armAllProactiveTimers();
 }
 
-/* ============================================================
-   前台补发检查：App 从后台切回前台时，setTimeout 可能已被浏览器
-   冻结/丢弃而没有按时触发，这里主动比对 next*At 与当前时间，
-   过期了就立刻补发，而不是干等一个可能已经失效的定时器。
-   ============================================================ */
+/* 前台补发检查：App 从后台切回前台时，setTimeout 可能已被浏览器冻结/丢弃而没有按时触发，
+   这里比对 next*At 与当前时间，过期了就补发一次（并从现在起重新计时）。 */
 function checkProactiveDue(){
   const now = Date.now();
-  if(proactiveMsgSettings.enabled !== false && proactiveState.nextMsgAt && proactiveState.nextMsgAt <= now){
-    if(_proactiveMsgTimer){ clearTimeout(_proactiveMsgTimer); _proactiveMsgTimer = null; }
-    scheduleNextProactiveMsg();
-    sSet('proactive-state', proactiveState);
-    armProactiveMsgTimer();
-    sendProactiveMessage();
-  }
-  if(proactiveState.nextLetterAt && proactiveState.nextLetterAt <= now){
-    if(_proactiveLetterTimer){ clearTimeout(_proactiveLetterTimer); _proactiveLetterTimer = null; }
-    scheduleNextProactiveLetter();
-    sSet('proactive-state', proactiveState);
-    armProactiveLetterTimer();
-    sendProactiveLetter();
-  }
-  if(proactiveState.nextCallAt && proactiveState.nextCallAt <= now){
-    if(_proactiveCallTimer){ clearTimeout(_proactiveCallTimer); _proactiveCallTimer = null; }
-    scheduleNextProactiveCall();
-    sSet('proactive-state', proactiveState);
-    armProactiveCallTimer();
-    if(typeof activeCall === 'undefined' || !activeCall) receiveIncomingCall();
-  }
-  if(proactiveState.nextMomentAt && proactiveState.nextMomentAt <= now){
-    if(_proactiveMomentTimer){ clearTimeout(_proactiveMomentTimer); _proactiveMomentTimer = null; }
-    scheduleNextProactiveMoment();
-    sSet('proactive-state', proactiveState);
-    armProactiveMomentTimer();
-    sendProactiveMoment();
-  }
+  ['msg','letter','call','moment'].forEach(function(kind){
+    if(kind==='msg' && proactiveMsgSettings.enabled === false) return;
+    const at = proactiveState[_proKeys[kind]];
+    if(at && at <= now){
+      if(_proTimers[kind]){ clearTimeout(_proTimers[kind]); _proTimers[kind] = null; }
+      _fireProactive(kind);
+    }
+  });
 }
+
+function _flashToast(text, warn){
+  const el = document.getElementById('saveToast');
+  if(!el) return;
+  clearTimeout(_saveToastTimer);
+  el.textContent = text;
+  el.classList.toggle('warn', !!warn);
+  el.classList.add('show');
+  _saveToastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 2600);
+}
+let _proMsgBusy = false;
 function sendProactiveMessage(){
-  // 偶尔改成主动邀请一起听/学/睡，而不是普通消息
-  if(typeof maybeBotInviteTogether === 'function' && Math.random() < 0.18){
-    maybeBotInviteTogether();
+  // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
+  if(Math.random() < 0.10 && maybeBotInviteTogether()) return;
+  runProactiveBurst();
+}
+/* 💌 按钮：手动让 TA 主动来一次，走的是同一套逻辑 */
+function triggerProactiveMessage(){
+  runProactiveBurst();
+}
+function runProactiveBurst(){
+  if(_proMsgBusy) return;      // 上一轮还没发完，别叠在一起
+  if(activeCall) return;       // 正在通话时不打扰
+  if(!getRandomCardText()){
+    _flashToast('字卡库是空的，先到「字卡」里导入一些吧', true);
     return;
   }
+  // 1) TA 来找我了 = 看过我之前发的消息，全部标为已读
+  const toSave = [];
+  chatMessages.forEach(m=>{ if(m.from==='user' && !m.read){ m.read = true; toSave.push(m); } });
+  if(toSave.length){
+    recPutMany('chatMessages', toSave).catch(()=>{});
+    if(currentView==='chat'){ try{ renderChat(true); }catch(e){} }
+  }
+  // 2) 这次连发几条：75% 1 条，约 24% 2 条，约 1% 3 条
+  const count = Math.random() < 0.75 ? 1 : (Math.random() < 0.95 ? 2 : 3);
+  _proMsgBusy = true;
   showTyping(true);
-  setTimeout(async ()=>{
+  const sendOne = async function(i){
+    let reply = null;
+    try{ reply = pickReplyFor('', { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
     showTyping(false);
-    const reply = pickReplyFor(''); // 停顿结束、真要发的这一刻才选字卡，跟手动触发的顺序保持一致
-    if(!reply) return;
-    const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+    if(!reply){ _proMsgBusy = false; return; }
+    const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
     chatMessages.push(newMsg);
-    await recPut('chatMessages', newMsg);
-    if(currentView==='chat'){ renderChat(); }
-    else{ chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]'); }
-  }, getReplyDelayMs()); // 打字停顿走传讯设置里的"最快/最慢回复"区间，跟手动触发、平时回复用同一套，不影响 nextMsgAt 的随机调度
-}
-function triggerProactiveMessage(){
-  showTyping(true);
-  setTimeout(async ()=>{
-    showTyping(false);
-    const reply = pickReplyFor('');
-    if(reply){
-      const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
-      chatMessages.push(newMsg);
-      await recPut('chatMessages', newMsg);
-      if(currentView==='chat'){ 
-        renderChat(); 
-      } else {
-        chatUnread = true; 
-        await sSet('chat-unread', true); 
-        renderUnreadDots(); 
-        tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]');
-      }
+    try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
+    if(currentView==='chat'){ try{ renderChat(); }catch(e){} }
+    else{
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); }catch(e){}
+      renderUnreadDots();
+      try{ tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]'); }catch(e){}
     }
-  }, getReplyDelayMs());
-}async function sendProactiveLetter(){
+    if(i+1 < count){
+      showTyping(true);
+      // 连发的间隔：4 秒 ~ 1 分钟随机（"打字停顿"只算第一条，后面几条是接着发的）
+      setTimeout(()=>{ sendOne(i+1); }, 4000 + Math.random()*56000);
+    } else {
+      _proMsgBusy = false;
+    }
+  };
+  // 第一条：走传讯设置里的"最快/最慢回复"区间，跟平时回复用同一套
+  setTimeout(()=>{ sendOne(0); }, getReplyDelayMs());
+}
+async function sendProactiveLetter(){
   const lineCount = 5 + Math.floor(Math.random()*11);
   const lines = [];
   for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
@@ -3383,7 +3622,7 @@ function previewWebLink(){
   const area = document.getElementById('wlPreviewArea');
   if(!/^https?:\/\//i.test(raw)){ area.innerHTML = '<div style="padding:8px 2px;color:var(--ink-soft,#999);font-size:13px;">先粘贴一个完整链接（要带 http/https）～</div>'; return; }
   area.innerHTML = `<div style="position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000;margin-top:8px;">
-    <iframe src="${raw}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+    <iframe src="${escapeHtml(raw)}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
   </div>`;
 }
 async function sendWebLinkToChat(){
@@ -3516,6 +3755,60 @@ function restoreCall(){
   document.getElementById('callBubble').classList.add('hidden');
   document.getElementById('callOverlay').classList.remove('hidden');
 }
+
+// 通话挂件：保持原有点击恢复通话，同时支持手指/鼠标拖动位置。
+(function initCallBubbleDrag(){
+  function bind(){
+    const bubble = document.getElementById('callBubble');
+    if(!bubble || bubble.dataset.dragBound) return;
+    bubble.dataset.dragBound = '1';
+    let dragging = false, moved = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    bubble.addEventListener('pointerdown', function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      const rect = bubble.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+      dragging = true; moved = false;
+      bubble.classList.add('dragging');
+      bubble.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    });
+    bubble.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      if(!moved) return;
+      const maxLeft = Math.max(0, window.innerWidth - bubble.offsetWidth);
+      const maxTop = Math.max(0, window.innerHeight - bubble.offsetHeight);
+      const left = Math.min(maxLeft, Math.max(0, startLeft + dx));
+      const top = Math.min(maxTop, Math.max(0, startTop + dy));
+      bubble.style.left = left + 'px';
+      bubble.style.top = top + 'px';
+      bubble.style.right = 'auto';
+      e.preventDefault();
+    });
+    bubble.addEventListener('pointerup', function(e){
+      if(!dragging) return;
+      dragging = false;
+      bubble.classList.remove('dragging');
+      try{ bubble.releasePointerCapture?.(e.pointerId); }catch(_){}
+    });
+    bubble.addEventListener('pointercancel', function(){
+      dragging = false;
+      bubble.classList.remove('dragging');
+    });
+    bubble.addEventListener('click', function(e){
+      if(moved){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        moved = false;
+      }
+    }, true);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
 function updateCallBubbleText(){
   const el = document.getElementById('callBubbleText');
   if(!el || !activeCall) return;
@@ -3530,19 +3823,21 @@ function updateCallBubbleText(){
 }
 async function endCall(reason){
   if(!activeCall) return;
-  clearTimeout(activeCall.missedTimeout);
-  clearTimeout(activeCall.ringTimeout);
-  clearInterval(activeCall.timerInterval);
-  const duration = activeCall.startTime ? Math.floor((Date.now()-activeCall.startTime)/1000) : 0;
+  // 先把 activeCall 摘出来置空：以前是存完库才置空，挂断键连点两下会记两条通话
+  const call = activeCall;
+  activeCall = null;
+  clearTimeout(call.missedTimeout);
+  clearTimeout(call.ringTimeout);
+  clearInterval(call.timerInterval);
+  const duration = call.startTime ? Math.floor((Date.now()-call.startTime)/1000) : 0;
   let status = 'completed';
   if(reason==='missed' || reason==='missed_by_them') status = 'missed';
   if(reason==='declined') status = 'declined';
-  if(reason==='cancelled') status = activeCall.status==='connected' ? 'completed' : 'missed';
-  callLogs.unshift({ id:uid(), direction:activeCall.direction, status, duration, time:Date.now() });
+  if(reason==='cancelled') status = call.status==='connected' ? 'completed' : 'missed';
+  hideCallOverlay();
+  callLogs.unshift({ id:uid(), direction:call.direction, status, duration, time:Date.now() });
   await sSet('call-logs', callLogs);
   renderCallLog();
-  hideCallOverlay();
-  activeCall = null;
 }
 function showCallOverlay(){
   const box = document.getElementById('callAvatarBox');
@@ -3573,7 +3868,7 @@ function renderCallLog(){
   if(!wrap) return;
   wrap.innerHTML = callLogs.length ? callLogs.map(c=>{
     const icon = c.direction==='in' ? '📹' : '📹';
-    const label = c.direction==='in' ? (chatSettings.companionName+' 的视频来电') : '视频呼出';
+    const label = c.direction==='in' ? (escapeHtml(chatSettings.companionName)+' 的视频来电') : '视频呼出';
     const statusText = c.status==='completed' ? formatCallDuration(c.duration) : (c.status==='missed' ? '未接' : '已拒接');
     const color = c.status==='completed' ? 'var(--ink-soft)' : 'var(--rouge)';
     return `<div class="list-item"><div>${icon} ${label}<div class="meta" style="color:${color};">${statusText} · ${formatMsgTime(c.time)}</div></div></div>`;
@@ -3585,7 +3880,7 @@ function openChatSettings(){
   openOverlay(`
     <div class="drawer-head"><h3>传讯设置</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">梦角名字</label>
-    <input type="text" id="csName" value="${chatSettings.companionName}">
+    <input type="text" id="csName" value="${escapeHtml(chatSettings.companionName)}">
     <label class="field">最快回复：<span id="csDelayMinVal">${chatSettings.delayMin}</span> 分钟</label>
     <input type="range" min="1" max="5" step="1" value="${Math.min(5, Math.max(1, chatSettings.delayMin||1))}" oninput="document.getElementById('csDelayMinVal').textContent=this.value" id="csDelayMin" style="width:100%;">
     <label class="field">最慢回复：<span id="csDelayMaxVal">${chatSettings.delayMax}</span> 分钟</label>
@@ -3607,8 +3902,9 @@ function openChatSettings(){
       <span>主动发消息给我</span>
       <div class="switch ${proactiveMsgSettings.enabled!==false?'on':''}" id="csProEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
-    <label class="field">间隔：<span id="csProIntervalVal">${Math.min(120, proactiveMsgSettings.intervalMinutes||60)}</span> 分钟</label>
-    <input type="range" min="1" max="120" step="1" value="${Math.min(120, Math.max(1, proactiveMsgSettings.intervalMinutes||60))}" oninput="document.getElementById('csProIntervalVal').textContent=this.value" id="csProInterval" style="width:100%;">
+    <label class="field">间隔：<span id="csProIntervalVal">${Math.min(180, proactiveMsgSettings.intervalMinutes||60)}</span> 分钟</label>
+    <input type="range" min="1" max="180" step="1" value="${Math.min(180, Math.max(1, proactiveMsgSettings.intervalMinutes||60))}" oninput="document.getElementById('csProIntervalVal').textContent=this.value" id="csProInterval" style="width:100%;">
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">每隔这么久，TA 会主动来找你一次（有时连发 1～3 条）。App 开着才会计时，保存后从现在重新计。</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在 1 分钟～该值之间随机挑时间主动发（1～120 分钟）</div>
     <div class="box-title" style="margin-top:14px;">朋友圈互动</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">你发朋友圈后，TA 点赞 / 评论的概率；以及你评论后 TA 回复的概率。0% 从不，100% 必做。</div>
@@ -3663,7 +3959,7 @@ function openChatSettings(){
 function renderStickerChips(){
   if(chatSettings.stickers.length===0) return '<div class="empty-note">还没有表情包</div>';
   return chatSettings.stickers.map(s=>{
-    const disp = s.type==='emoji' ? s.value : `<img loading="lazy" decoding="async" src="${s.value}" style="width:20px;height:20px;vertical-align:middle;">`;
+    const disp = s.type==='emoji' ? escapeHtml(s.value) : `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:20px;height:20px;vertical-align:middle;">`;
     return `<span class="chip">${disp}<span class="x" onclick="removeSticker('${s.id}')">✕</span></span>`;
   }).join('');
 }
@@ -3709,11 +4005,11 @@ async function saveChatSettings(){
   delete chatSettings.delayUnit;
   chatSettings.readNoReply = document.getElementById('csReadNoReply').classList.contains('on');
   const cp = document.getElementById('csComboProb');
-  if(cp) chatSettings.comboReplyProb = Math.max(0, Math.min(100, parseInt(cp.value,10)||35));
+  if(cp){ const cv = parseInt(cp.value,10); chatSettings.comboReplyProb = Number.isFinite(cv) ? Math.max(0, Math.min(100, cv)) : 35; } // 0 也是合法值（以前 ||35 会把 0 变回 35）
   chatSettings.redPacketEnabled = document.getElementById('csRedPacketEnabled').classList.contains('on');
   await sSet('chat-settings', chatSettings);
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
-  proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(120, parseInt(document.getElementById('csProInterval').value,10) || 60));
+  proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(180, parseInt(document.getElementById('csProInterval').value,10) || 60));
   delete proactiveMsgSettings.minMinutes;
   delete proactiveMsgSettings.maxMinutes;
   await sSet('proactive-msg-settings', proactiveMsgSettings);
@@ -3800,7 +4096,7 @@ function openCardPicker(){
   }
   openOverlay(`
     <div class="drawer-head"><h3>选择字卡发送</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    ${groups.map(g=>`<div class="group-block"><div class="group-name"><span>${g}</span></div>${cardsData.groups[g].map(c=>`<span class="card-pill" onclick="sendCardText('${escAttr(c)}')">${c}</span>`).join('')}</div>`).join('')}
+    ${groups.map(g=>`<div class="group-block"><div class="group-name"><span>${escapeHtml(g)}</span></div>${cardsData.groups[g].map(c=>`<span class="card-pill" onclick="sendCardText('${escAttr(c)}')">${escapeHtml(c)}</span>`).join('')}</div>`).join('')}
   `);
 }
 async function sendCardText(text){
@@ -3823,16 +4119,17 @@ function openStickerPicker(mode){
   openOverlay(`
     <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'}</p>
-    <div>${chatSettings.stickers.map(s=>{
-      const disp = s.type==='emoji' ? `<span style="font-size:30px;">${s.value}</span>` : `<img loading="lazy" decoding="async" src="${s.value}" style="width:44px;height:44px;object-fit:contain;">`;
-      const val = JSON.stringify(s.value);
+    <div>${chatSettings.stickers.map((s,idx)=>{
+      const disp = s.type==='emoji' ? `<span style="font-size:30px;">${escapeHtml(s.value)}</span>` : `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`;
       if(mode==='attach'){
-        return `<span class="chip" style="padding:8px;" onclick='pickStickerForCombo(${val})'>${disp}</span>`;
+        return `<span class="chip" style="padding:8px;" onclick="pickStickerByIndex(${idx})">${disp}</span>`;
       }
-      return `<span class="chip" style="padding:8px;" onclick='sendStickerMsg(${val})'>${disp}</span>`;
+      return `<span class="chip" style="padding:8px;" onclick="sendStickerByIndex(${idx})">${disp}</span>`;
     }).join('')}</div>
   `);
 }
+function pickStickerByIndex(i){ const s = (chatSettings.stickers||[])[i]; if(s) pickStickerForCombo(s.value); }
+function sendStickerByIndex(i){ const s = (chatSettings.stickers||[])[i]; if(s) sendStickerMsg(s.value); }
 function pickStickerForCombo(value){
   pendingSticker = { value: value };
   const bar = document.getElementById('pendingStickerBar');
@@ -4015,7 +4312,7 @@ function ledgerMonthEntries(){
 }
 function openLedgerAddSheet(presetType){
   const type = presetType || (ledgerUI.tab==='income' ? 'income' : 'expense');
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDateStr();
   openOverlay(`
     <div class="drawer-head"><h3>添加记录</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">日期</label><input type="date" id="ledgerDate" value="${today}">
@@ -4075,7 +4372,7 @@ function renderLedger(){
     });
     const rows = Object.keys(byTag).map(k=>{
       const t = byTag[k];
-      return `<div class="list-item"><div><b>${k}</b><div class="meta">支出 ¥${t.expense.toFixed(2)} · 收入 ¥${t.income.toFixed(2)}</div></div></div>`;
+      return `<div class="list-item"><div><b>${escapeHtml(k)}</b><div class="meta">支出 ¥${t.expense.toFixed(2)} · 收入 ¥${t.income.toFixed(2)}</div></div></div>`;
     });
     wrap.innerHTML = rows.length ? rows.join('') : '<div class="empty-note">本月暂无统计数据</div>';
     return;
@@ -4085,7 +4382,7 @@ function renderLedger(){
     ledgerEntries.forEach(e=>{ if(e.tag) tags[e.tag] = (tags[e.tag]||0)+1; });
     const keys = Object.keys(tags);
     wrap.innerHTML = keys.length
-      ? keys.map(t=>`<div class="list-item"><div>🏷 ${t}<div class="meta">共 ${tags[t]} 笔</div></div></div>`).join('')
+      ? keys.map(t=>`<div class="list-item"><div>🏷 ${escapeHtml(t)}<div class="meta">共 ${tags[t]} 笔</div></div></div>`).join('')
       : '<div class="empty-note">还没有标签，添加记录时可填写</div>';
     return;
   }
@@ -4100,7 +4397,7 @@ function renderLedger(){
   wrap.innerHTML = list.map(e=>`
     <div class="list-item"><div>
       <b style="color:${e.type==='income'?'#3B6B5E':'var(--rouge)'}">${e.type==='income'?'+':'-'}¥${Number(e.amount).toFixed(2)}</b>
-      <div class="meta">${e.date}${e.tag?' · '+e.tag:''}${e.note?' · '+e.note:''}</div>
+      <div class="meta">${e.date}${e.tag?' · '+escapeHtml(e.tag):''}${e.note?' · '+escapeHtml(e.note):''}</div>
     </div><span class="del" onclick="deleteLedger('${e.id}')">✕</span></div>`).join('');
 }
 
@@ -4166,6 +4463,7 @@ function openMomentComposer(){
 function onMomentMedia(e){
   const f = e.target.files[0]; if(!f) return;
   const isVideo = f.type.startsWith('video/');
+  if(isVideo && f.size > 30*1024*1024){ alert('视频有点大（超过 30MB），会把本地存储撑满。换个短一点或压缩过的吧～'); e.target.value=''; return; }
   const reader = new FileReader();
   reader.onload = async ()=>{
     const src = isVideo ? reader.result : await compressImage(reader.result, 1000);
@@ -4320,25 +4618,25 @@ function renderMoments(){
     let autoInteractions = '';
     if(!isBot && (p.liked || p.commented)){
       autoInteractions = `<div class="moment-interactions">`;
-      if(p.liked) autoInteractions += `<div class="moment-likes">❤️ ${chatSettings.companionName}</div>`;
-      if(p.commented) autoInteractions += `<div class="moment-comment"><b style="color:var(--rouge);">${chatSettings.companionName}：</b>${p.comment}</div>`;
+      if(p.liked) autoInteractions += `<div class="moment-likes">❤️ ${escapeHtml(chatSettings.companionName)}</div>`;
+      if(p.commented) autoInteractions += `<div class="moment-comment"><b style="color:var(--rouge);">${escapeHtml(chatSettings.companionName)}：</b>${escapeHtml(p.comment)}</div>`;
       autoInteractions += `</div>`;
     }
 
     const likeBtn = `<span class="moment-like-btn ${p.likedByUser?'active':''}" onclick="toggleMomentLike('${p.id}')">${p.likedByUser?'❤️':'🤍'} 赞</span>`;
-    const likersLine = p.likedByUser ? `<div class="moment-likes" style="margin-top:6px;">❤️ ${myName}</div>` : '';
+    const likersLine = p.likedByUser ? `<div class="moment-likes" style="margin-top:6px;">❤️ ${escapeHtml(myName)}</div>` : '';
 
     const thread = (p.comments && p.comments.length)
-      ? `<div class="moment-thread">${p.comments.map(c=>`<div class="moment-comment-line"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${c.author==='user'?myName:chatSettings.companionName}：</b>${c.text}</div>`).join('')}</div>`
+      ? `<div class="moment-thread">${p.comments.map(c=>`<div class="moment-comment-line"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${escapeHtml(c.author==='user'?myName:chatSettings.companionName)}：</b>${escapeHtml(c.text)}</div>`).join('')}</div>`
       : '';
 
     return `<div class="moment-post">
       <div class="moment-avatar">${avatar}</div>
       <div class="moment-body">
-        <div class="moment-name">${name}</div>
-        ${p.text?`<div class="moment-text">${p.text}</div>`:''}
-        ${p.photo?`<img loading="lazy" decoding="async" class="moment-photo" src="${p.photo}">`:''}
-        ${p.video?`<video class="moment-photo" src="${p.video}" controls></video>`:''}
+        <div class="moment-name">${escapeHtml(name)}</div>
+        ${p.text?`<div class="moment-text">${escapeHtml(p.text)}</div>`:''}
+        ${p.photo?`<img loading="lazy" decoding="async" class="moment-photo" src="${escapeHtml(p.photo)}">`:''}
+        ${p.video?`<video class="moment-photo" src="${escapeHtml(p.video)}" controls></video>`:''}
         <div class="moment-meta">${new Date(p.time).toLocaleString('zh-CN')}</div>
         <div class="moment-actions">${likeBtn}</div>
         ${likersLine}
@@ -4406,14 +4704,14 @@ function renderLetters(){
     if(l.replied){
       const replyTime = new Date(l.replyTime).toLocaleString('zh-CN');
       replyBlock = `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <div style="font-size:11px;color:var(--ink-soft);">${chatSettings.companionName} 的回信 · ${replyTime}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${l.replyContent}</div>
+        <div style="font-size:11px;color:var(--ink-soft);">${escapeHtml(chatSettings.companionName)} 的回信 · ${replyTime}</div>
+        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.replyContent)}</div>
       </div>`;
     } else {
       const eta = new Date(l.scheduledReplyAt).toLocaleString('zh-CN');
       replyBlock = `<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA 还在写回信…大概 ${eta} 前会寄到</div>`;
     }
-    return `<div class="box"><div style="font-size:11px;color:var(--ink-soft);">${sentTime}</div><div style="font-size:13px;margin-top:4px;white-space:pre-line;">${l.content}</div>${replyBlock}</div>`;
+    return `<div class="box"><div style="font-size:11px;color:var(--ink-soft);">${sentTime}</div><div style="font-size:13px;margin-top:4px;white-space:pre-line;">${escapeHtml(l.content)}</div>${replyBlock}</div>`;
   }).join('') : '<div class="empty-note">还没有写过信，什么时候想写都可以</div>';
 }
 function renderInboxLetters(){
@@ -4427,15 +4725,15 @@ function renderInboxLetters(){
       const urt = new Date(l.userReplyTime).toLocaleString('zh-CN');
       thread += `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);">
         <div style="font-size:11px;color:var(--ink-soft);">我的回信 · ${urt}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${l.userReply}</div>
+        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.userReply)}</div>
       </div>`;
     }
     // TA 对我回信的再回复
     if(l.botReplied && l.botReplyContent){
       const brt = new Date(l.botReplyTime).toLocaleString('zh-CN');
       thread += `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <div style="font-size:11px;color:var(--rouge);">${chatSettings.companionName} 的再回信 · ${brt}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${l.botReplyContent}</div>
+        <div style="font-size:11px;color:var(--rouge);">${escapeHtml(chatSettings.companionName)} 的再回信 · ${brt}</div>
+        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.botReplyContent)}</div>
       </div>`;
     } else if(l.userReply && !l.botReplied && l.scheduledBotReplyAt){
       const eta = new Date(l.scheduledBotReplyAt).toLocaleString('zh-CN');
@@ -4450,8 +4748,8 @@ function renderInboxLetters(){
       </div>`;
     }
     return `<div class="box">
-      <div style="font-size:11px;color:var(--rouge);">${chatSettings.companionName} · ${t}</div>
-      <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${l.content}</div>
+      <div style="font-size:11px;color:var(--rouge);">${escapeHtml(chatSettings.companionName)} · ${t}</div>
+      <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.content)}</div>
       ${thread}${replyForm}
     </div>`;
   }).join('') : '<div class="empty-note">TA 还没有主动寄过信来，什么时候想写全看TA自己</div>';
@@ -4625,7 +4923,7 @@ async function clearAvatarImage(){
   fillSettingsForm();
 }
 const _origGo = go;
-go = function(name){ _origGo(name); if(name==='settings') fillSettingsForm(); if(name==='companion'){ loadCompanionData().then(()=>{ _compTab='todo'; switchCompanionTab('todo'); }); } };
+go = function(name){ _origGo(name); if(name==='companion'){ loadCompanionData().then(()=>{ _compTab='todo'; switchCompanionTab('todo'); }); } };
 
 async function saveProfile(){
   profile.name = document.getElementById('setName').value.trim() || profile.name;
@@ -4640,11 +4938,26 @@ async function saveProfile(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','splice-cards-enabled'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings'];
+  // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
-    try{ localStorage.removeItem('EVAN:'+k); }catch(e){}
   }
+  // IndexedDB 的 kv 表：设置、字卡、记账、日记、信件……主要都存在这里。
+  // 以前只清了 localStorage 和三张记录表，重启后这些数据会原样回来。
+  try{
+    const db = await openDB();
+    await new Promise((resolve,reject)=>{
+      const tx = db.transaction(STORE_NAME,'readwrite');
+      tx.objectStore(STORE_NAME).clear();
+      tx.oncomplete = ()=>resolve();
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }catch(e){ console.warn('清空 kv 表失败', e); }
+  // localStorage 兜底副本
+  try{
+    Object.keys(localStorage).filter(k=>k.indexOf('EVAN:')===0).forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
   for(const store of REC_STORES){
     try{ await recClear(store); }catch(e){}
   }
@@ -4657,10 +4970,14 @@ async function exportBackup(){
   const [fullChat, fullMoments, fullPhotos] = await Promise.all([
     recGetAll('chatMessages'), recGetAll('momentsPosts'), recGetAll('lifePhotos')
   ]);
+  let tarotHistoryData = [];
+  try{ tarotHistoryData = await sGet('tarot-history', []); }catch(e){}
+  const bgForExport = Object.assign({}, bgSettings, { aiKey:'' }); // 接口密钥不写进备份文件，备份发给别人也不会泄露
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, momentInteractSettings, spliceCardsEnabled,
+    companionTodos, companionHabits, companionAnnivs, tarotHistory: tarotHistoryData, tarotModelOn, bgSettings: bgForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -4681,8 +4998,8 @@ function onImportBackupFile(e){
     try{ data = JSON.parse(reader.result); }
     catch(err){ alert('这个备份文件解析失败，请确认是本网页导出的备份文件。'); return; }
     if(!confirm('导入备份会覆盖当前所有数据，确定要恢复吗？')) return;
-    profile = data.profile || profile;
-    chatSettings = data.chatSettings || chatSettings;
+    profile = data.profile ? withDefaults('profile', data.profile) : profile;
+    chatSettings = data.chatSettings ? withDefaults('chatSettings', data.chatSettings) : chatSettings;
     const importedChat = data.chatMessages || [];
     cardsData = data.cardsData || {groups:{}};
     ledgerEntries = data.ledgerEntries || [];
@@ -4692,7 +5009,7 @@ function onImportBackupFile(e){
     letters = data.letters || [];
     inboxLetters = data.inboxLetters || [];
     callLogs = data.callLogs || [];
-    themeSettings = data.themeSettings || themeSettings;
+    themeSettings = data.themeSettings ? withDefaults('themeSettings', data.themeSettings) : themeSettings;
     proactiveState = data.proactiveState || { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null, nextCareAt:null };
     const importedPhotos = data.lifePhotos || [];
     statusPool = data.statusPool || [];
@@ -4703,6 +5020,7 @@ function onImportBackupFile(e){
     proactiveMsgSettings = data.proactiveMsgSettings || proactiveMsgSettings;
     momentInteractSettings = data.momentInteractSettings || momentInteractSettings;
     if(typeof data.spliceCardsEnabled === 'boolean') spliceCardsEnabled = data.spliceCardsEnabled;
+    normalizeLoadedSettings();
     await sSet('profile', profile);
     await sSet('chat-settings', chatSettings);
     await sSet('cards-data', cardsData);
@@ -4722,14 +5040,27 @@ function onImportBackupFile(e){
     await sSet('proactive-msg-settings', proactiveMsgSettings);
     await sSet('moment-interact-settings', momentInteractSettings);
     await sSet('splice-cards-enabled', spliceCardsEnabled);
+    // 陪伴记录 / 塔罗 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
+    if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
+    if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
+    if(Array.isArray(data.companionAnnivs)){ companionAnnivs = data.companionAnnivs; await sSet('companion-annivs', companionAnnivs); }
+    if(Array.isArray(data.tarotHistory)) await sSet('tarot-history', data.tarotHistory);
+    if(typeof data.tarotModelOn === 'boolean'){ tarotModelOn = data.tarotModelOn; await sSet('tarot-model-on', tarotModelOn); }
+    if(Array.isArray(data.momentEvents)){ momentEvents = data.momentEvents; await sSet('moment-events', momentEvents); }
+    if(data.bgSettings && typeof data.bgSettings === 'object'){
+      const keepKey = bgSettings.aiKey;
+      bgSettings = Object.assign({}, bgSettings, data.bgSettings);
+      if(!data.bgSettings.aiKey && keepKey) bgSettings.aiKey = keepKey; // 备份里不带密钥，保留当前已填的
+      await sSet('bg-settings', bgSettings);
+    }
     // 恢复到各自专用的逐条记录表：先清空旧的，再把备份里的全部记录整体写进去
     await recClear('chatMessages'); await recPutMany('chatMessages', importedChat.map((m,i)=> m.time?m:{...m,time:Date.now()-(importedChat.length-i)}));
     await recClear('momentsPosts'); await recPutMany('momentsPosts', importedMoments.map((p,i)=> p.time?p:{...p,time:Date.now()-i}));
     await recClear('lifePhotos'); await recPutMany('lifePhotos', importedPhotos.map((p,i)=> ({...p,time:p.time||(Date.now()-i)})));
     pageState = { chatMessages:{exhausted:false}, momentsPosts:{exhausted:false}, lifePhotos:{exhausted:false} };
     chatMessages = await loadInitialPage('chatMessages');
-    momentsPosts = await loadInitialPage('momentsPosts');
-    lifePhotos = await loadInitialPage('lifePhotos');
+    momentsPosts = (await loadInitialPage('momentsPosts')).reverse();   // 内存里朋友圈/照片是「新→旧」
+    lifePhotos = (await loadInitialPage('lifePhotos')).reverse();
     applyTheme();
     applyCustomBubbleCSSToPage();
     renderHomeProfile(); renderChat(); renderCardsView(); renderLedger(); renderPeriod();
@@ -4739,6 +5070,9 @@ function onImportBackupFile(e){
     resumeInboxLetterReplyTimers();
     resumeMoyuSchedule();
     renderMoyuHome();
+    applyBgSettingsUI();
+    ensureProactiveSchedule();
+    armAllProactiveTimers();
         alert('恢复完成');
   };
   reader.readAsText(f, 'utf-8');
@@ -4969,7 +5303,7 @@ function formatDurationShort(ms){
   const m = Math.floor((ms%3600000)/60000);
   if(h<=0) return m + '分钟';
   if(m<=0) return h + 'h';
-  return h + 'h';
+  return h + 'h' + m + 'm';
 }
 function formatRemain(ms){
   if(ms <= 0) return '已下班';
@@ -5094,7 +5428,7 @@ function renderSessionCard(sess, isCurrent){
         const t = new Date(r.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
         return `<div style="border:1px solid var(--rule);background:var(--glass-bg);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);padding:10px 12px;margin-top:8px;border-radius:2px;">
           <div style="font-size:11px;color:var(--ink-soft);">🕐 ${t}</div>
-          <div style="margin-top:4px;font-size:13.5px;">${r.text}</div>
+          <div style="margin-top:4px;font-size:13.5px;">${escapeHtml(r.text)}</div>
         </div>`;
       }).join('');
     }
@@ -5103,7 +5437,7 @@ function renderSessionCard(sess, isCurrent){
   }
   return `<div class="box" style="margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:'Noto Serif SC',serif;font-weight:700;font-size:15px;">📍 ${sess.location||'未知地点'}</div>
+      <div style="font-family:'Noto Serif SC',serif;font-weight:700;font-size:15px;">📍 ${escapeHtml(sess.location||'未知地点')}</div>
       <span class="stamp-tag" style="transform:none;">🕐 ${badge}</span>
     </div>
     <div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">📅 ${dateStr}</div>
@@ -5189,7 +5523,7 @@ function renderMoyuManageBody(){
     </div>
     <input type="file" id="moyuFileInput" accept=".txt,.json" class="hidden" onchange="onMoyuFile(event)">
     <div style="margin-top:12px;">
-      ${list.length ? list.map((t,i)=>`<span class="card-pill">${t}<span class="del" style="margin-left:6px;" onclick="deleteMoyuItem(${i})">✕</span></span>`).join('') : '<div class="empty-note">列表空空如也</div>'}
+      ${list.length ? list.map((t,i)=>`<span class="card-pill">${escapeHtml(t)}<span class="del" style="margin-left:6px;" onclick="deleteMoyuItem(${i})">✕</span></span>`).join('') : '<div class="empty-note">列表空空如也</div>'}
     </div>
     <div class="btn-row" style="margin-top:14px;">
       <input type="text" id="moyuSingleInput" placeholder="单条新增…" style="flex:1;">
@@ -5302,7 +5636,7 @@ function renderCompanionBody(){
     else list.innerHTML = companionTodos.map((t,i)=>`
       <div class="pet-task-item">
         <div class="pet-check ${t.done?'on':''}" onclick="toggleCompanionTodo(${i})"></div>
-        <span class="${t.done?'done':''}">${t.text}</span>
+        <span class="${t.done?'done':''}">${escapeHtml(t.text)}</span>
         <span class="pet-task-del" onclick="delCompanionTodo(${i})">删除</span>
       </div>`).join('');
   } else if(_compTab === 'habit'){
@@ -5320,7 +5654,7 @@ function renderCompanionBody(){
     else list.innerHTML = companionHabits.map((h,i)=>`
       <div class="pet-task-item">
         <div class="pet-check ${h.doneToday?'on':''}" onclick="toggleCompanionHabit(${i})"></div>
-        <span>${h.text}</span>
+        <span>${escapeHtml(h.text)}</span>
         <span class="pet-task-del" onclick="delCompanionHabit(${i})">删除</span>
       </div>`).join('');
   } else if(_compTab === 'anniv'){
@@ -5339,7 +5673,7 @@ function renderCompanionBody(){
     else list.innerHTML = companionAnnivs.map((a,i)=>{
       const d = new Date(a.date);
       const days = Math.floor((Date.now()-d.getTime())/86400000);
-      return `<div class="list-item"><div><b>${a.name}</b><div class="meta">${a.date} · 已过 ${days} 天</div></div><span class="del" onclick="delCompanionAnniv(${i})">✕</span></div>`;
+      return `<div class="list-item"><div><b>${escapeHtml(a.name)}</b><div class="meta">${escapeHtml(a.date)} · 已过 ${days} 天</div></div><span class="del" onclick="delCompanionAnniv(${i})">✕</span></div>`;
     }).join('');
   } else if(_compTab === 'diary'){
     body.innerHTML = `
@@ -5367,6 +5701,7 @@ function renderCompanionBody(){
         <div class="btn-row"><div class="btn" onclick="addPeriod()">添加记录</div></div>
       </div>`;
     renderPeriod();
+    const _pd = document.getElementById('periodDate'); if(_pd && !_pd.value) _pd.value = localDateStr();
   }
 }
 async function addCompanionTodo(){
@@ -5577,7 +5912,7 @@ async function doSearch(){
       return;
     }
     box.innerHTML = hits.slice(0,40).map(h=>
-      `<div class="hit"><b>${h.who}</b>：${h.preview}</div>`
+      `<div class="hit"><b>${escapeHtml(h.who)}</b>：${escapeHtml(h.preview)}</div>`
     ).join('') + (hits.length>40?`<div style="font-size:11px;color:var(--ink-soft);padding:6px 0;">仅显示前40条</div>`:'');
   }catch(err){
     console.error(err);
@@ -5896,7 +6231,7 @@ function localModelInterpret(pos){
   lines.push('把这些位置串起来看，牌面更像是在陪你把问题看得更清楚一些，而不是给一个非黑即白的结论——具体怎么落地，还是要结合你当下的处境自己感受一下。');
   return lines.join('\n\n');
 }
-const TAROT_AI_SYSTEM_PROMPT = '是一个精通塔罗牌的大师，深耕于玄梦领域，精通78张牌的正逆位牌意，帮助梦女和梦角进行传讯解读你语言风格平易近人现代化，不表现的高深莫测，每张牌得出的东西都不止一句话';
+const TAROT_AI_SYSTEM_PROMPT = '你是一个精通塔罗牌的大师，深耕于玄梦领域，精通78张牌的正逆位牌意，帮助梦女和梦角进行传讯解读。你的语言风格平易近人、现代化，不表现得高深莫测，每张牌得出的东西都不止一句话。';
 async function callTarotAI(pos){
   const cardsDesc = tarotState.drawn.map((c,i)=>{
     if(!c) return null;
@@ -6015,7 +6350,6 @@ const _goTarot = go;
 go = function(name){
   _goTarot(name);
   if(name==='tarot'){ tarotState.cat='all'; tarotState.spread=null; renderTarotSpreads(); }
-  if(name==='settings' && typeof applyBgSettingsUI==='function') applyBgSettingsUI();
 };
 
 /* ============================================================
@@ -6048,6 +6382,7 @@ function applyBgSettingsUI(){
   if(modelEl && !modelEl.value) modelEl.value = bgSettings.aiModel || '';
   updateModelStatusLabel();
   if(bgSettings.keepAlive) startKeepAlive(); else stopKeepAlive();
+  if(bgSettings.notify) ensureNotifySW();
 }
 async function saveBgSettings(){
   const t = document.getElementById('aiTempSlider');
@@ -6067,7 +6402,13 @@ function toggleBgNotify(el){
   el.classList.toggle('on');
   bgSettings.notify = el.classList.contains('on');
   saveBgSettings();
-  if(bgSettings.notify && 'Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  if(bgSettings.notify){
+    ensureNotifySW().then(function(){
+      if('Notification' in window && Notification.permission==='default'){
+        Notification.requestPermission();
+      }
+    });
+  }
 }
 function toggleMsgSound(el){
   el.classList.toggle('on');
@@ -6165,16 +6506,63 @@ function playTestSound(){
     }catch(e2){ alert('无法播放测试音'); }
   }
 }
-function tryBgNotify(title, body){
-  if(bgSettings.sound !== false) playTestSound();
-  if(bgSettings.notify && 'Notification' in window){
-    if(Notification.permission === 'granted' && document.visibilityState !== 'visible'){
-      try{
-        new Notification(title||'新消息', { body: body||'', silent: true, tag: 'love-diary-msg' });
-      }catch(e){}
-    }
+
+/* 通知：手机 Chrome 禁止 new Notification()，必须走 Service Worker.showNotification */
+let _swReg = null;
+async function ensureNotifySW(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{
+    if(_swReg) return _swReg;
+    _swReg = await navigator.serviceWorker.register('sw.js', { scope: './' });
+    await navigator.serviceWorker.ready;
+    return _swReg;
+  }catch(e){
+    console.warn('SW register fail', e);
+    return null;
   }
 }
+async function showAppNotification(title, body, tag){
+  title = title || '新消息';
+  body = body || '';
+  tag = tag || 'love-diary-msg';
+  if(!('Notification' in window)) throw new Error('浏览器不支持通知');
+  let perm = Notification.permission;
+  if(perm === 'default'){
+    perm = await Notification.requestPermission();
+  }
+  if(perm !== 'granted') throw new Error('通知权限未开启（当前：'+perm+'）');
+
+  // 优先 Service Worker（Android Chrome 要求）
+  const reg = await ensureNotifySW();
+  if(reg && reg.showNotification){
+    await reg.showNotification(title, {
+      body: body,
+      tag: tag,
+      silent: true,
+      renotify: true,
+      data: { url: './' }
+    });
+    return 'sw';
+  }
+  // 桌面端兜底
+  try{
+    const n = new Notification(title, { body: body, silent: true, tag: tag });
+    return 'page';
+  }catch(e){
+    throw e;
+  }
+}
+function tryBgNotify(title, body){
+  if(bgSettings.sound !== false){
+    try{ playTestSound(); }catch(e){}
+  }
+  if(!bgSettings.notify) return;
+  if(document.visibilityState === 'visible') return; // 前台不弹系统通知
+  showAppNotification(title||'新消息', body||'', 'love-diary-msg').catch(function(e){
+    console.warn('notify fail', e);
+  });
+}
+
 
 
 
@@ -6183,10 +6571,13 @@ function tryBgNotify(title, body){
    ============================================================ */
 let togetherState = {
   music: { active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false },
-  study: { active:false, inviter:null, accepted:false, note:'' },
-  sleep: { active:false, inviter:null, accepted:false, note:'' },
-  watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' }
+  study: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
+  sleep: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
+  watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' },
+  roomTimer: null
 };
+let letterInviteKind = 'sleep';
+
 let pendingSticker = null; // { value, isImage }
 
 
@@ -6229,7 +6620,7 @@ function renderInviteCardHtml(m, time){
     actions += '<div class="invite-card-actions"><div class="btn" onclick="openWatchTogetherPanel(false)">打开一起看</div></div>';
   }
   if(st==='accepted' && (m.kind==='music'||m.kind==='study'||m.kind==='sleep')){
-    const openers = { music:'openListenTogetherPanel(false)', study:'openStudyTogetherPanel(false)', sleep:'openSleepTogetherPanel(false)' };
+    const openers = { music:'openListenTogetherPanel(false)', study:'openCompanionRoom(\'study\')', sleep:'openCompanionRoom(\'sleep\')', watch:'openWatchTogetherPanel(false)' };
     actions += '<div class="invite-card-actions"><div class="btn outline" onclick="'+openers[m.kind]+'">打开</div></div>';
   }
   return '<div class="msg invite-card-msg '+m.from+'"><div class="invite-card-inner">'
@@ -6347,14 +6738,99 @@ function openChatFunctionPanel(){
 }
 
 function openInvitePanel(){
+  const name = chatSettings.companionName || '对方';
+  const my = (profile && profile.myName) || '我';
+  letterInviteKind = 'sleep';
   openOverlay(
-    '<div class="drawer-head"><h3>💌 一起邀请</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">选一种方式邀请 '+chatSettings.companionName+'。对方会在和聊天相同的回复时长内随机回应；也可以之后主动邀请你。</p>'+
-    '<div class="invite-card" onclick="closeOverlay(); openListenTogetherPanel(true);"><b>🎵 一起听歌</b><div class="invite-status">黑胶唱片界面 · 可导入歌单 · 双人头像并排</div></div>'+
-    '<div class="invite-card" onclick="closeOverlay(); openStudyTogetherPanel(true);"><b>📚 一起学习</b><div class="invite-status">安静陪伴 · 可写学习主题</div></div>'+
-    '<div class="invite-card" onclick="closeOverlay(); openSleepTogetherPanel(true);"><b>🌙 一起睡觉</b><div class="invite-status">互道晚安 · 可写一句哄睡的话</div></div>'+
-    '<div class="invite-card" onclick="closeOverlay(); openWatchTogetherPanel(true);"><b>📺 一起看</b><div class="invite-status">导入 B 站 BV · 可约定时间 · 边看边聊</div></div>'
+    '<div class="drawer-head"><h3>寄出邀请</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
+    '<div class="letter-invite">'+
+      '<div class="letter-kicker">Private Note</div>'+
+      '<div class="letter-title">写给你的邀请</div>'+
+      '<div class="letter-route"><span>FROM '+escapeHtml(my)+' · TO '+escapeHtml(name)+'</span></div>'+
+      '<div class="letter-hint">想和你一起……（选一项）</div>'+
+      '<div class="letter-acts">'+
+        letterActHtml('music','🎵','一起听','共享一段歌单')+
+        letterActHtml('sleep','🌙','睡觉','同一片夜里安静待着')+
+        letterActHtml('watch','📺','看电视','同一部片子、可以边聊')+
+        letterActHtml('study','📚','学习 / 工作','各自专注，也算在一起')+
+      '</div>'+
+      '<div class="letter-note">'+
+        '<textarea id="letterNote" maxlength="80" placeholder="留一句只给对方的话（可选）" oninput="var n=this.value.length;var e=document.getElementById(\'letterNoteCount\');if(e)e.textContent=n+\'/80\'"></textarea>'+
+        '<div style="text-align:right;font-size:11px;color:#9a6b7a;margin-top:4px;"><span id="letterNoteCount">0/80</span></div>'+
+      '</div>'+
+      '<div class="letter-actions">'+
+        '<div class="btn-ghost" onclick="showInviteHistory()">活动记录</div>'+
+        '<button type="button" class="btn-send" onclick="sendLetterInvite()">封好 · 寄出</button>'+
+      '</div>'+
+    '</div>'
   );
+  // default select sleep
+  setTimeout(function(){ selectLetterAct('sleep'); }, 0);
+}
+function letterActHtml(kind, ico, title, sub){
+  return '<div class="letter-act" id="lact-'+kind+'" onclick="selectLetterAct(\''+kind+'\')">'+
+    '<div class="ico">'+ico+'</div>'+
+    '<div class="txt"><b>'+title+'</b><small>'+sub+'</small></div>'+
+    '<div class="chk"></div></div>';
+}
+function selectLetterAct(kind){
+  letterInviteKind = kind;
+  ['music','sleep','watch','study'].forEach(function(k){
+    var el = document.getElementById('lact-'+k);
+    if(el) el.classList.toggle('on', k===kind);
+  });
+}
+function showInviteHistory(){
+  var list = (chatMessages||[]).filter(function(m){ return m.type==='invite'; }).slice(-12).reverse();
+  if(!list.length){ alert('还没有邀请记录'); return; }
+  var html = list.map(function(m){
+    var meta = inviteKindMeta(m.kind);
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--rule);font-size:13px;">'+
+      meta.icon+' '+(meta.name||'')+' · '+inviteStatusLabel(m.status)+
+      '<div style="font-size:11px;color:var(--ink-soft);">'+formatMsgTime(m.time)+'</div></div>';
+  }).join('');
+  openOverlay('<div class="drawer-head"><h3>活动记录</h3><span class="close-x" onclick="openInvitePanel()">←</span></div>'+html);
+}
+async function sendLetterInvite(){
+  var kind = letterInviteKind || 'sleep';
+  var note = ((document.getElementById('letterNote')||{}).value || '').trim();
+  closeOverlay();
+  if(kind==='music'){
+    togetherState.music.note = note;
+    openListenTogetherPanel(true);
+    // if already has playlist, auto invite
+    if(togetherState.music.playlist && togetherState.music.playlist.length){
+      // user still clicks 邀请 in panel — prefill note via state
+    }
+    return;
+  }
+  if(kind==='watch'){
+    togetherState.watch.note = note;
+    openWatchTogetherPanel(true);
+    return;
+  }
+  if(kind==='study'){
+    togetherState.study.note = note;
+    togetherState.study.active = true;
+    togetherState.study.accepted = false;
+    togetherState.study.inviter = 'user';
+    await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起学习'+(note?' · '+note:''), {
+      kind:'study', status:'pending', inviter:'user', note:note
+    });
+    if(typeof go==='function') go('chat');
+    scheduleTogetherReply('study');
+    return;
+  }
+  // sleep
+  togetherState.sleep.note = note;
+  togetherState.sleep.active = true;
+  togetherState.sleep.accepted = false;
+  togetherState.sleep.inviter = 'user';
+  await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起睡觉'+(note?' · '+note:''), {
+    kind:'sleep', status:'pending', inviter:'user', note:note
+  });
+  if(typeof go==='function') go('chat');
+  scheduleTogetherReply('sleep');
 }
 
 function togetherAvatarHtml(){
@@ -6487,7 +6963,7 @@ function renderPlaylistPreview(){
   if(!list.length){ el.innerHTML = '<div class="empty-note" style="padding:8px 0;">还没有导入歌单</div>'; return; }
   el.innerHTML = list.map(function(s,i){
     return '<div onclick="vinylJumpTo('+i+')" style="padding:5px 4px;border-bottom:1px dotted var(--rule);cursor:pointer;'+(i===st.index?'color:var(--rouge);font-weight:700;background:var(--blush);':'')+'">'+
-      (i+1)+'. '+s.name+(s.artist?' · '+s.artist:'')+(s.url?'':' <span style="opacity:.5;">(无链接)</span>')+'</div>';
+      (i+1)+'. '+escapeHtml(s.name)+(s.artist?' · '+escapeHtml(s.artist):'')+(s.url?'':' <span style="opacity:.5;">(无链接)</span>')+'</div>';
   }).join('');
 }
 
@@ -6747,6 +7223,7 @@ function scheduleTogetherReply(kind){
       togetherState.study.accepted = accept;
       if(accept){
         togetherState.study.active = true;
+        togetherState.study.startedAt = Date.now();
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起学习', { kind:'study', status:'accepted', inviter:'user', from:'bot' });
       } else {
@@ -6758,6 +7235,7 @@ function scheduleTogetherReply(kind){
       togetherState.sleep.accepted = accept;
       if(accept){
         togetherState.sleep.active = true;
+        togetherState.sleep.startedAt = Date.now();
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起睡觉', { kind:'sleep', status:'accepted', inviter:'user', from:'bot' });
       } else {
@@ -6818,19 +7296,161 @@ async function endListenTogether(){
   closeOverlay();
 }
 
+
+function stopCompanionRoomTimer(){
+  if(togetherState.roomTimer){ clearInterval(togetherState.roomTimer); togetherState.roomTimer = null; }
+}
+function formatRoomTimer(ms){
+  var s = Math.max(0, Math.floor(ms/1000));
+  var h = Math.floor(s/3600); s%=3600;
+  var m = Math.floor(s/60); s%=60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function openCompanionRoom(kind){
+  kind = kind || 'sleep';
+  var st = togetherState[kind];
+  if(!st) return;
+  if(!st.startedAt) st.startedAt = Date.now();
+  if(!st.light) st.light = 'soft';
+  stopCompanionRoomTimer();
+  var root = document.getElementById('overlayRoot');
+  if(!root) return;
+  var isSleep = kind==='sleep';
+  var title = isSleep ? '夜色里的一张床' : '安静的书桌旁';
+  var sub = isSleep ? '在同一片暗下来的光里，慢慢把呼吸放慢' : '各自做自己的事，也算陪在对方旁边';
+  var name = chatSettings.companionName || '对方';
+  var theirAv = (profile.avatar && String(profile.avatar).startsWith('data:'))
+    ? '<img src="'+profile.avatar+'" alt="">' : (profile.avatar || '🌙');
+  var bgStyle = '';
+  var bgClass = st.bg ? '' : (isSleep ? 'grad-moon' : 'grad-study');
+  if(st.bg) bgStyle = 'background-image:url('+st.bg+')';
+  root.innerHTML =
+    '<div class="comp-room" id="compRoom" data-kind="'+kind+'">'+
+      '<div class="comp-room-bg '+bgClass+'" id="compRoomBg" style="'+bgStyle+'"></div>'+
+      '<div class="comp-room-veil '+st.light+'" id="compRoomVeil"></div>'+
+      '<div class="comp-room-top">'+
+        '<div>'+
+          '<div class="comp-room-brand">TOGETHER SPACE</div>'+
+          '<div class="comp-room-title">'+title+'</div>'+
+          '<div class="comp-room-sub">'+sub+'</div>'+
+          '<div class="comp-room-pill">'+escapeHtml(name)+' 已在这里</div>'+
+        '</div>'+
+        '<div class="comp-room-tools">'+
+          '<button type="button" onclick="closeCompanionRoom(false)">收起</button>'+
+          '<button type="button" onclick="document.getElementById(\'compBgFile\').click()">换背景</button>'+
+          '<button type="button" onclick="resetCompanionBg()">默认背景</button>'+
+          '<input type="file" id="compBgFile" accept="image/*" class="hidden" onchange="onCompanionBgFile(event)">'+
+        '</div>'+
+      '</div>'+
+      '<div class="comp-room-center">'+
+        '<div class="comp-timer-label" id="compTimerLabel">'+(st.durationLimit?('限时陪伴 · 点击可改'):'不限时陪伴 · 点击可改')+'</div>'+
+        '<div class="comp-timer" id="compTimer">00:00:00</div>'+
+      '</div>'+
+      '<div class="comp-room-bottom">'+
+        '<div class="comp-light-card">'+
+          '<div class="lab">ROOM LIGHT</div>'+
+          '<div class="name" id="compLightName">'+({dim:'只留一点光',soft:'柔一点的光',warm:'暖黄的光'})[st.light]+'</div>'+
+          '<div class="tip">光线随便调，图个氛围</div>'+
+          '<div class="comp-light-row">'+
+            '<button type="button" class="'+(st.light==='dim'?'on':'')+'" onclick="setCompanionLight(\'dim\')">微光</button>'+
+            '<button type="button" class="'+(st.light==='soft'?'on':'')+'" onclick="setCompanionLight(\'soft\')">柔光</button>'+
+            '<button type="button" class="'+(st.light==='warm'?'on':'')+'" onclick="setCompanionLight(\'warm\')">暖光</button>'+
+          '</div>'+
+        '</div>'+
+        '<button type="button" class="comp-end-btn" onclick="endCompanionRoom()">结束这次陪伴</button>'+
+      '</div>'+
+    '</div>';
+  // timer label click
+  var lab = document.getElementById('compTimerLabel');
+  if(lab) lab.onclick = function(){ pickCompanionDuration(kind); };
+  togetherState.roomTimer = setInterval(function(){ tickCompanionRoom(kind); }, 1000);
+  tickCompanionRoom(kind);
+}
+function tickCompanionRoom(kind){
+  var st = togetherState[kind];
+  if(!st || !st.startedAt) return;
+  var elapsed = Date.now() - st.startedAt;
+  var el = document.getElementById('compTimer');
+  if(el) el.textContent = formatRoomTimer(elapsed);
+  if(st.durationLimit && elapsed >= st.durationLimit){
+    endCompanionRoom();
+  }
+}
+function pickCompanionDuration(kind){
+  var v = prompt('陪伴时长（分钟，0 表示不限时）', '0');
+  if(v===null) return;
+  var n = parseInt(v,10);
+  if(isNaN(n) || n<0) n = 0;
+  togetherState[kind].durationLimit = n ? n*60*1000 : 0;
+  togetherState[kind].startedAt = Date.now();
+  var lab = document.getElementById('compTimerLabel');
+  if(lab) lab.textContent = n ? ('限时 '+n+' 分钟 · 点击可改') : '不限时陪伴 · 点击可改';
+}
+function setCompanionLight(mode){
+  var room = document.getElementById('compRoom');
+  if(!room) return;
+  var kind = room.getAttribute('data-kind') || 'sleep';
+  togetherState[kind].light = mode;
+  var veil = document.getElementById('compRoomVeil');
+  if(veil) veil.className = 'comp-room-veil '+mode;
+  var name = document.getElementById('compLightName');
+  if(name) name.textContent = ({dim:'只留一点光',soft:'柔一点的光',warm:'暖黄的光'})[mode] || mode;
+  room.querySelectorAll('.comp-light-row button').forEach(function(b){
+    b.classList.toggle('on', b.textContent.indexOf(({dim:'微光',soft:'柔光',warm:'暖光'})[mode])>=0);
+  });
+}
+function onCompanionBgFile(e){
+  var f = e.target.files && e.target.files[0];
+  if(!f) return;
+  var room = document.getElementById('compRoom');
+  var kind = (room && room.getAttribute('data-kind')) || 'sleep';
+  var reader = new FileReader();
+  reader.onload = function(){
+    togetherState[kind].bg = reader.result;
+    var bg = document.getElementById('compRoomBg');
+    if(bg){ bg.className = 'comp-room-bg'; bg.style.backgroundImage = 'url('+reader.result+')'; }
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+}
+function resetCompanionBg(){
+  var room = document.getElementById('compRoom');
+  var kind = (room && room.getAttribute('data-kind')) || 'sleep';
+  togetherState[kind].bg = null;
+  var bg = document.getElementById('compRoomBg');
+  if(bg){
+    bg.style.backgroundImage = '';
+    bg.className = 'comp-room-bg '+(kind==='sleep'?'grad-moon':'grad-study');
+  }
+}
+function closeCompanionRoom(end){
+  stopCompanionRoomTimer();
+  closeOverlay();
+}
+async function endCompanionRoom(){
+  var room = document.getElementById('compRoom');
+  var kind = (room && room.getAttribute('data-kind')) || 'sleep';
+  stopCompanionRoomTimer();
+  if(kind==='sleep') await endSleepTogether();
+  else if(kind==='study') await endStudyTogether();
+  else closeOverlay();
+}
+
+
 function openStudyTogetherPanel(asInvite){
   const st = togetherState.study;
   const statusText = st.active && st.accepted
     ? ('正在和 '+chatSettings.companionName+' 一起学习')
-    : (st.active ? '等待对方回应…' : '邀请对方安静陪你学习一会儿');
+    : (st.active ? '等待对方回应…' : '邀请对方安静陪你做一会儿事');
   openOverlay(
     '<div class="drawer-head"><h3>📚 一起学习</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
     togetherAvatarHtml()+
-    '<div style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">'+statusText+'</div>'+
-    '<label class="field">学习主题 / 想说的话（可改）</label>'+
-    '<textarea id="studyNote" placeholder="例如：复习英语 / 写论文 / 只是想有人陪着" style="min-height:64px;">'+(st.note||'')+'</textarea>'+
-    '<div class="btn-row" style="margin-top:12px;">'+
-      ((asInvite || !st.active) ? '<div class="btn rouge" onclick="inviteStudyTogether()">发出邀请</div>' : '')+
+    '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:10px;">'+statusText+'</div>'+
+    '<label class="field">主题 / 想说的话（可选）</label>'+
+    '<input type="text" id="studyNote" placeholder="今晚把作业赶完" value="'+(st.note||'').replace(/"/g,'&quot;')+'">'+
+    '<div class="btn-row" style="margin-top:12px;flex-wrap:wrap;gap:8px;">'+
+      ((asInvite || !st.active) ? '<div class="btn" onclick="inviteStudyTogether()">发出邀请</div>' : '')+
+      (st.active && st.accepted ? '<div class="btn" onclick="openCompanionRoom(\x27study\x27)">进入专注空间</div>' : '')+
       (st.active ? '<div class="btn outline" onclick="endStudyTogether()">结束</div>' : '')+
     '</div>'
   );
@@ -6855,16 +7475,17 @@ async function endStudyTogether(){
 function openSleepTogetherPanel(asInvite){
   const st = togetherState.sleep;
   const statusText = st.active && st.accepted
-    ? ('正在和 '+chatSettings.companionName+' 一起休息')
-    : (st.active ? '等待对方回应…' : '邀请对方一起互道晚安');
+    ? ('正在和 '+chatSettings.companionName+' 一起睡觉')
+    : (st.active ? '等待对方回应…' : '邀请对方一起把灯调暗一点');
   openOverlay(
     '<div class="drawer-head"><h3>🌙 一起睡觉</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
     togetherAvatarHtml()+
-    '<div style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;">'+statusText+'</div>'+
-    '<label class="field">想对 TA 说的话（可改）</label>'+
-    '<textarea id="sleepNote" placeholder="例如：早点睡，明天还要早起" style="min-height:64px;">'+(st.note||'')+'</textarea>'+
-    '<div class="btn-row" style="margin-top:12px;">'+
-      ((asInvite || !st.active) ? '<div class="btn rouge" onclick="inviteSleepTogether()">发出邀请</div>' : '')+
+    '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:10px;">'+statusText+'</div>'+
+    '<label class="field">想说的话（可选）</label>'+
+    '<input type="text" id="sleepNote" placeholder="晚安，我在" value="'+(st.note||'').replace(/"/g,'&quot;')+'">'+
+    '<div class="btn-row" style="margin-top:12px;flex-wrap:wrap;gap:8px;">'+
+      ((asInvite || !st.active) ? '<div class="btn" onclick="inviteSleepTogether()">发出邀请</div>' : '')+
+      (st.active && st.accepted ? '<div class="btn" onclick="openCompanionRoom(\'sleep\')">进入夜色空间</div>' : '')+
       (st.active ? '<div class="btn outline" onclick="endSleepTogether()">结束</div>' : '')+
     '</div>'
   );
@@ -6963,9 +7584,9 @@ async function endWatchTogether(){
   closeOverlay();
 }
 
-async function maybeBotInviteTogether(){
-  if(Math.random() > 0.12) return;
-  if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return;
+function maybeBotInviteTogether(){
+  // 返回 true = 真的安排了一次邀请；false = 现在不适合（正在一起做别的），调用方照常发普通消息
+  if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return false;
   const kinds = ['music','study','sleep','watch'];
   const kind = kinds[Math.floor(Math.random()*kinds.length)];
   const delayMs = getReplyDelayMs();
@@ -6998,6 +7619,13 @@ async function maybeBotInviteTogether(){
     if(currentView==='chat') renderChat();
     else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 的邀请', text); }
   }, delayMs);
+  return true;
+}
+/* 重启后：还在"等待回应"的、我发出的邀请，补排一次对方的回复（以前定时器丢了，卡片会永远停在等待中）*/
+function resumePendingInviteReplies(){
+  const kinds = new Set();
+  chatMessages.forEach(m=>{ if(m.type==='invite' && m.status==='pending' && m.inviter==='user') kinds.add(m.kind); });
+  kinds.forEach(k=>{ try{ scheduleTogetherReply(k); }catch(e){ console.warn(e); } });
 }
 
 
@@ -7009,64 +7637,132 @@ async function runSystemSelfTest(){
   const bad = (s)=>lines.push('✗ '+s);
   const info = (s)=>lines.push('· '+s);
 
-  // 1. 基础
   ok('脚本已运行');
   info('当前视图: '+(typeof currentView!=='undefined'?currentView:'?'));
 
-  // 2. 提示音
   try{
     if(typeof playTestSound==='function'){ playTestSound(); ok('已触发消息提示音 (notify.wav)'); }
     else bad('playTestSound 不存在');
-  }catch(e){ bad('提示音失败: '+e.message); }
+  }catch(e){ bad('提示音失败: '+(e&&e.message||e)); }
 
-  // 3. 后台消息通知（直接弹系统通知，不经过传讯写消息）
   try{
     if(!('Notification' in window)) bad('浏览器不支持 Notification');
-    else if(Notification.permission==='granted'){
-      new Notification(chatSettings.companionName||'新消息', { body:'收到此消息，说明后台消息通知已开启', silent:true, tag:'self-test' });
-      ok('后台消息通知已开启（已直接弹出系统通知）');
-    } else if(Notification.permission==='denied'){
-      bad('通知权限被拒绝，请在浏览器设置里允许');
-    } else {
-      const p = await Notification.requestPermission();
-      if(p==='granted'){
-        new Notification(chatSettings.companionName||'新消息', { body:'收到此消息，说明后台消息通知已开启', silent:true, tag:'self-test' });
-        ok('已授权，后台消息通知已开启');
-      } else bad('未获得通知权限: '+p);
+    else {
+      const how = await showAppNotification(
+        (typeof chatSettings!=='undefined' && chatSettings.companionName) || '新消息',
+        '收到此条，说明通知通道可用（手机需通过 Service Worker）',
+        'self-test'
+      );
+      ok('系统通知已发送（方式：'+(how==='sw'?'Service Worker':'页面 Notification')+'）');
+      info('若没看到横幅：检查系统是否允许本网站通知，或是否在专注模式');
     }
-  }catch(e){ bad('通知异常: '+e.message); }
+  }catch(e){
+    bad('通知异常: '+(e&&e.message||e));
+    info('手机 Chrome 需允许通知，且网站需能加载 sw.js');
+  }
 
-  // 4. 保活
   try{
     if(typeof bgSettings!=='undefined' && bgSettings.keepAlive && keepAliveAudio && keepAliveAudio.el && !keepAliveAudio.el.paused){
       ok('后台保活音频正在播放');
     } else if(typeof startKeepAlive==='function'){
       if(typeof bgSettings!=='undefined'){ bgSettings.keepAlive = true; }
       startKeepAlive();
-      await new Promise(r=>setTimeout(r, 400));
+      await new Promise(r=>setTimeout(r, 500));
       if(keepAliveAudio && keepAliveAudio.el && !keepAliveAudio.el.paused){
         ok('已启动保活音频 (keepalive.wav)');
       } else {
-        bad('保活音频未能播放（需先点击页面允许声音，或 assets/keepalive.wav 缺失）');
+        bad('保活音频未能播放（需先点一下页面允许声音，或 assets/keepalive.wav 缺失）');
       }
     } else bad('startKeepAlive 不存在');
-  }catch(e){ bad('保活异常: '+e.message); }
+  }catch(e){ bad('保活异常: '+(e&&e.message||e)); }
 
-  // 5. 显示结果
-  const report = lines.join('\\n');
-  console.log('[self-test]\\n'+report);
+  const reportHtml = lines.map(function(l){
+    return escapeHtml(l);
+  }).join('<br>');
   if(typeof openOverlay==='function'){
     openOverlay(
       '<div class="drawer-head"><h3>🔧 功能自检</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-      '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin:8px 0;padding:12px;background:rgba(0,0,0,0.04);border-radius:10px;">'+
-      lines.map(l=>l.replace(/</g,'&lt;')).join('\\n')+
-      '</pre>'+
-      '<p style="font-size:12px;color:var(--ink-soft);">说明：这里的通知是自检直接弹出的，不经过「传讯」；真正收到主动消息/来信时，只有 App 在后台（不在当前页面）才会弹系统通知。保活在手机锁屏后仍可能被系统杀掉。</p>'+
+      '<div style="font-size:13px;line-height:1.7;margin:8px 0;padding:12px;background:rgba(0,0,0,0.04);border-radius:10px;">'+
+      reportHtml+
+      '</div>'+
+      '<p style="font-size:12px;color:var(--ink-soft);">说明：自检会直接尝试弹系统通知。真正来消息时，只有页面在后台才会弹。手机锁屏后仍可能被系统限制。</p>'+
       '<div class="btn" onclick="closeOverlay()">知道了</div>'
     );
   } else {
-    alert(lines.join('\\n'));
+    alert(lines.join('\n'));
   }
+}
+
+
+
+/* —— PWA 安装（Chrome / Edge「安装应用」） —— */
+let deferredPwaPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPwaPrompt = e;
+  try{
+    if(localStorage.getItem('pwa-install-dismissed')==='1') return;
+  }catch(err){}
+  var bar = document.getElementById('pwaInstallBar');
+  if(bar) bar.classList.add('show');
+});
+window.addEventListener('appinstalled', function(){
+  deferredPwaPrompt = null;
+  var bar = document.getElementById('pwaInstallBar');
+  if(bar) bar.classList.remove('show');
+  try{ localStorage.removeItem('pwa-install-dismissed'); }catch(e){}
+  if(typeof openOverlay==='function'){
+    openOverlay('<div class="drawer-head"><h3>已安装</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><p style="font-size:13px;color:var(--ink-soft);">可以在主屏幕找到「Love Diary / 在一起的每一天」。从图标打开时通知会更稳一些。</p><div class="btn" onclick="closeOverlay()">好的</div>');
+  }
+});
+function dismissPwaInstall(){
+  var bar = document.getElementById('pwaInstallBar');
+  if(bar) bar.classList.remove('show');
+  try{ localStorage.setItem('pwa-install-dismissed','1'); }catch(e){}
+}
+async function promptPwaInstall(){
+  if(deferredPwaPrompt){
+    deferredPwaPrompt.prompt();
+    try{
+      const choice = await deferredPwaPrompt.userChoice;
+      deferredPwaPrompt = null;
+      var bar = document.getElementById('pwaInstallBar');
+      if(bar) bar.classList.remove('show');
+      if(choice && choice.outcome==='dismissed'){
+        try{ localStorage.setItem('pwa-install-dismissed','1'); }catch(e){}
+      }
+    }catch(e){}
+    return;
+  }
+  // iOS / 不支持 beforeinstallprompt 时给指引
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var msg = isIOS
+    ? '在 Safari 中点底部分享按钮，再选「添加到主屏幕」。'
+    : '请用 Chrome 菜单（右上角 ⋮）→「安装应用」或「添加到主屏幕」。若没有该项，说明已安装，或当前浏览器不支持。';
+  if(typeof openOverlay==='function'){
+    openOverlay('<div class="drawer-head"><h3>安装到主屏幕</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><p style="font-size:13px;line-height:1.6;color:var(--ink-soft);">'+msg+'</p><div class="btn" onclick="closeOverlay()">知道了</div>');
+  } else {
+    alert(msg);
+  }
+}
+function isRunningAsPwa(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+// 设置里也可手动点安装
+function openPwaInstallHelp(){
+  if(isRunningAsPwa()){
+    openOverlay('<div class="drawer-head"><h3>已是应用模式</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><p style="font-size:13px;color:var(--ink-soft);">你当前已从主屏幕图标打开。</p><div class="btn" onclick="closeOverlay()">好的</div>');
+    return;
+  }
+  promptPwaInstall();
+}
+// 启动时注册 SW（通知 + 安装条件）
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(reg){
+      _swReg = reg;
+    }).catch(function(e){ console.warn('SW register', e); });
+  });
 }
 
 loadBgSettings();
