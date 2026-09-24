@@ -2157,7 +2157,7 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
    ============================================================ */
 let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, photos:[null,null,null], myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
 let polaCur = 0;
-let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[], myStickers:[
+let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[], myStickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
 ], taStickers:[
   {id:'t1', type:'emoji', value:'🌙'}, {id:'t2', type:'emoji', value:'☕'}, {id:'t3', type:'emoji', value:'📖'}
@@ -3591,7 +3591,8 @@ function onChatImageFile(e){
 
 /* 已读不回开启后，每条消息都用抛硬币的方式随机决定这次回不回：30% 概率不回 */
 function handleIncomingForBot(userText){
-  if(chatSettings.readNoReply && Math.random() < 0.3){
+  const _rnrProb = (chatSettings.readNoReplyProb!=null ? chatSettings.readNoReplyProb : 20);
+  if(chatSettings.readNoReply && Math.random() < _rnrProb/100){
     setTimeout(async ()=>{
       const last = chatMessages[chatMessages.length-1];
       if(last && last.from==='user'){ last.read = true; await recPut('chatMessages', last); renderChat(); }
@@ -3618,23 +3619,34 @@ function scheduleAutoReply(userText){
   pendingReplyTimer = setTimeout(async ()=>{
     pendingReplyTimer = null; // 触发后清掉，hasReplyScheduled() 才不会一直是 true
     try{ showTyping(false); }catch(e){}
-    let reply = null;
-    try{ reply = pickReplyFor(userText); }catch(e){ console.error('pickReply', e); }
-    if(!reply){
-      reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
-    }
-    const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
-    if(!Array.isArray(chatMessages)) chatMessages = [];
-    chatMessages.push(newMsg);
-    const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
-    if(last) last.read = true;
-    try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
-    try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
-    if(currentView !== 'chat' && !roomIsOpen()){
-      chatUnread = true;
-      try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
-      try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
-    }
+    // 一次连回几条：在 1 ~ 「一次最多连回」之间纯随机挑一个条数（每个数字机会均等）
+    const _maxReply = Math.max(1, Math.min(20, Number(chatSettings.replyMaxCount) || 1));
+    const _totalCount = _maxReply <= 1 ? 1 : (1 + Math.floor(Math.random() * _maxReply));
+    const _sendOneReply = async function(i){
+      let reply = null;
+      try{ reply = pickReplyFor(userText, { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
+      if(!reply){
+        reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
+      }
+      const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+      if(!Array.isArray(chatMessages)) chatMessages = [];
+      chatMessages.push(newMsg);
+      const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
+      if(last) last.read = true;
+      try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
+      try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
+      if(currentView !== 'chat' && !roomIsOpen()){
+        chatUnread = true;
+        try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+        try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
+      }
+      // 还有下一条：显示「正在输入…」，隔 4 秒~1 分钟再发
+      if(i+1 < _totalCount){
+        try{ showTyping(true); }catch(e){}
+        pendingReplyTimer = setTimeout(()=>{ try{ showTyping(false); }catch(e){} _sendOneReply(i+1); }, 4000 + Math.random()*56000);
+      }
+    };
+    _sendOneReply(0);
   }, delayMs);
 }
 function hasReplyScheduled(){ return !!pendingReplyTimer; }
@@ -4199,13 +4211,19 @@ function openChatSettings(){
     <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35))}" oninput="document.getElementById('csComboProbVal').textContent=this.value" id="csComboProb" style="width:100%;">
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复时，有多大概率带上表情包（或表情+文字一起回）</div>
     <div class="switch-row">
-      <span>已读不回<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后每条消息有 30% 几率已读不回，不是每次都不回</div></span>
+      <span>已读不回<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后每条消息有概率已读不回，不是每次都不回</div></span>
       <div class="switch ${chatSettings.readNoReply?'on':''}" id="csReadNoReply" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
+    <label class="field">已读不回概率：<span id="csReadNoReplyProbVal">${chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20}</span>%</label>
+    <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20))}" oninput="document.getElementById('csReadNoReplyProbVal').textContent=this.value" id="csReadNoReplyProb" style="width:100%;">
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">开启后，每条消息有多大概率被已读不回（0%＝每次都回，100%＝条条不回）</div>
     <div class="switch-row">
       <span>允许发送红包<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 有机会随机给你发红包；关闭后不会自动发红包</div></span>
       <div class="switch ${chatSettings.redPacketEnabled?'on':''}" id="csRedPacketEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
+    <div class="box-title" style="margin-top:14px;">回复连发</div>
+    <label class="field">一次最多连回：<input type="number" id="csReplyMaxCount" min="1" max="20" step="1" value="${Math.max(1,Math.min(20,chatSettings.replyMaxCount||1))}" inputmode="numeric" style="width:70px;text-align:center;"> 条</label>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复你时，在 1～该数之间随机挑个条数（填 1 = 只回 1 条，跟以前一样）。最多 20 条。</div>
     <div class="box-title" style="margin-top:14px;">节奏</div>
     <div class="switch-row">
       <span>主动发消息给我</span>
@@ -4424,8 +4442,12 @@ async function saveChatSettings(){
   chatSettings.delayMax = Math.max(dMin, dMax);
   delete chatSettings.delayUnit;
   chatSettings.readNoReply = document.getElementById('csReadNoReply').classList.contains('on');
+  const rnrP = document.getElementById('csReadNoReplyProb');
+  if(rnrP){ const rv = parseInt(rnrP.value,10); chatSettings.readNoReplyProb = Number.isFinite(rv) ? Math.max(0, Math.min(100, rv)) : 20; } // 0 也是合法值
   const cp = document.getElementById('csComboProb');
   if(cp){ const cv = parseInt(cp.value,10); chatSettings.comboReplyProb = Number.isFinite(cv) ? Math.max(0, Math.min(100, cv)) : 35; } // 0 也是合法值（以前 ||35 会把 0 变回 35）
+    const rmc = document.getElementById('csReplyMaxCount');
+  if(rmc){ const rmv = parseInt(rmc.value,10); chatSettings.replyMaxCount = Number.isFinite(rmv) ? Math.max(1, Math.min(20, rmv)) : 1; }
   chatSettings.redPacketEnabled = document.getElementById('csRedPacketEnabled').classList.contains('on');
   await sSet('chat-settings', chatSettings);
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -4617,7 +4639,7 @@ async function sendRedPacket(){
   handleIncomingForBot('[红包]');
 }
 
-/* ---- 梦向问卷：写问题 + 选项，发送给TA，TA在自定义1~23小时内随机选一个回复 ---- */
+/* ---- 梦向问卷：写问题 + 选项，发送给TA，TA在自定义1~60分钟内随机选一个回复 ---- */
 function openQuestionnaireComposer(){
   openOverlay(`
     <div class="drawer-head"><h3>📋 梦向问卷</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
@@ -4626,11 +4648,11 @@ function openQuestionnaireComposer(){
     <textarea id="qQuestion" placeholder="例如：今天想吃什么？" style="min-height:60px;"></textarea>
     <label class="field">选项（至少 2 个，每行一个）</label>
     <textarea id="qOptions" placeholder="每行一个选项，例如：&#10;奶茶&#10;咖啡&#10;果汁" style="min-height:90px;"></textarea>
-    <label class="field">最快回复：<span id="qMinHVal">1</span> 小时</label>
-    <input type="range" min="1" max="23" step="1" value="1" id="qMinH" oninput="document.getElementById('qMinHVal').textContent=this.value; syncQMax()" style="width:100%;">
-    <label class="field">最慢回复：<span id="qMaxHVal">12</span> 小时</label>
-    <input type="range" min="1" max="23" step="1" value="12" id="qMaxH" oninput="document.getElementById('qMaxHVal').textContent=this.value; syncQMin()" style="width:100%;">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">在最短～最长小时数之间纯随机挑一个时间点回复（1～23 小时）</div>
+    <label class="field">最快回复：<span id="qMinHVal">1</span> 分钟</label>
+    <input type="range" min="1" max="60" step="1" value="1" id="qMinH" oninput="document.getElementById('qMinHVal').textContent=this.value; syncQMax()" style="width:100%;">
+    <label class="field">最慢回复：<span id="qMaxHVal">60</span> 分钟</label>
+    <input type="range" min="1" max="60" step="1" value="60" id="qMaxH" oninput="document.getElementById('qMaxHVal').textContent=this.value; syncQMin()" style="width:100%;">
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">在最短～最长分钟数之间纯随机挑一个时间点回复（1～60 分钟）</div>
     <div class="btn-row" style="margin-top:14px;"><div class="btn rouge" onclick="sendQuestionnaire()">发送问卷</div></div>
   `);
 }
@@ -4659,11 +4681,11 @@ async function sendQuestionnaire(){
   const options = (oEl && oEl.value || '').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(!question){ alert('请填写问题'); return; }
   if(options.length < 2){ alert('至少需要 2 个选项'); return; }
-  let minH = parseInt((document.getElementById('qMinH')||{}).value,10) || 1;
-  let maxH = parseInt((document.getElementById('qMaxH')||{}).value,10) || 12;
-  minH = Math.max(1, Math.min(23, minH));
-  maxH = Math.max(minH, Math.min(23, maxH));
-  const delayMs = randomBetween(minH * 3600 * 1000, maxH * 3600 * 1000);
+  let minM = parseInt((document.getElementById('qMinH')||{}).value,10) || 1;
+  let maxM = parseInt((document.getElementById('qMaxH')||{}).value,10) || 60;
+  minM = Math.max(1, Math.min(60, minM));
+  maxM = Math.max(minM, Math.min(60, maxM));
+  const delayMs = randomBetween(minM * 60 * 1000, maxM * 60 * 1000);
   const scheduledReplyAt = Date.now() + delayMs;
   const msg = {
     id: uid(),
@@ -4677,7 +4699,7 @@ async function sendQuestionnaire(){
     chosenOption: null,
     answerTime: null,
     scheduledReplyAt,
-    minH, maxH
+    minM, maxM
   };
   if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   chatMessages.push(msg);
