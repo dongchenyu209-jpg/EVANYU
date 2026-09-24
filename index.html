@@ -1454,8 +1454,11 @@
         <div class="mini-btn" onclick="openCardPicker()" title="字卡">
           <svg viewBox="0 0 24 24"><rect x="5" y="4" width="10" height="14" rx="1.5"/><rect x="9" y="6" width="10" height="14" rx="1.5" opacity=".55"/><path d="M8 9h4M8 12h3"/></svg>
         </div>
-        <div class="mini-btn" onclick="openStickerPicker('attach')" title="表情可与文字同发">
+        <div class="mini-btn" onclick="openStickerPicker('attach','my')" title="我的表情包（可与文字同发）">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.5 14.5c1.2 1.3 2.8 2 3.5 2s2.3-.7 3.5-2"/></svg>
+        </div>
+        <div class="mini-btn" onclick="openStickerPicker('attach','ta')" title="对方的表情包（可与文字同发）">
+          <svg viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="13" rx="2.5"/><path d="M8.5 9h.01M14.5 9h.01M9 12.5c.9 1 1.9 1.5 3 1.5s2.1-.5 3-1.5"/><path d="M8 20.5h8"/></svg>
         </div>
         <div class="mini-btn" onclick="openSendRedPacket()" title="红包">
           <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M5 9h14"/><circle cx="12" cy="13.5" r="2.2"/></svg>
@@ -4524,20 +4527,23 @@ async function sendCardText(text){
 }
 
 /* ---- sticker picker (user sends a sticker) ---- */
-function openStickerPicker(mode){
+function openStickerPicker(mode, which){
   // mode: 'send' = 只发表情；'attach' = 选表情挂到输入框，可与文字一起发
-  // 用户只能从「我的表情包」里选
+  // which: 'my' = 我的表情包（默认）；'ta' = 对方的表情包
+  // 注：两个按钮都由「我」发出，只是来源分组不同；'ta' 组同时也是 TA 自动回复抽选用的池子
   mode = mode || 'attach';
-  const all = getStickerList('my');
+  which = (which === 'ta') ? 'ta' : 'my';
+  const grpName = which === 'ta' ? '对方的表情包' : '我的表情包';
+  const all = getStickerList(which);
   const validIdx = [];
   all.forEach((s,i)=>{ if(s && s.value) validIdx.push(i); });
   if(validIdx.length===0){
-    openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置 →「我的表情包」里添加吧。</div>`);
+    openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置 →「${grpName}」里添加吧。</div>`);
     return;
   }
   openOverlay(`
     <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'} 去「传讯设置 → 我的表情包」可管理。</p>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'} 当前：${grpName} · 去「传讯设置 → ${grpName}」可管理。</p>
     <div>${validIdx.map(idx=>{
       const s = all[idx];
       const isImg = String(s.value).startsWith('data:');
@@ -4545,14 +4551,14 @@ function openStickerPicker(mode){
         ? `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`
         : `<span style="font-size:30px;">${escapeHtml(s.value)}</span>`;
       if(mode==='attach'){
-        return `<span class="chip" style="padding:8px;" onclick="pickStickerByIndex(${idx})">${disp}</span>`;
+        return `<span class="chip" style="padding:8px;" onclick="pickStickerByIndex(${idx},'${which}')">${disp}</span>`;
       }
-      return `<span class="chip" style="padding:8px;" onclick="sendStickerByIndex(${idx})">${disp}</span>`;
+      return `<span class="chip" style="padding:8px;" onclick="sendStickerByIndex(${idx},'${which}')">${disp}</span>`;
     }).join('')}</div>
   `);
 }
-function pickStickerByIndex(i){ const s = getStickerList('my')[i]; if(s && s.value) pickStickerForCombo(s.value); }
-function sendStickerByIndex(i){ const s = getStickerList('my')[i]; if(s && s.value) sendStickerMsg(s.value); }
+function pickStickerByIndex(i, which){ const s = getStickerList(which==='ta'?'ta':'my')[i]; if(s && s.value) pickStickerForCombo(s.value); }
+function sendStickerByIndex(i, which){ const s = getStickerList(which==='ta'?'ta':'my')[i]; if(s && s.value) sendStickerMsg(s.value); }
 function pickStickerForCombo(value){
   pendingSticker = { value: value };
   const bar = document.getElementById('pendingStickerBar');
