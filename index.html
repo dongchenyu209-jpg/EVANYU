@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="light">
 <title>在一起的每一天</title>
 
@@ -692,6 +692,18 @@
    只作用于 #view-home，不修改其他页面/功能
    ============================================================ */
 #view-home .topbar{margin-bottom:18px;padding:2px 2px 0;}
+/* ---- home time-weather bar ---- */
+#homeTZ{display:none;align-items:center;justify-content:center;gap:9px;margin:0 auto 12px;padding:5px 14px;max-width:92%;border:1px dashed rgba(60,50,40,.35);border-radius:12px;background:rgba(255,255,255,.5);font-size:11.5px;color:var(--ink-soft);letter-spacing:.6px;line-height:1;white-space:nowrap;}
+#homeTZ.on{display:flex;}
+#homeTZ .tz-wx{display:inline-flex;align-items:center;gap:5px;min-width:0;}
+#homeTZ .tz-wx .wx-ico{font-size:14px;line-height:1;}
+#homeTZ .tz-wx .wx-txt{overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+#homeTZ .tz-wx .wx-temp{color:var(--ink);font-weight:600;font-size:12.5px;}
+#homeTZ .tz-wx.err{opacity:.55;}
+#homeTZ .tz-sep{width:1px;height:11px;background:rgba(60,50,40,.25);flex:0 0 auto;}
+#homeTZ .tz-clock{font-variant-numeric:tabular-nums;letter-spacing:.5px;color:var(--ink);}
+#homeTZ .tz-clock .tz-date{color:var(--ink-soft);font-weight:400;margin-right:5px;}
+
 #view-home .stamp-tag{letter-spacing:3px;font-size:10px;padding:5px 9px;border:1px dashed var(--ink);background:rgba(255,255,255,.62);}
 #view-home .hero-name{font-size:17px;letter-spacing:3px;}
 #view-home .icon-btn{width:34px;height:34px;font-size:15px;background:rgba(255,255,255,.55);}
@@ -1296,6 +1308,7 @@
       <div class="home-top-action icon-btn home-svg-icon" onclick="go('settings')" title="设置"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
     </div>
 
+    <div id="homeTZ"><span class="tz-wx" id="tzWx"><span class="wx-ico" id="tzIco"></span><span class="wx-txt" id="tzTxt"></span><span class="wx-temp" id="tzTemp"></span></span><span class="tz-sep"></span><span class="tz-clock" id="tzClock"><span class="tz-date" id="tzDate"></span><span id="tzTime"></span></span></div>
     <div class="anniv-card" id="annivCardEl">
       <div style="position:absolute;top:7px;right:9px;font-size:10px;cursor:pointer;opacity:.28;" onclick="editAnnivCardBg()" title="修改卡片背景">✦</div>
       <div class="anniv-row">
@@ -1580,6 +1593,12 @@
     <div class="box">
       <div class="box-title">主题色</div>
       <div class="swatch-row" id="accentSwatches"></div>
+    </div>
+    <div class="box">
+      <div class="box-title">时间 · 天气</div>
+      <p style="font-size:12px;color:var(--ink-soft);">在首页头像框上方显示日期时间和天气。</p>
+      <div class="btn-row"><div class="btn outline" onclick="tzOpenSettings()">⚙︎ 时间天气设置</div></div>
+      <div class="btn-row"><div class="btn outline" onclick="tzRefreshNow()">↻ 立即刷新天气</div></div>
     </div>
     <div class="box">
       <div class="box-title">自定义背景</div>
@@ -2374,6 +2393,7 @@ async function init(){
     checkQuestionnaireReplies();
     resumeMoyuSchedule();
     resumePendingInviteReplies();
+    if(typeof tzStart === "function") tzStart();
     if(!hasReplyScheduled()) maybeScheduleFromHistory();
   });
   setInterval(checkMomentEvents, 20000);
@@ -5356,6 +5376,222 @@ function renderDiary(){
 /* ============================================================
    SETTINGS
    ============================================================ */
+/* ============================================================
+   HOME TIME / WEATHER  (time + weather bar above the avatar box)
+   - time: local, 24h, updates every 20s
+   - weather: Open-Meteo (no key). Location = GPS if allowed, else manually typed city.
+   ============================================================ */
+var tzCfg = { on:true, src:"gps", city:"", lat:null, lon:null, place:"" };
+var tzWeather = { temp:null, code:null, ok:false, at:0, label:"" };
+var tzClockTimer = null, tzFetchTimer = null;
+
+function tzLoadCfg(){
+  try{
+    var raw = localStorage.getItem("EVAN:" + "home-tz");
+    if(raw){ var o = JSON.parse(raw); if(o && typeof o === "object"){ tzCfg = Object.assign(tzCfg, o); } }
+  }catch(e){}
+}
+async function tzSaveCfg(){
+  try{ localStorage.setItem("EVAN:" + "home-tz", JSON.stringify(tzCfg)); }catch(e){}
+  try{ if(typeof sSet === "function") await sSet("home-tz", tzCfg); }catch(e){}
+}
+
+var TZ_WMO = {
+  0:["☀️","晴"],1:["🌤️","少云"],2:["⛅","多云"],3:["☁️","阴"],
+  45:["🌫️","雾"],48:["🌫️","雾凇"],
+  51:["🌦️","毛毛雨"],53:["🌦️","毛毛雨"],55:["🌦️","毛毛雨"],
+  56:["🌧️","冻雨"],57:["🌧️","冻雨"],
+  61:["🌦️","小雨"],63:["🌧️","中雨"],65:["🌧️","大雨"],
+  66:["🌧️","冻雨"],67:["🌧️","冻雨"],
+  71:["🌨️","小雪"],73:["🌨️","中雪"],75:["❄️","大雪"],77:["🌨️","米雪"],
+  80:["🌦️","阵雨"],81:["🌧️","阵雨"],82:["🌧️","强阵雨"],
+  85:["🌨️","阵雪"],86:["❄️","强阵雪"],
+  95:["⛈️","雷阵雨"],96:["⛈️","雷阵雨伴冰雹"],99:["⛈️","雷阵雨伴冰雹"]
+};
+function tzWmoInfo(code){
+  if(TZ_WMO[code]) return TZ_WMO[code];
+  if(code>=1 && code<=3) return TZ_WMO[2];
+  if(code>=51 && code<=67) return TZ_WMO[63];
+  if(code>=71 && code<=77) return TZ_WMO[73];
+  if(code>=80 && code<=82) return TZ_WMO[81];
+  if(code>=95) return TZ_WMO[95];
+  return ["🌡️","—"];
+}
+
+function tzClockTick(){
+  var el = document.getElementById("homeTZ");
+  if(!el || !tzCfg.on) return;
+  var d = new Date();
+  var wd = ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+  var dateEl = document.getElementById("tzDate");
+  var timeEl = document.getElementById("tzTime");
+  if(dateEl) dateEl.textContent = (d.getMonth()+1) + "月" + d.getDate() + "日 " + wd;
+  if(timeEl){
+    var hh = String(d.getHours()).padStart(2,"0");
+    var mm = String(d.getMinutes()).padStart(2,"0");
+    timeEl.textContent = hh + ":" + mm;
+  }
+}
+
+function tzRenderWeather(){
+  var wx = document.getElementById("tzWx");
+  if(!wx) return;
+  var ico = document.getElementById("tzIco"), txt = document.getElementById("tzTxt"), temp = document.getElementById("tzTemp");
+  if(tzWeather.ok){
+    wx.classList.remove("err");
+    var info = tzWmoInfo(tzWeather.code);
+    if(ico) ico.textContent = info[0];
+    if(txt) txt.textContent = (tzWeather.place ? tzWeather.place + " " : "") + info[1];
+    if(temp) temp.textContent = Math.round(tzWeather.temp) + "°";
+  }else{
+    wx.classList.add("err");
+    if(ico) ico.textContent = "🌤️";
+    if(txt) txt.textContent = tzCfg.src === "manual" && tzCfg.city ? tzCfg.city : "天气未获取";
+    if(temp) temp.textContent = "";
+  }
+}
+
+async function tzFetchByCoords(lat, lon, place){
+  var url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&timezone=auto";
+  var r = await fetch(url, { cache:"no-store" });
+  if(!r.ok) throw new Error("http " + r.status);
+  var j = await r.json();
+  var cur = j && j.current ? j.current : null;
+  if(!cur) throw new Error("no current");
+  tzWeather.temp = cur.temperature_2m;
+  tzWeather.code = cur.weather_code;
+  tzWeather.place = place || tzCfg.place || "";
+  tzWeather.ok = true;
+  tzWeather.at = Date.now();
+}
+
+async function tzGeocodeCity(city){
+  var url = "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(city) + "&count=1&language=zh&format=json";
+  var r = await fetch(url, { cache:"no-store" });
+  if(!r.ok) throw new Error("geo http " + r.status);
+  var j = await r.json();
+  var hit = j && j.results && j.results[0] ? j.results[0] : null;
+  if(!hit) throw new Error("city not found");
+  return { lat: hit.latitude, lon: hit.longitude, name: hit.name || city };
+}
+
+function tzGetGPS(cb){
+  if(!navigator.geolocation){ cb(new Error("no geolocation")); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){ cb(null, pos.coords.latitude, pos.coords.longitude); },
+    function(err){ cb(err); },
+    { enableHighAccuracy:false, timeout:8000, maximumAge:600000 }
+  );
+}
+
+async function tzFetchWeather(){
+  var el = document.getElementById("homeTZ");
+  if(!el || !tzCfg.on) return;
+  try{
+    if(tzCfg.src === "gps"){
+      await new Promise(function(resolve, reject){
+        tzGetGPS(function(err, lat, lon){
+          if(err || lat == null){ reject(err || new Error("gps fail")); return; }
+          tzCfg.lat = lat; tzCfg.lon = lon;
+          tzFetchByCoords(lat, lon, tzCfg.place).then(resolve).catch(reject);
+        });
+      });
+    }else{
+      var city = (tzCfg.city || "").trim();
+      if(!city) throw new Error("no city");
+      var g = await tzGeocodeCity(city);
+      tzCfg.lat = g.lat; tzCfg.lon = g.lon; tzCfg.place = g.name;
+      await tzFetchByCoords(g.lat, g.lon, g.name);
+    }
+  }catch(e){
+    // GPS 失败时，如果配了城市就退回手动城市
+    if(tzCfg.src === "gps" && (tzCfg.city || "").trim()){
+      try{
+        var g2 = await tzGeocodeCity(tzCfg.city.trim());
+        tzCfg.lat = g2.lat; tzCfg.lon = g2.lon; tzCfg.place = g2.name;
+        await tzFetchByCoords(g2.lat, g2.lon, g2.name);
+      }catch(e2){ tzWeather.ok = false; }
+    }else{
+      tzWeather.ok = false;
+    }
+  }
+  tzRenderWeather();
+}
+
+function tzShow(){
+  var el = document.getElementById("homeTZ");
+  if(!el) return;
+  if(tzCfg.on){ el.classList.add("on"); } else { el.classList.remove("on"); }
+}
+
+function tzToast(msg){
+  try{
+    var t = document.getElementById("saveToast");
+    if(!t) return;
+    var orig = t.getAttribute("data-orig") || t.textContent;
+    t.setAttribute("data-orig", orig);
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._tzTimer);
+    t._tzTimer = setTimeout(function(){ t.classList.remove("show"); t.textContent = orig; }, 1600);
+  }catch(e){}
+}
+
+function tzStart(){
+  tzLoadCfg();
+  tzShow();
+  if(!tzCfg.on) return;
+  tzClockTick();
+  if(tzClockTimer) clearInterval(tzClockTimer);
+  tzClockTimer = setInterval(tzClockTick, 20000);
+  tzRenderWeather();
+  tzFetchWeather();
+  if(tzFetchTimer) clearInterval(tzFetchTimer);
+  tzFetchTimer = setInterval(tzFetchWeather, 30 * 60 * 1000);
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible"){ tzClockTick(); if(Date.now() - tzWeather.at > 30*60*1000) tzFetchWeather(); }
+  });
+}
+
+function tzRefreshNow(){
+  if(!tzCfg.on){ tzToast("先在设置里打开时间天气"); return; }
+  tzToast("正在刷新天气…");
+  tzFetchWeather();
+}
+
+function tzOpenSettings(){
+  var cur = tzCfg;
+  var srcGps = cur.src === "gps" ? "checked" : "";
+  var srcMan = cur.src === "manual" ? "checked" : "";
+  var html = "" +
+    "<div class=\"drawer-head\"><h3>时间 · 天气</h3><span class=\"close-x\" onclick=\"closeOverlay()\">✕</span></div>" +
+    "<label class=\"field\">在首页显示</label>" +
+    "<div class=\"btn-row\"><label style=\"display:flex;align-items:center;gap:8px;font-size:13px;\"><input type=\"checkbox\" id=\"tzOn\" " + (cur.on?"checked":"") + "> 显示时间天气条</label></div>" +
+    "<label class=\"field\">定位方式</label>" +
+    "<div class=\"btn-row\"><label style=\"display:flex;align-items:center;gap:6px;font-size:13px;\"><input type=\"radio\" name=\"tzSrc\" value=\"gps\" " + srcGps + "> GPS 自动定位</label>" +
+    "<label style=\"display:flex;align-items:center;gap:6px;font-size:13px;\"><input type=\"radio\" name=\"tzSrc\" value=\"manual\" " + srcMan + "> 手动城市</label></div>" +
+    "<label class=\"field\">城市名（GPS 不可用时的回退，例如：杭州）</label>" +
+    "<input type=\"text\" id=\"tzCity\" value=\"" + escapeHtml(cur.city||"") + "\" placeholder=\"杭州\">" +
+    "<p style=\"font-size:11px;color:var(--ink-soft);margin:8px 0 0;\">天气来自 Open-Meteo 免费接口，需联网。GPS 定位时手机可能弹一次授权。</p>" +
+    "<div class=\"btn-row\"><div class=\"btn\" onclick=\"tzConfirmSettings()\">保存</div>" +
+    "<div class=\"btn outline\" onclick=\"closeOverlay()\">取消</div></div>";
+  openOverlay(html);
+}
+
+async function tzConfirmSettings(){
+  var onEl = document.getElementById("tzOn");
+  tzCfg.on = !!(onEl && onEl.checked);
+  var srcEl = document.querySelector("input[name=tzSrc]:checked");
+  tzCfg.src = srcEl ? srcEl.value : "gps";
+  var cityEl = document.getElementById("tzCity");
+  tzCfg.city = cityEl ? cityEl.value.trim() : "";
+  await tzSaveCfg();
+  closeOverlay();
+  tzShow();
+  if(tzCfg.on){ tzClockTick(); tzRenderWeather(); tzFetchWeather(); }
+  tzToast("已保存");
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{});
 function fillSettingsForm(){
   if(typeof applyBgSettingsUI==='function') applyBgSettingsUI();
