@@ -6495,8 +6495,8 @@ function formatRemain(ms){
   return '剩余工作时间 ' + m + '分钟';
 }
 function scheduleNextMoyu(){
-  // 班内消息间隔：10~30 分钟随机（照抄 ZY3）
-  let interval = (Math.floor(Math.random()*21)+10)*60*1000;
+  // 班内消息间隔：10~60 分钟随机（照抄 ZY3）
+  let interval = (Math.floor(Math.random()*51)+10)*60*1000;
   // 照抄 ZY3：不超过本班下班时间
   const sess = moyuState.currentSession;
   if(sess && typeof sess.startTime === 'number' && typeof sess.workMs === 'number'){
