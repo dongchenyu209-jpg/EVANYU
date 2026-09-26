@@ -1542,6 +1542,7 @@
       <div class="btn outline" id="compTabDiary" onclick="switchCompanionTab('diary')">日记</div>
       <div class="btn outline" id="compTabAnniv" onclick="switchCompanionTab('anniv')">纪念日</div>
       <div class="btn outline" id="compTabPeriod" onclick="switchCompanionTab('period')">月经</div>
+      <div class="btn outline" id="compTabFav" onclick="switchCompanionTab('fav')">收藏</div>
     </div>
     <div id="companionBody"></div>
   </section>
@@ -4003,6 +4004,7 @@ async function sendUserMessage(){
   if(typeof quoteTarget !== 'undefined' && quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   if(!Array.isArray(chatMessages)) chatMessages = [];
   chatMessages.push(msg);
+  try{ maybeBotFavoriteChat(); }catch(e){}
   try{ renderChat(); }catch(e){ console.error('renderChat', e); }
   try{ await recPut('chatMessages', msg); }catch(e){ console.warn('recPut chat fail', e); }
   try{ handleIncomingForBot(text || '[表情]'); }catch(e){ console.error('handleIncoming', e); }
@@ -4065,6 +4067,7 @@ function scheduleAutoReply(userText){
       const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
       if(!Array.isArray(chatMessages)) chatMessages = [];
       chatMessages.push(newMsg);
+      try{ maybeBotFavoriteChat(); }catch(e){}
       const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
       if(last) last.read = true;
       try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
@@ -4325,6 +4328,7 @@ function runProactiveBurst(){
     if(!reply){ _proMsgBusy = false; return; }
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
     chatMessages.push(newMsg);
+    try{ maybeBotFavoriteChat(); }catch(e){}
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
     if(currentView==='chat' || roomIsOpen()){ try{ renderChat(); }catch(e){} }
     else{
@@ -6840,16 +6844,19 @@ function closeOverlay(){ document.getElementById('overlayRoot').innerHTML=''; }
 let companionTodos = [];
 let companionHabits = [];
 let companionAnnivs = [];
+let companionFavorites = [];
 let _compTab = 'todo';
+let _compFavTab = 'song';
 
 async function loadCompanionData(){
   companionTodos = await sGet('companion-todos', []);
   companionHabits = await sGet('companion-habits', []);
   companionAnnivs = await sGet('companion-annivs', []);
+  companionFavorites = await sGet('companion-favorites', []);
 }
 function switchCompanionTab(tab){
   _compTab = tab;
-  const map = {todo:'compTabTodo', habit:'compTabHabit', diary:'compTabDiary', anniv:'compTabAnniv', period:'compTabPeriod'};
+  const map = {todo:'compTabTodo', habit:'compTabHabit', diary:'compTabDiary', anniv:'compTabAnniv', period:'compTabPeriod', fav:'compTabFav'};
   Object.keys(map).forEach(t=>{
     const el = document.getElementById(map[t]);
     if(el) el.className = 'btn' + (t===tab ? '' : ' outline');
@@ -6940,7 +6947,72 @@ function renderCompanionBody(){
       </div>`;
     renderPeriod();
     const _pd = document.getElementById('periodDate'); if(_pd && !_pd.value) _pd.value = localDateStr();
+  } else if(_compTab === 'fav'){
+    body.innerHTML = `
+      <div class="box">
+        <div class="box-title">TA悄悄收藏的东西</div>
+        <div class="btn-row" style="margin-bottom:10px;">
+          <div class="btn${_compFavTab==='song'?'':' outline'}" onclick="switchFavTab('song')">🎵 歌曲</div>
+          <div class="btn${_compFavTab==='chat'?'':' outline'}" onclick="switchFavTab('chat')">💬 聊天信息</div>
+        </div>
+        <div id="compFavList"></div>
+      </div>`;
+    renderCompanionFavList();
   }
+}
+function switchFavTab(tab){ _compFavTab = tab; renderCompanionBody(); }
+function renderCompanionFavList(){
+  const el = document.getElementById('compFavList');
+  if(!el) return;
+  const list = companionFavorites.filter(function(f){ return f.type === _compFavTab; });
+  if(!list.length){
+    el.innerHTML = '<div class="empty-note">TA还没有收藏' + (_compFavTab==='song' ? '歌曲' : '聊天信息') + '</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(f){
+    const dt = formatMsgTime(f.at || Date.now());
+    if(f.type === 'song'){
+      const sub = escapeHtml(f.artist || '') + ' · ' + dt + (f.note ? ' · ' + escapeHtml(f.note) : '');
+      return '<div class="list-item"><div><b>🎵 ' + escapeHtml(f.name || '未命名') + '</b><div class="meta">' + sub + '</div></div><span class="del" onclick="delCompanionFav(\'' + f.id + '\')">✕</span></div>';
+    }
+    const who = f.from === 'me' ? (profile.myName || '我') : (chatSettings.companionName || 'TA');
+    return '<div class="list-item"><div><div style="font-size:12.5px;line-height:1.5;">' + escapeHtml(f.content || '') + '</div><div class="meta">' + escapeHtml(who) + ' · ' + dt + (f.note ? ' · ' + escapeHtml(f.note) : '') + '</div></div><span class="del" onclick="delCompanionFav(\'' + f.id + '\')">✕</span></div>';
+  }).join('');
+}
+async function delCompanionFav(fid){
+  const idx = companionFavorites.findIndex(function(f){ return f.id === fid; });
+  if(idx < 0) return;
+  companionFavorites.splice(idx, 1);
+  try{ await sSet('companion-favorites', companionFavorites); }catch(e){}
+  renderCompanionFavList();
+}
+/* ===== 梦角随机收藏：想收藏什么就收藏什么 ===== */
+const FAV_SONG_NOTES = ['这首歌我要收好，以后循环。','听到这首就想起你。','偷偷放进我的收藏夹了。','嗯，这首我要了。','这首适合单曲循环。'];
+const FAV_CHAT_NOTES = ['这句我想留着。','这句话我要收起来。','记下了，不删。','悄悄存进收藏。','以后翻出来看。'];
+async function addCompanionFavorite(item){
+  if(!item || !item.type) return;
+  item.id = uid();
+  companionFavorites.unshift(item);
+  try{ await sSet('companion-favorites', companionFavorites); }catch(e){ console.warn('save fav fail', e); }
+  if(typeof currentView !== 'undefined' && currentView === 'companion' && _compTab === 'fav'){ try{ renderCompanionFavList(); }catch(e){} }
+}
+function maybeBotFavoriteSong(song){
+  if(!song || !song.name) return;
+  if(Math.random() > 0.15) return;
+  const key = String(song.id || song.name);
+  if(companionFavorites.some(function(f){ return f.type === 'song' && String(f.songId || f.name) === key; })) return;
+  addCompanionFavorite({ type:'song', songId:String(song.id || ''), name:song.name, artist:song.artist || '', pic:song.pic || '', note: FAV_SONG_NOTES[Math.floor(Math.random()*FAV_SONG_NOTES.length)], at: Date.now() });
+}
+function maybeBotFavoriteChat(){
+  if(Math.random() > 0.12) return;
+  if(!Array.isArray(chatMessages) || !chatMessages.length) return;
+  const pool = chatMessages.slice(-40).filter(function(m){
+    return m && m.content && typeof m.content === 'string' && m.content.indexOf('data:') !== 0 && (m.type === 'text' || m.type === 'combo' || m.type === 'quote' || !m.type);
+  });
+  if(!pool.length) return;
+  const m = pool[Math.floor(Math.random() * pool.length)];
+  if(companionFavorites.some(function(f){ return f.type === 'chat' && f.msgId === m.id; })) return;
+  addCompanionFavorite({ type:'chat', msgId:m.id, from:(m.from === 'user' ? 'me' : 'ta'), content:String(m.content).slice(0,200), note: FAV_CHAT_NOTES[Math.floor(Math.random()*FAV_CHAT_NOTES.length)], at: Date.now() });
 }
 async function addCompanionTodo(){
   const inp = document.getElementById('compTodoInput');
@@ -7880,7 +7952,7 @@ function tryBgNotify(title, body){
    聊天功能面板 + 一起听 / 学 / 睡
    ============================================================ */
 let togetherState = {
-  music: { active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false },
+  music: { official:false, shuffle:false, active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false },
   study: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   sleep: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' },
@@ -8270,6 +8342,8 @@ function openListenTogetherPanel(asInvite){
       ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteListenTogether()">邀请一起听</div>' : '')+
       (st.active ? '<div class="btn outline" onclick="endListenTogether()">结束</div>' : '')+
     '</div>'+
+    '<div class="btn-row" style="margin-top:8px;"><div class="btn outline" onclick="screenVinylPlayable()">🔍 筛查不能整曲播放的</div></div><div id="vinylScreenBox"></div>'+
+    '<div class="btn-row" style="margin-top:8px;">'+
     '<p style="font-size:11px;color:var(--ink-soft);margin:8px 0 0;">在网易云打开歌单 → 点分享 → 复制链接，粘贴到上面即可。公开歌单可导入；部分 VIP 歌曲可能无法试听。</p>'+
     '<details style="margin-top:10px;font-size:12px;color:var(--ink-soft);"><summary style="cursor:pointer;">也可以手动粘贴歌名列表</summary>'+
       '<textarea id="playlistImport" placeholder="每行：歌名 - 歌手" style="min-height:56px;margin-top:6px;"></textarea>'+
@@ -8278,7 +8352,7 @@ function openListenTogetherPanel(asInvite){
     '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);" id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</div>'+
     '<div id="playlistPreview" style="max-height:140px;overflow:auto;margin-top:6px;font-size:12.5px;"></div>'
   );
-  renderPlaylistPreview();
+  renderPlaylistPreview();  
 }
 
 function renderPlaylistPreview(){
@@ -8323,6 +8397,276 @@ function importPlaylistText(){
   renderPlaylistPreview();
 }
 
+/* ===== 一起听：筛查「放不了整曲」的歌曲 ===== */
+let vinylScreenResults = [];
+let vinylScreenBusy = false;
+let vinylProbeCache = {};        // key -> {status, reason, at}，同一批歌复查秒回
+const VINYL_SCREEN_WORKERS = 6;  // 并发探测数
+const VINYL_PROBE_TIMEOUT = 6500;// 单首最长等待（毫秒）
+const VINYL_PROBE_FRESH = Infinity; // 永久有效：探过一次就一直记住，不再过期（要重探点「重新筛查」）
+let _vinylLastSave = 0;          // 上次落盘时间（用于边查边存）
+const VINYL_PROBE_CACHE_IDB = 'EVAN:vinylProbeCache'; // 持久化到 IndexedDB（纯本地，不走云端）
+const VINYL_PROBE_CACHE_MAX = 3000; // 最多保留多少条，超出丢最旧
+let vinylCacheLoaded = false;
+async function vinylCacheLoad(){
+  if(vinylCacheLoaded) return;
+  vinylCacheLoaded = true;
+  try{
+    const raw = await idbGet(VINYL_PROBE_CACHE_IDB);
+    if(raw){
+      const obj = JSON.parse(raw);
+      if(obj && typeof obj === 'object'){
+        const now = Date.now();
+        Object.keys(obj).forEach(function(k){
+          const v = obj[k];
+          if(v && v.at && (now - v.at) < VINYL_PROBE_FRESH) vinylProbeCache[k] = v;
+        });
+      }
+    }
+  }catch(e){ /* 读不到就当作没缓存 */ }
+}
+async function vinylCacheSave(){
+  try{
+    const keys = Object.keys(vinylProbeCache);
+    if(keys.length > VINYL_PROBE_CACHE_MAX){
+      keys.sort(function(a,b){ return (vinylProbeCache[a].at||0) - (vinylProbeCache[b].at||0); });
+      const drop = keys.length - VINYL_PROBE_CACHE_MAX;
+      for(let i=0;i<drop;i++) delete vinylProbeCache[keys[i]];
+    }
+    await idbSet(VINYL_PROBE_CACHE_IDB, JSON.stringify(vinylProbeCache));
+  }catch(e){ /* 保存失败不影响本次使用 */ }
+}
+
+function vinylSongKey(s){
+  if(!s) return '';
+  return (s.id ? String(s.id) : '') + '|' + (s.name || '') + '|' + (s.artist || '');
+}
+
+function vinylScreenUrl(song){
+  if(song && song.url) return song.url;
+  if(song && song.id) return 'https://api.injahow.cn/meting/?server=netease&type=url&id=' + encodeURIComponent(song.id);
+  return '';
+}
+
+function probeVinylAudioMeta(url){
+  return new Promise(function(resolve){
+    var done = false, timer = null, el = null;
+    function finish(res){
+      if(done) return;
+      done = true;
+      if(timer) clearTimeout(timer);
+      try{
+        if(el){
+          el.onloadedmetadata = null; el.onerror = null;
+          el.removeAttribute('src');
+          if(el.load) el.load();
+        }
+      }catch(e){}
+      resolve(res);
+    }
+    try{ el = new Audio(); }catch(e){ resolve({ status:'unknown', reason:'这个环境不支持音频检测' }); return; }
+    el.preload = 'metadata';
+    timer = setTimeout(function(){ finish({ status:'unknown', reason:'检测超时（网络太慢）' }); }, VINYL_PROBE_TIMEOUT);
+    el.onloadedmetadata = function(){
+      var d = (isFinite(el.duration) ? el.duration : 0);
+      finish({ status:'ok', duration:d });
+    };
+    el.onerror = function(){ finish({ status:'fail', reason:'音频打不开（VIP / 版权限制）' }); };
+    el.src = url;
+    try{ el.load(); }catch(e){}
+  });
+}
+
+async function explainVinylFailure(url){
+  try{
+    var ctrl = new AbortController();
+    var timer = setTimeout(function(){ ctrl.abort(); }, 3500);
+    var resp = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    var ct = String(resp.headers.get('content-type') || '').toLowerCase();
+    try{ if(resp.body && resp.body.cancel) resp.body.cancel(); }catch(e){}
+    if(ct.indexOf('json') >= 0) return '接口没给播放地址（VIP / 版权）';
+    if(ct.indexOf('html') >= 0 || ct === '') return '被接口拦下了（VIP / 版权）';
+    return '返回类型异常：' + ct;
+  }catch(e){ return ''; }
+}
+
+async function probeVinylPlayable(song){
+  var url = vinylScreenUrl(song);
+  if(!url) return { status:'fail', reason:'没有播放链接（文本导入的歌名）' };
+  var meta = await probeVinylAudioMeta(url);
+  if(meta.status === 'ok'){
+    var full = Number(song.duration || 0);
+    if(full > 30 && meta.duration > 0 && meta.duration < full * 0.7){
+      return { status:'trial', reason:'只有试听 ' + Math.round(meta.duration) + ' 秒（全曲约 ' + Math.round(full) + ' 秒）' };
+    }
+    return { status:'ok' };
+  }
+  if(meta.status === 'fail'){
+    var why = await explainVinylFailure(url);
+    return { status:'fail', reason: why || meta.reason };
+  }
+  return { status:'unknown', reason: meta.reason };
+}
+
+async function screenVinylPlayable(force){
+  var st = togetherState.music;
+  if(!st.playlist.length){ alert('请先导入歌单，再筛查'); return; }
+  if(vinylScreenBusy) return;
+  var box = document.getElementById('vinylScreenBox');
+  var tip = document.getElementById('vinylLoadTip');
+  if(!box) return;
+  vinylScreenBusy = true;
+  await vinylCacheLoad();
+  var total = st.playlist.length;
+  var done = 0, cached = 0, bad = [];
+  var t0 = Date.now();
+  function paint(){
+    var sec = Math.max(1, Math.round((Date.now() - t0) / 1000));
+    var pct = total ? Math.floor(done / total * 100) : 0;
+    var el = document.getElementById('vinylScreenProg');
+    if(el){
+      el.innerHTML = '<div style="font-size:12.5px;color:var(--ink-soft);padding:2px 0;">正在筛查 ' + done + '/' + total +
+        '（免检 ' + cached + '）… ' + sec + 's</div>' +
+        '<div style="height:5px;background:var(--rule);border-radius:4px;overflow:hidden;"><i style="display:block;height:100%;width:' +
+        pct + '%;background:var(--rouge);transition:width .2s;"></i></div>';
+    }
+    if(tip) tip.textContent = '正在筛查 ' + done + '/' + total + '…';
+  }
+  box.innerHTML = '<div id="vinylScreenProg" style="padding:6px 0;"></div>';
+  paint();
+  var jobs = [];
+  for(var i2 = 0; i2 < total; i2++){
+    var s = st.playlist[i2];
+    var key = vinylSongKey(s);
+    var c = force ? null : vinylProbeCache[key];
+    if(c && (Date.now() - c.at) < VINYL_PROBE_FRESH){
+      jobs.push({ s: s, key: key, r: c, hit: true });
+    }else{
+      jobs.push({ s: s, key: key, r: null, hit: false });
+    }
+  }
+  var queue = jobs.filter(function(x){ return !x.hit; });
+  cached = jobs.length - queue.length;
+  done = cached;
+  paint();
+  var cursor = 0;
+  async function worker(){
+    while(true){
+      var idx = cursor++;
+      if(idx >= queue.length) break;
+      var job = queue[idx];
+      var r;
+      try{ r = await probeVinylPlayable(job.s); }
+      catch(e){ r = { status:'unknown', reason:'检测出错' }; }
+      job.r = { status: r.status, reason: r.reason, at: Date.now() };
+      vinylProbeCache[job.key] = job.r;
+      done++;
+      paint();
+      if(Date.now() - _vinylLastSave > 3000){ _vinylLastSave = Date.now(); vinylCacheSave(); }
+    }
+  }
+  var ws = [];
+  var wn = Math.min(VINYL_SCREEN_WORKERS, queue.length);
+  for(var w = 0; w < wn; w++) ws.push(worker());
+  await Promise.all(ws);
+  vinylCacheSave();
+  for(var k = 0; k < jobs.length; k++){
+    var jb = jobs[k];
+    var rr = jb.r || { status:'unknown', reason:'未检测' };
+    if(rr.status === 'fail' || rr.status === 'trial'){
+      bad.push({ key: jb.key, name: jb.s.name, artist: jb.s.artist || '', reason: rr.reason, status: rr.status, checked: true });
+    }
+  }
+  vinylScreenResults = bad;
+  vinylScreenBusy = false;
+  var used = Math.max(1, Math.round((Date.now() - t0) / 1000));
+  if(tip) tip.textContent = bad.length ? ('筛查完成：' + bad.length + ' 首放不了整曲（用了 ' + used + 's）') : ('筛查完成：都能整曲播放 🎉（用了 ' + used + 's）');
+  renderVinylScreenBox();
+  if(bad.length){
+    var go = confirm('筛查完成：有 ' + bad.length + ' 首放不了整曲（' + used + ' 秒查完）。\n\n要现在删掉吗？\n· 确定 = 直接删掉\n· 取消 = 先留着，你自己挑着删');
+    if(go) deleteSelectedVinylScreen(true);
+  }
+}
+function renderVinylScreenBox(){
+  var box = document.getElementById('vinylScreenBox');
+  if(!box) return;
+  var list = vinylScreenResults;
+  if(!list.length){
+    box.innerHTML = '<div style="font-size:12px;color:var(--ink-soft);padding:4px 0;">没有待处理的歌曲。</div>';
+    return;
+  }
+  box.innerHTML =
+    '<div style="border:1px solid var(--rule);border-radius:10px;padding:8px;margin-top:8px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:6px;">' +
+        '<b>放不了整曲的 ' + list.length + ' 首</b>' +
+        '<span style="color:var(--ink-soft);cursor:pointer;text-decoration:underline;" onclick="toggleAllVinylScreen()">全选/全不选</span>' +
+      '</div>' +
+      '<div style="max-height:180px;overflow:auto;">' +
+        list.map(function(it, idx){
+          return '<label style="display:flex;gap:6px;align-items:flex-start;padding:4px 2px;border-bottom:1px dotted var(--rule);font-size:12.5px;">' +
+            '<input type="checkbox" ' + (it.checked ? 'checked' : '') + ' onchange="toggleVinylScreenItem(' + idx + ', this.checked)" style="margin-top:2px;">' +
+            '<span style="flex:1;">' + escapeHtml(it.name) + (it.artist ? ' · ' + escapeHtml(it.artist) : '') +
+            '<span style="display:block;font-size:11px;color:var(--rouge);opacity:.85;">' + escapeHtml(it.reason) + '</span></span>' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+      '<div class="btn-row" style="margin-top:8px;flex-wrap:wrap;">' +
+        '<div class="btn rouge" onclick="deleteSelectedVinylScreen()">删除勾选的</div>' +
+        '<div class="btn outline" onclick="screenVinylPlayable(1)">重新筛查</div>' +
+        '<div class="btn outline" onclick="closeVinylScreen()">收起</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function toggleVinylScreenItem(idx, checked){
+  if(vinylScreenResults[idx]) vinylScreenResults[idx].checked = !!checked;
+}
+
+function toggleAllVinylScreen(){
+  var anyChecked = vinylScreenResults.some(function(x){ return x.checked; });
+  vinylScreenResults.forEach(function(x){ x.checked = !anyChecked; });
+  renderVinylScreenBox();
+}
+
+function closeVinylScreen(){
+  vinylScreenResults = [];
+  var box = document.getElementById('vinylScreenBox');
+  if(box) box.innerHTML = '';
+}
+
+function deleteSelectedVinylScreen(skipConfirm){
+  var st = togetherState.music;
+  var keys = vinylScreenResults.filter(function(x){ return x.checked; }).map(function(x){ return x.key; });
+  if(!keys.length){ alert('还没有勾选要删除的歌曲'); return; }
+  var before = st.playlist.length;
+  var keep = st.playlist.filter(function(s){ return keys.indexOf(vinylSongKey(s)) < 0; });
+  var removed = before - keep.length;
+  if(!removed){ alert('没找到对应歌曲，可能歌单已经变了，重新筛查一次吧'); return; }
+  if(!skipConfirm && !confirm('确定从歌单里删除这 ' + removed + ' 首？')) return;
+  var curKey = st.playlist[st.index] ? vinylSongKey(st.playlist[st.index]) : '';
+  st.playlist = keep;
+  var newIdx = 0;
+  if(curKey){
+    for(var i = 0; i < keep.length; i++){ if(vinylSongKey(keep[i]) === curKey){ newIdx = i; break; } }
+  }
+  st.index = keep.length ? Math.min(newIdx, keep.length - 1) : 0;
+  vinylScreenResults = vinylScreenResults.filter(function(x){ return !x.checked; });
+  try{ getVinylAudio().pause(); }catch(e){}
+  st.playing = false;
+  if(keep.length) loadVinylTrack(st.index, false);
+  renderPlaylistPreview();
+  var tip = document.getElementById('vinylLoadTip');
+  if(tip) tip.textContent = '已删除 ' + removed + ' 首，歌单还剩 ' + keep.length + ' 首';
+  renderVinylScreenBox();
+}
+
+function toggleVinylShuffle(){
+  var st = togetherState.music;
+  st.shuffle = !st.shuffle;
+  var btn = document.getElementById('vinylShuffleBtn');
+  if(btn) btn.textContent = '🔀 随机：' + (st.shuffle ? '开' : '关');
+}
 async function importNeteasePlaylist(){
   const inp = document.getElementById('neteasePlaylistInput');
   const tip = document.getElementById('vinylLoadTip');
@@ -8404,6 +8748,7 @@ function loadVinylTrack(idx, autoPlay){
   const song = st.playlist[st.index];
   st.progress = 0;
   st.duration = song.duration || 180;
+  try{ maybeBotFavoriteSong(song); }catch(e){}
   const audio = getVinylAudio();
   audio.pause();
   if(song.url){
@@ -8489,7 +8834,12 @@ function stopVinylTimer(){
 function vinylNext(auto){
   const st = togetherState.music;
   if(!st.playlist.length) return;
-  const next = (st.index + 1) % st.playlist.length;
+  let next;
+  if(st.shuffle && st.playlist.length > 1){
+    do { next = Math.floor(Math.random() * st.playlist.length); } while(next === st.index);
+  } else {
+    next = (st.index + 1) % st.playlist.length;
+  }
   loadVinylTrack(next, !!(auto || st.playing));
 }
 function vinylPrev(){
