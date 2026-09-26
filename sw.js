@@ -1,5 +1,5 @@
 /* Love Diary PWA service worker */
-const CACHE = 'love-diary-v33';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
+const CACHE = 'love-diary-v36';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
 const PRECACHE = [
   './',
   './index.html',
@@ -46,10 +46,12 @@ self.addEventListener('fetch', function(e){
   var isDoc = req.mode === 'navigate' || /\.(html|webmanifest)$/.test(url.pathname) || /\/$/.test(url.pathname) || /\/sw\.js$/.test(url.pathname);
 
   if(isDoc){
-    // 页面本身：网络优先，这样部署了新版本刷新一次就能看到；断网时才用缓存
+    // 页面本身：缓存优先，打开即秒显，不联网也能用；后台再去拉新版本，下次刷新生效
     e.respondWith(
-      fetch(req).then(function(res){ putInCache(req, res); return res; })
-        .catch(function(){ return caches.match(req).then(function(c){ return c || caches.match('./index.html'); }); })
+      caches.match(req).then(function(cached){
+        var net = fetch(req).then(function(res){ putInCache(req, res); return res; }).catch(function(){ return cached || caches.match('./index.html'); });
+        return cached || net;
+      })
     );
     return;
   }

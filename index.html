@@ -2208,25 +2208,26 @@ function isRateLimitError(e){
   return /rate limit/i.test(msg);
 }
 async function sGet(key, fallback){
-  if(hasCloudStorage()){
-    try{
-      const r = await window.storage.get(key, false);
-      if(r) return JSON.parse(r.value);
-    }catch(e){ /* 云端这次读取失败，往下走本地兜底 */ }
-  }
-
-try{
+  // 本地优先：先用本地缓存秒读，本地没有才去问云端。避免启动时每次都被云端 IO 拖住（白屏）。
+  try{
     const raw = await idbGet('EVAN:'+key);
     if(raw !== undefined && raw !== null){
         return JSON.parse(raw);
     }
-}catch(e){
+  }catch(e){
     // IndexedDB 失败，再尝试 localStorage
     try{
         const raw = localStorage.getItem('EVAN:'+key);
         if(raw !== null) return JSON.parse(raw);
     }catch(e){}
-}  return fallback;
+  }
+  if(hasCloudStorage()){
+    try{
+      const r = await window.storage.get(key, false);
+      if(r) return JSON.parse(r.value);
+    }catch(e){ /* 云端这次读取失败，用 fallback */ }
+  }
+  return fallback;
 }
 async function sSet(key, obj){
   let cloudOk = false;
@@ -6627,7 +6628,7 @@ function switchMoyuNoteTab(tab){
   if(hisBtn){ hisBtn.className = 'btn' + (tab==='history'?'':' outline'); }
   renderMoyuNotePanelBody(tab);
 }
-function renderSessionCard(sess, isCurrent){
+function renderSessionCard(sess, isCurrent, histIndex){
   if(!sess) return '';
   const show = moyuState.showDetails !== false;
   const dateStr = new Date(sess.startTime).toLocaleDateString('zh-CN');
@@ -6658,6 +6659,9 @@ function renderSessionCard(sess, isCurrent){
     <div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">📅 ${dateStr}</div>
     ${isCurrent ? `<div style="margin-top:10px;padding:8px 10px;background:var(--blush);border:1px solid var(--rule);font-size:12.5px;text-align:center;">⏳ ${formatRemain(remain)}</div>` : ''}
     ${recordsHtml}
+    ${isCurrent
+      ? `<div class="btn-row" style="margin-top:10px;"><div class="btn outline" onclick="deleteMoyuCurrent()">删除本班</div></div>`
+      : (typeof histIndex==='number' ? `<div class="btn-row" style="margin-top:10px;"><div class="btn outline" onclick="deleteMoyuHistoryItem(${histIndex})">删除这条</div></div>` : '')}
   </div>`;
 }
 function renderMoyuNotePanelBody(tab){
@@ -6689,10 +6693,28 @@ function renderMoyuNotePanelBody(tab){
     if(!hist.length){
       body.innerHTML = '<div class="empty-note">还没有历史班次</div>';
     } else {
-      body.innerHTML = hist.map(s=>renderSessionCard(s, false)).join('') +
+      body.innerHTML = hist.map((s,hi)=>renderSessionCard(s, false, hi)).join('') +
         `<div class="btn-row" style="margin-top:10px;"><div class="btn outline" onclick="clearMoyuHistory()">清空历史</div></div>`;
     }
   }
+}
+async function deleteMoyuCurrent(){
+  if(!moyuState.currentSession) return;
+  if(!confirm('确定删除当前这一班吗？')) return;
+  moyuState.currentSession = null;
+  moyuState.nextAt = null;
+  scheduleNextSession();
+  await sSet('moyu-state', moyuState);
+  renderMoyuHome();
+  renderMoyuNotePanelBody('current');
+}
+async function deleteMoyuHistoryItem(i){
+  if(!Array.isArray(moyuState.history)) return;
+  if(i<0 || i>=moyuState.history.length) return;
+  if(!confirm('确定删除这条历史记录吗？')) return;
+  moyuState.history.splice(i, 1);
+  await sSet('moyu-state', moyuState);
+  renderMoyuNotePanelBody('history');
 }
 async function clearMoyuHistory(){
   if(!confirm('确定清空全部历史摸鱼记录吗？')) return;
