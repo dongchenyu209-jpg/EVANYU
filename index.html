@@ -773,6 +773,17 @@
   }
   .save-toast.show{ opacity:0.92; transform:translateX(-50%) translateY(0); }
   .save-toast.warn{ background:var(--rouge); }
+  .fav-pop{
+    position:fixed; left:50%; top:14%; transform:translate(-50%,-10px) scale(.96);
+    z-index:95; display:flex; align-items:center; gap:10px; max-width:76%;
+    background:var(--paper); color:var(--ink); border:1px solid var(--rule);
+    border-radius:14px; padding:10px 14px; box-shadow:var(--card-shadow);
+    opacity:0; pointer-events:none; transition:opacity .28s, transform .28s;
+  }
+  .fav-pop.show{ opacity:1; transform:translate(-50%,0) scale(1); }
+  .fav-pop-ico{ font-size:20px; line-height:1; }
+  .fav-pop-title{ font-size:12.5px; font-weight:700; letter-spacing:.5px; }
+  .fav-pop-sub{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
   .call-overlay{
     position:fixed; inset:0; z-index:120; overflow:hidden; color:#F3EEE3;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
@@ -2546,7 +2557,9 @@ async function init(){
     resumeMoyuSchedule();
     resumePendingInviteReplies();
     if(typeof tzStart === "function") tzStart();
-    if(!hasReplyScheduled()) maybeScheduleFromHistory();
+    if(!hasReplyScheduled()){
+      resumePendingReply().then(function(resumed){ if(!resumed && !hasReplyScheduled()){ maybeScheduleFromHistory(); } }).catch(function(){ if(!hasReplyScheduled()){ maybeScheduleFromHistory(); } });
+    }
   });
   setInterval(checkMomentEvents, 20000);
   setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
@@ -4101,44 +4114,75 @@ function getReplyDelayMs(){
   const chosen = lo + Math.random()*(hi-lo);
   return Math.max(1, chosen) * 60 * 1000;
 }
+function savePendingReplyState(o){ try{ sSet('pending-reply', o); }catch(e){} }
+function clearPendingReplyState(){ try{ sSet('pending-reply', {active:false}); }catch(e){} }
+/* 把一批回复发出去；startFrom = 已经发过的条数（刷新后接着发用） */
+function runReplyBatch(userText, total, startFrom){
+  const _totalCount = Math.max(1, Number(total) || 1);
+  const _sendOneReply = async function(i){
+    let reply = null;
+    try{ reply = pickReplyFor(userText, { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
+    if(!reply){
+      reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
+    }
+    const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+    try{ assignGroupSender(newMsg); }catch(e){}
+    if(!Array.isArray(chatMessages)) chatMessages = [];
+    chatMessages.push(newMsg);
+    try{ maybeBotFavoriteChat(); }catch(e){}
+    const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
+    if(last) last.read = true;
+    try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
+    try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
+    if(currentView !== 'chat' && !roomIsOpen()){
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+      try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
+    }
+    // 还有下一条：显示「正在输入…」，隔 4 秒~1 分钟再发（状态落盘，刷新也能接着发）
+    if(i+1 < _totalCount){
+      const _gap = 4000 + Math.random()*56000;
+      savePendingReplyState({ active:true, userText:userText, total:_totalCount, sent:i+1, nextAt:Date.now()+_gap });
+      try{ showTyping(true); }catch(e){}
+      pendingReplyTimer = setTimeout(()=>{ try{ showTyping(false); }catch(e){} _sendOneReply(i+1); }, _gap);
+    } else {
+      clearPendingReplyState();
+    }
+  };
+  _sendOneReply(Math.max(0, Number(startFrom) || 0));
+}
 function scheduleAutoReply(userText){
   const delayMs = getReplyDelayMs();
+  // 一次连回几条：在 1 ~ 「一次最多连回」之间纯随机挑一个条数（每个数字机会均等）
+  const _maxReply = Math.max(1, Math.min(20, Number(chatSettings.replyMaxCount) || 1));
+  const _totalCount = _maxReply <= 1 ? 1 : (1 + Math.floor(Math.random() * _maxReply));
+  // 把「等下要回」这件事落盘，刷新/重进后能接着发
+  savePendingReplyState({ active:true, userText:userText, total:_totalCount, sent:0, nextAt:Date.now()+delayMs });
   try{ showTyping(true); }catch(e){}
   if(pendingReplyTimer) clearTimeout(pendingReplyTimer);
-  pendingReplyTimer = setTimeout(async ()=>{
+  pendingReplyTimer = setTimeout(()=>{
     pendingReplyTimer = null; // 触发后清掉，hasReplyScheduled() 才不会一直是 true
     try{ showTyping(false); }catch(e){}
-    // 一次连回几条：在 1 ~ 「一次最多连回」之间纯随机挑一个条数（每个数字机会均等）
-    const _maxReply = Math.max(1, Math.min(20, Number(chatSettings.replyMaxCount) || 1));
-    const _totalCount = _maxReply <= 1 ? 1 : (1 + Math.floor(Math.random() * _maxReply));
-    const _sendOneReply = async function(i){
-      let reply = null;
-      try{ reply = pickReplyFor(userText, { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
-      if(!reply){
-        reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
-      }
-      const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
-      try{ assignGroupSender(newMsg); }catch(e){}
-      if(!Array.isArray(chatMessages)) chatMessages = [];
-      chatMessages.push(newMsg);
-      try{ maybeBotFavoriteChat(); }catch(e){}
-      const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
-      if(last) last.read = true;
-      try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
-      try{ await recPutMany('chatMessages', last ? [newMsg, last] : [newMsg]); }catch(e){ console.warn('recPutMany fail', e); }
-      if(currentView !== 'chat' && !roomIsOpen()){
-        chatUnread = true;
-        try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
-        try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
-      }
-      // 还有下一条：显示「正在输入…」，隔 4 秒~1 分钟再发
-      if(i+1 < _totalCount){
-        try{ showTyping(true); }catch(e){}
-        pendingReplyTimer = setTimeout(()=>{ try{ showTyping(false); }catch(e){} _sendOneReply(i+1); }, 4000 + Math.random()*56000);
-      }
-    };
-    _sendOneReply(0);
+    runReplyBatch(userText, _totalCount, 0);
   }, delayMs);
+}
+/* 刷新/重进后：如果还有没发完的回复，接着发完 */
+async function resumePendingReply(){
+  let p = null;
+  try{ p = await sGet('pending-reply', null); }catch(e){}
+  if(!p || p.active !== true) return false;
+  const total = Math.max(1, Number(p.total) || 1);
+  const sent = Math.max(0, Number(p.sent) || 0);
+  if(sent >= total){ clearPendingReplyState(); return false; }
+  if(pendingReplyTimer) clearTimeout(pendingReplyTimer);
+  const wait = Math.max(0, (Number(p.nextAt) || 0) - Date.now());
+  try{ showTyping(true); }catch(e){}
+  pendingReplyTimer = setTimeout(()=>{
+    pendingReplyTimer = null;
+    try{ showTyping(false); }catch(e){}
+    runReplyBatch(p.userText || '', total, sent);
+  }, wait);
+  return true;
 }
 function hasReplyScheduled(){ return !!pendingReplyTimer; }
 function maybeScheduleFromHistory(){
@@ -7348,12 +7392,48 @@ async function delCompanionFav(fid){
 /* ===== 梦角随机收藏：想收藏什么就收藏什么 ===== */
 const FAV_SONG_NOTES = ['这首歌我要收好，以后循环。','听到这首就想起你。','偷偷放进我的收藏夹了。','嗯，这首我要了。','这首适合单曲循环。'];
 const FAV_CHAT_NOTES = ['这句我想留着。','这句话我要收起来。','记下了，不删。','悄悄存进收藏。','以后翻出来看。'];
+/* ===== 收藏提示弹窗：TA 收藏歌曲 / 消息时弹一下 ===== */
+let _favPopTimer = null;
+function showFavPopup(kind, item){
+  const name = (typeof chatSettings !== 'undefined' && chatSettings && chatSettings.companionName) || 'TA';
+  try{
+    let el = document.getElementById('favPopup');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'favPopup';
+      el.className = 'fav-pop';
+      document.body.appendChild(el);
+    }
+    let icon = '💗', title = name + ' 收藏了一条消息', sub = '';
+    if(kind === 'song'){
+      icon = '🎵';
+      title = name + ' 收藏了这首歌';
+      sub = (item && item.name) ? ('《' + item.name + '》' + (item.artist ? ' · ' + item.artist : '')) : '';
+    }else{
+      sub = (item && item.note) ? item.note : '';
+    }
+    el.innerHTML = '<div class="fav-pop-ico">' + icon + '</div>' +
+      '<div class="fav-pop-txt"><div class="fav-pop-title">' + escapeHtml(title) + '</div>' +
+      (sub ? '<div class="fav-pop-sub">' + escapeHtml(sub) + '</div>' : '') + '</div>';
+    clearTimeout(_favPopTimer);
+    el.classList.add('show');
+    _favPopTimer = setTimeout(function(){ el.classList.remove('show'); }, 3000);
+  }catch(e){}
+  try{
+    if(document.visibilityState !== 'visible'){
+      const _t = name + (kind === 'song' ? ' 收藏了一首歌' : ' 收藏了一条消息');
+      const _b = (kind === 'song' && item && item.name) ? ('《' + item.name + '》') : '';
+      tryBgNotify(_t, _b);
+    }
+  }catch(e){}
+}
 async function addCompanionFavorite(item){
   if(!item || !item.type) return;
   item.id = uid();
   companionFavorites.unshift(item);
   try{ await sSet('companion-favorites', companionFavorites); }catch(e){ console.warn('save fav fail', e); }
   if(typeof currentView !== 'undefined' && currentView === 'companion' && _compTab === 'fav'){ try{ renderCompanionFavList(); }catch(e){} }
+  try{ showFavPopup(item.type, item); }catch(e){}
 }
 function maybeBotFavoriteSong(song){
   if(!song || !song.name) return;
