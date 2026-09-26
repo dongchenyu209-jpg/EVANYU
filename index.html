@@ -630,21 +630,131 @@
   .card-pill.selected{ background:var(--blush); border-color:var(--rouge); }
   .card-pill:active{ background:var(--blush); }
 
-  /* 字卡库：分组横条 + 字卡行列表 */
-  .cards-shell{ display:flex; gap:8px; align-items:flex-start; }
-  .cards-sidebar{ flex:0 0 84px; display:flex; flex-direction:column; gap:6px; max-height:65vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .cards-sidebar::-webkit-scrollbar{ width:3px; }
-  .cards-main{ flex:1; min-width:0; }
-  .group-chip{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); padding:8px 7px; font-size:11.5px; line-height:1.3; cursor:pointer; word-break:break-all; }
-  .group-chip.active{ background:transparent; border-color:var(--rouge-deep); border-width:2px; color:var(--rouge-deep); font-weight:700; }
-  .group-chip .cnt{ font-size:10px; opacity:.7; }
-  .group-chip.active .cnt{ opacity:.85; color:var(--rouge-deep); }
-  .group-chip.add-chip{ border-style:dashed; color:var(--ink-soft); background:transparent; align-items:center; }
-  .card-row{ display:flex; align-items:center; gap:8px; border:1px solid var(--rule); background:transparent; padding:10px 11px; margin-bottom:7px; cursor:default; }
-  .card-row.selected{ background:transparent; border-color:var(--rouge); border-width:1.5px; }
-  .card-row .txt{ flex:1; font-size:13px; line-height:1.4; word-break:break-word; }
-  .card-row .row-actions{ display:flex; gap:6px; flex-shrink:0; }
-  #moveTargetSelect{ border:1.5px solid var(--ink); background:var(--paper); color:var(--ink); padding:7px 8px; font-size:12.5px; }
+  /* 字卡库：左右独立滚动轨道 */
+  #view-cards{
+    display:flex; flex-direction:column;
+    /* shell 上14 + 下90(底栏) ≈ 104 */
+    height:calc(100vh - 110px);
+    max-height:calc(100vh - 110px);
+    overflow:hidden;
+  }
+  #view-cards .view-head{ flex-shrink:0; margin-bottom:10px; }
+  .cards-shell{
+    display:flex; gap:0; align-items:stretch;
+    flex:1; min-height:0; overflow:hidden;
+  }
+  .cards-sidebar{
+    flex:0 0 78px; display:flex; flex-direction:column; gap:5px;
+    height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding-right:6px; overscroll-behavior:contain;
+    border-right:1px solid var(--rule);
+  }
+  .cards-sidebar::-webkit-scrollbar{ width:2px; }
+  .cards-sidebar-head{
+    font-size:14px; color:var(--ink); letter-spacing:0.5px; font-weight:700;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:2px 1px 8px; flex-shrink:0;
+    position:sticky; top:0; background:var(--paper); z-index:2;
+  }
+  .cards-sidebar-head .fix{ font-size:11px; opacity:.7; font-weight:500; color:var(--ink-soft); }
+  .cards-main{
+    flex:1; min-width:0; height:100%;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding-left:10px; padding-right:2px;
+  }
+  .cards-main::-webkit-scrollbar{ width:3px; }
+  .group-chip{
+    display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+    border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
+    padding:7px 6px; font-size:11.5px; line-height:1.3; cursor:pointer;
+    word-break:break-all; border-radius:7px; transition:background .12s, border-color .12s, color .12s;
+  }
+  .group-chip.active{
+    background:#5C3A2E; border-color:#5C3A2E; color:#F8F4EC; font-weight:700;
+  }
+  .group-chip .cnt{ font-size:9.5px; opacity:.65; }
+  .group-chip.active .cnt{ opacity:.9; color:rgba(248,244,236,0.9); }
+  .group-chip.add-chip{
+    border:none; background:transparent;
+    align-items:center; justify-content:flex-start; flex-direction:row; gap:4px;
+    padding:6px 2px; margin-top:2px; color:var(--ink-soft); font-size:11px;
+  }
+  .group-chip.add-chip .plus{
+    width:22px; height:22px; border-radius:50%; background:#5C3A2E; color:#F8F4EC;
+    display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;
+    flex-shrink:0;
+  }
+  .cards-main-head{
+    display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+    margin-bottom:8px;
+  }
+  .cards-main-head .gname{ font-family:'Noto Serif SC',serif; font-weight:700; font-size:17px; color:var(--ink); }
+  .cards-main-head .gcount{ font-size:12.5px; color:var(--ink-soft); flex-shrink:0; }
+  .del-group-btn{
+    font-size:12px; color:var(--ink-soft); border:1px solid var(--rule);
+    padding:4px 12px; border-radius:14px; cursor:pointer; background:transparent;
+  }
+  .del-group-btn:active{ background:var(--blush); }
+  .card-add-area{
+    border:1px solid var(--rule); border-radius:10px; background:rgba(255,255,255,0.35);
+    padding:10px 12px; margin-bottom:10px;
+  }
+  .card-add-area textarea{
+    width:100%; min-height:56px; resize:vertical; border:none; background:transparent;
+    font-size:13px; color:var(--ink); outline:none; line-height:1.45;
+  }
+  .card-add-area textarea::placeholder{ color:rgba(117,105,91,0.55); }
+  .card-toolbar{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; align-items:center; }
+  .card-toolbar .btn-add{
+    background:#5C3A2E; color:#F8F4EC; border:none; border-radius:8px;
+    padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .card-toolbar .btn-light{
+    background:#F8F4EC; color:var(--ink); border:1px solid var(--rule);
+    border-radius:8px; padding:7px 10px; font-size:12.5px; cursor:pointer; white-space:nowrap;
+  }
+  .card-toolbar .btn-light:active, .card-toolbar .btn-add:active{ opacity:.85; }
+  .cards-search-bar{
+    display:flex; align-items:center; gap:6px; border:1px solid var(--rule);
+    border-radius:20px; padding:7px 12px; margin-bottom:10px; background:rgba(255,255,255,0.4);
+  }
+  .cards-search-bar input{
+    flex:1; border:none; background:transparent; outline:none; font-size:13px; color:var(--ink);
+  }
+  .cards-search-bar .clear-x{ font-size:14px; color:var(--ink-soft); cursor:pointer; padding:0 2px; }
+  .card-select-bar{
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:10px;
+    font-size:12.5px;
+  }
+  .card-select-bar label{ display:flex; align-items:center; gap:5px; color:var(--ink); }
+  .card-select-bar .move-label{ color:var(--ink-soft); }
+  .card-select-bar select{
+    border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
+    padding:6px 10px; border-radius:8px; font-size:12.5px; min-width:100px;
+  }
+  .card-select-bar .btn-move, .card-select-bar .btn-batch-del{
+    border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
+    border-radius:8px; padding:6px 12px; font-size:12.5px; cursor:pointer;
+  }
+  .card-select-bar .btn-batch-del{ color:var(--rouge); border-color:var(--rouge); }
+  .card-row{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--rule); background:rgba(255,255,255,0.45);
+    padding:11px 12px; margin-bottom:8px; cursor:default; border-radius:12px;
+  }
+  .card-row.selected{ background:rgba(233,207,199,0.35); border-color:var(--rouge); }
+  .card-row .chk{ flex-shrink:0; font-size:15px; color:var(--ink-soft); width:18px; text-align:center; }
+  .card-row.selected .chk{ color:var(--rouge); }
+  .card-row .txt{ flex:1; font-size:13.5px; line-height:1.4; word-break:break-word; color:var(--ink); }
+  .card-row .row-actions{ display:flex; gap:4px; flex-shrink:0; }
+  .card-row .row-actions span{
+    width:28px; height:28px; border-radius:8px; border:1px solid var(--rule);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:var(--ink-soft); cursor:pointer; background:rgba(255,255,255,0.5);
+  }
+  .card-row .row-actions span:active{ background:var(--blush); }
+  #moveTargetSelect{ border:1px solid var(--rule); background:#F8F4EC; color:var(--ink); padding:6px 10px; font-size:12.5px; border-radius:8px; }
 
   .swatch-row{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
   .swatch{ width:30px;height:30px;border-radius:50%; border:2px solid var(--ink); cursor:pointer; }
@@ -1516,17 +1626,13 @@
   <section id="view-cards" class="view hidden">
     <div class="view-head">
       <div class="icon-btn" onclick="go('home')">←</div>
-      <h2>字卡库</h2>
+      <h2>字卡管理</h2>
       <div class="icon-btn" style="margin-left:auto;" onclick="toggleCardSelectMode()" id="cardSelectModeBtn">☑</div>
     </div>
     <input type="file" id="cardsFileInput" accept=".json,application/json" class="hidden" onchange="onCardsFile(event)">
     <div class="cards-shell">
       <div class="cards-sidebar" id="cardsGroupStrip"></div>
       <div class="cards-main">
-        <div class="box" id="cardsSearchBox" style="display:none;padding:8px 10px;">
-          <input type="text" id="cardsSearchInput" placeholder="搜索全部字卡分组…" autocomplete="off" style="width:100%;"
-            oninput="onCardsSearchInput()">
-        </div>
         <div id="cardsGroupsList"></div>
       </div>
     </div>
@@ -3132,13 +3238,13 @@ function onCardsSearchInput(){
   cardsSearchKeyword = kw;
   renderCardsView();
 }
-// 浏览器没有 oncompositionstart 这种行内属性，只能用 addEventListener 挂
-(function(){
+function bindCardsSearchComposition(){
   const inp = document.getElementById('cardsSearchInput');
-  if(!inp) return;
+  if(!inp || inp._boundComp) return;
+  inp._boundComp = true;
   inp.addEventListener('compositionstart', function(){ _cardsComposing = true; });
   inp.addEventListener('compositionend', function(){ _cardsComposing = false; onCardsSearchInput(); });
-})();
+}
 const CARD_KEY_SEP = '\u0001';
 
 // 当前应该显示的字卡列表：没有搜索时=当前分组；搜索时=全部分组里匹配的字卡（附分组名）
@@ -3160,20 +3266,25 @@ function activeCardsList(){
 function renderCardsView(){
   renderCardsStrip();
   renderCardsMain();
+  bindCardsSearchComposition();
 }
 
-// 顶部：分组横条（点选切换当前分组，当前分组高亮）
+// 侧栏：分组列表（点选切换当前分组，当前分组高亮）
 function renderCardsStrip(){
   const el = document.getElementById('cardsGroupStrip');
   if(!el) return;
   const groups = Object.keys(cardsData.groups||{});
   if(!cardsActiveGroup || !groups.includes(cardsActiveGroup)) cardsActiveGroup = groups[0] || null;
-  if(groups.length===0){ el.innerHTML=''; return; }
-  el.innerHTML = groups.map(g=>{
+  const head = `<div class="cards-sidebar-head"><span>字卡分组</span></div>`;
+  if(groups.length===0){
+    el.innerHTML = head + `<div class="group-chip add-chip" onclick="openAddGroupOverlay()"><span>新分:</span><span class="plus">+</span></div>`;
+    return;
+  }
+  el.innerHTML = head + groups.map(g=>{
     const n = (cardsData.groups[g]||[]).length;
     const active = g===cardsActiveGroup && !cardsSearchKeyword;
-    return `<span class="group-chip ${active?'active':''}" onclick="setActiveCardGroup('${escAttr(g)}')">${escapeHtml(g)}<span class="cnt">${n}</span></span>`;
-  }).join('') + `<span class="group-chip add-chip" onclick="openAddGroupOverlay()">＋ 新分组</span>`;
+    return `<div class="group-chip ${active?'active':''}" onclick="setActiveCardGroup('${escAttr(g)}')">${escapeHtml(g)}<span class="cnt">${n} 条</span></div>`;
+  }).join('') + `<div class="group-chip add-chip" onclick="openAddGroupOverlay()"><span>新分:</span><span class="plus">+</span></div>`;
 }
 function setActiveCardGroup(g){
   cardsActiveGroup = g;
@@ -3196,9 +3307,7 @@ function openAddGroupOverlay(){
 // 主体：工具条 + 批量添加 + 全选/移动/批量删除 + 字卡列表
 function renderCardsMain(){
   const wrap = document.getElementById('cardsGroupsList');
-  const searchBox = document.getElementById('cardsSearchBox');
   const groups = Object.keys(cardsData.groups||{});
-  if(searchBox) searchBox.style.display = groups.length ? '' : 'none';
 
   if(groups.length===0){
     wrap.innerHTML = `<div class="box">
@@ -3219,62 +3328,86 @@ function renderCardsMain(){
   const list = activeCardsList();
   const searching = !!cardsSearchKeyword;
 
-  const headHtml = searching
-    ? `<div class="box-title" style="margin-bottom:8px;"><span>「${escapeHtml(cardsSearchKeyword)}」共 ${list.length} 条匹配</span></div>`
-    : `<div class="box-title" style="margin-bottom:8px;">
-        <span>${escapeHtml(cardsActiveGroup||'')}（${list.length}）</span>
-        ${cardSelectMode ? '' : `<span style="display:flex;gap:10px;font-size:12px;">
-          <span class="del" style="opacity:.75;" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">✎ 改名</span>
-          <span class="del" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">✕ 删除分组</span>
-        </span>`}
-      </div>`;
+  // 顶部标题区（对齐参考图：组名左、条数右，下方操作）
+  let headHtml;
+  if(searching){
+    headHtml = `<div class="cards-main-head">
+      <span class="gname">搜索结果</span>
+      <span class="gcount">${list.length} 条匹配</span>
+    </div>`;
+  } else {
+    headHtml = `<div class="cards-main-head">
+      <span class="gname">${escapeHtml(cardsActiveGroup||'')}</span>
+      <span class="gcount">${list.length} 条字卡</span>
+    </div>
+    <div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;">
+      <span class="del-group-btn" style="margin-right:10px;" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span><span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>
+    </div>`;
+  }
 
+  // 添加区
   const bulkAddHtml = (!cardSelectMode && !searching) ? `
-    <textarea id="addcard-${escapeHtml(cardsActiveGroup||'')}" placeholder="每行一条字卡，例如：&#10;今晚的云海很安静&#10;你吃过晚饭了吗" style="width:100%;min-height:64px;resize:vertical;margin-bottom:8px;"></textarea>
-    <div class="btn-row" style="margin-bottom:10px;">
-      <div class="btn outline" onclick="addCardTo('${escAttr(cardsActiveGroup)}')">添加字卡</div>
-      <div class="btn outline" onclick="dedupCardsInGroup('${escAttr(cardsActiveGroup)}')">一键查重</div>
-      <div class="btn outline" onclick="exportCardsFile()">导出</div>
-      <div class="btn outline" onclick="document.getElementById('cardsFileInput').click()">导入</div>
+    <div class="card-add-area">
+      <textarea id="addcard-${escapeHtml(cardsActiveGroup||'')}" placeholder="每行一条字卡，例如：&#10;今晚的云海很安静"></textarea>
+    </div>
+    <div class="card-toolbar">
+      <button type="button" class="btn-add" onclick="addCardTo('${escAttr(cardsActiveGroup)}')">添加字卡</button>
+      <button type="button" class="btn-light" onclick="dedupCardsInGroup()">全库查重</button>
+      <button type="button" class="btn-light" onclick="exportCardsFile()">导出</button>
+      <button type="button" class="btn-light" onclick="document.getElementById('cardsFileInput').click()">导入</button>
     </div>` : '';
 
-  const selectBarHtml = cardSelectMode ? `
-    <div class="box" style="padding:10px;margin-bottom:10px;">
-      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-bottom:8px;">
-        <input type="checkbox" id="selectAllCardsBox" onchange="toggleSelectAllVisible(this.checked)"> 全选　已选 ${selectedCardIdx.size} 条
+  // 搜索栏（始终显示）
+  const searchHtml = `
+    <div class="cards-search-bar">
+      <span style="opacity:.5;font-size:14px;">🔍</span>
+      <input type="text" id="cardsSearchInput" placeholder="搜索全部字卡分组" autocomplete="off"
+        value="${escapeHtml(cardsSearchKeyword||'')}" oninput="onCardsSearchInput()">
+      ${cardsSearchKeyword ? `<span class="clear-x" onclick="clearCardsSearch()">×</span>` : ''}
+    </div>`;
+
+  // 选择栏（始终显示，类似参考图）
+  const selectBarHtml = `
+    <div class="card-select-bar">
+      <label>
+        <input type="checkbox" id="selectAllCardsBox" onchange="toggleSelectAllVisible(this.checked)"
+          ${list.length && selectedCardIdx.size===list.length ? 'checked' : ''}>
+        全选 已选 ${selectedCardIdx.size} 条
       </label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <span style="font-size:12.5px;color:var(--ink-soft);">移动到：</span>
-        <select id="moveTargetSelect">
-          ${groups.filter(g=> searching || g!==cardsActiveGroup).map(g=>`<option value="${escAttr(g)}">${escapeHtml(g)}</option>`).join('')}
-          <option value="__new__">＋ 新建分组…</option>
-        </select>
-        <div class="btn outline" style="padding:7px 12px;" onclick="moveSelectedCardsInline()">移动</div>
-        <div class="btn outline" style="padding:7px 12px;color:var(--rouge);border-color:var(--rouge);" onclick="deleteSelectedCards()">批量删除</div>
-      </div>
-    </div>` : '';
+      <span class="move-label">移动到：</span>
+      <select id="moveTargetSelect">
+        ${groups.filter(g=> searching || g!==cardsActiveGroup).map(g=>`<option value="${escAttr(g)}">${escapeHtml(g)}</option>`).join('')}
+        <option value="__new__">＋ 新建分组…</option>
+      </select>
+      <button type="button" class="btn-move" onclick="moveSelectedCardsInline()">移动</button>
+      <button type="button" class="btn-batch-del" onclick="deleteSelectedCards()">批量删除</button>
+    </div>`;
 
+  // 字卡行
   const rowsHtml = list.length ? list.map(item=>{
     const idx = _cardSelectMap.length;
     _cardSelectMap.push({group:item.group, text:item.text});
-    const groupTag = searching ? `<span style="font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);padding:1px 5px;margin-right:6px;flex-shrink:0;">${escapeHtml(item.group)}</span>` : '';
-    if(cardSelectMode){
-      const checked = selectedCardIdx.has(item.group + CARD_KEY_SEP + item.text);
-      return `<div class="card-row ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">
-        <span style="flex-shrink:0;">${checked?'☑':'☐'}</span>
-        ${groupTag}<span class="txt">${escapeHtml(item.text)}</span>
-      </div>`;
-    }
-    return `<div class="card-row">
+    const key = item.group + CARD_KEY_SEP + item.text;
+    const checked = selectedCardIdx.has(key);
+    const groupTag = searching ? `<span style="font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);padding:1px 5px;margin-right:6px;flex-shrink:0;border-radius:4px;">${escapeHtml(item.group)}</span>` : '';
+    return `<div class="card-row ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">
+      <span class="chk">${checked?'☑':'☐'}</span>
       ${groupTag}<span class="txt">${escapeHtml(item.text)}</span>
-      <span class="row-actions">
-        <span class="del" onclick="editCardText('${escAttr(item.group)}', ${item.idx})">✎</span>
-        <span class="del" onclick="deleteCard('${escAttr(item.group)}', ${item.idx})">✕</span>
+      <span class="row-actions" onclick="event.stopPropagation()">
+        <span onclick="editCardText('${escAttr(item.group)}', ${item.idx})">✎</span>
+        <span onclick="deleteCard('${escAttr(item.group)}', ${item.idx})">✕</span>
       </span>
     </div>`;
-  }).join('') : `<div class="empty-note">${searching ? '没有找到匹配的字卡' : '这个分组还没有字卡，添加几条吧'}</div>`;
+  }).join('') : `<div class="empty-note" style="padding:20px 0;text-align:center;color:var(--ink-soft);font-size:13px;">${searching ? '没有找到匹配的字卡' : '这个分组还没有字卡，添加几条吧'}</div>`;
 
-  wrap.innerHTML = headHtml + bulkAddHtml + selectBarHtml + rowsHtml;
+  wrap.innerHTML = headHtml + bulkAddHtml + searchHtml + selectBarHtml + rowsHtml;
+}
+
+function clearCardsSearch(){
+  cardsSearchKeyword = '';
+  const inp = document.getElementById('cardsSearchInput');
+  if(inp) inp.value = '';
+  renderCardsView();
 }
 
 function toggleCardSelectMode(){
@@ -3372,18 +3505,31 @@ async function moveSelectedCardsToNew(){
   await moveSelectedCardsTo(name);
 }
 // 一键查重：去掉当前分组里完全相同的重复字卡（不同分组间同名不算重复）
-async function dedupCardsInGroup(g){
-  const arr = cardsData.groups[g]||[];
+// 一键查重（全库）：所有分组之间完全相同的字卡只保留最先出现的一条，其余删除；去重后变空的分组也一并删掉
+async function dedupCardsInGroup(){
+  const groups = cardsData.groups || {};
   const seen = new Set();
-  const deduped = [];
   let removed = 0;
-  arr.forEach(c=>{
-    const key = c.trim();
-    if(seen.has(key)){ removed++; } else { seen.add(key); deduped.push(c); }
+  const report = [];
+  Object.keys(groups).forEach(name=>{
+    const arr = groups[name] || [];
+    const kept = [];
+    arr.forEach(c=>{
+      const key = c.trim();
+      if(seen.has(key)){ removed++; }
+      else { seen.add(key); kept.push(c); }
+    });
+    if(kept.length !== arr.length){
+      report.push(`${name}：删除 ${arr.length - kept.length} 条`);
+    }
+    if(kept.length === 0){
+      delete groups[name];   // 去重后变空的分组：直接删掉
+    } else {
+      groups[name] = kept;
+    }
   });
-  if(removed===0){ alert('这个分组里没有发现重复的字卡～'); return; }
-  if(!confirm(`发现 ${removed} 条重复字卡，确定去重吗？`)) return;
-  cardsData.groups[g] = deduped;
+  if(removed===0){ alert('所有字卡里没有发现重复～'); return; }
+  if(!confirm(`发现 ${removed} 条重复字卡（跨分组）：\n${report.join('\n')}\n确定去重吗？`)) return;
   await sSet('cards-data', cardsData);
   renderCardsView();
 }
