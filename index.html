@@ -2498,7 +2498,8 @@ async function init(){
 
   normalizeLoadedSettings();
 
-  // 首页轻量补渲染
+  // 首页轻量补渲染（先确保今日状态已算出，一打开就有内容）
+  try{ ensureTodayStatus(); }catch(e){ console.warn(e); }
   renderTodayStatusHome();
   renderMoyuHome();
   renderUnreadDots();
@@ -2523,12 +2524,11 @@ async function init(){
   setInterval(checkMomentEvents, 20000);
   setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
   setInterval(checkQuestionnaireReplies, 20000);
-  // 今日状态 / 摸鱼小记 首页卡片自动刷新（仅当首页可见时重绘，避免无谓开销）
+  // 今日状态 / 摸鱼小记 首页卡片自动刷新（仅当首页可见时重绘；摸鱼重绘已由上面的定时器负责）
   setInterval(function(){
     const home = document.getElementById('view-home');
     if(home && !home.classList.contains('hidden')){
       renderTodayStatusHome();
-      renderMoyuHome();
     }
   }, 20000);
   const periodEl = document.getElementById('periodDate');
@@ -6420,6 +6420,30 @@ function renderMoyuHome(){
   // 今天没有记录则占位，不回退到前几天的旧记录。
   const today = localDateStr();
   const isToday = (r)=> !!r && r.time != null && localDateStr(new Date(r.time)) === today;
+  // 已下班：当前班次已过 workMs 就显示“已下班 · 下班时间”；
+  // 若当前班次已归档清空（照抄 ZY3），则看最近一班（history[0]）是否今天下班。
+  const _offInfo = (sess0)=>{
+    if(!sess0 || typeof sess0.startTime !== 'number' || typeof sess0.workMs !== 'number') return null;
+    if((Date.now() - sess0.startTime) < sess0.workMs) return null;
+    const off = new Date(sess0.startTime + sess0.workMs);
+    const hh = String(off.getHours()).padStart(2,'0');
+    const mm = String(off.getMinutes()).padStart(2,'0');
+    return hh + ':' + mm;
+  };
+  let _off = null;
+  if(moyuState.currentSession){
+    _off = _offInfo(moyuState.currentSession);
+  } else if(Array.isArray(moyuState.history) && moyuState.history[0]){
+    const h0 = moyuState.history[0];
+    // 仅当最近一班下班时间是“今天”时才显示已下班
+    const _o2 = _offInfo(h0);
+    if(_o2 && localDateStr(new Date(h0.startTime + h0.workMs)) === today) _off = _o2;
+  }
+  if(_off){
+    el.textContent = '已下班 · ' + _off;
+    el.style.color = '';
+    return;
+  }
   let latest = null;
   const sess = moyuState.currentSession;
   if(sess && Array.isArray(sess.records)){
@@ -6440,7 +6464,7 @@ function renderMoyuHome(){
     el.textContent = latest.text;
     el.style.color = '';
   } else {
-    el.textContent = '[暂无记录]';
+    el.textContent = '今日无排班';
     el.style.color = 'var(--ink-soft)';
   }
 }
@@ -6469,21 +6493,33 @@ function formatRemain(ms){
   return '剩余工作时间 ' + m + '分钟';
 }
 function scheduleNextMoyu(){
-  // 纯随机：5 分钟 ~ 3 天，什么时候想摸就什么时候摸
-  moyuState.nextAt = Date.now() + randomBetween(5*60*1000, 3*24*3600*1000);
+  // 班内消息间隔：10~30 分钟随机（照抄 ZY3）
+  let interval = (Math.floor(Math.random()*21)+10)*60*1000;
+  // 照抄 ZY3：不超过本班下班时间
+  const sess = moyuState.currentSession;
+  if(sess && typeof sess.startTime === 'number' && typeof sess.workMs === 'number'){
+    const timeUntilEnd = (sess.startTime + sess.workMs) - Date.now();
+    if(timeUntilEnd > 0) interval = Math.min(interval, timeUntilEnd);
+  }
+  moyuState.nextAt = Date.now() + interval;
+}
+// 班间等待：下班后 0~12 小时随机再开新班（照抄 ZY3）
+function scheduleNextSession(){
+  moyuState.nextAt = Date.now() + Math.floor(Math.random()*13)*60*60*1000;
 }
 async function startMoyuSession(){
   if(!moyuState.enabled) return;
   const hasActs = (moyuState.activities||[]).length > 0;
   const hasLocs = (moyuState.locations||[]).length > 0;
-  if(!hasActs && !hasLocs) return;
+  // 照抄 ZY3：工作地点与活动两个库都非空才生成
+  if(!hasActs || !hasLocs) return;
   // 先把上一班归档
   if(moyuState.currentSession){
     if(!moyuState.history) moyuState.history = [];
     moyuState.history.unshift(moyuState.currentSession);
     if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
   }
-  const workMs = randomBetween(2*3600*1000, 8*3600*1000); // 2~8 小时一班
+  const workMs = Math.floor(Math.random()*13)*60*60*1000; // 0~12 小时一班（照抄 ZY3）
   moyuState.currentSession = {
     id: uid(),
     location: pickMoyuLocation(),
@@ -6502,7 +6538,8 @@ async function startMoyuSession(){
 }
 async function generateMoyuRecord(){
   if(!moyuState.enabled) return;
-  if(!(moyuState.activities||[]).length && !(moyuState.locations||[]).length){
+  if(!(moyuState.activities||[]).length || !(moyuState.locations||[]).length){
+    // 照抄 ZY3：两个库任一为空则不生成
     scheduleNextMoyu();
     await sSet('moyu-state', moyuState);
     return;
@@ -6513,9 +6550,15 @@ async function generateMoyuRecord(){
   }
   const sess = moyuState.currentSession;
   const elapsed = Date.now() - sess.startTime;
-  // 下班了就开新班
+  // 下班了：先归档本班，再随机等 0~12 小时开新班（照抄 ZY3）
   if(elapsed >= sess.workMs){
-    await startMoyuSession();
+    if(!moyuState.history) moyuState.history = [];
+    moyuState.history.unshift(sess);
+    if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
+    moyuState.currentSession = null;
+    scheduleNextSession();
+    await sSet('moyu-state', moyuState);
+    renderMoyuHome();
     return;
   }
   const text = pickMoyuActivity();
@@ -6530,11 +6573,27 @@ async function generateMoyuRecord(){
 }
 function resumeMoyuSchedule(){
   if(!moyuState.enabled) return;
-  if(!moyuState.currentSession){
-    // 有字卡才自动开班
-    if((moyuState.activities||[]).length || (moyuState.locations||[]).length){
-      startMoyuSession();
+  const sess = moyuState.currentSession;
+  if(!sess){
+    // 照抄 ZY3：没有当前班次时，不立即开班；仅在首次（无 nextAt 且无历史）才立即开班。
+    const hasLib = (moyuState.activities||[]).length > 0 && (moyuState.locations||[]).length > 0;
+    const hasHistory = Array.isArray(moyuState.history) && moyuState.history.length > 0;
+    if(!moyuState.nextAt && !hasHistory){
+      if(hasLib) startMoyuSession();
+    } else if(!moyuState.nextAt){
+      scheduleNextSession(); sSet('moyu-state', moyuState);
     }
+    return;
+  }
+  // 当前班次已下班：归档清空 + 排下一班
+  if(typeof sess.startTime === 'number' && typeof sess.workMs === 'number'
+     && (Date.now() - sess.startTime) >= sess.workMs){
+    if(!moyuState.history) moyuState.history = [];
+    moyuState.history.unshift(sess);
+    if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
+    moyuState.currentSession = null;
+    scheduleNextSession();
+    sSet('moyu-state', moyuState);
     return;
   }
   if(!moyuState.nextAt){ scheduleNextMoyu(); sSet('moyu-state', moyuState); }
