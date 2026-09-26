@@ -6552,10 +6552,11 @@ function onImportBackupFile(e){
       await sSet('bg-settings', bgSettings);
     }
     if(data.vinylSettings && typeof data.vinylSettings === 'object'){
-      await sSet('vinyl-settings', { bg: data.vinylSettings.bg || null, vinylImg: data.vinylSettings.vinylImg || null });
+      await sSet('vinyl-settings', { bg: data.vinylSettings.bg || null, vinylImg: data.vinylSettings.vinylImg || null, playlist: Array.isArray(data.vinylSettings.playlist)?data.vinylSettings.playlist:[], playlistName: data.vinylSettings.playlistName || '' });
       if(!togetherState.music) togetherState.music = {};
       togetherState.music.bg = data.vinylSettings.bg || null;
       togetherState.music.vinylImg = data.vinylSettings.vinylImg || null;
+      if(Array.isArray(data.vinylSettings.playlist) && data.vinylSettings.playlist.length){ togetherState.music.playlist = data.vinylSettings.playlist; togetherState.music.playlistName = data.vinylSettings.playlistName || ''; }
       togetherState.music._vinylLoaded = true;
     }
     // 恢复到各自专用的逐条记录表：先清空旧的，再把备份里的全部记录整体写进去
@@ -8776,7 +8777,7 @@ function openListenTogetherPanel(asInvite){
   if(!togetherState.music._vinylLoaded){ togetherState.music._vinylLoaded = true; loadVinylSettings(); }
 }
 function saveVinylSettings(){
-  try{ sSet('vinyl-settings', { bg: togetherState.music.bg || null, vinylImg: togetherState.music.vinylImg || null }); }catch(e){}
+  try{ sSet('vinyl-settings', { bg: togetherState.music.bg || null, vinylImg: togetherState.music.vinylImg || null, playlist: togetherState.music.playlist || [], playlistName: togetherState.music.playlistName || '' }); }catch(e){}
 }
 async function loadVinylSettings(){
   try{
@@ -8784,10 +8785,16 @@ async function loadVinylSettings(){
     if(v){
       if(v.bg) togetherState.music.bg = v.bg;
       if(v.vinylImg) togetherState.music.vinylImg = v.vinylImg;
+      if(Array.isArray(v.playlist) && v.playlist.length && !togetherState.music.playlist.length){
+        togetherState.music.playlist = v.playlist;
+        togetherState.music.playlistName = v.playlistName || '';
+        try{ togetherState.music.duration = v.playlist[0].duration || 180; }catch(e){}
+      }
     }
   }catch(e){}
   applyVinylPanelBg();
   applyVinylLabelImg();
+  try{ if(document.getElementById('playlistPreview')) renderPlaylistPreview(); }catch(e){}
 }
 function applyVinylPanelBg(){
   var d = document.querySelector('#overlayRoot .drawer');
@@ -8880,6 +8887,7 @@ function importPlaylistText(){
   togetherState.music.index = 0;
   togetherState.music.progress = 0;
   togetherState.music.duration = items[0].duration || 180;
+  saveVinylSettings();
   ta.value = '';
   loadVinylTrack(0, false);
   renderPlaylistPreview();
@@ -9144,6 +9152,7 @@ function deleteSelectedVinylScreen(skipConfirm){
   if(!skipConfirm && !confirm('确定从歌单里删除这 ' + removed + ' 首？')) return;
   var curKey = st.playlist[st.index] ? vinylSongKey(st.playlist[st.index]) : '';
   st.playlist = keep;
+  saveVinylSettings();
   var newIdx = 0;
   if(curKey){
     for(var i = 0; i < keep.length; i++){ if(vinylSongKey(keep[i]) === curKey){ newIdx = i; break; } }
@@ -9233,6 +9242,7 @@ async function importNeteasePlaylist(){
   togetherState.music.index = 0;
   togetherState.music.progress = 0;
   togetherState.music.duration = items[0].duration || 180;
+  saveVinylSettings();
   if(tip) tip.textContent = '已导入 '+items.length+' 首，可以点播放';
   loadVinylTrack(0, false);
   renderPlaylistPreview();

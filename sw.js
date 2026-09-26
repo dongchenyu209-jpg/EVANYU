@@ -1,5 +1,5 @@
 /* Love Diary PWA service worker */
-const CACHE = 'love-diary-v55';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
+const CACHE = 'love-diary-v56';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
 const PRECACHE = [
   './',
   './index.html',
