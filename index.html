@@ -2521,8 +2521,16 @@ async function init(){
     if(!hasReplyScheduled()) maybeScheduleFromHistory();
   });
   setInterval(checkMomentEvents, 20000);
-  setInterval(checkMoyuTick, 20000);
+  setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
   setInterval(checkQuestionnaireReplies, 20000);
+  // 今日状态 / 摸鱼小记 首页卡片自动刷新（仅当首页可见时重绘，避免无谓开销）
+  setInterval(function(){
+    const home = document.getElementById('view-home');
+    if(home && !home.classList.contains('hidden')){
+      renderTodayStatusHome();
+      renderMoyuHome();
+    }
+  }, 20000);
   const periodEl = document.getElementById('periodDate');
   if(periodEl) try{ periodEl.value = localDateStr(); }catch(e){}
 }
@@ -2987,8 +2995,14 @@ function ensureTodayStatus(){
 function renderTodayStatusHome(){
   const el = document.getElementById('todayStatusText');
   if(!el) return;
-  if(todayStatus && todayStatus.text){
-    el.textContent = todayStatus.text;
+  // 优先当前状态；若当前无状态，则回退显示今天最近一条历史状态；都没有才占位
+  let text = (todayStatus && todayStatus.text) ? todayStatus.text : '';
+  if(!text && Array.isArray(todayStatusHistory) && todayStatusHistory.length){
+    const last = todayStatusHistory[todayStatusHistory.length-1];
+    if(last && last.text) text = last.text;
+  }
+  if(text){
+    el.textContent = text;
     el.style.color = '';
   } else {
     el.textContent = '[未设置状态]';
@@ -3235,8 +3249,52 @@ function onCardsSearchInput(){
   const inp = document.getElementById('cardsSearchInput');
   const kw = (inp && inp.value || '').trim().toLowerCase();
   if(kw === cardsSearchKeyword) return;
+  const wasSearching = !!cardsSearchKeyword;
   cardsSearchKeyword = kw;
-  renderCardsView();
+  const nowSearching = !!kw;
+  // 搜索态"有/无"发生切换时，头部按钮区与添加区需要增删，得走完整渲染；
+  // 否则只刷新搜索结果列表，不重建搜索框/工具栏，避免每敲一个字就整块重绘、输入框被销毁
+  if(wasSearching !== nowSearching){
+    renderCardsView();
+    const inp2 = document.getElementById('cardsSearchInput');
+    if(inp2){ inp2.focus(); try{ inp2.setSelectionRange(inp2.value.length, inp2.value.length); }catch(e){} }
+  } else {
+    refreshCardsSearchResults();
+  }
+}
+function refreshCardsSearchResults(){
+  const rowsBox = document.getElementById('cardsRowsBox');
+  if(!rowsBox){ renderCardsView(); return; }
+  const searching = !!cardsSearchKeyword;
+  const list = activeCardsList();
+  _cardSelectMap = [];
+  const rowsHtml = list.length ? list.map(item=>{
+    const idx = _cardSelectMap.length;
+    _cardSelectMap.push({group:item.group, text:item.text});
+    const key = item.group + CARD_KEY_SEP + item.text;
+    const checked = selectedCardIdx.has(key);
+    const groupTag = searching ? `<span style="font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);padding:1px 5px;margin-right:6px;flex-shrink:0;border-radius:4px;">${escapeHtml(item.group)}</span>` : '';
+    return `<div class="card-row ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">
+      <span class="chk">${checked?'☑':'☐'}</span>
+      ${groupTag}<span class="txt">${escapeHtml(item.text)}</span>
+      <span class="row-actions" onclick="event.stopPropagation()">
+        <span onclick="editCardText('${escAttr(item.group)}', ${item.idx})">✎</span>
+        <span onclick="deleteCard('${escAttr(item.group)}', ${item.idx})">✕</span>
+      </span>
+    </div>`;
+  }).join('') : `<div class="empty-note" style="padding:20px 0;text-align:center;color:var(--ink-soft);font-size:13px;">${searching ? '没有找到匹配的字卡' : '这个分组还没有字卡，添加几条吧'}</div>`;
+  rowsBox.innerHTML = rowsHtml;
+  // 同步头部标题与计数
+  const head = document.querySelector('#cardsGroupsList .cards-main-head');
+  if(head){
+    if(searching){
+      head.querySelector('.gname').textContent = '搜索结果';
+      head.querySelector('.gcount').textContent = list.length + ' 条匹配';
+    } else {
+      head.querySelector('.gname').textContent = cardsActiveGroup || '';
+      head.querySelector('.gcount').textContent = list.length + ' 条字卡';
+    }
+  }
 }
 function bindCardsSearchComposition(){
   const inp = document.getElementById('cardsSearchInput');
@@ -3401,7 +3459,7 @@ function renderCardsMain(){
     </div>`;
   }).join('') : `<div class="empty-note" style="padding:20px 0;text-align:center;color:var(--ink-soft);font-size:13px;">${searching ? '没有找到匹配的字卡' : '这个分组还没有字卡，添加几条吧'}</div>`;
 
-  wrap.innerHTML = headHtml + bulkAddHtml + searchHtml + selectBarHtml + rowsHtml;
+  wrap.innerHTML = headHtml + bulkAddHtml + searchHtml + selectBarHtml + '<div id="cardsRowsBox">' + rowsHtml + '</div>';
 }
 
 function clearCardsSearch(){
@@ -6358,11 +6416,26 @@ function applyCustomBubbleCSSToPage(){
 function renderMoyuHome(){
   const el = document.getElementById('moyuLatestText');
   if(!el) return;
-  // 首页只展示系统实际生成的最新摸鱼记录；没有记录时显示占位文案（与参考图一致）。
+  // 只显示“今天”的记录：当前班次/历史班次/records 里取时间属于今天的最后一条；
+  // 今天没有记录则占位，不回退到前几天的旧记录。
+  const today = localDateStr();
+  const isToday = (r)=> !!r && r.time != null && localDateStr(new Date(r.time)) === today;
+  let latest = null;
   const sess = moyuState.currentSession;
-  const latest = sess && sess.records && sess.records.length
-    ? sess.records[sess.records.length-1]
-    : null;
+  if(sess && Array.isArray(sess.records)){
+    for(let i=sess.records.length-1;i>=0;i--){ if(isToday(sess.records[i])){ latest = sess.records[i]; break; } }
+  }
+  if(!latest && Array.isArray(moyuState.history)){
+    for(let i=moyuState.history.length-1;i>=0 && !latest;i--){
+      const h = moyuState.history[i];
+      if(h && Array.isArray(h.records)){
+        for(let j=h.records.length-1;j>=0;j--){ if(isToday(h.records[j])){ latest = h.records[j]; break; } }
+      }
+    }
+  }
+  if(!latest && Array.isArray(moyuState.records)){
+    for(let i=moyuState.records.length-1;i>=0;i--){ if(isToday(moyuState.records[i])){ latest = moyuState.records[i]; break; } }
+  }
   if(latest && latest.text){
     el.textContent = latest.text;
     el.style.color = '';
