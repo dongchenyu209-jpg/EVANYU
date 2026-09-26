@@ -654,7 +654,7 @@
     font-size:14px; color:var(--ink); letter-spacing:0.5px; font-weight:700;
     display:flex; justify-content:space-between; align-items:center;
     padding:2px 1px 8px; flex-shrink:0;
-    position:sticky; top:0; background:var(--paper); z-index:2;
+    position:sticky; top:0; background:transparent; z-index:2;
   }
   .cards-sidebar-head .fix{ font-size:11px; opacity:.7; font-weight:500; color:var(--ink-soft); }
   .cards-main{
@@ -666,22 +666,22 @@
   .cards-main::-webkit-scrollbar{ width:3px; }
   .group-chip{
     display:flex; flex-direction:column; align-items:flex-start; gap:1px;
-    border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
+    border:1px solid var(--rule); background:transparent; color:var(--ink);
     padding:7px 6px; font-size:11.5px; line-height:1.3; cursor:pointer;
     word-break:break-all; border-radius:7px; transition:background .12s, border-color .12s, color .12s;
   }
   .group-chip.active{
-    background:#5C3A2E; border-color:#5C3A2E; color:#F8F4EC; font-weight:700;
+    background:transparent; border-color:#5C3A2E; color:#5C3A2E; font-weight:700;
   }
   .group-chip .cnt{ font-size:9.5px; opacity:.65; }
-  .group-chip.active .cnt{ opacity:.9; color:rgba(248,244,236,0.9); }
+  .group-chip.active .cnt{ opacity:.75; color:#5C3A2E; }
   .group-chip.add-chip{
     border:none; background:transparent;
     align-items:center; justify-content:flex-start; flex-direction:row; gap:4px;
     padding:6px 2px; margin-top:2px; color:var(--ink-soft); font-size:11px;
   }
   .group-chip.add-chip .plus{
-    width:22px; height:22px; border-radius:50%; background:#5C3A2E; color:#F8F4EC;
+    width:22px; height:22px; border-radius:50%; background:transparent; color:#5C3A2E; border:1px solid #5C3A2E;
     display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;
     flex-shrink:0;
   }
@@ -3340,8 +3340,9 @@ function renderCardsMain(){
       <span class="gname">${escapeHtml(cardsActiveGroup||'')}</span>
       <span class="gcount">${list.length} 条字卡</span>
     </div>
-    <div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;">
-      <span class="del-group-btn" style="margin-right:10px;" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span><span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>
+    <div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;gap:8px;">
+      <span class="del-group-btn" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span>
+      <span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>
     </div>`;
   }
 
@@ -3504,33 +3505,24 @@ async function moveSelectedCardsToNew(){
   if(!name) return;
   await moveSelectedCardsTo(name);
 }
-// 一键查重：去掉当前分组里完全相同的重复字卡（不同分组间同名不算重复）
-// 一键查重（全库）：所有分组之间完全相同的字卡只保留最先出现的一条，其余删除；去重后变空的分组也一并删掉
+// 全库查重：所有分组之间完全相同的字卡只保留最先出现的一条，其余删除；去重后变空的分组也一并删掉
 async function dedupCardsInGroup(){
   const groups = cardsData.groups || {};
   const seen = new Set();
   let removed = 0;
-  const report = [];
   Object.keys(groups).forEach(name=>{
     const arr = groups[name] || [];
     const kept = [];
     arr.forEach(c=>{
-      const key = c.trim();
-      if(seen.has(key)){ removed++; }
-      else { seen.add(key); kept.push(c); }
+      const key = String(c).trim();
+      if(seen.has(key)){ removed++; } else { seen.add(key); kept.push(c); }
     });
-    if(kept.length !== arr.length){
-      report.push(`${name}：删除 ${arr.length - kept.length} 条`);
-    }
-    if(kept.length === 0){
-      delete groups[name];   // 去重后变空的分组：直接删掉
-    } else {
-      groups[name] = kept;
-    }
+    groups[name] = kept;
   });
-  if(removed===0){ alert('所有字卡里没有发现重复～'); return; }
-  if(!confirm(`发现 ${removed} 条重复字卡（跨分组）：\n${report.join('\n')}\n确定去重吗？`)) return;
-  await sSet('cards-data', cardsData);
+  Object.keys(groups).forEach(name=>{ if((groups[name]||[]).length===0) delete groups[name]; });
+  if(removed===0){ alert("所有字卡里没有发现重复～"); return; }
+  if(!confirm("发现 " + removed + " 条重复字卡（跨分组），确定去重吗？")) return;
+  await sSet("cards-data", cardsData);
   renderCardsView();
 }
 /* 放进 onclick="fn('…')" 这种「HTML 属性里的 JS 字符串」用：先按 JS 字符串转义，再按 HTML 转义 */
