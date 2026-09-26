@@ -630,6 +630,22 @@
   .card-pill.selected{ background:var(--blush); border-color:var(--rouge); }
   .card-pill:active{ background:var(--blush); }
 
+  /* 字卡库：分组横条 + 字卡行列表 */
+  .cards-shell{ display:flex; gap:8px; align-items:flex-start; }
+  .cards-sidebar{ flex:0 0 84px; display:flex; flex-direction:column; gap:6px; max-height:65vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .cards-sidebar::-webkit-scrollbar{ width:3px; }
+  .cards-main{ flex:1; min-width:0; }
+  .group-chip{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); padding:8px 7px; font-size:11.5px; line-height:1.3; cursor:pointer; word-break:break-all; }
+  .group-chip.active{ background:transparent; border-color:var(--rouge-deep); border-width:2px; color:var(--rouge-deep); font-weight:700; }
+  .group-chip .cnt{ font-size:10px; opacity:.7; }
+  .group-chip.active .cnt{ opacity:.85; color:var(--rouge-deep); }
+  .group-chip.add-chip{ border-style:dashed; color:var(--ink-soft); background:transparent; align-items:center; }
+  .card-row{ display:flex; align-items:center; gap:8px; border:1px solid var(--rule); background:transparent; padding:10px 11px; margin-bottom:7px; cursor:default; }
+  .card-row.selected{ background:transparent; border-color:var(--rouge); border-width:1.5px; }
+  .card-row .txt{ flex:1; font-size:13px; line-height:1.4; word-break:break-word; }
+  .card-row .row-actions{ display:flex; gap:6px; flex-shrink:0; }
+  #moveTargetSelect{ border:1.5px solid var(--ink); background:var(--paper); color:var(--ink); padding:7px 8px; font-size:12.5px; }
+
   .swatch-row{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
   .swatch{ width:30px;height:30px;border-radius:50%; border:2px solid var(--ink); cursor:pointer; }
 
@@ -1503,28 +1519,17 @@
       <h2>字卡库</h2>
       <div class="icon-btn" style="margin-left:auto;" onclick="toggleCardSelectMode()" id="cardSelectModeBtn">☑</div>
     </div>
-    <div class="box">
-      <div class="box-title">导入字卡 JSON <span class="stamp-tag">IMPORT</span></div>
-      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">支持分组格式，会自动按你文件里的分组归类。</p>
-      <input type="file" id="cardsFileInput" accept=".json,application/json" class="hidden" onchange="onCardsFile(event)">
-      <div class="btn-row">
-        <div class="btn" onclick="document.getElementById('cardsFileInput').click()">选择 JSON 文件</div>
-        <div class="btn outline" onclick="loadDemoCards()">载入示例数据</div>
+    <input type="file" id="cardsFileInput" accept=".json,application/json" class="hidden" onchange="onCardsFile(event)">
+    <div class="cards-shell">
+      <div class="cards-sidebar" id="cardsGroupStrip"></div>
+      <div class="cards-main">
+        <div class="box" id="cardsSearchBox" style="display:none;padding:8px 10px;">
+          <input type="text" id="cardsSearchInput" placeholder="搜索全部字卡分组…" autocomplete="off" style="width:100%;"
+            oninput="onCardsSearchInput()">
+        </div>
+        <div id="cardsGroupsList"></div>
       </div>
-      <div class="btn-row">
-        <div class="btn outline" onclick="exportCardsFile()">📤 导出字卡 JSON</div>
-      </div>
     </div>
-    <div class="box">
-      <div class="box-title">新增分组</div>
-      <input type="text" id="newGroupName" placeholder="分组名称，例如：日常问候">
-      <div class="btn-row"><div class="btn outline" onclick="addGroupManual()">新增</div></div>
-    </div>
-    <div class="box" id="cardsSearchBox" style="display:none;">
-      <input type="text" id="cardsSearchInput" placeholder="搜索字卡内容…" autocomplete="off" style="width:100%;"
-        oninput="onCardsSearchInput()">
-    </div>
-    <div id="cardsGroupsList"></div>
   </section>
 
   <!-- ============ LEDGER 记账 ============ -->
@@ -3115,13 +3120,9 @@ function loadDemoCards(){
 let cardSelectMode = false;
 let selectedCardIdx = new Set();
 let _cardSelectMap = [];
-let cardsCollapsed = {}; // 记录每个分组是否折叠
 let cardsSearchKeyword = '';
+let cardsActiveGroup = null;
 
-function toggleGroupCollapse(g){
-  cardsCollapsed[g] = !cardsCollapsed[g];
-  renderCardsView();
-}
 let _cardsComposing = false;   // 中文输入法拼音还没上屏时不要重绘，否则会打断输入
 function onCardsSearchInput(){
   if(_cardsComposing) return;
@@ -3139,81 +3140,143 @@ function onCardsSearchInput(){
   inp.addEventListener('compositionend', function(){ _cardsComposing = false; onCardsSearchInput(); });
 })();
 const CARD_KEY_SEP = '\u0001';
+
+// 当前应该显示的字卡列表：没有搜索时=当前分组；搜索时=全部分组里匹配的字卡（附分组名）
+function activeCardsList(){
+  if(cardsSearchKeyword){
+    const out = [];
+    Object.keys(cardsData.groups||{}).forEach(g=>{
+      (cardsData.groups[g]||[]).forEach((c,idx)=>{
+        if(c.toLowerCase().includes(cardsSearchKeyword)) out.push({group:g, idx, text:c});
+      });
+    });
+    return out;
+  }
+  const g = cardsActiveGroup;
+  if(!g || !cardsData.groups[g]) return [];
+  return (cardsData.groups[g]||[]).map((c,idx)=>({group:g, idx, text:c}));
+}
+
 function renderCardsView(){
+  renderCardsStrip();
+  renderCardsMain();
+}
+
+// 顶部：分组横条（点选切换当前分组，当前分组高亮）
+function renderCardsStrip(){
+  const el = document.getElementById('cardsGroupStrip');
+  if(!el) return;
+  const groups = Object.keys(cardsData.groups||{});
+  if(!cardsActiveGroup || !groups.includes(cardsActiveGroup)) cardsActiveGroup = groups[0] || null;
+  if(groups.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = groups.map(g=>{
+    const n = (cardsData.groups[g]||[]).length;
+    const active = g===cardsActiveGroup && !cardsSearchKeyword;
+    return `<span class="group-chip ${active?'active':''}" onclick="setActiveCardGroup('${escAttr(g)}')">${escapeHtml(g)}<span class="cnt">${n}</span></span>`;
+  }).join('') + `<span class="group-chip add-chip" onclick="openAddGroupOverlay()">＋ 新分组</span>`;
+}
+function setActiveCardGroup(g){
+  cardsActiveGroup = g;
+  cardsSearchKeyword = '';
+  const inp = document.getElementById('cardsSearchInput'); if(inp) inp.value='';
+  cardSelectMode = false;
+  selectedCardIdx.clear();
+  renderCardsView();
+}
+function openAddGroupOverlay(){
+  openOverlay(`
+    <div class="drawer-head"><h3>新增分组</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <label class="field">分组名称</label>
+    <input type="text" id="newGroupName" placeholder="例如：日常问候">
+    <div class="btn-row"><div class="btn outline" onclick="addGroupManual()">新增</div></div>
+  `);
+  setTimeout(()=>{ const el=document.getElementById('newGroupName'); if(el) el.focus(); }, 50);
+}
+
+// 主体：工具条 + 批量添加 + 全选/移动/批量删除 + 字卡列表
+function renderCardsMain(){
   const wrap = document.getElementById('cardsGroupsList');
-  const btn = document.getElementById('cardSelectModeBtn');
   const searchBox = document.getElementById('cardsSearchBox');
-  if(btn) btn.textContent = cardSelectMode ? '✕' : '☑';
   const groups = Object.keys(cardsData.groups||{});
   if(searchBox) searchBox.style.display = groups.length ? '' : 'none';
-  if(groups.length===0){ wrap.innerHTML = '<div class="empty-note">还没有导入字卡，先在上面导入 JSON 文件，或载入示例数据看看效果。</div>'; return; }
-  _cardSelectMap = [];
 
-  // 重绘前先把各分组「批量添加」框里还没提交的内容记下来，重绘后放回去（折叠/展开别的分组时不会丢字）
-  const keepText = {};
-  wrap.querySelectorAll('textarea[id^="addcard-"]').forEach(t=>{ if(t.value) keepText[t.id] = t.value; });
-
-  const toolbarHtml = cardSelectMode ? `
-    <div class="box" style="position:sticky; top:0; z-index:5;">
-      <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">已选 ${selectedCardIdx.size} 张</div>
+  if(groups.length===0){
+    wrap.innerHTML = `<div class="box">
+      <div class="box-title">导入字卡 JSON <span class="stamp-tag">IMPORT</span></div>
+      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">支持分组格式，会自动按你文件里的分组归类。</p>
       <div class="btn-row">
-        <div class="btn outline" onclick="openMoveToGroupPanel()">移动到分组</div>
-        <div class="btn rouge" onclick="deleteSelectedCards()">删除选中</div>
+        <div class="btn" onclick="document.getElementById('cardsFileInput').click()">选择 JSON 文件</div>
+        <div class="btn outline" onclick="loadDemoCards()">载入示例数据</div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const btn = document.getElementById('cardSelectModeBtn');
+  if(btn) btn.textContent = cardSelectMode ? '✕' : '☑';
+
+  _cardSelectMap = [];
+  const list = activeCardsList();
+  const searching = !!cardsSearchKeyword;
+
+  const headHtml = searching
+    ? `<div class="box-title" style="margin-bottom:8px;"><span>「${escapeHtml(cardsSearchKeyword)}」共 ${list.length} 条匹配</span></div>`
+    : `<div class="box-title" style="margin-bottom:8px;">
+        <span>${escapeHtml(cardsActiveGroup||'')}（${list.length}）</span>
+        ${cardSelectMode ? '' : `<span style="display:flex;gap:10px;font-size:12px;">
+          <span class="del" style="opacity:.75;" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">✎ 改名</span>
+          <span class="del" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">✕ 删除分组</span>
+        </span>`}
+      </div>`;
+
+  const bulkAddHtml = (!cardSelectMode && !searching) ? `
+    <textarea id="addcard-${escapeHtml(cardsActiveGroup||'')}" placeholder="每行一条字卡，例如：&#10;今晚的云海很安静&#10;你吃过晚饭了吗" style="width:100%;min-height:64px;resize:vertical;margin-bottom:8px;"></textarea>
+    <div class="btn-row" style="margin-bottom:10px;">
+      <div class="btn outline" onclick="addCardTo('${escAttr(cardsActiveGroup)}')">添加字卡</div>
+      <div class="btn outline" onclick="dedupCardsInGroup('${escAttr(cardsActiveGroup)}')">一键查重</div>
+      <div class="btn outline" onclick="exportCardsFile()">导出</div>
+      <div class="btn outline" onclick="document.getElementById('cardsFileInput').click()">导入</div>
+    </div>` : '';
+
+  const selectBarHtml = cardSelectMode ? `
+    <div class="box" style="padding:10px;margin-bottom:10px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-bottom:8px;">
+        <input type="checkbox" id="selectAllCardsBox" onchange="toggleSelectAllVisible(this.checked)"> 全选　已选 ${selectedCardIdx.size} 条
+      </label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:12.5px;color:var(--ink-soft);">移动到：</span>
+        <select id="moveTargetSelect">
+          ${groups.filter(g=> searching || g!==cardsActiveGroup).map(g=>`<option value="${escAttr(g)}">${escapeHtml(g)}</option>`).join('')}
+          <option value="__new__">＋ 新建分组…</option>
+        </select>
+        <div class="btn outline" style="padding:7px 12px;" onclick="moveSelectedCardsInline()">移动</div>
+        <div class="btn outline" style="padding:7px 12px;color:var(--rouge);border-color:var(--rouge);" onclick="deleteSelectedCards()">批量删除</div>
       </div>
     </div>` : '';
 
-  const groupsHtml = groups.map(g=>{
-    let cards = cardsData.groups[g] || [];
-    // 搜索过滤
-    if(cardsSearchKeyword){
-      cards = cards.filter(c => c.toLowerCase().includes(cardsSearchKeyword));
-      if(cards.length === 0) return ''; // 该分组无匹配则隐藏
+  const rowsHtml = list.length ? list.map(item=>{
+    const idx = _cardSelectMap.length;
+    _cardSelectMap.push({group:item.group, text:item.text});
+    const groupTag = searching ? `<span style="font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);padding:1px 5px;margin-right:6px;flex-shrink:0;">${escapeHtml(item.group)}</span>` : '';
+    if(cardSelectMode){
+      const checked = selectedCardIdx.has(item.group + CARD_KEY_SEP + item.text);
+      return `<div class="card-row ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">
+        <span style="flex-shrink:0;">${checked?'☑':'☐'}</span>
+        ${groupTag}<span class="txt">${escapeHtml(item.text)}</span>
+      </div>`;
     }
-    // 搜索时不管分组有没有折叠，都把匹配到的展开给你看
-    const collapsed = !cardsSearchKeyword && !!cardsCollapsed[g];
-    const pills = cards.map((c,i)=>{
-      // 注意：过滤后 i 是过滤后的索引，编辑/删除时需要用原索引，这里简化处理，搜索时禁用编辑删除
-      if(cardSelectMode){
-        const idx = _cardSelectMap.length;
-        _cardSelectMap.push({group:g, text:c});
-        const checked = selectedCardIdx.has(g + CARD_KEY_SEP + c);
-        return `<span class="card-pill ${checked?'selected':''}" onclick="toggleCardSelect(${idx})">${checked?'☑':'☐'} ${escapeHtml(c)}</span>`;
-      }
-      if(cardsSearchKeyword){
-        return `<span class="card-pill">${escapeHtml(c)}</span>`;
-      }
-      // 找到原索引
-      const realIdx = (cardsData.groups[g]||[]).indexOf(c);
-      return `<span class="card-pill">${escapeHtml(c)}<span class="del" style="margin-left:6px;opacity:.65;" onclick="editCardText('${escAttr(g)}',${realIdx})">✎</span><span class="del" style="margin-left:4px;" onclick="deleteCard('${escAttr(g)}',${realIdx})">✕</span></span>`;
-    }).join('');
-
-    return `<div class="group-block">
-      <div class="group-name" style="cursor:pointer;user-select:none;" onclick="toggleGroupCollapse('${escAttr(g)}')">
-        <span style="margin-right:6px;">${collapsed ? '▶' : '▼'}</span>
-        <span style="border-bottom:1px dashed var(--rule);">${escapeHtml(g)}（${cards.length}${cardsSearchKeyword ? ' 匹配' : ''}）</span>
-        ${cardSelectMode?'':`<span style="display:flex;gap:10px;align-items:center;margin-left:auto;" onclick="event.stopPropagation()">
-          <span class="del" onclick="renameGroup('${escAttr(g)}')" style="opacity:.75;">✎ 改名</span>
-          <span class="del" onclick="deleteGroup('${escAttr(g)}')">✕ 删除分组</span>
-        </span>`}
-      </div>
-      <div class="group-content" style="${collapsed ? 'display:none;' : ''}">
-        ${pills}
-        ${cardSelectMode || cardsSearchKeyword ? '' : `
-        <div style="margin-top:8px;">
-          <textarea id="addcard-${escapeHtml(g)}" placeholder="批量添加（每行一条，自动去重）" style="width:100%;min-height:60px;resize:vertical;"></textarea>
-          <div class="btn-row" style="margin-top:6px;">
-            <div class="btn outline" style="padding:8px 12px;" onclick="addCardTo('${escAttr(g)}')">批量添加</div>
-          </div>
-        </div>`}
-      </div>
+    return `<div class="card-row">
+      ${groupTag}<span class="txt">${escapeHtml(item.text)}</span>
+      <span class="row-actions">
+        <span class="del" onclick="editCardText('${escAttr(item.group)}', ${item.idx})">✎</span>
+        <span class="del" onclick="deleteCard('${escAttr(item.group)}', ${item.idx})">✕</span>
+      </span>
     </div>`;
-  }).join('');
+  }).join('') : `<div class="empty-note">${searching ? '没有找到匹配的字卡' : '这个分组还没有字卡，添加几条吧'}</div>`;
 
-  const emptyHtml = (cardsSearchKeyword && !groupsHtml)
-    ? `<div class="empty-note">没有找到包含「${escapeHtml(cardsSearchKeyword)}」的字卡</div>` : '';
-  wrap.innerHTML = toolbarHtml + groupsHtml + emptyHtml;
-  Object.keys(keepText).forEach(id=>{ const t = document.getElementById(id); if(t) t.value = keepText[id]; });
+  wrap.innerHTML = headHtml + bulkAddHtml + selectBarHtml + rowsHtml;
 }
+
 function toggleCardSelectMode(){
   cardSelectMode = !cardSelectMode;
   selectedCardIdx.clear();
@@ -3226,6 +3289,13 @@ function toggleCardSelect(idx){
   if(selectedCardIdx.has(key)) selectedCardIdx.delete(key); else selectedCardIdx.add(key);
   renderCardsView();
 }
+function toggleSelectAllVisible(checked){
+  activeCardsList().forEach(item=>{
+    const key = item.group + CARD_KEY_SEP + item.text;
+    if(checked) selectedCardIdx.add(key); else selectedCardIdx.delete(key);
+  });
+  renderCardsView();
+}
 function selectedCardItems(){
   return [...selectedCardIdx].map(k=>{
     const p = k.indexOf(CARD_KEY_SEP);
@@ -3234,7 +3304,6 @@ function selectedCardItems(){
 }
 async function editCardText(g, idx){
   const current = cardsData.groups[g][idx] || '';
-  const safeG = String(g).replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$');
   openOverlay(`
     <div class="drawer-head"><h3>修改字卡内容</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">内容</label>
@@ -3265,17 +3334,19 @@ async function deleteSelectedCards(){
   cardSelectMode = false;
   renderCardsView();
 }
-function openMoveToGroupPanel(){
+function moveSelectedCardsInline(){
   if(selectedCardIdx.size===0){ alert('先选几张字卡'); return; }
-  const groups = Object.keys(cardsData.groups||{});
+  const sel = document.getElementById('moveTargetSelect');
+  if(!sel || !sel.value){ alert('请选择要移动到的分组'); return; }
+  if(sel.value === '__new__'){ openMoveToNewGroupOverlay(); return; }
+  moveSelectedCardsTo(sel.value);
+}
+function openMoveToNewGroupOverlay(){
   openOverlay(`
-    <div class="drawer-head"><h3>移动到分组（已选 ${selectedCardIdx.size} 张）</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div class="btn-row">
-      ${groups.map(g=>`<div class="btn outline" onclick="moveSelectedCardsTo('${escAttr(g)}')">${escapeHtml(g)}</div>`).join('')}
-    </div>
-    <label class="field">或新建一个分组</label>
+    <div class="drawer-head"><h3>建立新分组并移入（已选 ${selectedCardIdx.size} 张）</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <label class="field">新分组名称</label>
     <div style="display:flex;gap:6px;">
-      <input type="text" id="moveNewGroupName" placeholder="新分组名称">
+      <input type="text" id="moveNewGroupName" placeholder="新分组名称" style="flex:1;">
       <div class="btn outline" style="padding:8px 12px;" onclick="moveSelectedCardsToNew()">建立并移入</div>
     </div>
   `);
@@ -3299,6 +3370,22 @@ async function moveSelectedCardsToNew(){
   const name = inp.value.trim();
   if(!name) return;
   await moveSelectedCardsTo(name);
+}
+// 一键查重：去掉当前分组里完全相同的重复字卡（不同分组间同名不算重复）
+async function dedupCardsInGroup(g){
+  const arr = cardsData.groups[g]||[];
+  const seen = new Set();
+  const deduped = [];
+  let removed = 0;
+  arr.forEach(c=>{
+    const key = c.trim();
+    if(seen.has(key)){ removed++; } else { seen.add(key); deduped.push(c); }
+  });
+  if(removed===0){ alert('这个分组里没有发现重复的字卡～'); return; }
+  if(!confirm(`发现 ${removed} 条重复字卡，确定去重吗？`)) return;
+  cardsData.groups[g] = deduped;
+  await sSet('cards-data', cardsData);
+  renderCardsView();
 }
 /* 放进 onclick="fn('…')" 这种「HTML 属性里的 JS 字符串」用：先按 JS 字符串转义，再按 HTML 转义 */
 function escAttr(s){
@@ -3377,8 +3464,11 @@ async function addGroupManual(){
   const inp = document.getElementById('newGroupName');
   const val = inp.value.trim(); if(!val) return;
   if(!cardsData.groups[val]) cardsData.groups[val]=[];
-  inp.value='';
-  await sSet('cards-data', cardsData); renderCardsView();
+  cardsActiveGroup = val;
+  cardsSearchKeyword = '';
+  await sSet('cards-data', cardsData);
+  closeOverlay();
+  renderCardsView();
 }
 
 /* ============================================================
@@ -4159,7 +4249,7 @@ function startOutgoingCall(){
   activeCall.ringTimeout = setTimeout(()=>{
     if(!activeCall || activeCall.status!=='ringing') return;
     if(Math.random() < 0.85){ connectCall(); } else { endCall('missed_by_them'); }
-  }, 1200 + Math.random()*3000);
+  }, 1000 + Math.random()*14000); // TA 最多有 15 秒的"考虑时间"再接听/不接
 }
 function receiveIncomingCall(){
   if(activeCall || currentView==='calls' && document.hidden) return;
