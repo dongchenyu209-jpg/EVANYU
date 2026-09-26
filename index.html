@@ -539,6 +539,10 @@
     background:transparent; border:1px solid var(--ink); display:flex;align-items:center;justify-content:center; font-size:14px;
   }
   .msg-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .gname-fallback{ width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; }
+  .msg-body{ display:flex; flex-direction:column; min-width:0; max-width:100%; align-items:flex-start; }
+  .msg-row.user .msg-body{ align-items:flex-end; }
+  .gname-tag{ font-size:10.5px; color:var(--ink-soft); margin:0 0 3px 4px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .msg{ max-width:100%; padding:8px 12px; font-size:13.5px; line-height:1.5; position:relative; box-shadow:none; white-space:pre-line; }
 .msg.bot{
   background:#fff;
@@ -1916,6 +1920,9 @@
       <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
     </div>
     <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>
+    <div class="btn-row" style="margin-top:10px;">
+      <div class="btn outline" onclick="openTaMoodPoolPanel()">💗 陆沉的心情池</div>
+    </div>
   </section>
 
   <!-- beautify 已并入设置 -->
@@ -2300,7 +2307,7 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
    ============================================================ */
 let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, photos:[null,null,null], myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
 let polaCur = 0;
-let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, background:null, stickers:[], myStickers:[
+let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, group:{ enabled:false, showName:true, members:[] }, background:null, stickers:[], myStickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
 ], taStickers:[
   {id:'t1', type:'emoji', value:'🌙'}, {id:'t2', type:'emoji', value:'☕'}, {id:'t3', type:'emoji', value:'📖'}
@@ -2327,6 +2334,13 @@ let lifePhotos = [];
 let statusPool = [];
 let todayStatus = null;
 let todayStatusHistory = [];
+/* ---- 陆沉（TA）的每日心情池：每天 TA 自己挑一条上传进日记 ---- */
+const TA_MOOD_DEFAULTS = [
+  { mood:'🥰' }, { mood:'😌' }, { mood:'😊' }, { mood:'😔' }, { mood:'😎' },
+  { mood:'🥺' }, { mood:'😴' }, { mood:'🌸' }, { mood:'☕' }, { mood:'💕' }
+];
+let taMoodPool = [];
+let taDiaryMoods = {};
 // 摸鱼：活动/地点字卡 + 自动生成的时间线记录
 let moyuState = {
   enabled: false,
@@ -2373,6 +2387,10 @@ function withDefaults(name, stored){
         : JSON.parse(JSON.stringify(_DEFAULTS.chatSettings.taStickers));
     }
     if(!out.companionName) out.companionName = _DEFAULTS.chatSettings.companionName;
+    if(!out.group || typeof out.group!=='object' || Array.isArray(out.group)) out.group = { enabled:false, showName:true, members:[] };
+    if(!Array.isArray(out.group.members)) out.group.members = [];
+    if(out.group.enabled!==true) out.group.enabled = false;
+    if(out.group.showName!==false) out.group.showName = true;
   }
   if(name==='profile' && !out.name) out.name = _DEFAULTS.profile.name;
   return out;
@@ -2434,7 +2452,8 @@ async function init(){
     _momentsPosts, _momentEvents, _letters, _inboxLetters, _callLogs,
     _proactiveState, _chatUnread, _letterUnread, _inboxLetterUnread, _momentsUnread,
     _lifePhotos, _statusPool, _todayStatus, _todayStatusHistory, _moyuState,
-    _proactiveMsgSettings, _momentInteractSettings, _proactiveLetterSettings, _spliceCardsEnabled
+    _proactiveMsgSettings, _momentInteractSettings, _proactiveLetterSettings, _spliceCardsEnabled,
+    _taMoodPool, _taDiaryMoods
   ] = await Promise.all([
     loadInitialPage('chatMessages'),
     sGet('cards-data', {groups:{}}),
@@ -2459,7 +2478,9 @@ async function init(){
     sGet('proactive-msg-settings', proactiveMsgSettings),
     sGet('moment-interact-settings', momentInteractSettings),
     sGet('proactive-letter-settings', proactiveLetterSettings),
-    sGet('splice-cards-enabled', false)
+    sGet('splice-cards-enabled', false),
+    sGet('ta-mood-pool', null),
+    sGet('ta-diary-moods', {})
   ]);
   chatMessages = _chatMessages;
   cardsData = (_cardsData && typeof _cardsData==='object' && _cardsData.groups && typeof _cardsData.groups==='object') ? _cardsData : {groups:{}};
@@ -2487,8 +2508,11 @@ async function init(){
   proactiveLetterSettings = (_proactiveLetterSettings && typeof _proactiveLetterSettings==='object') ? _proactiveLetterSettings : proactiveLetterSettings;
   if(!_proactiveState || typeof _proactiveState!=='object') proactiveState = { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null, nextCareAt:null };
   spliceCardsEnabled = !!_spliceCardsEnabled;
-
+  taMoodPool = (Array.isArray(_taMoodPool) && _taMoodPool.length) ? _taMoodPool : JSON.parse(JSON.stringify(TA_MOOD_DEFAULTS));
+  taMoodPool = normalizeTaMoodPool(taMoodPool);
+  taDiaryMoods = (_taDiaryMoods && typeof _taDiaryMoods==='object') ? _taDiaryMoods : {};
   await loadCompanionData();
+  try{ await ensureTaMoodFor(todayKey()); }catch(e){}
 
   // 兼容旧数据：写信/来信混在一起
   const legacyBotLetters = letters.filter(l=>l.from==='bot');
@@ -3681,6 +3705,29 @@ function formatMsgTime(ts){
     ? d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})
     : d.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 }
+/* 多人回复：成员名字哈希取色 */
+function memberColor(name){
+  const palette=['#9C2F3B','#B08A2E','#3B6B5E','#4C5B8A','#7A4E8C','#B5651D','#2E7D6B','#8A4B7A'];
+  let s=0; const str=String(name||''); for(let i=0;i<str.length;i++) s += str.charCodeAt(i)*(i+1);
+  return palette[s % palette.length];
+}
+/* 多人回复（参考包 partnerPersonas 机制）：每轮回复前约 30% 概率随机指派一位伙伴，其余仍是默认梦角；
+   被指派的人真正写进消息 sender 字段，历史消息永不被改写。 */
+function pickGroupPersona(){
+  const g = chatSettings.group;
+  if(!g || !g.enabled || !Array.isArray(g.members) || g.members.length===0) return null;
+  if(Math.random() >= 0.3) return null;
+  return g.members[Math.floor(Math.random()*g.members.length)] || null;
+}
+function assignGroupSender(msg){
+  if(!msg || msg.from!=='bot') return msg;
+  const p = pickGroupPersona();
+  if(p){
+    msg.sender = p.name;
+    msg.senderAvatar = (p.avatar && String(p.avatar).startsWith('data:')) ? p.avatar : null;
+  }
+  return msg;
+}
 function renderChat(preserveScroll, scrollToId){
   const wrap = document.getElementById('chatMsgs');
   document.getElementById('chatCName').textContent = chatSettings.companionName;
@@ -3707,7 +3754,11 @@ function renderChat(preserveScroll, scrollToId){
     const quoteRefHtml = m.quoteOf
       ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${escapeHtml(m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName)}: ${escapeHtml(m.quoteOf.preview)}</div>` : '';
     const quoteBtn = `<span class="quote-trigger" onclick="setQuoteTarget('${m.id}')">↩引用</span>`;
-    const avatarHtml = `<div class="msg-avatar">${m.from==='user'?myAvatar:botAvatar}</div>`;
+      const _isGroup = !!(m.from==='bot' && chatSettings.group && chatSettings.group.enabled);
+  const _senderName = _isGroup ? (m.sender || chatSettings.companionName) : null;
+  const _senderAvatar = (_isGroup && m.sender && m.senderAvatar && String(m.senderAvatar).startsWith('data:')) ? m.senderAvatar : null;
+  const _gmAvatar = _isGroup ? (_senderAvatar ? `<img loading="lazy" decoding="async" src="${_senderAvatar}">` : (m.sender ? `<span class="gname-fallback" style="background:${memberColor(m.sender)}">${escapeHtml((String(m.sender).trim().charAt(0))||'?')}</span>` : botAvatar)) : botAvatar;
+  const avatarHtml = `<div class="msg-avatar">${m.from==='user'?myAvatar:_gmAvatar}</div>`;
     let bubbleHtml;
     if(m.type==='sticker'){
       const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
@@ -3768,7 +3819,9 @@ function renderChat(preserveScroll, scrollToId){
       const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
       bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${time}${readTag}${quoteBtn}</div></div>`;
     }
-    return `<div id="msg-${m.id}" class="msg-row ${m.from}" data-mid="${m.id}" ontouchstart="lpStart(event, this)" ontouchend="lpEnd(event)" ontouchmove="lpCancel()" oncontextmenu="lpMenu(event, this)">${avatarHtml}${bubbleHtml}</div>`;
+      const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
+  const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}</div>` : bubbleHtml;
+  return `<div id="msg-${m.id}" class="msg-row ${m.from}" data-mid="${m.id}" ontouchstart="lpStart(event, this)" ontouchend="lpEnd(event)" ontouchmove="lpCancel()" oncontextmenu="lpMenu(event, this)">${avatarHtml}${_rowInner}</div>`;
   }).join('');
   syncTypingIndicatorDOM(false); // 重建整个聊天列表会把"正在输入…"这个提示一起冲掉，这里给它补回来，避免看起来像回复被打断了
   if(scrollToId){
@@ -4065,6 +4118,7 @@ function scheduleAutoReply(userText){
         reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
       }
       const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+      try{ assignGroupSender(newMsg); }catch(e){}
       if(!Array.isArray(chatMessages)) chatMessages = [];
       chatMessages.push(newMsg);
       try{ maybeBotFavoriteChat(); }catch(e){}
@@ -4327,6 +4381,7 @@ function runProactiveBurst(){
     showTyping(false);
     if(!reply){ _proMsgBusy = false; return; }
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
+    try{ assignGroupSender(newMsg); }catch(e){}
     chatMessages.push(newMsg);
     try{ maybeBotFavoriteChat(); }catch(e){}
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
@@ -4642,6 +4697,18 @@ function openChatSettings(){
     <div class="drawer-head"><h3>传讯设置</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">梦角名字</label>
     <input type="text" id="csName" value="${escapeHtml(chatSettings.companionName)}">
+    <div class="box-title" style="margin-top:14px;">群聊</div>
+    <div class="switch-row">
+      <span>多位伙伴回复<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 的回复会随机由不同的伙伴发出（大家共用字卡库，在不同时间回你话）</div></span>
+      <div class="switch ${(chatSettings.group&&chatSettings.group.enabled)?'on':''}" id="csGroupEnabled" onclick="this.classList.toggle('on'); setGroupFlag('enabled', this.classList.contains('on'))"><div class="dot"></div></div>
+    </div>
+    <div class="switch-row">
+      <span>显示伙伴名字</span>
+      <div class="switch ${(!chatSettings.group||chatSettings.group.showName!==false)?'on':''}" id="csGroupShowName" onclick="this.classList.toggle('on'); setGroupFlag('showName', this.classList.contains('on'))"><div class="dot"></div></div>
+    </div>
+    <div class="btn-row" style="margin-top:8px;">
+      <div class="btn outline" onclick="closeOverlay(); openGroupManagePanel();">👥 管理伙伴（${chatSettings.group&&Array.isArray(chatSettings.group.members)?chatSettings.group.members.length:0}）</div>
+    </div>
     <label class="field">最快回复：<span id="csDelayMinVal">${chatSettings.delayMin}</span> 分钟</label>
     <input type="range" min="1" max="5" step="1" value="${Math.min(5, Math.max(1, chatSettings.delayMin||1))}" oninput="document.getElementById('csDelayMinVal').textContent=this.value" id="csDelayMin" style="width:100%;">
     <label class="field">最慢回复：<span id="csDelayMaxVal">${chatSettings.delayMax}</span> 分钟</label>
@@ -4744,6 +4811,132 @@ function openChatSettings(){
       <div class="btn" onclick="saveChatSettings()">保存设置</div>
     </div>
   `);
+}
+/* ============================================================
+   群聊成员管理（机制参考字卡：单梦角回复 + 按消息 id 挂成员马甲）
+   ============================================================ */
+let _groupEditId = null;
+let _groupAvatarDraft = null;
+function ensureGroup(){
+  if(!chatSettings.group || typeof chatSettings.group!=='object' || Array.isArray(chatSettings.group)) chatSettings.group = { enabled:false, showName:true, members:[] };
+  if(!Array.isArray(chatSettings.group.members)) chatSettings.group.members = [];
+  if(chatSettings.group.showName===undefined) chatSettings.group.showName = true;
+  if(chatSettings.group.enabled===undefined) chatSettings.group.enabled = false;
+  return chatSettings.group;
+}
+async function setGroupFlag(key, val){
+  const g = ensureGroup();
+  g[key] = !!val;
+  await sSet('chat-settings', chatSettings);
+  renderChat();
+}
+function genGroupId(){ return 'gm_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function openGroupManagePanel(){
+  ensureGroup();
+  _groupEditId = null;
+  _groupAvatarDraft = null;
+  renderGroupManagePanel();
+}
+function _groupAvatarPreviewHtml(){
+  if(_groupAvatarDraft && String(_groupAvatarDraft).startsWith('data:')){
+    return `<img src="${_groupAvatarDraft}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`;
+  }
+  return `<span style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--ink-soft);font-size:17px;">👤</span>`;
+}
+function renderGroupManagePanel(){
+  const g = ensureGroup();
+  const list = g.members.map(mm=>{
+    const av = (mm.avatar && String(mm.avatar).startsWith('data:'))
+      ? `<img src="${mm.avatar}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+      : `<span style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:${memberColor(mm.name)};font-size:15px;flex-shrink:0;">${escapeHtml((String(mm.name||'').trim().charAt(0))||'?')}</span>`;
+    return `<div class="switch-row" style="padding:7px 0;">
+      <span style="display:flex;align-items:center;gap:10px;min-width:0;">
+        ${av}
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(mm.name||'未命名')}</span>
+      </span>
+      <span style="display:flex;gap:12px;flex-shrink:0;">
+        <span class="quote-trigger" style="opacity:1;margin:0;" onclick="openGroupMemberForm('${mm.id}')">✎</span>
+        <span class="quote-trigger" style="opacity:1;margin:0;color:var(--rouge);" onclick="deleteGroupMember('${mm.id}')">✕</span>
+      </span>
+    </div>`;
+  }).join('') || `<div style="font-size:12px;color:var(--ink-soft);padding:6px 0;">还没有伙伴，在下面添加一个吧～</div>`;
+  const editing = _groupEditId ? g.members.find(x=>x.id===_groupEditId) : null;
+  openOverlay(`
+    <div class="drawer-head"><h3>伙伴管理</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:8px;">开启后，TA 的回复会随机由下面某位伙伴发出（大家共用同一个字卡库，只是在不同的时间回你话）。每轮约 30% 概率抽中伙伴，其余仍是默认梦角。</div>
+    <div class="box-title" style="margin-top:6px;">当前伙伴（${g.members.length}）</div>
+    <div id="groupMemberList">${list}</div>
+    <div class="box-title" style="margin-top:16px;">${editing?'编辑伙伴':'添加伙伴'}</div>
+    <label class="field">名字</label>
+    <input type="text" id="gmName" value="${editing?escapeHtml(editing.name||''):''}" placeholder="例如：陈屿、瑶瑶…">
+    <label class="field">头像（可选，不上传就用名字首字）</label>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="gmAvatarPreview">${_groupAvatarPreviewHtml()}</div>
+      <div class="btn outline" style="padding:8px 12px;" onclick="document.getElementById('gmAvatarInput').click()">选择图片</div>
+      ${(_groupAvatarDraft && String(_groupAvatarDraft).startsWith('data:')) ? `<div class="btn outline" style="padding:8px 12px;" onclick="groupClearAvatarDraft()">清除</div>` : ''}
+    </div>
+    <input type="file" id="gmAvatarInput" accept="image/*" class="hidden" onchange="onGroupAvatarPick(event)">
+    <div class="btn-row" style="margin-top:14px;">
+      <div class="btn" onclick="saveGroupMember()">${editing?'保存修改':'添加'}</div>
+      ${editing?`<div class="btn outline" onclick="cancelGroupMemberEdit()">取消</div>`:''}
+    </div>
+  `);
+}
+function openGroupMemberForm(id){
+  const g = ensureGroup();
+  const mm = g.members.find(x=>x.id===id);
+  if(!mm) return;
+  _groupEditId = id;
+  _groupAvatarDraft = mm.avatar || '';
+  renderGroupManagePanel();
+}
+function cancelGroupMemberEdit(){
+  _groupEditId = null;
+  _groupAvatarDraft = null;
+  renderGroupManagePanel();
+}
+function groupClearAvatarDraft(){
+  _groupAvatarDraft = '';
+  const pv = document.getElementById('gmAvatarPreview');
+  if(pv) pv.innerHTML = _groupAvatarPreviewHtml();
+}
+function onGroupAvatarPick(e){
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    try{ _groupAvatarDraft = await compressImage(reader.result, 400); }
+    catch(err){ _groupAvatarDraft = reader.result; }
+    const pv = document.getElementById('gmAvatarPreview');
+    if(pv) pv.innerHTML = _groupAvatarPreviewHtml();
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+}
+async function saveGroupMember(){
+  const g = ensureGroup();
+  const name = (document.getElementById('gmName').value || '').trim();
+  if(!name){ alert('请填写成员名字'); return; }
+  const avatar = (_groupAvatarDraft && String(_groupAvatarDraft).startsWith('data:')) ? _groupAvatarDraft : null;
+  if(_groupEditId){
+    const mm = g.members.find(x=>x.id===_groupEditId);
+    if(mm){ mm.name = name; mm.avatar = avatar; }
+  } else {
+    g.members.push({ id: genGroupId(), name, avatar });
+  }
+  await sSet('chat-settings', chatSettings);
+  _groupEditId = null;
+  _groupAvatarDraft = null;
+  renderGroupManagePanel();
+  renderChat();
+}
+async function deleteGroupMember(id){
+  const g = ensureGroup();
+  if(!confirm('确定删除该成员？')) return;
+  g.members = g.members.filter(x=>x.id!==id);
+  if(_groupEditId===id){ _groupEditId = null; _groupAvatarDraft = null; }
+  await sSet('chat-settings', chatSettings);
+  renderGroupManagePanel();
+  renderChat();
 }
 function stickerListKey(which){
   return which === 'ta' ? 'taStickers' : 'myStickers';
@@ -5189,6 +5382,7 @@ async function checkQuestionnaireReplies(){
       read: true,
       quoteOf: { id: m.id, from: 'user', preview: '[问卷] ' + (m.question||'').slice(0,30) }
     };
+    try{ assignGroupSender(replyMsg); }catch(e){}
     chatMessages.push(replyMsg);
     await recPut('chatMessages', replyMsg);
     changed = true;
@@ -5725,7 +5919,160 @@ function diaryKey(y,m,d){
 function diaryByDate(dateStr){
   return diaryEntries.filter(d=>d.date===dateStr);
 }
-function openDiaryDay(dateStr){
+/* ---- 陆沉（TA）的每日心情：TA 每天自己“上传”一条心情进日记 ---- */
+function taMoodFor(dateStr){ return (taDiaryMoods && taDiaryMoods[dateStr]) || null; }
+async function saveTaMoodFor(dateStr, mood, text){
+  if(!taDiaryMoods || typeof taDiaryMoods!=='object') taDiaryMoods = {};
+  taDiaryMoods[dateStr] = { mood: mood||'', text: text||'', at: Date.now() };
+  try{ await sSet('ta-diary-moods', taDiaryMoods); }catch(e){}
+}
+async function ensureTaMoodFor(dateStr){
+  if(!dateStr) dateStr = todayKey();
+  if(taMoodFor(dateStr)) return taDiaryMoods[dateStr];
+  if(!Array.isArray(taMoodPool) || taMoodPool.length===0) return null;
+  const p = taMoodPool[Math.floor(Math.random()*taMoodPool.length)];
+  await saveTaMoodFor(dateStr, p.mood, taMoodQuoteFromCards());
+  return taDiaryMoods[dateStr];
+}
+async function rerollTaMood(dateStr){
+  if(!dateStr) dateStr = todayKey();
+  if(!Array.isArray(taMoodPool) || taMoodPool.length===0){ alert('陆沉的心情池还是空的，先添加几条吧'); return; }
+  const cur = taMoodFor(dateStr);
+  let p = taMoodPool[Math.floor(Math.random()*taMoodPool.length)];
+  let guard = 0;
+  while(taMoodPool.length>1 && cur && p.mood===cur.mood && guard++<12){
+    p = taMoodPool[Math.floor(Math.random()*taMoodPool.length)];
+  }
+  await saveTaMoodFor(dateStr, p.mood, taMoodQuoteFromCards());
+  renderDiary();
+  openDiaryDay(dateStr);
+}
+function taMoodBlock(dateStr){
+  const m = taMoodFor(dateStr);
+  const who = (typeof chatSettings!=='undefined' && chatSettings && chatSettings.companionName) ? chatSettings.companionName : 'TA';
+  if(!m){
+    return `<label class="field">${escapeHtml(who)}的心情</label>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="color:var(--ink-soft);font-size:13px;">${escapeHtml(who)}今天还没上传心情</span>
+      <div class="btn outline" style="padding:4px 10px;font-size:12px;margin-left:auto;" onclick="rerollTaMood('${dateStr}')">让 TA 上传</div>
+    </div>`;
+  }
+  return `<label class="field">${escapeHtml(who)}的心情</label>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <span style="font-size:20px;">${escapeHtml(m.mood||'')}</span>
+    <span style="font-size:13.5px;">${escapeHtml(m.text||'')}</span>
+    <div class="btn outline" style="padding:4px 10px;font-size:12px;margin-left:auto;" onclick="rerollTaMood('${dateStr}')">🔄 换一个</div>
+  </div>`;
+}
+function _taMoodCell(key){
+  const m = taMoodFor(key);
+  if(!m) return '';
+  return `<div style="font-size:11px;line-height:1.1;opacity:.72;">${escapeHtml(m.mood||'')}</div>`;
+}
+function renderTaMoodChips(){
+  if(!Array.isArray(taMoodPool) || taMoodPool.length===0) return '<div class="empty-note">还没有心情，先导入一些</div>';
+  return taMoodPool.map((p,i)=>`<span class="card-pill">${escapeHtml(p.mood||'')}<span class="del" style="margin-left:6px;" onclick="deleteTaMood(${i})">✕</span></span>`).join('');
+}
+function taMoodPoolCount(){ return Array.isArray(taMoodPool) ? taMoodPool.length : 0; }
+function openTaMoodPoolPanel(){
+  const who = (typeof chatSettings!=='undefined' && chatSettings && chatSettings.companionName) ? chatSettings.companionName : 'TA';
+  openOverlay(`
+    <div class="drawer-head"><h3>${escapeHtml(who)}的心情池</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:-4px 0 10px;">每天 TA 会从下面这些心情符号里自己挑一个，作为当天“上传”进日记的心情。每行一个<b>心情符号</b>（例如：🥰）；配的那句话会自动从你的<b>字卡库</b>里随机抽一句。</p>
+    <label class="field">批量导入（每行一个心情符号）</label>
+    <textarea id="taMoodBulkInput" placeholder="🥰&#10;😌&#10;🌸&#10;💕"></textarea>
+    <div class="btn-row">
+      <div class="btn outline" onclick="importTaMoodBulk()">导入这些</div>
+      <div class="btn outline" onclick="document.getElementById('taMoodFileInput').click()">📁 导入文件</div>
+    </div>
+    <input type="file" id="taMoodFileInput" accept=".txt,.json" class="hidden" onchange="onTaMoodFile(event)">
+    <div class="box-title" style="margin-top:16px;" id="taMoodPoolCount">心情池（共 ${taMoodPoolCount()} 条）</div>
+    <div id="taMoodPoolList" style="margin-top:10px;">${renderTaMoodChips()}</div>
+    <div class="btn-row" style="margin-top:12px;">
+      <div class="btn" onclick="closeOverlay()">完成</div>
+    </div>
+  `);
+}
+function parseTaMoodLine(line){
+  let s = String(line||'').trim(); if(!s) return null;
+  let mood='';
+  const barIdx = s.indexOf('|');
+  if(barIdx>=0){ mood = s.slice(0,barIdx).trim(); }
+  else { mood = (s.split(/\s+/)[0] || '').trim(); }
+  if(!mood) return null;
+  return { mood: mood };
+}
+function taMoodKeyOf(p){ return (p&&p.mood) ? String(p.mood) : ''; }
+/* 旧数据兼容：只保留心情符号，丢掉旧的一句话；并按符号去重 */
+function normalizeTaMoodPool(list){
+  const out = []; const seen = {};
+  (Array.isArray(list) ? list : []).forEach(p=>{
+    let mood = (typeof p === 'string') ? p.trim() : (p && p.mood ? String(p.mood).trim() : '');
+    if(!mood || seen[mood]) return; seen[mood] = true;
+    out.push({ mood: mood });
+  });
+  return out;
+}
+/* 配句：直接去「字卡库」随机抽一句（库空则留空） */
+function taMoodQuoteFromCards(){
+  try{
+    if(typeof getRandomCardText === 'function'){ const t = getRandomCardText(); return t ? String(t) : ''; }
+  }catch(e){}
+  return '';
+}
+async function addTaMoodLines(lines){
+  if(!Array.isArray(taMoodPool)) taMoodPool = [];
+  const seen = {};
+  taMoodPool.forEach(p=>{ seen[taMoodKeyOf(p)] = true; });
+  let added = 0;
+  (lines||[]).forEach(l=>{ const p = parseTaMoodLine(l); if(!p) return; const k = taMoodKeyOf(p); if(seen[k]) return; seen[k]=true; taMoodPool.push(p); added++; });
+  try{ await sSet('ta-mood-pool', taMoodPool); }catch(e){}
+  return added;
+}
+function refreshTaMoodPoolUI(){
+  const listEl = document.getElementById('taMoodPoolList');
+  if(listEl) listEl.innerHTML = renderTaMoodChips();
+  const cEl = document.getElementById('taMoodPoolCount');
+  if(cEl) cEl.textContent = '心情池（共 ' + taMoodPoolCount() + ' 条）';
+}
+async function importTaMoodBulk(){
+  const el = document.getElementById('taMoodBulkInput');
+  const raw = el ? el.value : '';
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return;
+  await addTaMoodLines(lines);
+  if(el) el.value = '';
+  refreshTaMoodPoolUI();
+}
+function onTaMoodFile(e){
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    let lines = [];
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(Array.isArray(parsed)){
+        parsed.forEach(x=>{
+          if(typeof x==='string') lines.push(x);
+          else if(x && typeof x==='object') lines.push(String(x.mood||'').trim());
+        });
+      }
+    }catch(err){
+      lines = String(reader.result).split('\n').map(l=>l.trim()).filter(Boolean);
+    }
+    await addTaMoodLines(lines);
+    refreshTaMoodPoolUI();
+  };
+  reader.readAsText(f, 'utf-8');
+}
+async function deleteTaMood(i){
+  if(!Array.isArray(taMoodPool)) return;
+  taMoodPool.splice(i,1);
+  try{ await sSet('ta-mood-pool', taMoodPool); }catch(e){}
+  refreshTaMoodPoolUI();
+}
+async function openDiaryDay(dateStr){
+  if(dateStr===todayKey()){ try{ await ensureTaMoodFor(dateStr); }catch(e){} }
   const existing = diaryByDate(dateStr);
   const latest = existing[0];
   const curMood = latest ? latest.mood : '🙂';
@@ -5735,6 +6082,7 @@ function openDiaryDay(dateStr){
     <label class="field">今日心情</label>
     <div id="diaryMoodPicker" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">${moodOptions}</div>
     <input type="hidden" id="diaryMood" value="${curMood}">
+    ${taMoodBlock(dateStr)}
     <label class="field">日记</label>
     <textarea id="diaryText" placeholder="写下这一天…" style="min-height:90px;"></textarea>
     <label class="field">今天吃了什么</label>
@@ -5806,6 +6154,7 @@ function renderDiary(){
       cursor:pointer;font-size:12px;padding:2px;">
       <div style="font-weight:${isToday?'700':'400'};">${d}</div>
       <div style="font-size:14px;line-height:1.1;min-height:16px;">${mood||''}</div>
+      ${_taMoodCell(key)}
     </div>`;
   }
   grid.innerHTML = html;
@@ -6083,7 +6432,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings','vinyl-settings'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -6117,12 +6466,14 @@ async function exportBackup(){
   ]);
   let tarotHistoryData = [];
   try{ tarotHistoryData = await sGet('tarot-history', []); }catch(e){}
+  let vinylForExport = null;
+  try{ vinylForExport = await sGet('vinyl-settings', null); }catch(e){}
   const bgForExport = Object.assign({}, bgSettings, { aiKey:'' }); // 接口密钥不写进备份文件，备份发给别人也不会泄露
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, momentInteractSettings, spliceCardsEnabled,
-    companionTodos, companionHabits, companionAnnivs, tarotHistory: tarotHistoryData, tarotModelOn, bgSettings: bgForExport, momentEvents,
+    companionTodos, companionHabits, companionAnnivs, tarotHistory: tarotHistoryData, tarotModelOn, bgSettings: bgForExport, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -6199,6 +6550,13 @@ function onImportBackupFile(e){
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
       if(!data.bgSettings.aiKey && keepKey) bgSettings.aiKey = keepKey; // 备份里不带密钥，保留当前已填的
       await sSet('bg-settings', bgSettings);
+    }
+    if(data.vinylSettings && typeof data.vinylSettings === 'object'){
+      await sSet('vinyl-settings', { bg: data.vinylSettings.bg || null, vinylImg: data.vinylSettings.vinylImg || null });
+      if(!togetherState.music) togetherState.music = {};
+      togetherState.music.bg = data.vinylSettings.bg || null;
+      togetherState.music.vinylImg = data.vinylSettings.vinylImg || null;
+      togetherState.music._vinylLoaded = true;
     }
     // 恢复到各自专用的逐条记录表：先清空旧的，再把备份里的全部记录整体写进去
     await recClear('chatMessages'); await recPutMany('chatMessages', importedChat.map((m,i)=> m.time?m:{...m,time:Date.now()-(importedChat.length-i)}));
@@ -7952,7 +8310,7 @@ function tryBgNotify(title, body){
    聊天功能面板 + 一起听 / 学 / 睡
    ============================================================ */
 let togetherState = {
-  music: { official:false, shuffle:false, active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false },
+  music: { official:false, shuffle:false, active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false, bg:null, vinylImg:null },
   study: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   sleep: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' },
@@ -8262,6 +8620,35 @@ function extractNeteasePlaylistId(input){
 }
 
 var _vinylAudio = null;
+/* ===== v48：多音源 + 防无限跳歌 ===== */
+const VINYL_MAX_CONSEC_FAIL = 3; // 连续多少首“全音源都失败”后停止自动跳歌
+const VINYL_MIRRORS = [
+  'https://api.qijieya.cn/meting/?server=netease&type=url&id=', // 实测稳定的镜像，首选
+  'https://api.injahow.cn/meting/?server=netease&type=url&id=', // 原接口，留作备用
+  'https://api.i-meto.com/meting/api?server=netease&type=url&id=' // 备用
+];
+let _vinylSrcList = [];      // 当前歌曲的音源候选
+let _vinylSrcTried = 0;      // 已经试到第几个
+let _vinylFailStreak = 0;    // 连续失败歌曲数
+let _vinylSkipTimer = null;  // 自动跳歌定时器
+function vinylPrimaryUrl(id){
+  if(!id) return '';
+  return VINYL_MIRRORS[0] + encodeURIComponent(String(id));
+}
+function vinylCandidateUrls(song){
+  var arr = [];
+  if(song && song.url) arr.push(song.url);
+  if(song && song.id){
+    var sid = String(song.id).replace(/\D/g, '');
+    if(sid){
+      for(var i = 0; i < VINYL_MIRRORS.length; i++){
+        var u = VINYL_MIRRORS[i] + encodeURIComponent(sid);
+        if(arr.indexOf(u) < 0) arr.push(u);
+      }
+    }
+  }
+  return arr;
+}
 function getVinylAudio(){
   if(!_vinylAudio){
     _vinylAudio = new Audio();
@@ -8279,15 +8666,34 @@ function getVinylAudio(){
     });
     _vinylAudio.addEventListener('error', function(){
       var st = togetherState.music;
+      // v48：先把同一首歌的其它音源试完
+      if(_vinylSrcList && (_vinylSrcTried + 1) < _vinylSrcList.length){
+        _vinylSrcTried++;
+        var tip0 = document.getElementById('vinylLoadTip');
+        if(tip0) tip0.textContent = '这个音源不行，自动换下一个音源试试…';
+        try{
+          _vinylAudio.src = _vinylSrcList[_vinylSrcTried];
+          _vinylAudio.load();
+          if(st._autoPlay || st.playing){ _vinylAudio.play().catch(function(){}); }
+        }catch(e){}
+        return;
+      }
       st.playing = false;
       stopVinylTimer();
+      _vinylFailStreak = _vinylFailStreak + 1;
       var tip = document.getElementById('vinylLoadTip');
-      if(tip) tip.textContent = '这首暂时无法播放（版权/网络），已跳过或请换一首';
-      // try next after short delay
-      setTimeout(function(){ if(st.playlist.length > 1) vinylNext(true); }, 800);
+      if(_vinylFailStreak >= VINYL_MAX_CONSEC_FAIL){
+        if(tip) tip.textContent = '音源暂时不可用（连续 ' + _vinylFailStreak + ' 首都放不了），已停下，不再自动跳歌。点「🔄 重新获取播放链接」或稍后再试。';
+        _vinylFailStreak = 0;
+        return;
+      }
+      if(tip) tip.textContent = '这首暂时无法播放（版权/网络），试下一首…';
+      if(_vinylSkipTimer) clearTimeout(_vinylSkipTimer);
+      _vinylSkipTimer = setTimeout(function(){ if(st.playlist.length > 1) vinylNext(true); }, 800);
     });
     _vinylAudio.addEventListener('play', function(){
       togetherState.music.playing = true;
+      _vinylFailStreak = 0;
       var disc = document.getElementById('vinylDisc');
       if(disc) disc.classList.add('spinning');
     });
@@ -8312,13 +8718,21 @@ function openListenTogetherPanel(asInvite){
     : (st.active ? '等待对方回应…' : '粘贴网易云歌单链接，真正导入并播放');
   openOverlay(
     '<div class="drawer-head"><h3>🎵 一起听歌</h3><span class="close-x" onclick="closeOverlay();">✕</span></div>'+
+    '<div class="btn-row" style="justify-content:center;flex-wrap:wrap;margin:2px 0 8px;">'+
+      '<div class="btn outline" onclick="document.getElementById(\'vinylBgFile\').click()">🖼 换背景</div>'+
+      '<div class="btn outline" onclick="clearVinylBg()">默认背景</div>'+
+      '<div class="btn outline" onclick="document.getElementById(\'vinylImgFile\').click()">💿 换唱片图</div>'+
+      '<div class="btn outline" onclick="clearVinylImg()">默认唱片</div>'+
+      '<input type="file" id="vinylBgFile" accept="image/*" class="hidden" onchange="onVinylBgFile(event)">'+
+      '<input type="file" id="vinylImgFile" accept="image/*" class="hidden" onchange="onVinylImgFile(event)">'+
+    '</div>'+
     togetherAvatarHtml()+
     '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:4px;">'+statusText+'</div>'+
     '<div class="vinyl-stage"><div class="vinyl-disc'+spinCls+'" id="vinylDisc">'+
       '<div class="vinyl-groove" style="inset:36px;"></div>'+
       '<div class="vinyl-groove" style="inset:48px;"></div>'+
       '<div class="vinyl-groove" style="inset:60px;"></div>'+
-      '<div class="vinyl-label">'+(songName||'♪').slice(0,6)+'</div>'+
+      '<div class="vinyl-label" id="vinylLabel"'+(st.vinylImg?(' style="background-image:url('+st.vinylImg+');background-size:cover;background-position:center;"'):'')+'></div>'+
     '</div></div>'+
     '<div style="text-align:center;">'+
       '<div style="font-family:\'Songti SC\', STSong, SimSun, \'Noto Serif CJK SC\', serif;font-weight:700;font-size:15px;" id="vinylSongName">'+songName+'</div>'+
@@ -8333,6 +8747,7 @@ function openListenTogetherPanel(asInvite){
       '<div class="btn outline" onclick="vinylPrev()">⏮</div>'+
       '<div class="btn rouge" id="vinylPlayBtn" onclick="vinylTogglePlay()">'+(st.playing?'⏸ 暂停':'▶ 播放')+'</div>'+
       '<div class="btn outline" onclick="vinylNext()">⏭</div>'+
+      '<div class="btn outline" id="vinylShuffleBtn" onclick="toggleVinylShuffle()">🔀 随机：'+(st.shuffle?'开':'关')+'</div>'+
     '</div>'+
     '<div id="vinylLoadTip" style="font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:6px;min-height:16px;"></div>'+
     '<label class="field" style="margin-top:12px;">网易云歌单链接 / ID</label>'+
@@ -8342,7 +8757,11 @@ function openListenTogetherPanel(asInvite){
       ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteListenTogether()">邀请一起听</div>' : '')+
       (st.active ? '<div class="btn outline" onclick="endListenTogether()">结束</div>' : '')+
     '</div>'+
-    '<div class="btn-row" style="margin-top:8px;"><div class="btn outline" onclick="screenVinylPlayable()">🔍 筛查不能整曲播放的</div></div><div id="vinylScreenBox"></div>'+
+    '<div class="btn-row" style="margin-top:8px;flex-wrap:wrap;">'+
+      '<div class="btn outline" onclick="screenVinylPlayable()">🔍 筛查不能整曲播放的</div>'+
+      '<div class="btn outline" onclick="refreshVinylCurrentLink()">🔄 重新获取播放链接</div>'+
+      '<div class="btn outline" onclick="refreshAllVinylLinks()">🔄 全部重取链接</div>'+
+    '</div><div id="vinylScreenBox"></div>'+
     '<div class="btn-row" style="margin-top:8px;">'+
     '<p style="font-size:11px;color:var(--ink-soft);margin:8px 0 0;">在网易云打开歌单 → 点分享 → 复制链接，粘贴到上面即可。公开歌单可导入；部分 VIP 歌曲可能无法试听。</p>'+
     '<details style="margin-top:10px;font-size:12px;color:var(--ink-soft);"><summary style="cursor:pointer;">也可以手动粘贴歌名列表</summary>'+
@@ -8352,9 +8771,78 @@ function openListenTogetherPanel(asInvite){
     '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);" id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</div>'+
     '<div id="playlistPreview" style="max-height:140px;overflow:auto;margin-top:6px;font-size:12.5px;"></div>'
   );
-  renderPlaylistPreview();  
+    renderPlaylistPreview();
+  applyVinylPanelBg();
+  if(!togetherState.music._vinylLoaded){ togetherState.music._vinylLoaded = true; loadVinylSettings(); }
 }
-
+function saveVinylSettings(){
+  try{ sSet('vinyl-settings', { bg: togetherState.music.bg || null, vinylImg: togetherState.music.vinylImg || null }); }catch(e){}
+}
+async function loadVinylSettings(){
+  try{
+    var v = await sGet('vinyl-settings', null);
+    if(v){
+      if(v.bg) togetherState.music.bg = v.bg;
+      if(v.vinylImg) togetherState.music.vinylImg = v.vinylImg;
+    }
+  }catch(e){}
+  applyVinylPanelBg();
+  applyVinylLabelImg();
+}
+function applyVinylPanelBg(){
+  var d = document.querySelector('#overlayRoot .drawer');
+  if(!d) return;
+  var bg = togetherState.music.bg;
+  if(bg){
+    d.style.backgroundImage = 'linear-gradient(rgba(255,255,255,.74),rgba(255,255,255,.74)), url('+bg+')';
+    d.style.backgroundSize = 'cover';
+    d.style.backgroundPosition = 'center';
+  } else {
+    d.style.backgroundImage = '';
+  }
+}
+function applyVinylLabelImg(){
+  var lbl = document.getElementById('vinylLabel');
+  if(!lbl) return;
+  var img = togetherState.music.vinylImg;
+  if(img){
+    lbl.style.backgroundImage = 'url('+img+')';
+    lbl.style.backgroundSize = 'cover';
+    lbl.style.backgroundPosition = 'center';
+  } else {
+    lbl.style.backgroundImage = '';
+  }
+}
+function onVinylBgFile(e){
+  var f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = async function(){
+    var url = reader.result;
+    try{ url = await compressImage(reader.result, 1400); }catch(err){}
+    togetherState.music.bg = url;
+    saveVinylSettings();
+    applyVinylPanelBg();
+  };
+  reader.readAsDataURL(f);
+}
+function clearVinylBg(){ togetherState.music.bg = null; saveVinylSettings(); applyVinylPanelBg(); }
+function onVinylImgFile(e){
+  var f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = async function(){
+    var url = reader.result;
+    try{ url = await compressImage(reader.result, 700); }catch(err){}
+    togetherState.music.vinylImg = url;
+    saveVinylSettings();
+    applyVinylLabelImg();
+  };
+  reader.readAsDataURL(f);
+}
+function clearVinylImg(){ togetherState.music.vinylImg = null; saveVinylSettings(); applyVinylLabelImg(); }
 function renderPlaylistPreview(){
   const el = document.getElementById('playlistPreview');
   const cnt = document.getElementById('playlistCount');
@@ -8405,7 +8893,7 @@ const VINYL_SCREEN_WORKERS = 6;  // 并发探测数
 const VINYL_PROBE_TIMEOUT = 6500;// 单首最长等待（毫秒）
 const VINYL_PROBE_FRESH = Infinity; // 永久有效：探过一次就一直记住，不再过期（要重探点「重新筛查」）
 let _vinylLastSave = 0;          // 上次落盘时间（用于边查边存）
-const VINYL_PROBE_CACHE_IDB = 'EVAN:vinylProbeCache'; // 持久化到 IndexedDB（纯本地，不走云端）
+const VINYL_PROBE_CACHE_IDB = 'EVAN:vinylProbeCache:v2'; // v48 换 key：让旧的“放不了”误判失效，强制用多音源重判
 const VINYL_PROBE_CACHE_MAX = 3000; // 最多保留多少条，超出丢最旧
 let vinylCacheLoaded = false;
 async function vinylCacheLoad(){
@@ -8443,9 +8931,8 @@ function vinylSongKey(s){
 }
 
 function vinylScreenUrl(song){
-  if(song && song.url) return song.url;
-  if(song && song.id) return 'https://api.injahow.cn/meting/?server=netease&type=url&id=' + encodeURIComponent(song.id);
-  return '';
+  var arr = vinylCandidateUrls(song);
+  return arr.length ? arr[0] : '';
 }
 
 function probeVinylAudioMeta(url){
@@ -8492,21 +8979,32 @@ async function explainVinylFailure(url){
 }
 
 async function probeVinylPlayable(song){
-  var url = vinylScreenUrl(song);
-  if(!url) return { status:'fail', reason:'没有播放链接（文本导入的歌名）' };
-  var meta = await probeVinylAudioMeta(url);
-  if(meta.status === 'ok'){
-    var full = Number(song.duration || 0);
-    if(full > 30 && meta.duration > 0 && meta.duration < full * 0.7){
-      return { status:'trial', reason:'只有试听 ' + Math.round(meta.duration) + ' 秒（全曲约 ' + Math.round(full) + ' 秒）' };
+  // v48：把这首歌的每个音源都试一遍，全部失败才判「放不了」
+  var urls = vinylCandidateUrls(song);
+  if(!urls.length) return { status:'fail', reason:'没有播放链接（文本导入的歌名）' };
+  var full = Number(song.duration || 0);
+  var lastReason = '';
+  var sawUnknown = false;
+  for(var i = 0; i < urls.length; i++){
+    var url = urls[i];
+    var meta = await probeVinylAudioMeta(url);
+    if(meta.status === 'ok'){
+      song.url = url; // 回写可用音源，播放时即用稳定链接
+      if(full > 30 && meta.duration > 0 && meta.duration < full * 0.7){
+        return { status:'trial', reason:'只有试听 ' + Math.round(meta.duration) + ' 秒（全曲约 ' + Math.round(full) + ' 秒）' };
+      }
+      return { status:'ok' };
     }
-    return { status:'ok' };
+    if(meta.status === 'fail'){
+      var why = await explainVinylFailure(url);
+      lastReason = why || meta.reason;
+    } else {
+      sawUnknown = true;
+      lastReason = meta.reason;
+    }
   }
-  if(meta.status === 'fail'){
-    var why = await explainVinylFailure(url);
-    return { status:'fail', reason: why || meta.reason };
-  }
-  return { status:'unknown', reason: meta.reason };
+  if(sawUnknown) return { status:'unknown', reason: lastReason || '所有音源都没探到（网络可能太慢）' };
+  return { status:'fail', reason: (lastReason || '所有音源都试过，放不了') + '（已试 ' + urls.length + ' 个音源）' };
 }
 
 async function screenVinylPlayable(force){
@@ -8675,6 +9173,7 @@ async function importNeteasePlaylist(){
   if(!id){ alert('请粘贴网易云歌单链接，或填写歌单数字 ID'); return; }
   if(tip) tip.textContent = '正在从网易云拉取歌单…';
   const apis = [
+    'https://api.qijieya.cn/meting/?server=netease&type=playlist&id='+encodeURIComponent(id),
     'https://api.injahow.cn/meting/?type=playlist&id='+encodeURIComponent(id),
     'https://api.i-meto.com/meting/api?server=netease&type=playlist&id='+encodeURIComponent(id)
   ];
@@ -8703,7 +9202,7 @@ async function importNeteasePlaylist(){
           return {
             name: t.name,
             artist: arts,
-            url: 'https://api.injahow.cn/meting/?server=netease&type=url&id='+t.id,
+            url: vinylPrimaryUrl(t.id),
             pic: (t.al && (t.al.picUrl||t.al.pic_str)) || '',
             id: String(t.id),
             duration: (t.dt ? t.dt/1000 : 180)
@@ -8722,7 +9221,7 @@ async function importNeteasePlaylist(){
     return {
       name: x.name || x.title || '未命名',
       artist: x.artist || x.author || (Array.isArray(x.ar)?x.ar.map(function(a){return a.name;}).join('/'):'') || '',
-      url: x.url || (x.id ? ('https://api.injahow.cn/meting/?server=netease&type=url&id='+x.id) : ''),
+      url: (x.id ? vinylPrimaryUrl(x.id) : (x.url || '')),
       pic: x.pic || x.cover || x.picture || '',
       id: x.id ? String(x.id) : '',
       duration: x.duration || x.dt || 180,
@@ -8751,14 +9250,19 @@ function loadVinylTrack(idx, autoPlay){
   try{ maybeBotFavoriteSong(song); }catch(e){}
   const audio = getVinylAudio();
   audio.pause();
-  if(song.url){
-    audio.src = song.url;
+  // v48：为这首歌准备多个音源候选
+  _vinylSrcList = vinylCandidateUrls(song);
+  _vinylSrcTried = 0;
+  st._autoPlay = !!autoPlay;
+  if(_vinylSkipTimer){ clearTimeout(_vinylSkipTimer); _vinylSkipTimer = null; }
+  if(_vinylSrcList.length){
+    audio.src = _vinylSrcList[0];
     audio.load();
     if(autoPlay){
-      audio.play().then(function(){ st.playing = true; refreshVinylUI(); }).catch(function(err){
+      audio.play().then(function(){ st.playing = true; _vinylFailStreak = 0; refreshVinylUI(); }).catch(function(err){
         st.playing = false;
         var tip = document.getElementById('vinylLoadTip');
-        if(tip) tip.textContent = '播放失败，可能是版权限制';
+        if(tip) tip.textContent = '播放失败，正在尝试其它音源…';
         refreshVinylUI();
       });
     } else {
@@ -8864,6 +9368,46 @@ function seekVinyl(e){
   refreshVinylUI();
 }
 
+async function refreshVinylCurrentLink(){
+  var st = togetherState.music;
+  var tip = document.getElementById('vinylLoadTip');
+  if(!st.playlist.length){ alert('请先导入歌单'); return; }
+  var song = st.playlist[st.index];
+  if(!song) return;
+  try{ delete vinylProbeCache[vinylSongKey(song)]; }catch(e){}
+  if(tip) tip.textContent = '正在为「' + song.name + '」重新获取播放链接（会试所有音源）…';
+  var r;
+  try{ r = await probeVinylPlayable(song); }catch(e){ r = { status:'unknown', reason:'获取出错' }; }
+  if(r.status === 'ok'){
+    _vinylFailStreak = 0;
+    if(tip) tip.textContent = '已重新获取播放链接 ✅（' + song.name + '）';
+    try{ vinylCacheSave(); }catch(e){}
+    loadVinylTrack(st.index, st.playing);
+  } else {
+    if(tip) tip.textContent = '重新获取失败：' + (r.reason || '所有音源都试过了');
+  }
+}
+async function refreshAllVinylLinks(){
+  var st = togetherState.music;
+  var tip = document.getElementById('vinylLoadTip');
+  if(!st.playlist.length){ alert('请先导入歌单'); return; }
+  if(vinylScreenBusy) return;
+  var total = st.playlist.length, ok = 0, done = 0;
+  if(tip) tip.textContent = '正在为全部 ' + total + ' 首重新获取播放链接…';
+  for(var i = 0; i < total; i++){
+    var song = st.playlist[i];
+    try{ delete vinylProbeCache[vinylSongKey(song)]; }catch(e){}
+    var r;
+    try{ r = await probeVinylPlayable(song); }catch(e){ r = { status:'unknown' }; }
+    if(r.status === 'ok') ok++;
+    done++;
+    if(tip) tip.textContent = '正在重取链接 ' + done + '/' + total + '（成功 ' + ok + '）…';
+  }
+  try{ vinylCacheSave(); }catch(e){}
+  if(tip) tip.textContent = '全部重取完成：' + ok + '/' + total + ' 首拿到了可用链接';
+  _vinylFailStreak = 0;
+  loadVinylTrack(st.index, false);
+}
 async function inviteListenTogether(){
   const st = togetherState.music;
   const song = st.playlist[st.index] || st.playlist[0] || { name:'歌单' };
