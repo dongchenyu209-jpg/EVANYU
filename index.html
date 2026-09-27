@@ -1943,10 +1943,10 @@
         <span id="diaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
         <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(1)">›</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
         <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
       </div>
-      <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+      <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
     </div>
     <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>
     <div class="btn-row" style="margin-top:10px;">
@@ -2579,6 +2579,7 @@ async function init(){
     if(!hasReplyScheduled()){
       resumePendingReply().then(function(resumed){ if(!resumed && !hasReplyScheduled()){ maybeScheduleFromHistory(); } }).catch(function(){ if(!hasReplyScheduled()){ maybeScheduleFromHistory(); } });
     }
+    resumePendingProBurst().catch(function(e){ console.warn('resumePendingProBurst fail', e); });
   });
   setInterval(checkMomentEvents, 20000);
   setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
@@ -4414,6 +4415,8 @@ function _flashToast(text, warn){
   _saveToastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 2600);
 }
 let _proMsgBusy = false;
+function savePendingProBurst(o){ try{ sSet('pending-pro-burst', o); }catch(e){} }
+function clearPendingProBurst(){ try{ sSet('pending-pro-burst', {active:false}); }catch(e){} }
 function sendProactiveMessage(){
   // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
   if(Math.random() < 0.10 && maybeBotInviteTogether()) return;
@@ -4422,6 +4425,44 @@ function sendProactiveMessage(){
 /* 💌 按钮：手动让 TA 主动来一次，走的是同一套逻辑 */
 function triggerProactiveMessage(){
   runProactiveBurst();
+}
+/* 把一批主动消息发出去；startFrom = 已经发过的条数（刷新后接着发用） */
+function runProBurst(total, startFrom){
+  const _total = Math.max(1, Number(total) || 1);
+  const sendOneInner = async function(i){
+    let reply = null;
+    try{ reply = pickReplyFor('', { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
+    showTyping(false);
+    if(!reply){ _proMsgBusy = false; clearPendingProBurst(); return; }
+    const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
+    try{ assignGroupSender(newMsg); }catch(e){}
+    chatMessages.push(newMsg);
+    try{ maybeBotFavoriteChat(); }catch(e){}
+    try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
+    if(currentView==='chat' || roomIsOpen()){ try{ renderChat(); }catch(e){} }
+    else{
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); }catch(e){}
+      renderUnreadDots();
+      try{ tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]'); }catch(e){}
+    }
+    if(i+1 < _total){
+      const _gap = 4000 + Math.random()*56000;
+      // 连发的间隔：4 秒 ~ 1 分钟随机（"打字停顿"只算第一条，后面几条是接着发的）；状态落盘，刷新也能接着发
+      savePendingProBurst({ active:true, total:_total, sent:i+1, nextAt:Date.now()+_gap });
+      showTyping(true);
+      setTimeout(()=>{ sendOne(i+1); }, _gap);
+    } else {
+      _proMsgBusy = false;
+      clearPendingProBurst();
+    }
+  };
+  // 中途任何一步出错都要把「忙碌」标记放开，不然之后所有主动消息都会被当成「上一轮还没发完」而一直不来
+  const sendOne = async function(i){
+    try{ await sendOneInner(i); }
+    catch(e){ console.error('主动消息发送失败', e); _proMsgBusy = false; clearPendingProBurst(); try{ showTyping(false); }catch(_){} }
+  };
+  sendOne(Math.max(0, Number(startFrom) || 0));
 }
 function runProactiveBurst(){
   if(_proMsgBusy) return;      // 上一轮还没发完，别叠在一起
@@ -4440,39 +4481,26 @@ function runProactiveBurst(){
   // 2) 这次连发几条：45% 1 条，约 33% 2 条，约 22% 3 条
   const r = Math.random(); const count = r < 0.45 ? 1 : (r < 0.78 ? 2 : 3);
   _proMsgBusy = true;
+  // 第一条：走传讯设置里的"最快/最慢回复"区间，跟平时回复用同一套；状态落盘，刷新也能接着发
+  const delayMs = getReplyDelayMs();
+  savePendingProBurst({ active:true, total:count, sent:0, nextAt:Date.now()+delayMs });
   showTyping(true);
-  const sendOneInner = async function(i){
-    let reply = null;
-    try{ reply = pickReplyFor('', { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
-    showTyping(false);
-    if(!reply){ _proMsgBusy = false; return; }
-    const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
-    try{ assignGroupSender(newMsg); }catch(e){}
-    chatMessages.push(newMsg);
-    try{ maybeBotFavoriteChat(); }catch(e){}
-    try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
-    if(currentView==='chat' || roomIsOpen()){ try{ renderChat(); }catch(e){} }
-    else{
-      chatUnread = true;
-      try{ await sSet('chat-unread', true); }catch(e){}
-      renderUnreadDots();
-      try{ tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]'); }catch(e){}
-    }
-    if(i+1 < count){
-      showTyping(true);
-      // 连发的间隔：4 秒 ~ 1 分钟随机（"打字停顿"只算第一条，后面几条是接着发的）
-      setTimeout(()=>{ sendOne(i+1); }, 4000 + Math.random()*56000);
-    } else {
-      _proMsgBusy = false;
-    }
-  };
-  // 中途任何一步出错都要把「忙碌」标记放开，不然之后所有主动消息都会被当成「上一轮还没发完」而一直不来
-  const sendOne = async function(i){
-    try{ await sendOneInner(i); }
-    catch(e){ console.error('主动消息发送失败', e); _proMsgBusy = false; try{ showTyping(false); }catch(_){} }
-  };
-  // 第一条：走传讯设置里的"最快/最慢回复"区间，跟平时回复用同一套
-  setTimeout(()=>{ sendOne(0); }, getReplyDelayMs());
+  setTimeout(()=>{ runProBurst(count, 0); }, delayMs);
+}
+/* 刷新/重进后：如果 TA 还有没发完的主动消息，接着发完（否则整段会被刷新悄悄丢掉，"正在输入…"也跟着消失） */
+async function resumePendingProBurst(){
+  let p = null;
+  try{ p = await sGet('pending-pro-burst', null); }catch(e){}
+  if(!p || p.active !== true) return false;
+  if(activeCall) return false; // 通话中先不动，等下次触发再说
+  const total = Math.max(1, Number(p.total) || 1);
+  const sent = Math.max(0, Number(p.sent) || 0);
+  if(sent >= total){ clearPendingProBurst(); return false; }
+  _proMsgBusy = true;
+  const wait = Math.max(0, (Number(p.nextAt) || 0) - Date.now());
+  showTyping(true);
+  setTimeout(()=>{ runProBurst(total, sent); }, wait);
+  return true;
 }
 async function sendProactiveLetter(){
   const lineCount = 5 + Math.floor(Math.random()*11);
@@ -6291,10 +6319,10 @@ function renderDiary(){
     const isToday = key===today;
     const has = entries.length>0;
     html += `<div onclick="openDiaryDay('${key}')" style="
-      aspect-ratio:1;border:1px solid ${isToday?'var(--rouge)':(has?'var(--ink)':'var(--rule)')};
+      aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid ${isToday?'var(--rouge)':(has?'var(--ink)':'var(--rule)')};
       background:${has?'var(--blush)':(isToday?'var(--paper-2)':'var(--paper)')};
       border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      cursor:pointer;font-size:12px;padding:2px;">
+      cursor:pointer;font-size:12px;padding:2px;box-sizing:border-box;">
       <div style="font-weight:${isToday?'700':'400'};">${d}</div>
       <div style="font-size:14px;line-height:1.1;min-height:16px;">${mood||''}</div>
       ${_taMoodCell(key)}
@@ -7430,10 +7458,10 @@ function renderCompanionBody(){
           <span id="diaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
           <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(1)">›</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
           <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
         </div>
-        <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+        <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
       </div>
       <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>`;
     renderDiary();
@@ -8280,6 +8308,7 @@ go = function(name){
 let bgSettings = { notify:false, sound:true, keepAlive:false, temp:0.8 };
 let keepAliveAudio = null;
 let keepAliveWakeLock = null;
+let _keepAliveResumeBound = false; // 常驻标记：防止每次开关"后台保活"都往 document 上叠加监听器
 
 async function loadBgSettings(){
   bgSettings = await sGet('bg-settings', bgSettings);
@@ -8381,7 +8410,7 @@ function startKeepAlive(){
         keepAliveAudio.el.play().catch(function(){});
       }
     }, 12000);
-    if(!keepAliveAudio._resumeBound){
+    if(!_keepAliveResumeBound){
       const resumeOnce = function(){
         if(keepAliveAudio && keepAliveAudio.el){
           keepAliveAudio.el.play().catch(function(){});
@@ -8390,7 +8419,7 @@ function startKeepAlive(){
       document.addEventListener('visibilitychange', resumeOnce);
       document.addEventListener('touchstart', resumeOnce, { passive:true });
       document.addEventListener('click', resumeOnce);
-      keepAliveAudio._resumeBound = true;
+      _keepAliveResumeBound = true;
     }
     requestKeepAliveWakeLock();
   }catch(e){ console.warn('keepAlive fail', e); }
