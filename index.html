@@ -7536,6 +7536,8 @@ async function addCompanionFavorite(item){
 }
 function maybeBotFavoriteSong(song){
   if(!song || !song.name) return;
+  /* v64：只有真正在一起听（邀请已被接受）时，TA 才会悄悄收藏歌曲 */
+  if(!togetherState.music.active || !togetherState.music.accepted) return;
   if(Math.random() > 0.15) return;
   const key = String(song.id || song.name);
   if(companionFavorites.some(function(f){ return f.type === 'song' && String(f.songId || f.name) === key; })) return;
@@ -8916,29 +8918,58 @@ function parseLrc(lrc){
   });
   out.sort(function(a,b){ return a.t - b.t; });
   return out.filter(function(x){
-    return x.text && !/^(\u4f5c\u8bcd|\u4f5c\u66f2|\u7f16\u66f2|\u5236\u4f5c|\u6df7\u97f3|\u5f55\u97f3|\u548c\u58f0|\u76d1\u5236|\u51fa\u54c1|\u6bcd\u5e26|\u5409\u4ed6|\u8d1d\u65af|\u9f13|\u952e\u76d8|\u5f26\u4e50|\u94a2\u7434|OP|SP)\s*[:\uff1a]/.test(x.text);
+    return x.text && !/^(作词|作曲|编曲|制作|混音|录音|和声|监制|出品|母带|吉他|贝斯|鼓|键盘|弦乐|钢琴|OP|SP)\s*[:：]/.test(x.text);
   });
 }
-async function fetchVinylLyrics(song){
+function _vinylExtractId(song){
+  if(!song) return '';
+  var raw = song.id ? String(song.id) : '';
+  if(!raw && song.url){ var m = String(song.url).match(/[?&]id=(\d+)/); if(m) raw = m[1]; }
+  return raw ? String(raw).replace(/\D/g,'') : '';
+}
+async function fetchVinylLyrics(song, force){
   if(!song) return;
-  if(song._lrcParsed){ return; }
-  if(!song.lrc && song.id){
-    var sid = String(song.id).replace(/\D/g,'');
-    if(sid){
-      var urls = [
-        'https://api.qijieya.cn/meting/?server=netease&type=lrc&id='+encodeURIComponent(sid),
-        'https://api.injahow.cn/meting/?type=lrc&id='+encodeURIComponent(sid)
-      ];
-      for(var i=0;i<urls.length;i++){
-        try{
-          var r = await fetch(urls[i]);
-          if(r.ok){ var t = await r.text(); if(t && t.indexOf('[')>=0){ song.lrc = t; break; } }
-        }catch(e){}
+  if(song._lrcParsed && !force) return;
+  var sid = _vinylExtractId(song);
+  if(!song.lrc && !sid && song.name){
+    try{
+      var kw = encodeURIComponent((song.name + ' ' + (song.artist||'')).trim());
+      var rs = await fetch('https://api.qijieya.cn/meting/?server=netease&type=search&id='+kw);
+      if(rs.ok){
+        var arr = await rs.json();
+        if(Array.isArray(arr) && arr.length){
+          var mm = String(arr[0].url||'').match(/[?&]id=(\d+)/);
+          if(mm){ sid = mm[1]; song.id = sid; }
+        }
       }
+    }catch(e){}
+  }
+  if(!song.lrc && sid){
+    var urls = [
+      'https://api.qijieya.cn/meting/?server=netease&type=lrc&id='+encodeURIComponent(sid),
+      'https://api.injahow.cn/meting/?type=lrc&id='+encodeURIComponent(sid)
+    ];
+    for(var i=0;i<urls.length;i++){
+      try{
+        var r = await fetch(urls[i]);
+        if(r.ok){ var t = await r.text(); if(t && t.indexOf('[')>=0){ song.lrc = t; break; } }
+      }catch(e){}
     }
   }
+  if(song.lrc && /^https?:\/\//i.test(String(song.lrc).trim())){
+    try{
+      var rr = await fetch(String(song.lrc).trim());
+      if(rr.ok){ var tt = await rr.text(); if(tt && tt.indexOf('[')>=0){ song.lrc = tt; } }
+    }catch(e){}
+  }
   song._lrcLines = parseLrc(song.lrc || '');
-  song._lrcParsed = true;
+  var hasId = !!_vinylExtractId(song);
+  if(song._lrcLines.length || !hasId){
+    song._lrcParsed = true;
+  }else{
+    song._lrcTries = (song._lrcTries||0)+1;
+    song._lrcParsed = (song._lrcTries >= 3);
+  }
   if(song === togetherState.music.playlist[togetherState.music.index]) updateVinylLyrics(true);
 }
 function updateVinylLyrics(force){
@@ -8948,80 +8979,7 @@ function updateVinylLyrics(force){
   var song = st.playlist[st.index];
   var lines = (song && song._lrcLines) || [];
   if(!lines.length){
-    var msg = song ? (song.id ? '\u266a \u6b63\u5728\u52a0\u8f7d\u6b4c\u8bcd\u2026' : '\u266a \u8fd9\u9996\u6ca1\u6709\u6b4c\u8bcd') : '\u266a \u8fd8\u6ca1\u6709\u6b4c\u66f2';
-    if(force || box.dataset.mode!=='none'){
-      box.dataset.mode='none';
-      box.innerHTML = '<div class="ly ly-plain">'+escapeHtml(msg)+'</div>';
-    }
-    return;
-  }
-  if(force || box.dataset.mode!=='lrc'){
-    box.dataset.mode='lrc';
-    box.innerHTML = lines.map(function(l,i){ return '<div class="ly" data-i="'+i+'">'+escapeHtml(l.text)+'</div>'; }).join('');
-    _vinylLyricIdx = -1;
-  }
-  var cur = st.progress || 0;
-  var idx = 0;
-  for(var i=0;i<lines.length;i++){ if(lines[i].t <= cur + 0.2){ idx = i; } else { break; } }
-  if(idx === _vinylLyricIdx && !force) return;
-  _vinylLyricIdx = idx;
-  var kids = box.children;
-  for(var j=0;j<kids.length;j++){ kids[j].classList.toggle('on', j===idx); }
-  var onEl = kids[idx];
-  if(onEl){
-    var target = onEl.offsetTop - box.clientHeight/2 + onEl.offsetHeight/2;
-    if(target < 0) target = 0;
-    try{ box.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ box.scrollTop = target; }
-  }
-}
-var _vinylLyricIdx = -1;
-function parseLrc(lrc){
-  var out = [];
-  if(!lrc) return out;
-  String(lrc).split(/\r?\n/).forEach(function(line){
-    var m = line.match(/\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\](.*)/);
-    if(!m) return;
-    var min = parseInt(m[1],10), sec = parseInt(m[2],10);
-    var frac = 0;
-    if(m[3]){ frac = (m[3].length===2) ? (parseInt(m[3],10)/100) : (parseInt(m[3],10)/1000); }
-    var txt = (m[4]||'').trim();
-    out.push({ t: min*60 + sec + frac, text: txt });
-  });
-  out.sort(function(a,b){ return a.t - b.t; });
-  return out.filter(function(x){
-    return x.text && !/^(\u4f5c\u8bcd|\u4f5c\u66f2|\u7f16\u66f2|\u5236\u4f5c|\u6df7\u97f3|\u5f55\u97f3|\u548c\u58f0|\u76d1\u5236|\u51fa\u54c1|\u6bcd\u5e26|\u5409\u4ed6|\u8d1d\u65af|\u9f13|\u952e\u76d8|\u5f26\u4e50|\u94a2\u7434|OP|SP)\s*[:\uff1a]/.test(x.text);
-  });
-}
-async function fetchVinylLyrics(song){
-  if(!song) return;
-  if(song._lrcParsed){ return; }
-  if(!song.lrc && song.id){
-    var sid = String(song.id).replace(/\D/g,'');
-    if(sid){
-      var urls = [
-        'https://api.qijieya.cn/meting/?server=netease&type=lrc&id='+encodeURIComponent(sid),
-        'https://api.injahow.cn/meting/?type=lrc&id='+encodeURIComponent(sid)
-      ];
-      for(var i=0;i<urls.length;i++){
-        try{
-          var r = await fetch(urls[i]);
-          if(r.ok){ var t = await r.text(); if(t && t.indexOf('[')>=0){ song.lrc = t; break; } }
-        }catch(e){}
-      }
-    }
-  }
-  song._lrcLines = parseLrc(song.lrc || '');
-  song._lrcParsed = true;
-  if(song === togetherState.music.playlist[togetherState.music.index]) updateVinylLyrics(true);
-}
-function updateVinylLyrics(force){
-  var box = document.getElementById('vinylLyrics');
-  if(!box) return;
-  var st = togetherState.music;
-  var song = st.playlist[st.index];
-  var lines = (song && song._lrcLines) || [];
-  if(!lines.length){
-    var msg = song ? (song.id ? '\u266a \u6b63\u5728\u52a0\u8f7d\u6b4c\u8bcd\u2026' : '\u266a \u8fd9\u9996\u6ca1\u6709\u6b4c\u8bcd') : '\u266a \u8fd8\u6ca1\u6709\u6b4c\u66f2';
+    var msg = song ? (_vinylExtractId(song) ? '♪ 正在加载歌词…' : '♪ 这首没有歌词') : '♪ 还没有歌曲';
     if(force || box.dataset.mode!=='none'){
       box.dataset.mode='none';
       box.innerHTML = '<div class="ly ly-plain">'+escapeHtml(msg)+'</div>';
@@ -9106,7 +9064,6 @@ function openListenTogetherPanel(asInvite){
   );
     renderPlaylistPreview();
   applyVinylPanelBg();
-  try{ updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   try{ updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   if(!togetherState.music._vinylLoaded){ togetherState.music._vinylLoaded = true; loadVinylSettings(); }
 }
@@ -9560,15 +9517,20 @@ async function importNeteasePlaylist(){
     alert('导入失败。请确认歌单是公开的，或换一个歌单链接再试。');
     return;
   }
-  const items = list.map(function(x){
+const items = list.map(function(x){
+    var _rid = x.id ? String(x.id) : '';
+    if(!_rid){
+      var _mm = (String(x.url||'') + ' ' + String(x.lrc||'')).match(/[?&]id=(\d+)/);
+      if(_mm) _rid = String(_mm[1]).replace(/\D/g,'');
+    }
     return {
       name: x.name || x.title || '未命名',
       artist: x.artist || x.author || (Array.isArray(x.ar)?x.ar.map(function(a){return a.name;}).join('/'):'') || '',
-      url: (x.id ? vinylPrimaryUrl(x.id) : (x.url || '')),
+      url: x.url || (_rid ? vinylPrimaryUrl(_rid) : ''),
       pic: x.pic || x.cover || x.picture || '',
-      id: x.id ? String(x.id) : '',
+      id: _rid,
       duration: x.duration || x.dt || 180,
-      lrc: x.lrc || ''
+      lrc: ''
     };
   }).filter(function(x){ return x.name; });
   if(!togetherState.music.playlistName) togetherState.music.playlistName = '网易云 · '+id;
@@ -9592,7 +9554,6 @@ function loadVinylTrack(idx, autoPlay){
   st.progress = 0;
   st.duration = song.duration || 180;
   try{ maybeBotFavoriteSong(song); }catch(e){}
-  try{ _vinylLyricIdx = -1; var _lb = document.getElementById('vinylLyrics'); if(_lb) _lb.dataset.mode=''; updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   try{ _vinylLyricIdx = -1; var _lb = document.getElementById('vinylLyrics'); if(_lb) _lb.dataset.mode=''; updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   const audio = getVinylAudio();
   audio.pause();
@@ -9762,12 +9723,22 @@ async function inviteListenTogether(){
   scheduleTogetherReply('music');
 }
 
+/* v63：邀请=陪伴，按“结束”就真的结束——可取消的定时器 + 回调里再校验一次状态 */
+const _togetherReplyTimers = {};
+function cancelTogetherReply(kind){
+  if(_togetherReplyTimers[kind]){ clearTimeout(_togetherReplyTimers[kind]); delete _togetherReplyTimers[kind]; }
+}
 function scheduleTogetherReply(kind){
   const delayMs = (typeof getReplyDelayMs==='function') ? getReplyDelayMs() : (3000+Math.random()*5000);
   // 自检/演示时可缩短：若刚点过自检，不改全局
-  setTimeout(async function(){
+  cancelTogetherReply(kind);
+  _togetherReplyTimers[kind] = setTimeout(async function(){
+    delete _togetherReplyTimers[kind];
     const accept = Math.random() < 0.75;
     const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user');
+    // v63：如果用户已经按了“结束”（不再是“等他回应”），对方就不再回应了
+    var _stv = togetherState[kind];
+    if(!lastInvite || !_stv || !_stv.active || _stv.accepted || _stv.inviter!=='user'){ return; }
     if(kind==='music'){
       togetherState.music.accepted = accept;
       if(accept){
@@ -9853,12 +9824,18 @@ function scheduleTogetherReply(kind){
   }, delayMs);
 }
 
+/* v63：结束某个“陪伴”邀请（听/学/睡/看通用）——取消对方的自动回应，并把还在“等待回应”的卡直接置为已结束 */
+async function endCompanionInvite(kind, text, extra){
+  cancelTogetherReply(kind);
+  const lastPending = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending');
+  if(togetherState[kind]){ togetherState[kind].active = false; togetherState[kind].accepted = false; }
+  if(lastPending){ await updateInviteCardStatus(lastPending.id, 'ended', { content:text, detail:text }); }
+  else { await postTogetherSystemMsg(text, extra); }
+}
 async function endListenTogether(){
   stopVinylTimer();
-  togetherState.music.active = false;
   togetherState.music.playing = false;
-  togetherState.music.accepted = false;
-  await postTogetherSystemMsg('一起听歌结束了', { kind:'music', status:'ended', inviter: togetherState.music.inviter||'user', from:'user' });
+  await endCompanionInvite('music', '一起听歌结束了', { kind:'music', status:'ended', inviter: togetherState.music.inviter||'user', from:'user' });
   togetherState.music.active=false; togetherState.music.accepted=false;
   closeOverlay();
 }
@@ -10238,9 +10215,7 @@ async function inviteStudyTogether(){
   scheduleTogetherReply('study');
 }
 async function endStudyTogether(){
-  togetherState.study.active = false;
-  togetherState.study.accepted = false;
-  await postTogetherSystemMsg('一起学习结束了', { kind:'study', status:'ended', inviter: togetherState.study.inviter||'user', from:'user' });
+  await endCompanionInvite('study', '一起学习结束了', { kind:'study', status:'ended', inviter: togetherState.study.inviter||'user', from:'user' });
   closeOverlay();
   try{ refreshCompanionFloat(); }catch(e){}
 }
@@ -10274,9 +10249,7 @@ async function inviteSleepTogether(){
   scheduleTogetherReply('sleep');
 }
 async function endSleepTogether(){
-  togetherState.sleep.active = false;
-  togetherState.sleep.accepted = false;
-  await postTogetherSystemMsg('一起睡觉结束了 · 晚安', { kind:'sleep', status:'ended', inviter: togetherState.sleep.inviter||'user', from:'user' });
+  await endCompanionInvite('sleep', '一起睡觉结束了 · 晚安', { kind:'sleep', status:'ended', inviter: togetherState.sleep.inviter||'user', from:'user' });
   closeOverlay();
   try{ refreshCompanionFloat(); }catch(e){}
 }
@@ -10352,9 +10325,7 @@ async function inviteWatchTogether(){
   scheduleTogetherReply('watch');
 }
 async function endWatchTogether(){
-  togetherState.watch.active = false;
-  togetherState.watch.accepted = false;
-  await postTogetherSystemMsg('一起看结束了', { kind:'watch', status:'ended', inviter: togetherState.watch.inviter||'user', from:'user', bvid: togetherState.watch.bvid });
+  await endCompanionInvite('watch', '一起看结束了', { kind:'watch', status:'ended', inviter: togetherState.watch.inviter||'user', from:'user', bvid: togetherState.watch.bvid });
   closeOverlay();
 }
 
