@@ -1093,6 +1093,24 @@
   position:relative;
 }
 .vinyl-disc.spinning{ animation: vinylSpin 4s linear infinite; }
+.vinyl-lyrics{
+  height:184px; max-width:330px; margin:4px auto 12px; overflow-y:auto;
+  text-align:center; padding:16px 10px; box-sizing:border-box;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+          mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+.vinyl-lyrics .ly{ font-size:13px; line-height:1.6; color:var(--ink-soft); opacity:.68; transition:color .2s, opacity .2s, font-size .2s; padding:1px 0; }
+.vinyl-lyrics .ly.on{ color:var(--rouge); opacity:1; font-weight:700; font-size:16px; }
+.vinyl-lyrics .ly-plain{ padding-top:60px; opacity:.8; font-size:13px; }
+.vinyl-lyrics{
+  height:184px; max-width:330px; margin:4px auto 12px; overflow-y:auto;
+  text-align:center; padding:16px 10px; box-sizing:border-box;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+          mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+.vinyl-lyrics .ly{ font-size:13px; line-height:1.6; color:var(--ink-soft); opacity:.68; transition:color .2s, opacity .2s, font-size .2s; padding:1px 0; }
+.vinyl-lyrics .ly.on{ color:var(--rouge); opacity:1; font-weight:700; font-size:16px; }
+.vinyl-lyrics .ly-plain{ padding-top:60px; opacity:.8; font-size:13px; }
 @keyframes vinylSpin{ to{ transform:rotate(360deg); } }
 .vinyl-label{
   position:absolute; inset:0; margin:auto; width:70px; height:70px; border-radius:50%;
@@ -2556,6 +2574,7 @@ async function init(){
     checkQuestionnaireReplies();
     resumeMoyuSchedule();
     resumePendingInviteReplies();
+    if(typeof resumeCall === 'function'){ resumeCall(); }
     if(typeof tzStart === "function") tzStart();
     if(!hasReplyScheduled()){
       resumePendingReply().then(function(resumed){ if(!resumed && !hasReplyScheduled()){ maybeScheduleFromHistory(); } }).catch(function(){ if(!hasReplyScheduled()){ maybeScheduleFromHistory(); } });
@@ -3144,8 +3163,11 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible'){
     refreshTodayStatusIfDue();
     if(typeof checkProactiveDue === 'function') checkProactiveDue(); // 切回前台时补发被后台冻结的主动消息/信件/来电/动态
+    if(typeof requestKeepAliveWakeLock === 'function') requestKeepAliveWakeLock();
   }
 });
+// 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
+window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
 setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
 setInterval(()=>{ if(document.visibilityState==='visible' && typeof checkProactiveDue==='function') checkProactiveDue(); }, 60*1000); // 前台长时间停留时，每 1 分钟兜底检查一次主动消息
 
@@ -4537,13 +4559,80 @@ async function sendGesture(key){
   handleIncomingForBot('');
 }
 
+/* ---- 通话持久化：刷新/重开之后把没结束的通话接回来 ---- */
+function callSessionSnapshot(){
+  if(!activeCall) return null;
+  return {
+    direction: activeCall.direction,
+    status: activeCall.status,
+    muted: !!activeCall.muted,
+    camOn: activeCall.camOn !== false,
+    startTime: activeCall.startTime || null,
+    ringStart: activeCall.ringStart || null,
+    minimized: !!activeCall.minimized,
+    savedAt: Date.now()
+  };
+}
+function saveCallSession(){ try{ sSet('call-session', callSessionSnapshot()); }catch(e){} }
+function clearCallSession(){ try{ sSet('call-session', null); }catch(e){} }
+// 刷新/重开之后，把还没结束的通话接回来（方案 A：刷新不挂断）
+async function resumeCall(){
+  if(activeCall) return;
+  let saved = null;
+  try{ saved = await sGet('call-session', null); }catch(e){}
+  if(!saved || !saved.direction || !saved.status) return;
+  const now = Date.now();
+  const stale = (now - (saved.savedAt || 0)) > 2*3600*1000;
+  if(saved.status === 'connected'){
+    if(stale && (!saved.startTime || (now - saved.startTime) > 2*3600*1000)){ clearCallSession(); return; }
+    activeCall = { direction:saved.direction, status:'connected', muted:!!saved.muted, camOn:saved.camOn!==false, startTime:saved.startTime || now, minimized:!!saved.minimized };
+    showCallOverlay();
+    document.getElementById('callStatusLabel').textContent = '视频通话中';
+    document.getElementById('callTimerLabel').classList.remove('hidden');
+    document.getElementById('callActions').innerHTML = `
+      <div class="call-btn-sm" id="muteBtn" onclick="toggleMute()">${activeCall.muted?'🔇':'🎤'}</div>
+      <div class="call-btn hangup" onclick="endCall('completed')">✕</div>
+      <div class="call-btn-sm" id="camBtn" onclick="toggleCamera()">${activeCall.camOn?'📷':'🚫'}</div>`;
+    try{ const mb=document.getElementById('muteBtn'); if(mb) mb.classList.toggle('on', activeCall.muted); }catch(e){}
+    try{ const cb=document.getElementById('camBtn'); if(cb) cb.classList.toggle('on', !activeCall.camOn); const pip=document.getElementById('callSelfPip'); if(pip) pip.classList.toggle('cam-off', !activeCall.camOn); }catch(e){}
+    activeCall.timerInterval = setInterval(updateCallTimer, 1000);
+    updateCallTimer();
+    if(activeCall.minimized) minimizeCall();
+  } else if(saved.status === 'ringing'){
+    if(stale){ clearCallSession(); return; }
+    if(saved.direction === 'out'){
+      activeCall = { direction:'out', status:'ringing', muted:false, camOn:true, minimized:false, ringStart:now };
+      showCallOverlay();
+      document.getElementById('callStatusLabel').textContent = '视频呼叫中…';
+      document.getElementById('callTimerLabel').classList.add('hidden');
+      document.getElementById('callActions').innerHTML = `<div class="call-btn hangup" onclick="endCall('cancelled')">✕</div>`;
+      activeCall.ringTimeout = setTimeout(()=>{
+        if(!activeCall || activeCall.status!=='ringing') return;
+        if(Math.random() < 0.85){ connectCall(); } else { endCall('missed_by_them'); }
+      }, 1000 + Math.random()*8000);
+    } else {
+      activeCall = { direction:'in', status:'ringing', muted:false, camOn:true, minimized:false, ringStart:now };
+      showCallOverlay();
+      document.getElementById('callStatusLabel').textContent = '视频来电…';
+      document.getElementById('callTimerLabel').classList.add('hidden');
+      document.getElementById('callActions').innerHTML = `
+        <div class="call-btn decline" onclick="endCall('declined')">✕</div>
+        <div class="call-btn accept" onclick="connectCall()">✓</div>`;
+      activeCall.missedTimeout = setTimeout(()=>{
+        if(activeCall && activeCall.status==='ringing'){ endCall('missed'); }
+      }, 15000);
+    }
+    saveCallSession();
+  }
+}
 /* ============================================================
    通话：TA可以主动打给我，我也可以主动打给TA，纯随机不设区间
    ============================================================ */
 function startOutgoingCall(){
   if(activeCall) return;
-  activeCall = { direction:'out', status:'ringing', muted:false, camOn:true };
+  activeCall = { direction:'out', status:'ringing', muted:false, camOn:true, minimized:false, ringStart:Date.now() };
   showCallOverlay();
+  saveCallSession();
   document.getElementById('callStatusLabel').textContent = '视频呼叫中…';
   document.getElementById('callTimerLabel').classList.add('hidden');
   document.getElementById('callActions').innerHTML = `<div class="call-btn hangup" onclick="endCall('cancelled')">✕</div>`;
@@ -4554,8 +4643,9 @@ function startOutgoingCall(){
 }
 function receiveIncomingCall(){
   if(activeCall || currentView==='calls' && document.hidden) return;
-  activeCall = { direction:'in', status:'ringing', muted:false, camOn:true };
+  activeCall = { direction:'in', status:'ringing', muted:false, camOn:true, minimized:false, ringStart:Date.now() };
   showCallOverlay();
+  saveCallSession();
   document.getElementById('callStatusLabel').textContent = '视频来电…';
   document.getElementById('callTimerLabel').classList.add('hidden');
   document.getElementById('callActions').innerHTML = `
@@ -4572,6 +4662,8 @@ function connectCall(){
   clearTimeout(activeCall.ringTimeout);
   activeCall.status = 'connected';
   activeCall.startTime = Date.now();
+  activeCall.minimized = false;
+  saveCallSession();
   document.getElementById('callStatusLabel').textContent = '视频通话中';
   document.getElementById('callTimerLabel').classList.remove('hidden');
   document.getElementById('callActions').innerHTML = `
@@ -4586,6 +4678,7 @@ function toggleMute(){
   activeCall.muted = !activeCall.muted;
   const btn = document.getElementById('muteBtn');
   if(btn){ btn.textContent = activeCall.muted ? '🔇' : '🎤'; btn.classList.toggle('on', activeCall.muted); }
+  saveCallSession();
 }
 function toggleCamera(){
   if(!activeCall) return;
@@ -4594,6 +4687,7 @@ function toggleCamera(){
   if(btn){ btn.textContent = activeCall.camOn ? '📷' : '🚫'; btn.classList.toggle('on', !activeCall.camOn); }
   const pip = document.getElementById('callSelfPip');
   if(pip) pip.classList.toggle('cam-off', !activeCall.camOn);
+  saveCallSession();
 }
 function updateCallTimer(){
   if(!activeCall || !activeCall.startTime) return;
@@ -4606,12 +4700,16 @@ function updateCallTimer(){
 }
 function minimizeCall(){
   if(!activeCall) return;
+  activeCall.minimized = true;
+  saveCallSession();
   document.getElementById('callOverlay').classList.add('hidden');
   document.getElementById('callBubble').classList.remove('hidden');
   updateCallBubbleText();
 }
 function restoreCall(){
   if(!activeCall) return;
+  activeCall.minimized = false;
+  saveCallSession();
   document.getElementById('callBubble').classList.add('hidden');
   document.getElementById('callOverlay').classList.remove('hidden');
 }
@@ -4686,6 +4784,7 @@ async function endCall(reason){
   // 先把 activeCall 摘出来置空：以前是存完库才置空，挂断键连点两下会记两条通话
   const call = activeCall;
   activeCall = null;
+  clearCallSession();
   clearTimeout(call.missedTimeout);
   clearTimeout(call.ringTimeout);
   clearInterval(call.timerInterval);
@@ -6476,7 +6575,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings','vinyl-settings'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings','vinyl-settings','call-session'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -8178,6 +8277,7 @@ go = function(name){
    ============================================================ */
 let bgSettings = { notify:false, sound:true, keepAlive:false, temp:0.8 };
 let keepAliveAudio = null;
+let keepAliveWakeLock = null;
 
 async function loadBgSettings(){
   bgSettings = await sGet('bg-settings', bgSettings);
@@ -8242,6 +8342,22 @@ function toggleKeepAlive(el){
   saveBgSettings();
   if(bgSettings.keepAlive) startKeepAlive(); else stopKeepAlive();
 }
+function requestKeepAliveWakeLock(){
+  try{
+    if(!bgSettings || !bgSettings.keepAlive) return;
+    if(!navigator.wakeLock || !navigator.wakeLock.request) return;
+    if(keepAliveWakeLock) return;
+    if(document.visibilityState !== 'visible') return;
+    navigator.wakeLock.request('screen').then(function(lock){
+      keepAliveWakeLock = lock;
+      try{ lock.addEventListener('release', function(){ keepAliveWakeLock = null; }); }catch(e){}
+    }).catch(function(){});
+  }catch(e){}
+}
+function releaseKeepAliveWakeLock(){
+  try{ if(keepAliveWakeLock){ keepAliveWakeLock.release(); } }catch(e){}
+  keepAliveWakeLock = null;
+}
 function startKeepAlive(){
   if(keepAliveAudio && keepAliveAudio.el){
     try{ keepAliveAudio.el.play().catch(function(){}); }catch(e){}
@@ -8274,6 +8390,7 @@ function startKeepAlive(){
       document.addEventListener('click', resumeOnce);
       keepAliveAudio._resumeBound = true;
     }
+    requestKeepAliveWakeLock();
   }catch(e){ console.warn('keepAlive fail', e); }
 }
 function stopKeepAlive(){
@@ -8286,6 +8403,7 @@ function stopKeepAlive(){
       keepAliveAudio.el.load();
     }
   }catch(e){}
+  releaseKeepAliveWakeLock();
   keepAliveAudio = null;
 }
 
@@ -8775,18 +8893,160 @@ function getVinylAudio(){
     _vinylAudio.addEventListener('play', function(){
       togetherState.music.playing = true;
       _vinylFailStreak = 0;
-      var disc = document.getElementById('vinylDisc');
-      if(disc) disc.classList.add('spinning');
     });
     _vinylAudio.addEventListener('pause', function(){
       togetherState.music.playing = false;
-      var disc = document.getElementById('vinylDisc');
-      if(disc) disc.classList.remove('spinning');
     });
   }
   return _vinylAudio;
 }
 
+var _vinylLyricIdx = -1;
+function parseLrc(lrc){
+  var out = [];
+  if(!lrc) return out;
+  String(lrc).split(/\r?\n/).forEach(function(line){
+    var m = line.match(/\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\](.*)/);
+    if(!m) return;
+    var min = parseInt(m[1],10), sec = parseInt(m[2],10);
+    var frac = 0;
+    if(m[3]){ frac = (m[3].length===2) ? (parseInt(m[3],10)/100) : (parseInt(m[3],10)/1000); }
+    var txt = (m[4]||'').trim();
+    out.push({ t: min*60 + sec + frac, text: txt });
+  });
+  out.sort(function(a,b){ return a.t - b.t; });
+  return out.filter(function(x){
+    return x.text && !/^(\u4f5c\u8bcd|\u4f5c\u66f2|\u7f16\u66f2|\u5236\u4f5c|\u6df7\u97f3|\u5f55\u97f3|\u548c\u58f0|\u76d1\u5236|\u51fa\u54c1|\u6bcd\u5e26|\u5409\u4ed6|\u8d1d\u65af|\u9f13|\u952e\u76d8|\u5f26\u4e50|\u94a2\u7434|OP|SP)\s*[:\uff1a]/.test(x.text);
+  });
+}
+async function fetchVinylLyrics(song){
+  if(!song) return;
+  if(song._lrcParsed){ return; }
+  if(!song.lrc && song.id){
+    var sid = String(song.id).replace(/\D/g,'');
+    if(sid){
+      var urls = [
+        'https://api.qijieya.cn/meting/?server=netease&type=lrc&id='+encodeURIComponent(sid),
+        'https://api.injahow.cn/meting/?type=lrc&id='+encodeURIComponent(sid)
+      ];
+      for(var i=0;i<urls.length;i++){
+        try{
+          var r = await fetch(urls[i]);
+          if(r.ok){ var t = await r.text(); if(t && t.indexOf('[')>=0){ song.lrc = t; break; } }
+        }catch(e){}
+      }
+    }
+  }
+  song._lrcLines = parseLrc(song.lrc || '');
+  song._lrcParsed = true;
+  if(song === togetherState.music.playlist[togetherState.music.index]) updateVinylLyrics(true);
+}
+function updateVinylLyrics(force){
+  var box = document.getElementById('vinylLyrics');
+  if(!box) return;
+  var st = togetherState.music;
+  var song = st.playlist[st.index];
+  var lines = (song && song._lrcLines) || [];
+  if(!lines.length){
+    var msg = song ? (song.id ? '\u266a \u6b63\u5728\u52a0\u8f7d\u6b4c\u8bcd\u2026' : '\u266a \u8fd9\u9996\u6ca1\u6709\u6b4c\u8bcd') : '\u266a \u8fd8\u6ca1\u6709\u6b4c\u66f2';
+    if(force || box.dataset.mode!=='none'){
+      box.dataset.mode='none';
+      box.innerHTML = '<div class="ly ly-plain">'+escapeHtml(msg)+'</div>';
+    }
+    return;
+  }
+  if(force || box.dataset.mode!=='lrc'){
+    box.dataset.mode='lrc';
+    box.innerHTML = lines.map(function(l,i){ return '<div class="ly" data-i="'+i+'">'+escapeHtml(l.text)+'</div>'; }).join('');
+    _vinylLyricIdx = -1;
+  }
+  var cur = st.progress || 0;
+  var idx = 0;
+  for(var i=0;i<lines.length;i++){ if(lines[i].t <= cur + 0.2){ idx = i; } else { break; } }
+  if(idx === _vinylLyricIdx && !force) return;
+  _vinylLyricIdx = idx;
+  var kids = box.children;
+  for(var j=0;j<kids.length;j++){ kids[j].classList.toggle('on', j===idx); }
+  var onEl = kids[idx];
+  if(onEl){
+    var target = onEl.offsetTop - box.clientHeight/2 + onEl.offsetHeight/2;
+    if(target < 0) target = 0;
+    try{ box.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ box.scrollTop = target; }
+  }
+}
+var _vinylLyricIdx = -1;
+function parseLrc(lrc){
+  var out = [];
+  if(!lrc) return out;
+  String(lrc).split(/\r?\n/).forEach(function(line){
+    var m = line.match(/\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\](.*)/);
+    if(!m) return;
+    var min = parseInt(m[1],10), sec = parseInt(m[2],10);
+    var frac = 0;
+    if(m[3]){ frac = (m[3].length===2) ? (parseInt(m[3],10)/100) : (parseInt(m[3],10)/1000); }
+    var txt = (m[4]||'').trim();
+    out.push({ t: min*60 + sec + frac, text: txt });
+  });
+  out.sort(function(a,b){ return a.t - b.t; });
+  return out.filter(function(x){
+    return x.text && !/^(\u4f5c\u8bcd|\u4f5c\u66f2|\u7f16\u66f2|\u5236\u4f5c|\u6df7\u97f3|\u5f55\u97f3|\u548c\u58f0|\u76d1\u5236|\u51fa\u54c1|\u6bcd\u5e26|\u5409\u4ed6|\u8d1d\u65af|\u9f13|\u952e\u76d8|\u5f26\u4e50|\u94a2\u7434|OP|SP)\s*[:\uff1a]/.test(x.text);
+  });
+}
+async function fetchVinylLyrics(song){
+  if(!song) return;
+  if(song._lrcParsed){ return; }
+  if(!song.lrc && song.id){
+    var sid = String(song.id).replace(/\D/g,'');
+    if(sid){
+      var urls = [
+        'https://api.qijieya.cn/meting/?server=netease&type=lrc&id='+encodeURIComponent(sid),
+        'https://api.injahow.cn/meting/?type=lrc&id='+encodeURIComponent(sid)
+      ];
+      for(var i=0;i<urls.length;i++){
+        try{
+          var r = await fetch(urls[i]);
+          if(r.ok){ var t = await r.text(); if(t && t.indexOf('[')>=0){ song.lrc = t; break; } }
+        }catch(e){}
+      }
+    }
+  }
+  song._lrcLines = parseLrc(song.lrc || '');
+  song._lrcParsed = true;
+  if(song === togetherState.music.playlist[togetherState.music.index]) updateVinylLyrics(true);
+}
+function updateVinylLyrics(force){
+  var box = document.getElementById('vinylLyrics');
+  if(!box) return;
+  var st = togetherState.music;
+  var song = st.playlist[st.index];
+  var lines = (song && song._lrcLines) || [];
+  if(!lines.length){
+    var msg = song ? (song.id ? '\u266a \u6b63\u5728\u52a0\u8f7d\u6b4c\u8bcd\u2026' : '\u266a \u8fd9\u9996\u6ca1\u6709\u6b4c\u8bcd') : '\u266a \u8fd8\u6ca1\u6709\u6b4c\u66f2';
+    if(force || box.dataset.mode!=='none'){
+      box.dataset.mode='none';
+      box.innerHTML = '<div class="ly ly-plain">'+escapeHtml(msg)+'</div>';
+    }
+    return;
+  }
+  if(force || box.dataset.mode!=='lrc'){
+    box.dataset.mode='lrc';
+    box.innerHTML = lines.map(function(l,i){ return '<div class="ly" data-i="'+i+'">'+escapeHtml(l.text)+'</div>'; }).join('');
+    _vinylLyricIdx = -1;
+  }
+  var cur = st.progress || 0;
+  var idx = 0;
+  for(var i=0;i<lines.length;i++){ if(lines[i].t <= cur + 0.2){ idx = i; } else { break; } }
+  if(idx === _vinylLyricIdx && !force) return;
+  _vinylLyricIdx = idx;
+  var kids = box.children;
+  for(var j=0;j<kids.length;j++){ kids[j].classList.toggle('on', j===idx); }
+  var onEl = kids[idx];
+  if(onEl){
+    var target = onEl.offsetTop - box.clientHeight/2 + onEl.offsetHeight/2;
+    if(target < 0) target = 0;
+    try{ box.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ box.scrollTop = target; }
+  }
+}
 function openListenTogetherPanel(asInvite){
   const st = togetherState.music;
   const song = st.playlist[st.index] || null;
@@ -8802,19 +9062,11 @@ function openListenTogetherPanel(asInvite){
     '<div class="btn-row" style="justify-content:center;flex-wrap:wrap;margin:2px 0 8px;">'+
       '<div class="btn outline" onclick="document.getElementById(\'vinylBgFile\').click()">🖼 换背景</div>'+
       '<div class="btn outline" onclick="clearVinylBg()">默认背景</div>'+
-      '<div class="btn outline" onclick="document.getElementById(\'vinylImgFile\').click()">💿 换唱片图</div>'+
-      '<div class="btn outline" onclick="clearVinylImg()">默认唱片</div>'+
       '<input type="file" id="vinylBgFile" accept="image/*" class="hidden" onchange="onVinylBgFile(event)">'+
-      '<input type="file" id="vinylImgFile" accept="image/*" class="hidden" onchange="onVinylImgFile(event)">'+
     '</div>'+
     togetherAvatarHtml()+
     '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:4px;">'+statusText+'</div>'+
-    '<div class="vinyl-stage"><div class="vinyl-disc'+spinCls+'" id="vinylDisc">'+
-      '<div class="vinyl-groove" style="inset:36px;"></div>'+
-      '<div class="vinyl-groove" style="inset:48px;"></div>'+
-      '<div class="vinyl-groove" style="inset:60px;"></div>'+
-      '<div class="vinyl-label" id="vinylLabel"'+(st.vinylImg?(' style="background-image:url('+st.vinylImg+');background-size:cover;background-position:center;"'):'')+'></div>'+
-    '</div></div>'+
+    '<div class="vinyl-lyrics" id="vinylLyrics"></div>'+
     '<div style="text-align:center;">'+
       '<div style="font-family:\'Songti SC\', STSong, SimSun, \'Noto Serif CJK SC\', serif;font-weight:700;font-size:15px;" id="vinylSongName">'+songName+'</div>'+
       '<div style="font-size:12px;color:var(--ink-soft);margin-top:4px;" id="vinylArtist">'+(artist||'—')+'</div>'+
@@ -8854,6 +9106,8 @@ function openListenTogetherPanel(asInvite){
   );
     renderPlaylistPreview();
   applyVinylPanelBg();
+  try{ updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
+  try{ updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   if(!togetherState.music._vinylLoaded){ togetherState.music._vinylLoaded = true; loadVinylSettings(); }
 }
 function saveVinylSettings(){
@@ -9338,6 +9592,8 @@ function loadVinylTrack(idx, autoPlay){
   st.progress = 0;
   st.duration = song.duration || 180;
   try{ maybeBotFavoriteSong(song); }catch(e){}
+  try{ _vinylLyricIdx = -1; var _lb = document.getElementById('vinylLyrics'); if(_lb) _lb.dataset.mode=''; updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
+  try{ _vinylLyricIdx = -1; var _lb = document.getElementById('vinylLyrics'); if(_lb) _lb.dataset.mode=''; updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   const audio = getVinylAudio();
   audio.pause();
   // v48：为这首歌准备多个音源候选
@@ -9374,18 +9630,13 @@ function refreshVinylUI(){
   const cur = document.getElementById('vinylCur');
   const dur = document.getElementById('vinylDur');
   const fill = document.getElementById('vinylProgress');
-  const disc = document.getElementById('vinylDisc');
   const playBtn = document.getElementById('vinylPlayBtn');
   if(nameEl) nameEl.textContent = song ? song.name : '还没有歌曲';
   if(artEl) artEl.textContent = song ? (song.artist||'—') : '—';
   if(cur) cur.textContent = formatSongTime(st.progress);
   if(dur) dur.textContent = formatSongTime(st.duration);
   if(fill) fill.style.width = (st.duration ? Math.min(100,(st.progress/st.duration)*100) : 0)+'%';
-  if(disc){
-    if(st.playing) disc.classList.add('spinning'); else disc.classList.remove('spinning');
-    var lab = disc.querySelector('.vinyl-label');
-    if(lab) lab.textContent = ((song&&song.name)||'♪').slice(0,6);
-  }
+  try{ updateVinylLyrics(); }catch(e){}
   if(playBtn) playBtn.textContent = st.playing ? '⏸ 暂停' : '▶ 播放';
   var cover = document.getElementById('vinylCover');
   if(song && song.pic){
@@ -10291,7 +10542,7 @@ if('serviceWorker' in navigator){
 loadBgSettings();
 
 /* ============================================================
-/* ---------------- 娱乐：抽签定先手，TA 想 1~30 秒后纯随机出手 ---------------- */
+/* ---------------- 娱乐 v61：抽签定先手，TA 想 1~30 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
 const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐' };
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
@@ -10345,8 +10596,35 @@ function gm_gomoku_click(i){
 }
 function gm_gomoku_ta(){
   const s = GM.s; if(!s || GM.over) return;
-  const e = []; s.b.forEach((v,i)=>{ if(!v) e.push(i); });
-  if(gm_gomoku_place(e[Math.floor(Math.random()*e.length)],2)) return;
+  const b = s.b, dirs = [[1,0],[0,1],[1,1],[1,-1]];
+  function lineScore(i, c){
+    const x = i%15, y = (i/15)|0; let best = 0;
+    for(const d of dirs){
+      const dx = d[0], dy = d[1]; let n = 1;
+      for(const sg of [1,-1]){
+        let k = 1;
+        while(true){
+          const nx = x+dx*k*sg, ny = y+dy*k*sg;
+          if(nx<0||ny<0||nx>14||ny>14) break;
+          if(b[ny*15+nx]!==c) break;
+          n++; k++;
+        }
+      }
+      if(n>best) best = n;
+    }
+    return best;
+  }
+  const empty = []; b.forEach((v,i)=>{ if(!v) empty.push(i); });
+  if(!empty.length) return;
+  for(const i of empty){ if(lineScore(i,2)>=5){ if(gm_gomoku_place(i,2)) return; gmMsg('轮到你了'); return; } }
+  for(const i of empty){ if(lineScore(i,1)>=5){ if(gm_gomoku_place(i,2)) return; gmMsg('轮到你了'); return; } }
+  let best = -1, cands = [];
+  for(const i of empty){
+    const sc = lineScore(i,2)*2 + lineScore(i,1);
+    if(sc>best){ best = sc; cands = [i]; }
+    else if(sc===best) cands.push(i);
+  }
+  if(gm_gomoku_place(cands[Math.floor(Math.random()*cands.length)],2)) return;
   gmMsg('轮到你了');
 }
 
