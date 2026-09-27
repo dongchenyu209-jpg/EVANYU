@@ -9000,7 +9000,10 @@ function updateVinylLyrics(force){
   for(var j=0;j<kids.length;j++){ kids[j].classList.toggle('on', j===idx); }
   var onEl = kids[idx];
   if(onEl){
-    var target = onEl.offsetTop - box.clientHeight/2 + onEl.offsetHeight/2;
+    /* v65: 用相对歌词框的偏移计算，避免 offsetParent 是 overlay 导致滚到底部 */
+    var target = (onEl.offsetTop - box.offsetTop) - box.clientHeight/2 + onEl.offsetHeight/2;
+    var _maxTop = box.scrollHeight - box.clientHeight;
+    if(target > _maxTop) target = _maxTop;
     if(target < 0) target = 0;
     try{ box.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ box.scrollTop = target; }
   }
