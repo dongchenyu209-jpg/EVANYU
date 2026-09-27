@@ -10506,9 +10506,18 @@ function openPwaInstallHelp(){
 }
 // 启动时注册 SW（通知 + 安装条件）
 if('serviceWorker' in navigator){
+  /* v66：新版本发布后自动更新——新 SW 一接管就自动刷新一次，避免“刷新了还是旧版” */
+  var _swHadController = !!navigator.serviceWorker.controller;
+  var _swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(!_swHadController || _swRefreshing) return;
+    _swRefreshing = true;
+    window.location.reload();
+  });
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(reg){
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' }).then(function(reg){
       _swReg = reg;
+      try{ reg.update(); }catch(e){}
     }).catch(function(e){ console.warn('SW register', e); });
   });
 }
