@@ -275,103 +275,6 @@
   .fn-item:active .fn-icon{ transform:scale(0.9); background:var(--blush); box-shadow:none; }
   .fn-label{ font-size:11px; letter-spacing:1px; color:var(--ink); text-align:center; }
 
-  /* Tarot cards - match original paper style */
-  .tarot-card-back {
-    width: 54px; height: 86px; border-radius: 6px;
-    border: 1.5px solid var(--ink); background: var(--paper-2);
-    box-shadow: var(--card-shadow);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; position: relative; transition: transform .15s;
-    font-size: 11px; text-align: center; line-height: 1.25; padding: 4px;
-    color: var(--ink); font-weight: 600;
-  }
-  .tarot-card-back:not(.flipped)::after { content: '✦'; font-size: 16px; color: var(--ink-soft); }
-  .tarot-card-back.flipped { background: var(--paper); }
-  .tarot-card-back.flipped::after { content: none; }
-  .tarot-card-back .card-face { display: none; }
-  .tarot-card-back.flipped .card-face { display: block; }
-  .tarot-spread-item {
-    border: 1.5px solid var(--ink); background: var(--glass-bg);
-    backdrop-filter: blur(2px); padding: 12px 10px; text-align: center; cursor: pointer;
-    font-size: 13px; transition: background .12s;
-  }
-  .tarot-spread-item:active, .tarot-spread-item.active { background: var(--blush); }
-  .tarot-spread-item .s-count { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
-
-  #tarotDeckStrip .tarot-deck-card {
-    flex: 0 0 auto;
-    width: 48px; height: 78px; border-radius: 6px;
-    border: 1.5px solid var(--ink); background: var(--paper-2);
-    box-shadow: var(--card-shadow);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; position: relative;
-    transition: transform .15s, opacity .2s;
-  }
-  #tarotDeckStrip .tarot-deck-card::after { content: '✦'; font-size: 14px; color: var(--ink-soft); }
-  #tarotDeckStrip .tarot-deck-card.used {
-    opacity: 0.25; pointer-events: none; transform: scale(0.92);
-  }
-  #tarotDeckStrip .tarot-deck-card:active:not(.used) { transform: scale(0.94); }
-  #tarotSlots .tarot-slot {
-    width: 56px; min-height: 88px; border: 1.5px dashed var(--rule);
-    border-radius: 6px; background: rgba(255,255,255,0.35);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 10px; color: var(--ink-soft); text-align: center; padding: 4px;
-  }
-  #tarotSlots .tarot-slot.filled {
-    border-style: solid; border-color: var(--ink); background: var(--paper);
-    color: var(--ink); font-weight: 600; font-size: 11px; line-height: 1.25;
-  }
-  #tarotSlots .tarot-slot .slot-pos { font-size: 9px; color: var(--ink-soft); margin-bottom: 2px; font-weight: 400; }
-  #tarotSlots .tarot-slot .slot-rev { font-size: 9px; color: var(--rouge); font-weight: 500; margin-top: 2px; }
-  #tarotSlots .tarot-slot.pop { animation: tarotSlotPop .5s cubic-bezier(.2,.9,.3,1.2); }
-  @keyframes tarotSlotPop {
-    0%   { transform: translateY(-34px) rotateY(90deg) scale(.7); opacity: 0; }
-    100% { transform: none; opacity: 1; }
-  }
-
-  /* 洗牌动画：一叠牌背左右交错「哗啦啦」洗几轮，洗完牌堆一张张发出来 */
-  #tarotShuffleStage { position: relative; height: 108px; max-width: 280px; margin: 0 auto 4px; }
-  #tarotShuffleStage .sh-card {
-    position: absolute; left: 50%; top: 50%; width: 48px; height: 78px; margin: -39px 0 0 -24px;
-    border: 1.5px solid var(--ink); border-radius: 6px; background: var(--paper-2);
-    box-shadow: var(--card-shadow);
-    display: flex; align-items: center; justify-content: center;
-    translate: calc(var(--i) * 0.7px) calc(var(--i) * -0.9px);
-  }
-  #tarotShuffleStage .sh-card::after { content: '✦'; font-size: 14px; color: var(--ink-soft); }
-  #tarotShuffleStage.shuffling .sh-card { animation: tarotRiffleL 1.3s ease-in-out both; animation-delay: calc(var(--i) * 35ms); }
-  #tarotShuffleStage.shuffling .sh-card:nth-child(even) { animation-name: tarotRiffleR; }
-  @keyframes tarotRiffleL {
-    0%   { transform: none; }
-    14%  { transform: translateX(-60px) rotate(-9deg); }
-    28%  { transform: translateX(-3px) rotate(0); }
-    42%  { transform: translateX(-56px) translateY(5px) rotate(-6deg); }
-    56%  { transform: translateX(-2px) rotate(0); }
-    70%  { transform: translateY(-24px) rotate(-4deg); }
-    85%  { transform: translateY(3px) rotate(0); }
-    100% { transform: none; }
-  }
-  @keyframes tarotRiffleR {
-    0%   { transform: none; }
-    14%  { transform: translateX(60px) rotate(9deg); }
-    28%  { transform: translateX(3px) rotate(0); }
-    42%  { transform: translateX(56px) translateY(-5px) rotate(6deg); }
-    56%  { transform: translateX(2px) rotate(0); }
-    70%  { transform: translateY(-24px) rotate(4deg); }
-    85%  { transform: translateY(3px) rotate(0); }
-    100% { transform: none; }
-  }
-  #tarotDeckStrip { min-height: 104px; transition: opacity .25s; }
-  #tarotDeckStrip.shuffling-wait { opacity: .15; pointer-events: none; }
-  #tarotDeckStrip .tarot-deck-card.deal { animation: tarotDeal .42s cubic-bezier(.2,.8,.3,1) backwards; animation-delay: calc(var(--d) * 16ms); }
-  @keyframes tarotDeal {
-    from { opacity: 0; transform: translateY(-32px) scale(.8) rotate(-8deg); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #tarotShuffleStage .sh-card, #tarotDeckStrip .tarot-deck-card.deal, #tarotSlots .tarot-slot.pop { animation: none !important; }
-  }
-
 
 
 
@@ -868,6 +771,17 @@
 #view-home .anniv-heart{font-size:15px;}
 #view-home .anniv-text{margin-top:13px;font-size:13px;letter-spacing:2px;}
 #view-home .anniv-text b{font-size:21px;}
+/* 在一起卡片缩小 */
+#view-home .anniv-card{padding:14px 12px 11px;margin-top:2px;}
+#view-home .anniv-card::before{font-size:10px;top:-9px;}
+#view-home .anniv-avatars{gap:16px;}
+#view-home .anniv-avatar{width:44px;height:44px;}
+#view-home .anniv-slot{gap:4px;}
+#view-home .anniv-name{font-size:11px;}
+#view-home .anniv-text{margin-top:7px;font-size:12px;letter-spacing:1.5px;}
+#view-home .anniv-text b{font-size:17px;}
+#view-home .home-together-label{font-size:10px;margin-bottom:4px;}
+#view-home #homeTZ{margin-bottom:10px;}
 
 #view-home .diary-divider-line{margin:20px 0;border-top:1px dashed rgba(42,36,31,.18);}
 #view-home .polaroid-hero{margin-top:10px;}
@@ -1437,6 +1351,317 @@
 #view-chat .chat-head .mini-btn svg{ width:24px; height:24px; }
 #view-chat .chat-input-bar .mini-btn{ width:34px; height:34px; }
 #view-chat .chat-input-bar .mini-btn svg{ width:26px; height:26px; }
+
+/* ===== 首页两页：横向滑动切页，每页填满屏幕、自身不纵向滚动 ===== */
+#view-home:not(.hidden){display:flex!important;flex-direction:column;height:calc(100dvh - 106px);min-height:0;padding-bottom:0!important;}
+#view-home .topbar{margin:0 2px 4px!important;min-height:44px!important;flex:0 0 auto;}
+#view-home .home-pager{flex:1 1 auto;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;}
+#view-home .home-pager::-webkit-scrollbar{display:none;}
+#view-home .home-page{flex:0 0 100%;min-width:0;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;padding:2px 2px 2px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-evenly;}
+#view-home .home-pager-dots{flex:0 0 auto;display:flex;justify-content:center;gap:7px;margin:4px 0 6px;}
+#view-home .home-pager-dots i{width:6px;height:6px;border-radius:50%;background:rgba(42,36,31,.22);transition:all .25s;}
+#view-home .home-pager-dots i.on{width:18px;border-radius:3px;background:var(--rouge);}
+/* 第一页：天气 / 在一起卡片(小) / 拍立得 / 文字 */
+#view-home #homeTZ{margin:0 auto!important;padding:4px 12px!important;}
+#view-home .anniv-card{padding:9px 10px 7px!important;margin:0!important;}
+#view-home .anniv-card::before{font-size:9px!important;top:-7px!important;}
+#view-home .anniv-row{flex-direction:row!important;justify-content:center!important;gap:14px!important;}
+#view-home .home-together-label{display:none!important;}
+#view-home .anniv-avatars{gap:8px!important;}
+#view-home .anniv-avatar{width:36px!important;height:36px!important;}
+#view-home .anniv-slot{gap:2px!important;}
+#view-home .anniv-name{font-size:10px!important;}
+#view-home .anniv-cross{font-size:10px!important;}
+#view-home .anniv-text{margin-top:0!important;font-size:12px!important;letter-spacing:1px!important;}
+#view-home .anniv-text b{font-size:17px!important;}
+#view-home .polaroid-hero{margin:0!important;}
+#view-home .pola-fan{--pw:min(45vw,27dvh)!important;height:calc(var(--pw) + 74px)!important;margin-top:0!important;}
+#view-home .pola-fan .pola-card{padding:8px 8px 26px!important;}
+#view-home .pola-fan .pola-card .cap{font-size:13px!important;bottom:6px!important;}
+#view-home .pola-dots{margin-top:2px!important;}
+#view-home .hero-caption{margin-top:6px!important;padding:0 10px 2px!important;font-size:14px!important;line-height:1.55!important;}
+#view-home .hero-caption::before,#view-home .hero-caption::after{font-size:22px!important;vertical-align:-4px!important;}
+#view-home .love-meter{margin:0 24px!important;}
+#view-home .love-meter-number{font-size:30px!important;}
+/* 第二页：状态卡 / 搜索 / 图标（纵向拉伸填满） */
+#view-home .home-live-grid{gap:8px!important;margin:0!important;flex:0 0 auto;}
+#view-home .home-live-card{min-height:12dvh!important;padding:10px 11px!important;}
+#view-home .home-section-label{margin:0 3px!important;}
+#view-home .search-bar{margin:0!important;padding:8px 11px!important;}
+#view-home .search-results:empty{display:none!important;}
+#view-home .memory-grid{margin:0!important;flex:1 1 0;min-height:0;align-items:center;}
+#view-home .memory-grid-item{padding:8px 4px!important;}
+#view-home .memory-icon svg,#view-home .fn-icon svg{width:min(30px,4.2dvh)!important;height:min(30px,4.2dvh)!important;}
+#view-home .memory-icon{margin-bottom:6px!important;}
+#view-home .grid8{margin:0!important;flex:1.6 1 0;min-height:0;grid-auto-rows:1fr;align-items:center;}
+#view-home .fn-item{padding:4px 0!important;gap:5px!important;}
+#view-home .fn-icon{width:min(38px,5.4dvh)!important;height:min(38px,5.4dvh)!important;}
+
+/* ===== v2：头像+爱心 / 在一起小长方形 / 第一页底部快捷入口 ===== */
+#view-home .home-couple{display:flex!important;align-items:center;justify-content:center;gap:14px!important;margin:0!important;flex:0 0 auto;}
+#view-home .home-couple .anniv-avatar{width:46px!important;height:46px!important;}
+#view-home .home-couple .anniv-name{font-size:10.5px!important;}
+#view-home .couple-heart{color:var(--rouge);font-size:20px;line-height:1;margin-bottom:14px;animation:coupleBeat 1.8s ease-in-out infinite;}
+@keyframes coupleBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+#view-home .anniv-card{width:max-content;min-width:58%;max-width:86%;margin:0 auto!important;padding:11px 22px 8px!important;text-align:center;flex:0 0 auto;}
+#view-home .anniv-text{font-size:12px!important;}
+#view-home .anniv-text b{font-size:19px!important;}
+#view-home .anniv-card{border-radius:4px!important;}
+#view-home .anniv-card::after{content:'';position:absolute;inset:3px;border:1px dashed rgba(139,30,45,.22);border-radius:2px;pointer-events:none;}
+#view-home .anniv-deco{font-size:9px;color:var(--rouge);opacity:.75;letter-spacing:2px;line-height:1.4;font-family:'Songti SC',STSong,SimSun,serif;}
+#view-home .anniv-deco.sub{color:var(--ink-soft);font-size:7.5px;letter-spacing:0;opacity:.7;margin-top:1px;}
+#view-home .polaroid-hero{flex:0 0 auto;}
+#view-home .pola-fan{--pw:min(45vw,22dvh)!important;height:calc(var(--pw) + 48px)!important;}
+#view-home .pola-dots{margin-top:0!important;}
+#view-home .hero-caption{margin-top:2px!important;}
+#view-home .love-meter{flex:0 0 auto;}
+#view-home .love-meter-number{font-size:22px!important;}
+#view-home .love-meter-sub{display:none!important;}
+#view-home .home-quick{flex:0 0 auto!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;grid-auto-rows:auto!important;}
+#view-home .home-quick .fn-icon{width:34px!important;height:34px!important;}
+#view-home .memory-grid{grid-template-columns:repeat(3,1fr)!important;}
+#view-home #homePage2 .grid8{grid-template-columns:repeat(4,1fr)!important;flex:1 1 0!important;}
+
+/* v3：第二页不再拉伸空盒子，改为加大卡片/图标并均匀分布 */
+#view-home .home-live-card{min-height:20dvh!important;}
+#view-home .memory-grid{flex:0 0 auto!important;align-items:stretch!important;}
+#view-home .memory-grid-item{padding:2.6dvh 4px!important;}
+#view-home #homePage2 .grid8{flex:0 0 auto!important;grid-auto-rows:auto!important;}
+#view-home #homePage2 .fn-item{padding:2.6dvh 0!important;}
+
+/* ===== v4：按真实可视高度自适应，杜绝显示不全（浏览器带地址栏时也放得下） ===== */
+#view-home:not(.hidden){height:calc(100dvh - 84px)!important;}
+#view-home .topbar{min-height:40px!important;margin:0 2px 2px!important;}
+#view-home .home-page{justify-content:flex-start!important;gap:6px;padding:0 2px!important;}
+#view-home #homeTZ{padding:3px 12px!important;flex:0 0 auto;}
+#view-home .home-couple{gap:12px!important;}
+#view-home .home-couple .anniv-avatar{width:40px!important;height:40px!important;}
+#view-home .home-couple .anniv-name{font-size:10px!important;margin-top:0!important;}
+#view-home .couple-heart{font-size:18px;margin-bottom:12px;}
+#view-home .anniv-card{padding:7px 20px 5px!important;min-width:54%!important;}
+#view-home .anniv-card::before{display:none!important;}
+#view-home .anniv-text b{font-size:17px!important;}
+#view-home .anniv-deco{line-height:1.2;}
+#view-home .polaroid-hero{flex:1 1 0!important;min-height:0!important;container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:visible;}
+#view-home .pola-fan{--pw:clamp(70px,min(44vw, calc(100cqh - 96px)),190px)!important;height:calc(var(--pw) + 48px)!important;flex:0 0 auto;}
+#view-home .hero-caption{flex:0 0 auto;margin-top:1px!important;padding:0 8px!important;font-size:13px!important;line-height:1.35!important;}
+#view-home .love-meter{margin:0 24px!important;}
+#view-home .love-meter-number{font-size:18px!important;margin:0!important;}
+#view-home .love-meter-title{font-size:8px!important;}
+#view-home .home-quick .fn-item{padding:5px 0 4px!important;gap:2px!important;}
+#view-home .home-quick .fn-icon{width:28px!important;height:28px!important;}
+#view-home .home-quick .fn-icon svg{width:22px!important;height:22px!important;}
+#view-home .home-quick .fn-label{font-size:10px!important;}
+#view-home .home-pager-dots{margin:3px 0 4px!important;}
+/* 第二页 */
+#view-home #homePage2{justify-content:space-evenly!important;}
+#view-home .home-live-card{min-height:0!important;height:15dvh;}
+#view-home .memory-grid-item{padding:1.8dvh 4px!important;}
+#view-home #homePage2 .fn-item{padding:1.8dvh 0!important;}
+
+/* ===== HOME UI TEST — first page only, UI/CSS only ===== */
+#view-home #homePage1{
+  justify-content:flex-start!important;
+  gap:0!important;
+  padding:0 6px 4px!important;
+}
+#view-home #homePage1 #homeTZ{
+  order:0;
+  align-self:center;
+  margin:0 auto 5px!important;
+  padding:3px 10px!important;
+  min-height:20px;
+  border:0;
+  background:transparent;
+  opacity:.72;
+  font-size:9px;
+  letter-spacing:.5px;
+}
+#view-home #homePage1 .home-couple{
+  order:1;
+  width:100%;
+  box-sizing:border-box;
+  gap:18px!important;
+  margin:1px 0 4px!important;
+  padding:0;
+}
+#view-home #homePage1 .home-couple .anniv-avatar{
+  width:52px!important;height:52px!important;
+  border:1.5px solid rgba(42,36,31,.16)!important;
+  box-shadow:0 2px 10px rgba(42,36,31,.08)!important;
+}
+#view-home #homePage1 .home-couple .anniv-name{
+  margin-top:3px!important;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:10px!important;
+  letter-spacing:1px;
+  color:var(--ink-soft);
+}
+#view-home #homePage1 .couple-heart{
+  font-size:13px!important;
+  margin:0 1px 15px!important;
+  color:var(--rouge);
+  animation:none!important;
+  opacity:.72;
+}
+#view-home #homePage1 .anniv-card{
+  order:2;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  align-self:center;
+  margin:0 24px 7px!important;
+  padding:8px 20px 7px!important;
+  border:0!important;
+  border-top:1px solid rgba(42,36,31,.12)!important;
+  border-bottom:1px solid rgba(42,36,31,.12)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#view-home #homePage1 .anniv-card::after{display:none!important;}
+#view-home #homePage1 .anniv-deco:first-child{
+  display:none!important;
+}
+#view-home #homePage1 .anniv-text{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  width:auto!important;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:10px!important;
+  letter-spacing:2px!important;
+  color:var(--ink-soft);
+}
+#view-home #homePage1 .anniv-text b{
+  font-size:19px!important;
+  font-weight:500!important;
+  color:var(--ink);
+  letter-spacing:1px;
+}
+#view-home #homePage1 .anniv-deco.sub{
+  margin-top:2px!important;
+  font-size:6.5px!important;
+  letter-spacing:1.5px!important;
+  opacity:.5;
+}
+#view-home #homePage1 .polaroid-hero{
+  order:3;
+  flex:1 1 0!important;
+  min-height:0!important;
+  width:100%;
+  margin:0!important;
+  container-type:size;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+#view-home #homePage1 .pola-fan{
+  --pw:clamp(130px,min(58vw,calc(100cqh - 92px)),210px)!important;
+  width:calc(var(--pw) + 22px)!important;
+  height:calc(var(--pw) + 56px)!important;
+  margin:0!important;
+}
+#view-home #homePage1 .pola-fan .pola-card{
+  padding:9px 9px 29px!important;
+  box-shadow:0 9px 22px rgba(42,36,31,.13)!important;
+}
+#view-home #homePage1 .pola-fan .pola-card .cap{
+  font-size:12px!important;
+  bottom:6px!important;
+  letter-spacing:.5px;
+}
+#view-home #homePage1 .pola-dots{
+  margin:1px 0 0!important;
+  transform:scale(.75);
+  opacity:.65;
+}
+#view-home #homePage1 .hero-caption{
+  order:4;
+  flex:0 0 auto;
+  margin:2px auto 4px!important;
+  padding:0 22px!important;
+  border:0!important;
+  max-width:300px!important;
+  font-family:'Songti SC',STSong,SimSun,serif;
+  font-size:12px!important;
+  line-height:1.5!important;
+  letter-spacing:1px!important;
+  color:var(--ink-soft)!important;
+  text-align:center;
+}
+#view-home #homePage1 .hero-caption::before,
+#view-home #homePage1 .hero-caption::after{
+  font-size:17px!important;
+  color:rgba(42,36,31,.16)!important;
+}
+/* LOVE METER 保留数据和逻辑，仅从第一页视觉层级中拿掉 */
+#view-home #homePage1 .love-meter{display:none!important;}
+#view-home #homePage1 .home-quick{
+  order:5;
+  flex:0 0 auto!important;
+  width:100%;
+  margin:1px 0 0!important;
+  padding:6px 4px 2px!important;
+  border-top:1px solid rgba(42,36,31,.10);
+  display:grid!important;
+  grid-template-columns:repeat(4,1fr)!important;
+  gap:0!important;
+  background:transparent!important;
+}
+#view-home #homePage1 .home-quick .fn-item{
+  padding:4px 0 3px!important;
+  gap:2px!important;
+  border:0!important;
+}
+#view-home #homePage1 .home-quick .fn-icon{
+  width:25px!important;height:25px!important;
+  opacity:.72;
+}
+#view-home #homePage1 .home-quick .fn-icon svg{
+  width:19px!important;height:19px!important;
+  stroke-width:1.25;
+}
+#view-home #homePage1 .home-quick .fn-label{
+  font-family:'Songti SC',STSong,SimSun,serif;
+  font-size:9px!important;
+  letter-spacing:1px!important;
+  color:var(--ink-soft);
+}
+#view-home #homePage1 .home-quick .fn-item:active{background:transparent!important;transform:translateY(1px);}
+/* 首页顶栏：只保留一个轻量的角色名，不抢主视觉 */
+#view-home .topbar{position:relative!important;}
+#view-home .hero-name{
+  right:40px!important;
+  top:5px!important;
+  font-size:9px!important;
+  letter-spacing:1.5px!important;
+  opacity:.62;
+}
+#view-home .hero-name::after{
+  content:''!important;
+  display:none!important;
+}
+#view-home .home-top-action{
+  width:27px!important;height:27px!important;
+  opacity:.68;
+}
+@media (max-width:380px){
+  #view-home #homePage1 .home-couple .anniv-avatar{width:48px!important;height:48px!important;}
+  #view-home #homePage1 .anniv-card{margin-left:18px!important;margin-right:18px!important;}
+  #view-home #homePage1 .pola-fan{--pw:clamp(124px,min(55vw,calc(100cqh - 88px)),190px)!important;}
+}
+
+</style>
+
+<style id="ui-followup-only">
+#view-home .hero-name::after{content:'Only for you.' !important;display:block !important;font-family:'Xingkai SC',STXingkai,'Kaiti SC',STKaiti,cursive;font-size:9px;font-weight:400;letter-spacing:1px;color:var(--ink-soft);margin-top:2px;white-space:nowrap;text-transform:none;}
+#view-home #homePage1 .anniv-card{margin-left:0!important;margin-right:0!important;padding:17px 18px 14px!important;}
+#view-home #homePage1 .anniv-text{font-size:16px!important;letter-spacing:0!important;}
+#view-home #homePage1 .anniv-text b{font-size:25px!important;}
+#view-home #homePage1 .anniv-deco{font-size:13px!important;}
+#view-home #homePage1 .anniv-deco.sub{font-size:7px!important;letter-spacing:4px!important;}
 </style>
 </head>
 <body>
@@ -1476,24 +1701,25 @@
       <div class="home-top-action icon-btn home-svg-icon" onclick="go('settings')" title="设置"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
     </div>
 
+    <div class="home-pager" id="homePager">
+    <div class="home-page" id="homePage1">
     <div id="homeTZ"><span class="tz-wx" id="tzWx"><span class="wx-ico" id="tzIco"></span><span class="wx-txt" id="tzTxt"></span><span class="wx-temp" id="tzTemp"></span></span><span class="tz-sep"></span><span class="tz-clock" id="tzClock"><span class="tz-date" id="tzDate"></span><span id="tzTime"></span></span></div>
-    <div class="anniv-card" id="annivCardEl">
-      <div style="position:absolute;top:7px;right:9px;font-size:10px;cursor:pointer;opacity:.28;" onclick="editAnnivCardBg()" title="修改卡片背景">✦</div>
-      <div class="anniv-row">
-        <div class="home-together-label">♡ together ♡</div>
-        <div class="anniv-avatars">
-          <div class="anniv-slot">
-            <div class="anniv-avatar theirs" id="annivTheirAvatar" onclick="document.getElementById('avatarFileInput').click()"></div>
-            <div class="anniv-name" id="annivTheirName" onclick="editTheirName()">陆沉</div>
-          </div>
-          <div class="anniv-cross">×</div>
-          <div class="anniv-slot">
-            <div class="anniv-avatar mine" id="annivMyAvatar" onclick="document.getElementById('myAvatarFileInput').click()"></div>
-            <div class="anniv-name" id="annivMyName" onclick="editMyName()">我</div>
-          </div>
-        </div>
-        <div class="anniv-text" onclick="editAnniversaryDate()">在一起 <b id="annivDaysText">0</b> 天</div>
+    <div class="anniv-avatars home-couple">
+      <div class="anniv-slot">
+        <div class="anniv-avatar theirs" id="annivTheirAvatar" onclick="document.getElementById('avatarFileInput').click()"></div>
+        <div class="anniv-name" id="annivTheirName" onclick="editTheirName()">陆沉</div>
       </div>
+      <div class="couple-heart">♥</div>
+      <div class="anniv-slot">
+        <div class="anniv-avatar mine" id="annivMyAvatar" onclick="document.getElementById('myAvatarFileInput').click()"></div>
+        <div class="anniv-name" id="annivMyName" onclick="editMyName()">我</div>
+      </div>
+    </div>
+    <div class="anniv-card" id="annivCardEl">
+      <div style="position:absolute;top:5px;right:8px;font-size:9px;cursor:pointer;opacity:.28;" onclick="editAnnivCardBg()" title="修改卡片背景">✦</div>
+      <div class="anniv-deco">✦ &nbsp;♡&nbsp; ✦</div>
+      <div class="anniv-text" onclick="editAnniversaryDate()">在一起 <b id="annivDaysText">0</b> 天</div>
+      <div class="anniv-deco sub">t o g e t h e r &nbsp;·&nbsp; s i n c e &nbsp;d a y &nbsp;o n e</div>
     </div>
 
     <div class="polaroid-hero">
@@ -1514,46 +1740,73 @@
       <div class="love-meter-sub">F O R E V E R &nbsp; Y O U R S</div>
     </div>
 
-    <div class="home-live-grid">
-      <div class="home-live-card status-card" onclick="openTodayStatusPanel()">
-        <div class="home-live-title"><span class="home-svg-icon live-icon">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H4z"/><path d="M7 8h10M7 12h6M8 19h8M10 16v3M14 16v3"/></svg>
-</span>今日状态</div>
-        <div class="home-live-status-pill"><span id="todayStatusText"></span></div>
+    <div class="grid8 home-quick">
+      <div class="fn-item" onclick="go('chat')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.6 0 8 3 8 6.8S16.6 17.6 12 17.6c-.9 0-1.7-.1-2.5-.3L5.5 19.5l1-3.4C5 15 4 13 4 10.800 4 7 7.400 4 12 4Z"/><path d="M9 10.500c.8 1.400 1.800 2 3 2s2.200-.6 3-2"/></svg><span id="chatDot" class="dot-badge hidden"></span></div><div class="fn-label">传讯</div></div>
+      <div class="fn-item" onclick="go('inboxLetters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span></div><div class="fn-label">来信</div></div>
+      <div class="fn-item" onclick="go('letters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h5l10.500-10.500a2.100 2.100 0 0 0-3-3L6 17v3Z"/><path d="m14.500 8 3 3"/></svg><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">写信</div></div>
+      <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
+    </div>
+    </div><!-- /homePage1 -->
+
+    <div class="home-page" id="homePage2">
+    <div class="h2-scroll">
+      <div class="h2-search">
+        <span class="h2-si home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.500" cy="10.500" r="6.500"/><path d="m16 16 5 5"/></svg></span>
+        <input type="text" id="searchInput" placeholder="搜索聊天回忆…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)doSearch()">
+        <span class="h2-go" onclick="doSearch()">搜索</span>
       </div>
-      <div class="home-live-card moyu-card" onclick="openMoyuNotePanel()">
-        <div class="home-live-title"><span class="home-svg-icon live-icon">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2.5-4 6-6 9-6s6.5 2 9 6c-2.5 4-6 6-9 6s-6.5-2-9-6Z"/><path d="M12 6v12M7 9l-2-2M17 9l2-2"/></svg>
-</span>摸鱼小记</div>
-        <div class="home-live-note" id="moyuLatestText"></div>
+      <div class="search-results" id="searchResults"></div>
+
+      <div class="h2-card h2-status">
+        <div class="h2-head" onclick="openTodayStatusPanel()"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.800"/><path d="M12 3.500v2M12 18.500v2M3.500 12h2M18.500 12h2M6 6l1.400 1.400M16.600 16.600 18 18M18 6l-1.400 1.400M7.400 16.600 6 18"/></svg></span><b>今日状态</b><span class="h2-arrow">›</span></div>
+        <div class="h2-two">
+          <div class="h2-half" onclick="openTodayStatusPanel()">
+            <span class="h2-bubble home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.500 14c1 1.500 2.200 2.200 3.500 2.200s2.500-.7 3.500-2.200M9 9.500h.01M15 9.500h.01"/></svg></span>
+            <div class="h2-txt"><b id="todayStatusText"></b><small>今日状态</small></div>
+          </div>
+          <div class="h2-half" onclick="openMoyuNotePanel()">
+            <span class="h2-bubble home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c4.400 0 8 2.700 8 6.200S16.400 17.400 12 17.400c-.9 0-1.700-.1-2.500-.3L5.500 19l1-3.200C5 14.700 4 13 4 11.200 4 7.700 7.600 5 12 5Z"/><path d="M9 11.500h.01M12 11.500h.01M15 11.500h.01"/></svg></span>
+            <div class="h2-txt"><b id="moyuLatestText"></b><small>摸鱼小记</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h2-cols h2-squares">
+        <div class="h2-card h2-sq h2-habit" id="habitCard">
+          <div class="h2-sqhead"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.3 2.5 2.5 4.8-5.2"/></svg></span><b>习惯</b><small id="homeHabitCount"></small></div>
+          <div id="homeHabitList"></div>
+        </div>
+        <div class="h2-card h2-sq h2-daily">
+          <div class="h2-sqhead"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/><path d="m12 12.3.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 14.4l2-.3.9-1.8Z"/></svg></span><b class="h2-en">Daily</b><span class="h2-ddots" id="dailyDots"><i class="on"></i><i></i></span></div>
+          <div class="h2-dview" id="dailyView"><div class="h2-dtrack" id="dailyTrack">
+            <div class="h2-dpage h2-daily-grid">
+              <div class="h2-d" onclick="go('ledger')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="3.5" width="13" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3.5"/></svg></span><em>记账</em></div>
+              <div class="h2-d" onclick="go('favs')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 2.4 5 5.4.7-4 3.8 1 5.4L12 16.3 7.2 18.9l1-5.4-4-3.8 5.4-.7L12 4Z"/></svg></span><em>收藏</em></div>
+              <div class="h2-d" onclick="go('diary')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2V4Z"/><path d="M6 18a2 2 0 0 1 2-2h11M10 8h5"/></svg></span><em>日记</em></div>
+              <div class="h2-d" onclick="openGameMenu()"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="4"/><path d="M8 10.5v4M6 12.5h4M15.5 11.5h.01M17.5 13.5h.01"/></svg></span><em>娱乐</em></div>
+            </div>
+            <div class="h2-dpage h2-daily-grid">
+              <div class="h2-d" onclick="go('period')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c3 3.6 5.5 6.5 5.5 9.5a5.5 5.5 0 0 1-11 0C6.5 10.5 9 7.6 12 4Z"/></svg></span><em>月经</em></div>
+              <div class="h2-d" onclick="go('companion');setTimeout(()=>switchCompanionTab('anniv'),50)"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></span><em>纪念日</em></div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="h2-cols">
+        <div class="h2-card h2-mini" onclick="go('lifephotos')">
+          <span class="h2-mi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.500A1.500 1.500 0 0 1 5.500 7H8l1.200-2h5.600L16 7h2.500A1.500 1.500 0 0 1 20 8.500v9a1.500 1.500 0 0 1-1.500 1.500h-13A1.500 1.500 0 0 1 4 17.500v-9Z"/><circle cx="12" cy="13" r="3.500"/></svg></span>
+          <div class="h2-txt"><b>生活照片</b><small>记录日常</small></div><span class="h2-arrow">›</span>
+        </div>
+        <div class="h2-card h2-mini" onclick="go('cards')">
+          <span class="h2-mi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.500" y="4.500" width="15" height="15" rx="2.500"/><path d="M9 4.500V3M15 4.500V3M9 19.500V21M15 19.500V21M9.500 10.500h5M9.500 14h3"/></svg></span>
+          <div class="h2-txt"><b>字卡</b><small>一些小语句</small></div><span class="h2-arrow">›</span>
+        </div>
       </div>
     </div>
-
-    <div class="home-section-label"><span>MEMORY</span></div>
-    <div class="search-bar">
-      <span class="home-search-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></span>
-      <input type="text" id="searchInput" placeholder="搜索聊天回忆…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)doSearch()">
-      <div class="go-btn home-svg-icon" onclick="doSearch()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></div>
-    </div>
-    <div class="search-results" id="searchResults"></div>
-
-    <div class="memory-grid">
-      <div class="memory-grid-item" onclick="go('lifephotos')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg></div><b>生活照片</b></div>
-      <div class="memory-grid-item" onclick="openTodayStatusPanel()"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M8 3v4M16 3v4M4 9h16M8 13h3M8 16h5"/></svg></div><b>今日状态</b></div>
-      <div class="memory-grid-item" onclick="go('moments')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h10a4 4 0 0 1 4 4v3a4 4 0 0 1-4 4H9l-4 3v-3a4 4 0 0 1-4-4v-3a4 4 0 0 1 4-4Z"/><path d="M10 4h7a4 4 0 0 1 4 4v2"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><b>朋友圈</b></div>
-      <div class="memory-grid-item" onclick="go('cards')"><div class="memory-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8l3-4z"/><path d="M8 4v4H4"/><path d="M10 11h6M10 14h6M10 17h4"/></svg></div><b>字卡</b></div>
-    </div>
-
-    <div class="home-section-label daily-label"><span>DAILY</span></div>
-    <div class="grid8">
-      <div class="fn-item" onclick="go('chat')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m4 6 8 7 8-7"/></svg><span id="chatDot" class="dot-badge hidden"></span></div><div class="fn-label">传讯</div></div>
-      <div class="fn-item" onclick="go('letters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 15h5"/><path d="m15 17 3-3"/></svg><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">写信</div></div>
-      <div class="fn-item" onclick="go('inboxLetters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v12H4z"/><path d="M4 8 7 4h10l3 4M8 13h8"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span></div><div class="fn-label">来信</div></div>
-      <div class="fn-item" onclick="go('ledger')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="14" height="18" rx="1"/><path d="M9 3v18M4 7h3M4 12h3M4 17h3M12 7h5M12 11h5M12 15h4"/></svg></div><div class="fn-label">记账</div></div>
-      <div class="fn-item" onclick="go('companion')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z"/><path d="M10 13c1-2 4-1 4 1 0-2 3-3 4-1 1 2-2 4-4 5-2-1-5-3-4-5Z"/></svg></div><div class="fn-label">陪伴记录</div></div>
-      <div class="fn-item" onclick="go('tarot')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="10" height="16" rx="1.5"/><rect x="9" y="5" width="10" height="16" rx="1.5" opacity=".65"/><path d="M10 9h4M10 12h3"/></svg></div><div class="fn-label">塔罗</div></div>
-      <div class="fn-item" onclick="openGameMenu()"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M7 10v4M5 12h4M15.5 11.5h.01M17.5 13.5h.01"/></svg></div><div class="fn-label">娱乐</div></div><div class="fn-item" onclick="go('settings')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><div class="fn-label">设置</div></div>
-    </div>
+    </div><!-- /homePage2 -->
+    </div><!-- /homePager -->
+    <div class="home-pager-dots" id="homePagerDots"><i class="on"></i><i></i></div>
 
   </section>
 
@@ -1565,6 +1818,15 @@
     <div class="btn-row"><div class="btn" onclick="document.getElementById('lifePhotoInput').click()">➕ 添加照片</div></div>
   </section>
 
+
+  <!-- ============ FAVS 收藏（首页 Daily 直达） ============ -->
+  <section id="view-favs" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>收藏</h2></div>
+    <div class="box">
+      <div class="box-title">TA悄悄收藏的歌曲</div>
+      <div id="favsViewList"></div>
+    </div>
+  </section>
 
   <!-- ============ COMPANION 陪伴记录 ============ -->
   <section id="view-companion" class="view hidden">
@@ -1836,28 +2098,6 @@
     </div>
 
     <div class="box">
-      <div class="box-title">塔罗 AI 解读</div>
-      <div class="switch-row">
-        <span>启用 AI 解读</span>
-        <div class="switch" id="swTarotAI" onclick="toggleTarotModel()"></div>
-      </div>
-      <p style="font-size:11.5px;color:var(--ink-soft);margin:6px 0 10px;" id="modelStatusLabel">尚未配置 · 关闭时仅使用本地简版解读</p>
-      <label class="field">API 地址（OpenAI 兼容 /chat/completions）</label>
-      <input type="text" id="tarotApiEndpoint" placeholder="例如 https://api.deepseek.com/chat/completions" onchange="saveBgSettings()">
-      <label class="field" style="margin-top:8px;">API Key</label>
-      <input type="password" id="tarotApiKey" placeholder="sk-..." onchange="saveBgSettings()">
-      <label class="field" style="margin-top:8px;">模型名称</label>
-      <input type="text" id="tarotApiModel" placeholder="例如 deepseek-chat" onchange="saveBgSettings()">
-      <label class="field" style="margin-top:8px;">温度 <span id="tempValueLabel">0.8</span></label>
-      <input type="range" id="aiTempSlider" min="0" max="1" step="0.1" value="0.8" style="width:100%;accent-color:var(--rouge);" oninput="document.getElementById('tempValueLabel').textContent=this.value;" onchange="saveBgSettings()">
-      <div class="btn-row" style="margin-top:10px;">
-        <div class="btn outline" onclick="saveBgSettings()">保存当前</div>
-        <div class="btn outline" onclick="saveBgSettings();alert('配置已另存（本地）')">另存为配置</div>
-      </div>
-      <p style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">已保存配置：<span id="savedConfigLabel">尚无配置</span></p>
-      <p style="font-size:11.5px;color:var(--ink-soft);margin-top:4px;">填好接口地址、API Key 和模型名并保存后，开启上方开关，抽牌完成会调用你自己的接口生成塔罗大师风格的详细解读；关闭时使用内置的本地简版解读，不会联网。Key 只存在本机浏览器里，不会上传到别处。</p>
-    </div>
-    <div class="box">
       <div class="box-title">后台消息通知</div>
       <div class="switch-row">
         <span>后台消息通知</span>
@@ -1886,53 +2126,6 @@
     </div>
   </section>
 
-
-  <!-- ============ TAROT 正规经典牌阵（与原文件风格同步） ============ -->
-  <section id="view-tarot" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>塔罗</h2>
-      <div style="margin-left:auto;"><div class="btn outline" style="padding:6px 10px;font-size:12px;" onclick="openTarotHistory()">历史记录</div></div>
-    </div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:-4px 0 12px;">ask the cards · 正规牌阵 + 爱情主题</p>
-    <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap;" id="tarotTabs">
-      <div class="btn" data-cat="all" onclick="switchTarotCat(this)">常用</div>
-      <div class="btn outline" data-cat="love" onclick="switchTarotCat(this)">爱情</div>
-      <div class="btn outline" data-cat="study" onclick="switchTarotCat(this)">学业</div>
-      <div class="btn outline" data-cat="fortune" onclick="switchTarotCat(this)">运势</div>
-    </div>
-    <label class="field">你的问题</label>
-    <input type="text" id="tarotQuestion" placeholder="例如：他对我的性幻想是什么？他的XP偏哪类？">
-    <div id="tarotSpreadGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;"></div>
-    <p id="tarotHint" style="font-size:12px;color:var(--ink-soft);margin-top:12px;text-align:center;">请选择下方牌阵后开始抽牌。</p>
-    <div class="btn-row" style="margin-top:16px;"><div class="btn rouge" style="flex:1;text-align:center;" onclick="startTarotDraw()">✦ 开始抽牌</div></div>
-  </section>
-
-  <section id="view-tarot-draw" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('tarot')">←</div><h2 id="tarotDrawTitle">抽牌</h2></div>
-    <div style="text-align:center;font-size:13px;color:var(--ink-soft);margin:4px 0 2px;" id="tarotDrawSub">需要抽 0 张</div>
-    <div style="text-align:center;font-size:12.5px;margin-bottom:12px;" id="tarotProgress">已抽 0/0 · 请从下方牌堆轻触选牌</div>
-
-    <!-- 已抽入阵的位置 -->
-    <div class="box" style="margin-bottom:12px;padding:10px;">
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;letter-spacing:1px;">牌阵位置</div>
-      <div id="tarotSlots" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:90px;"></div>
-    </div>
-
-    <!-- 洗牌舞台：洗牌时这叠牌会左右交错哗啦啦地洗 -->
-    <div id="tarotShuffleStage" aria-hidden="true">
-      <div class="sh-card" style="--i:0"></div><div class="sh-card" style="--i:1"></div><div class="sh-card" style="--i:2"></div><div class="sh-card" style="--i:3"></div><div class="sh-card" style="--i:4"></div><div class="sh-card" style="--i:5"></div><div class="sh-card" style="--i:6"></div><div class="sh-card" style="--i:7"></div>
-    </div>
-
-    <!-- 可滑动的牌堆（正规抽卡站风格） -->
-    <div style="font-size:12px;color:var(--ink-soft);margin:4px 0 6px;text-align:center;">牌堆 · 左右滑动 · 轻触选牌</div>
-    <div id="tarotDeckStrip" style="display:flex;gap:6px;overflow-x:auto;padding:10px 6px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;">
-    </div>
-
-    <div class="btn-row" style="justify-content:center;margin-top:8px;flex-wrap:wrap;">
-      <div class="btn outline" onclick="resetTarotDraw()">← 重新选牌阵</div>
-      <div class="btn outline" onclick="shuffleTarotDeck()">↻ 洗牌</div>
-    </div>
-    <div class="box hidden" id="tarotResultBox" style="margin-top:14px;"></div>
-  </section>
 
   <!-- ============ DIARY 日记 ============ -->
   <section id="view-diary" class="view hidden">
@@ -1988,9 +2181,9 @@
   </section>
 
   <div class="bottom-nav">
-    <div class="icon-btn" onclick="go('home')">⌂</div>
+    <div class="icon-btn" onclick="goHomePage(0)">⌂</div>
     <div class="bn-title" id="bnTitle">EVAN</div>
-    <div class="icon-btn" onclick="go('settings')">☰</div>
+    <div class="icon-btn" onclick="goHomePage(1)">☰</div>
   </div>
 </div>
 
@@ -2336,7 +2529,7 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
    ============================================================ */
 let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, photos:[null,null,null], myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
 let polaCur = 0;
-let chatSettings = { companionName:'陆沉', delayMin:1, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, group:{ enabled:false, showName:true, members:[] }, background:null, stickers:[], myStickers:[
+let chatSettings = { companionName:'陆沉', delayMin:30, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, group:{ enabled:false, showName:true, members:[] }, background:null, stickers:[], myStickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
 ], taStickers:[
   {id:'t1', type:'emoji', value:'🌙'}, {id:'t2', type:'emoji', value:'☕'}, {id:'t3', type:'emoji', value:'📖'}
@@ -2381,11 +2574,11 @@ let moyuState = {
   history: [],          // 已结束的班次
   nextAt: null
 };
-// 主动消息：开关 + 最短/最长分钟区间随机
-let proactiveMsgSettings = { enabled: true, intervalMinutes: 60 }; // 单滑条 1~180 = 随机上限，在 1 分钟～该值之间随机
-// 朋友圈互动概率（0~100）与主动发朋友圈天数区间，均可在传讯设置里调节
-let momentInteractSettings = { likeProb: 60, commentProb: 60, replyProb: 60, minDays: 1, maxDays: 15 };
-let proactiveLetterSettings = { minH: 1, maxH: 240 };
+// 主动消息：开关 + 最短(分钟)/最长(分钟) 区间随机
+let proactiveMsgSettings = { enabled: true, minSeconds: 60, intervalMinutes: 60 };
+// 朋友圈互动概率（0~100）与主动发朋友圈最短(分钟)/最长(天) 区间，均可在传讯设置里调节
+let momentInteractSettings = { likeProb: 60, commentProb: 60, replyProb: 60, minMinutes: 1440, maxDays: 15 };
+let proactiveLetterSettings = { minMinutes: 60, maxH: 240 };
 // 拼字卡：开启后回复会随机把多张字卡拼成一段再发
 let spliceCardsEnabled = false;
 let currentView = 'home';
@@ -2465,10 +2658,10 @@ async function init(){
 
   // ---- 阶段 2：其余数据并行加载 ----
   chatSettings = withDefaults('chatSettings', await sGet('chat-settings', null));
-  if(typeof chatSettings.delayMin !== 'number') chatSettings.delayMin = 1;
+  if(typeof chatSettings.delayMin !== 'number') chatSettings.delayMin = 30;
   if(typeof chatSettings.delayMax !== 'number') chatSettings.delayMax = 5;
-  chatSettings.delayMin = Math.max(1, Math.min(5, Math.round(chatSettings.delayMin)));
-  chatSettings.delayMax = Math.max(chatSettings.delayMin, Math.min(5, Math.round(chatSettings.delayMax)));
+  chatSettings.delayMin = Math.max(1, Math.min(3600, Math.round(chatSettings.delayMin)));
+  chatSettings.delayMax = Math.max(1, Math.min(1440, Math.round(chatSettings.delayMax)));
   delete chatSettings.delayUnit;
   if(typeof chatSettings.redPacketEnabled !== 'boolean') chatSettings.redPacketEnabled = false;
   if(typeof chatSettings.comboReplyProb !== 'number') chatSettings.comboReplyProb = 35;
@@ -2617,6 +2810,12 @@ function normalizeLoadedSettings(){
       iv = Number.isFinite(oldMax) ? oldMax : 60;
     }
     proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(180, Math.round(iv)));
+    let mn = Number(proactiveMsgSettings.minSeconds);
+    if(!Number.isFinite(mn)){
+      const oldM = Number(proactiveMsgSettings.minMinutes);
+      mn = Number.isFinite(oldM) ? oldM*60 : 60;
+    }
+    proactiveMsgSettings.minSeconds = Math.max(1, Math.min(10800, Math.round(mn)));
     delete proactiveMsgSettings.minMinutes;
     delete proactiveMsgSettings.maxMinutes;
   }
@@ -2624,20 +2823,32 @@ function normalizeLoadedSettings(){
   if(typeof momentInteractSettings.likeProb !== 'number') momentInteractSettings.likeProb = 60;
   if(typeof momentInteractSettings.commentProb !== 'number') momentInteractSettings.commentProb = 60;
   if(typeof momentInteractSettings.replyProb !== 'number') momentInteractSettings.replyProb = 60;
-  if(typeof momentInteractSettings.minDays !== 'number') momentInteractSettings.minDays = 1;
+  // 旧版最短是「天」，迁移成分钟
+  if(typeof momentInteractSettings.minMinutes !== 'number'){
+    momentInteractSettings.minMinutes = (typeof momentInteractSettings.minDays === 'number') ? momentInteractSettings.minDays*1440 : 1440;
+  }
+  delete momentInteractSettings.minDays;
   if(typeof momentInteractSettings.maxDays !== 'number') momentInteractSettings.maxDays = 15;
   momentInteractSettings.likeProb = Math.max(0, Math.min(100, momentInteractSettings.likeProb));
   momentInteractSettings.commentProb = Math.max(0, Math.min(100, momentInteractSettings.commentProb));
   momentInteractSettings.replyProb = Math.max(0, Math.min(100, momentInteractSettings.replyProb));
-  momentInteractSettings.minDays = Math.max(1, Math.min(30, momentInteractSettings.minDays));
-  momentInteractSettings.maxDays = Math.max(momentInteractSettings.minDays, Math.min(30, momentInteractSettings.maxDays));
+  momentInteractSettings.minMinutes = Math.max(1, Math.min(43200, Math.round(momentInteractSettings.minMinutes)));
+  momentInteractSettings.maxDays = Math.max(1, Math.min(30, momentInteractSettings.maxDays));
+  // 旧版写信最短是「小时」，迁移成分钟
+  if(typeof proactiveLetterSettings.minMinutes !== 'number'){
+    proactiveLetterSettings.minMinutes = (typeof proactiveLetterSettings.minH === 'number') ? proactiveLetterSettings.minH*60 : 60;
+  }
+  delete proactiveLetterSettings.minH;
+  if(typeof proactiveLetterSettings.maxH !== 'number') proactiveLetterSettings.maxH = 240;
+  proactiveLetterSettings.minMinutes = Math.max(1, Math.min(14400, Math.round(proactiveLetterSettings.minMinutes)));
+  proactiveLetterSettings.maxH = Math.max(1, Math.min(240, Math.round(proactiveLetterSettings.maxH)));
 
 }
 
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', letters:'写信', inboxLetters:'来信', calls:'通话', tarot:'塔罗', 'tarot-draw':'抽牌' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', letters:'写信', inboxLetters:'来信', calls:'通话' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
@@ -2660,6 +2871,7 @@ function go(name){
   if(name==='cards'){ renderCardsView(); }
   if(name==='period'){ renderPeriod(); }
   if(name==='companion'){ renderCompanionBody(); }
+  if(name==='favs'){ try{ renderCompanionFavList(); }catch(e){} }
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='letters'){
@@ -2746,9 +2958,7 @@ function polaBindSwipe(){
     if(!tracking) return; tracking = false;
     const t = (e.changedTouches && e.changedTouches[0]); if(!t) return;
     const dx = t.clientX - sx, dy = t.clientY - sy;
-    if(Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.4){
-      polaGoto(polaCur + (dx < 0 ? 1 : -1));
-    }
+    /* 横滑留给首页翻页；换照片请点旁边的照片或下面的小圆点 */
   }, {passive:true});
   let mdx = 0, mdown = false;
   fan.addEventListener('mousedown', function(e){ mdown = true; mdx = e.clientX; });
@@ -4093,7 +4303,6 @@ async function sendUserMessage(){
   if(typeof quoteTarget !== 'undefined' && quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   if(!Array.isArray(chatMessages)) chatMessages = [];
   chatMessages.push(msg);
-  try{ maybeBotFavoriteChat(); }catch(e){}
   try{ renderChat(); }catch(e){ console.error('renderChat', e); }
   try{ await recPut('chatMessages', msg); }catch(e){ console.warn('recPut chat fail', e); }
   try{ handleIncomingForBot(text || '[表情]'); }catch(e){ console.error('handleIncoming', e); }
@@ -4127,15 +4336,13 @@ function handleIncomingForBot(userText){
   scheduleAutoReply(userText);
 }
 
-/** 显示：1s / 2分钟 等（上限 120 秒） */
+/** 最快回复：delayMin 秒；最慢回复：delayMax 分钟 */
 function getReplyDelayMs(){
-  // 单位：分钟，滑条 1～5
-  const lo0 = Number(chatSettings.delayMin) || 1;
-  const hi0 = Number(chatSettings.delayMax) || 5;
-  const lo = Math.max(1, Math.min(5, Math.min(lo0, hi0)));
-  const hi = Math.max(lo, Math.min(5, Math.max(lo0, hi0)));
-  const chosen = lo + Math.random()*(hi-lo);
-  return Math.max(1, chosen) * 60 * 1000;
+  const loMs = Math.max(1, Number(chatSettings.delayMin) || 30) * 1000;
+  const hiMs = Math.max(1, Number(chatSettings.delayMax) || 5) * 60 * 1000;
+  const lo = Math.min(loMs, hiMs);
+  const hi = Math.max(loMs, hiMs);
+  return lo + Math.random()*(hi-lo);
 }
 function savePendingReplyState(o){ try{ sSet('pending-reply', o); }catch(e){} }
 function clearPendingReplyState(){ try{ sSet('pending-reply', {active:false}); }catch(e){} }
@@ -4152,7 +4359,6 @@ function runReplyBatch(userText, total, startFrom){
     try{ assignGroupSender(newMsg); }catch(e){}
     if(!Array.isArray(chatMessages)) chatMessages = [];
     chatMessages.push(newMsg);
-    try{ maybeBotFavoriteChat(); }catch(e){}
     const last = [...chatMessages].reverse().find(m=>m.from==='user' && m.id!==newMsg.id);
     if(last) last.read = true;
     try{ renderChat(); }catch(e){ console.error('renderChat bot', e); }
@@ -4313,10 +4519,9 @@ function pickReplyFor(userText, opts){
 function randomBetween(minMs, maxMs){ return minMs + Math.random()*(maxMs-minMs); }
 const MAX_TIMEOUT_MS = 2000000000; // setTimeout 上限约 24.8 天，超了会"立刻触发"，所以长等待要分段
 function proactiveIntervalMs(){
-  const n = Math.max(1, Math.min(180, Number(proactiveMsgSettings.intervalMinutes) || 60));
-  // 【B 方案】滑条值 = 随机上限：在 1 分钟 ~ n 分钟之间随机挑一个时间主动来
-  if(n <= 1) return 60*1000;
-  return randomBetween(60*1000, n*60*1000);
+  const a = Math.max(1, Math.min(10800, Number(proactiveMsgSettings.minSeconds) || 60)) * 1000;
+  const b = Math.max(1, Math.min(180, Number(proactiveMsgSettings.intervalMinutes) || 60)) * 60*1000;
+  return randomBetween(Math.min(a,b), Math.max(a,b));
 }
 function scheduleNextProactiveMsg(){
   if(proactiveMsgSettings.enabled === false){
@@ -4327,9 +4532,9 @@ function scheduleNextProactiveMsg(){
   proactiveState.nextMsgAt = Date.now() + proactiveIntervalMs(); // 1~间隔值内随机
 }
 function scheduleNextProactiveLetter(){
-  const _lhLo = Math.max(1, Math.min(240, Math.min(proactiveLetterSettings.minH||1, proactiveLetterSettings.maxH||240)));
-  const _lhHi = Math.max(_lhLo, Math.min(240, Math.max(proactiveLetterSettings.minH||1, proactiveLetterSettings.maxH||240)));
-  proactiveState.nextLetterAt = Date.now() + randomBetween(_lhLo*3600*1000, _lhHi*3600*1000);
+  const a = Math.max(1, Number(proactiveLetterSettings.minMinutes) || 60) * 60*1000;
+  const b = Math.max(1, Number(proactiveLetterSettings.maxH) || 240) * 3600*1000;
+  proactiveState.nextLetterAt = Date.now() + randomBetween(Math.min(a,b), Math.max(a,b));
 }
 function scheduleNextProactiveCall(){
   proactiveState.nextCallAt = Date.now() + randomBetween(5*60*1000, 12*3600*1000);
@@ -4437,7 +4642,6 @@ function runProBurst(total, startFrom){
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
     try{ assignGroupSender(newMsg); }catch(e){}
     chatMessages.push(newMsg);
-    try{ maybeBotFavoriteChat(); }catch(e){}
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
     if(currentView==='chat' || roomIsOpen()){ try{ renderChat(); }catch(e){} }
     else{
@@ -4880,11 +5084,17 @@ function openChatSettings(){
     <div class="btn-row" style="margin-top:8px;">
       <div class="btn outline" onclick="closeOverlay(); openGroupManagePanel();">👥 管理伙伴（${chatSettings.group&&Array.isArray(chatSettings.group.members)?chatSettings.group.members.length:0}）</div>
     </div>
-    <label class="field">最快回复：<span id="csDelayMinVal">${chatSettings.delayMin}</span> 分钟</label>
-    <input type="range" min="1" max="5" step="1" value="${Math.min(5, Math.max(1, chatSettings.delayMin||1))}" oninput="document.getElementById('csDelayMinVal').textContent=this.value" id="csDelayMin" style="width:100%;">
-    <label class="field">最慢回复：<span id="csDelayMaxVal">${chatSettings.delayMax}</span> 分钟</label>
-    <input type="range" min="1" max="5" step="1" value="${Math.min(5, Math.max(1, chatSettings.delayMax||5))}" oninput="document.getElementById('csDelayMaxVal').textContent=this.value" id="csDelayMax" style="width:100%;">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">1～5 分钟。每次回复会在这个区间里随机挑一个时间</div>
+    <label class="field">最快回复</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="1" max="3600" step="1" value="${chatSettings.delayMin||30}" id="csDelayMin" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">秒</span>
+    </div>
+    <label class="field" style="margin-top:10px;">最慢回复</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="1" max="1440" step="1" value="${chatSettings.delayMax||5}" id="csDelayMax" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">最快回复填秒数，最慢回复填分钟数；每次回复会在这个区间里随机挑一个时间</div>
     <label class="field">对方「表情+文字」同回概率：<span id="csComboProbVal">${chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35}</span>%</label>
     <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35))}" oninput="document.getElementById('csComboProbVal').textContent=this.value" id="csComboProb" style="width:100%;">
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复时，有多大概率带上表情包（或表情+文字一起回）</div>
@@ -4907,10 +5117,12 @@ function openChatSettings(){
       <span>主动发消息给我</span>
       <div class="switch ${proactiveMsgSettings.enabled!==false?'on':''}" id="csProEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
-    <label class="field">间隔：<span id="csProIntervalVal">${Math.min(180, proactiveMsgSettings.intervalMinutes||60)}</span> 分钟</label>
+    <label class="field">最短：</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="10800" step="1" value="${proactiveMsgSettings.minSeconds||60}" id="csProMin" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">秒</span></div>
+    <label class="field" style="margin-top:10px;">最长：<span id="csProIntervalVal">${Math.min(180, proactiveMsgSettings.intervalMinutes||60)}</span> 分钟</label>
     <input type="range" min="1" max="180" step="1" value="${Math.min(180, Math.max(1, proactiveMsgSettings.intervalMinutes||60))}" oninput="document.getElementById('csProIntervalVal').textContent=this.value" id="csProInterval" style="width:100%;">
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">最久隔这么久，TA 就会主动来找你一次（实际在 1 分钟～该值之间随机，有时连发 1～3 条）。App 开着才会计时，保存后从现在重新计。</div>
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在 1 分钟～该值之间随机挑一个时间主动发（滑条上限 1～180 分钟）</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在最短(秒)～最长(分钟)之间随机挑一个时间主动发</div>
     <div class="box-title" style="margin-top:14px;">朋友圈互动</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">你发朋友圈后，TA 点赞 / 评论的概率；以及你评论后 TA 回复的概率。0% 从不，100% 必做。</div>
     <label class="field">点赞概率：<span id="csLikeProbVal">${momentInteractSettings.likeProb||60}</span>%</label>
@@ -4919,19 +5131,19 @@ function openChatSettings(){
     <input type="range" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.commentProb||60)}" oninput="document.getElementById('csCommentProbVal').textContent=this.value" id="csCommentProb" style="width:100%;">
     <label class="field">回评论概率：<span id="csReplyProbVal">${momentInteractSettings.replyProb||60}</span>%</label>
     <input type="range" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.replyProb||60)}" oninput="document.getElementById('csReplyProbVal').textContent=this.value" id="csReplyProb" style="width:100%;">
-    <label class="field">主动发朋友圈最短：<span id="csMomMinDaysVal">${momentInteractSettings.minDays||1}</span> 天</label>
-    <input type="range" min="1" max="30" step="1" value="${Math.min(30, momentInteractSettings.minDays||1)}" oninput="document.getElementById('csMomMinDaysVal').textContent=this.value" id="csMomMinDays" style="width:100%;">
+    <label class="field">主动发朋友圈最短</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="43200" step="1" value="${momentInteractSettings.minMinutes||1440}" id="csMomMinDays" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
     <label class="field">主动发朋友圈最长：<span id="csMomMaxDaysVal">${momentInteractSettings.maxDays||15}</span> 天</label>
     <input type="range" min="1" max="30" step="1" value="${Math.min(30, momentInteractSettings.maxDays||15)}" oninput="document.getElementById('csMomMaxDaysVal').textContent=this.value" id="csMomMaxDays" style="width:100%;">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在最短～最长天数之间纯随机挑时间发朋友圈，发完再排下一次，可多次触发</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在最短(分钟)～最长(天)之间纯随机挑时间发朋友圈，发完再排下一次，可多次触发</div>
 
     <div class="box-title" style="margin-top:14px;">主动写信给我</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">TA 隔一段时间会主动写一封信塞进信箱。这里设最短 / 最长间隔，实际在两者之间随机挑一个点。</div>
-    <label class="field">写信最短间隔：<span id="minHVal">${Math.min(240, Math.max(1, proactiveLetterSettings.minH||1))}</span> 小时</label>
-    <input type="range" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.minH||1))}" oninput="document.getElementById('minHVal').textContent=this.value" id="csLetterMinH">
+    <label class="field">写信最短间隔</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="14400" step="1" value="${proactiveLetterSettings.minMinutes||60}" id="csLetterMinH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
     <label class="field">写信最长间隔：<span id="maxHVal">${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}</span> 小时</label>
     <input type="range" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}" oninput="document.getElementById('maxHVal').textContent=this.value" id="csLetterMaxH">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">范围 1~240 小时（即 1 小时~10 天）。保存后按新间隔重新排下一封信。</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">最短填分钟，最长 1~240 小时（最多 10 天）。保存后按新间隔重新排下一封信。</div>
     <div class="box-title" style="margin-top:14px;">拼字卡</div>
     <div class="switch-row">
       <span>拼字卡<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后有机会随机把 2~4 张字卡拼在一起发，不是每条都拼</div></span>
@@ -5248,10 +5460,8 @@ function onStickerFile(e, which){
 }
 async function saveChatSettings(){
   chatSettings.companionName = document.getElementById('csName').value.trim() || chatSettings.companionName;
-  let dMin = Math.max(1, Math.min(5, parseInt(document.getElementById('csDelayMin').value,10) || 1));
-  let dMax = Math.max(1, Math.min(5, parseInt(document.getElementById('csDelayMax').value,10) || 5));
-  chatSettings.delayMin = Math.min(dMin, dMax);
-  chatSettings.delayMax = Math.max(dMin, dMax);
+  chatSettings.delayMin = Math.max(1, Math.min(3600, parseInt(document.getElementById('csDelayMin').value,10) || 30));
+  chatSettings.delayMax = Math.max(1, Math.min(1440, parseInt(document.getElementById('csDelayMax').value,10) || 5));
   delete chatSettings.delayUnit;
   chatSettings.readNoReply = document.getElementById('csReadNoReply').classList.contains('on');
   const rnrP = document.getElementById('csReadNoReplyProb');
@@ -5264,7 +5474,7 @@ async function saveChatSettings(){
   await sSet('chat-settings', chatSettings);
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
   proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(180, parseInt(document.getElementById('csProInterval').value,10) || 60));
-  delete proactiveMsgSettings.minMinutes;
+  proactiveMsgSettings.minSeconds = Math.max(1, Math.min(10800, parseInt(document.getElementById('csProMin').value,10) || 60));
   delete proactiveMsgSettings.maxMinutes;
   await sSet('proactive-msg-settings', proactiveMsgSettings);
   scheduleNextProactiveMsg();
@@ -5273,20 +5483,16 @@ async function saveChatSettings(){
   momentInteractSettings.likeProb = Math.max(0, Math.min(100, parseInt(document.getElementById('csLikeProb').value,10) || 0));
   momentInteractSettings.commentProb = Math.max(0, Math.min(100, parseInt(document.getElementById('csCommentProb').value,10) || 0));
   momentInteractSettings.replyProb = Math.max(0, Math.min(100, parseInt(document.getElementById('csReplyProb').value,10) || 0));
-  const mdMin = Math.max(1, Math.min(30, parseInt(document.getElementById('csMomMinDays').value,10) || 1));
-  const mdMax = Math.max(1, Math.min(30, parseInt(document.getElementById('csMomMaxDays').value,10) || 15));
-  momentInteractSettings.minDays = Math.min(mdMin, mdMax);
-  momentInteractSettings.maxDays = Math.max(mdMin, mdMax);
+  momentInteractSettings.minMinutes = Math.max(1, Math.min(43200, parseInt(document.getElementById('csMomMinDays').value,10) || 1440));
+  momentInteractSettings.maxDays = Math.max(1, Math.min(30, parseInt(document.getElementById('csMomMaxDays').value,10) || 15));
   await sSet('moment-interact-settings', momentInteractSettings);
   // 区间变了就按新区间重排下一次主动发朋友圈
   scheduleNextProactiveMoment();
   await sSet('proactive-state', proactiveState);
   // 写信间隔：区间变了就按新区间重排下一封信
   {
-    const _lm = Math.max(1, Math.min(240, parseInt(document.getElementById('csLetterMinH').value,10) || 1));
-    const _lx = Math.max(1, Math.min(240, parseInt(document.getElementById('csLetterMaxH').value,10) || 240));
-    proactiveLetterSettings.minH = Math.min(_lm, _lx);
-    proactiveLetterSettings.maxH = Math.max(_lm, _lx);
+    proactiveLetterSettings.minMinutes = Math.max(1, Math.min(14400, parseInt(document.getElementById('csLetterMinH').value,10) || 60));
+    proactiveLetterSettings.maxH = Math.max(1, Math.min(240, parseInt(document.getElementById('csLetterMaxH').value,10) || 240));
   }
   await sSet('proactive-letter-settings', proactiveLetterSettings);
   scheduleNextProactiveLetter();
@@ -5837,9 +6043,9 @@ async function checkMomentEvents(){
 function scheduleNextProactiveMoment(){
   // 纯随机：从现在起 1～15 天之间任意挑一个时间点，哪一天触发不预先定好
   // （跟写信 scheduleNextProactiveLetter / 打电话 scheduleNextProactiveCall 同一套思路）
-  const mdLo = Math.max(1, Math.min(30, Math.min(momentInteractSettings.minDays||1, momentInteractSettings.maxDays||15)));
-  const mdHi = Math.max(mdLo, Math.min(30, Math.max(momentInteractSettings.minDays||1, momentInteractSettings.maxDays||15)));
-  proactiveState.nextMomentAt = Date.now() + randomBetween(mdLo*24*3600*1000, mdHi*24*3600*1000);
+  const a = Math.max(1, Number(momentInteractSettings.minMinutes) || 1440) * 60*1000;
+  const b = Math.max(1, Number(momentInteractSettings.maxDays) || 15) * 24*3600*1000;
+  proactiveState.nextMomentAt = Date.now() + randomBetween(Math.min(a,b), Math.max(a,b));
 }
 async function sendProactiveMoment(){
   const lineCount = 1 + Math.floor(Math.random()*2);
@@ -6570,7 +6776,7 @@ async function clearAvatarImage(){
   fillSettingsForm();
 }
 const _origGo = go;
-go = function(name){ _origGo(name); if(name==='companion'){ loadCompanionData().then(()=>{ _compTab='todo'; switchCompanionTab('todo'); }); } };
+go = function(name){ _origGo(name); if(name==='companion'){ loadCompanionData().then(()=>{ const t=window._wantCompTab||'todo'; window._wantCompTab=null; _compTab=t; switchCompanionTab(t); }); } };
 
 async function saveProfile(){
   profile.name = document.getElementById('setName').value.trim() || profile.name;
@@ -6603,7 +6809,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','tarot-history','tarot-model-on','bg-settings','vinyl-settings','call-session'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','vinyl-settings','call-session'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -6635,16 +6841,14 @@ async function exportBackup(){
   const [fullChat, fullMoments, fullPhotos] = await Promise.all([
     recGetAll('chatMessages'), recGetAll('momentsPosts'), recGetAll('lifePhotos')
   ]);
-  let tarotHistoryData = [];
-  try{ tarotHistoryData = await sGet('tarot-history', []); }catch(e){}
   let vinylForExport = null;
   try{ vinylForExport = await sGet('vinyl-settings', null); }catch(e){}
-  const bgForExport = Object.assign({}, bgSettings, { aiKey:'' }); // 接口密钥不写进备份文件，备份发给别人也不会泄露
+  const bgForExport = Object.assign({}, bgSettings);
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, momentInteractSettings, spliceCardsEnabled,
-    companionTodos, companionHabits, companionAnnivs, tarotHistory: tarotHistoryData, tarotModelOn, bgSettings: bgForExport, vinylSettings: vinylForExport, momentEvents,
+    companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -6709,17 +6913,13 @@ function onImportBackupFile(e){
     if(data.proactiveLetterSettings && typeof data.proactiveLetterSettings==='object'){ proactiveLetterSettings = data.proactiveLetterSettings; }
     await sSet('proactive-letter-settings', proactiveLetterSettings);
     await sSet('splice-cards-enabled', spliceCardsEnabled);
-    // 陪伴记录 / 塔罗 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
+    // 陪伴记录 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
     if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
     if(Array.isArray(data.companionAnnivs)){ companionAnnivs = data.companionAnnivs; await sSet('companion-annivs', companionAnnivs); }
-    if(Array.isArray(data.tarotHistory)) await sSet('tarot-history', data.tarotHistory);
-    if(typeof data.tarotModelOn === 'boolean'){ tarotModelOn = data.tarotModelOn; await sSet('tarot-model-on', tarotModelOn); }
     if(Array.isArray(data.momentEvents)){ momentEvents = data.momentEvents; await sSet('moment-events', momentEvents); }
     if(data.bgSettings && typeof data.bgSettings === 'object'){
-      const keepKey = bgSettings.aiKey;
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
-      if(!data.bgSettings.aiKey && keepKey) bgSettings.aiKey = keepKey; // 备份里不带密钥，保留当前已填的
       await sSet('bg-settings', bgSettings);
     }
     if(data.vinylSettings && typeof data.vinylSettings === 'object'){
@@ -7376,11 +7576,20 @@ let companionHabits = [];
 let companionAnnivs = [];
 let companionFavorites = [];
 let _compTab = 'todo';
-let _compFavTab = 'song';
 
 async function loadCompanionData(){
   companionTodos = await sGet('companion-todos', []);
   companionHabits = await sGet('companion-habits', []);
+  try{
+    const _hd = await sGet('companion-habits-day', '');
+    const _td = localDateStr();
+    if(_hd !== _td){
+      companionHabits.forEach(h=>{ h.doneToday = false; });
+      await sSet('companion-habits', companionHabits);
+      await sSet('companion-habits-day', _td);
+    }
+  }catch(e){}
+  try{ renderHomeHabits(); }catch(e){}
   companionAnnivs = await sGet('companion-annivs', []);
   companionFavorites = await sGet('companion-favorites', []);
 }
@@ -7480,23 +7689,19 @@ function renderCompanionBody(){
   } else if(_compTab === 'fav'){
     body.innerHTML = `
       <div class="box">
-        <div class="box-title">TA悄悄收藏的东西</div>
-        <div class="btn-row" style="margin-bottom:10px;">
-          <div class="btn${_compFavTab==='song'?'':' outline'}" onclick="switchFavTab('song')">🎵 歌曲</div>
-          <div class="btn${_compFavTab==='chat'?'':' outline'}" onclick="switchFavTab('chat')">💬 聊天信息</div>
-        </div>
+        <div class="box-title">TA悄悄收藏的歌曲</div>
         <div id="compFavList"></div>
       </div>`;
     renderCompanionFavList();
   }
 }
-function switchFavTab(tab){ _compFavTab = tab; renderCompanionBody(); }
 function renderCompanionFavList(){
-  const el = document.getElementById('compFavList');
-  if(!el) return;
-  const list = companionFavorites.filter(function(f){ return f.type === _compFavTab; });
+  ['compFavList','favsViewList'].forEach(function(id){ const e=document.getElementById(id); if(e) _renderFavInto(e); });
+}
+function _renderFavInto(el){
+  const list = companionFavorites.filter(function(f){ return f.type === 'song'; });
   if(!list.length){
-    el.innerHTML = '<div class="empty-note">TA还没有收藏' + (_compFavTab==='song' ? '歌曲' : '聊天信息') + '</div>';
+    el.innerHTML = '<div class="empty-note">TA还没有收藏歌曲</div>';
     return;
   }
   el.innerHTML = list.map(function(f){
@@ -7518,7 +7723,6 @@ async function delCompanionFav(fid){
 }
 /* ===== 梦角随机收藏：想收藏什么就收藏什么 ===== */
 const FAV_SONG_NOTES = ['这首歌我要收好，以后循环。','听到这首就想起你。','偷偷放进我的收藏夹了。','嗯，这首我要了。','这首适合单曲循环。'];
-const FAV_CHAT_NOTES = ['这句我想留着。','这句话我要收起来。','记下了，不删。','悄悄存进收藏。','以后翻出来看。'];
 /* ===== 收藏提示弹窗：TA 收藏歌曲 / 消息时弹一下 ===== */
 let _favPopTimer = null;
 function showFavPopup(kind, item){
@@ -7531,15 +7735,9 @@ function showFavPopup(kind, item){
       el.className = 'fav-pop';
       document.body.appendChild(el);
     }
-    let icon = '💗', title = name + ' 收藏了一条消息', sub = '';
-    if(kind === 'song'){
-      icon = '🎵';
-      title = name + ' 收藏了这首歌';
-      sub = (item && item.name) ? ('《' + item.name + '》' + (item.artist ? ' · ' + item.artist : '')) : '';
-    }else{
-      sub = (item && item.note) ? item.note : '';
-    }
-    el.innerHTML = '<div class="fav-pop-ico">' + icon + '</div>' +
+    const title = name + ' 收藏了这首歌';
+    const sub = (item && item.name) ? ('《' + item.name + '》' + (item.artist ? ' · ' + item.artist : '')) : '';
+    el.innerHTML = '<div class="fav-pop-ico">🎵</div>' +
       '<div class="fav-pop-txt"><div class="fav-pop-title">' + escapeHtml(title) + '</div>' +
       (sub ? '<div class="fav-pop-sub">' + escapeHtml(sub) + '</div>' : '') + '</div>';
     clearTimeout(_favPopTimer);
@@ -7548,8 +7746,8 @@ function showFavPopup(kind, item){
   }catch(e){}
   try{
     if(document.visibilityState !== 'visible'){
-      const _t = name + (kind === 'song' ? ' 收藏了一首歌' : ' 收藏了一条消息');
-      const _b = (kind === 'song' && item && item.name) ? ('《' + item.name + '》') : '';
+      const _t = name + ' 收藏了一首歌';
+      const _b = (item && item.name) ? ('《' + item.name + '》') : '';
       tryBgNotify(_t, _b);
     }
   }catch(e){}
@@ -7559,7 +7757,7 @@ async function addCompanionFavorite(item){
   item.id = uid();
   companionFavorites.unshift(item);
   try{ await sSet('companion-favorites', companionFavorites); }catch(e){ console.warn('save fav fail', e); }
-  if(typeof currentView !== 'undefined' && currentView === 'companion' && _compTab === 'fav'){ try{ renderCompanionFavList(); }catch(e){} }
+  if(typeof currentView !== 'undefined' && (currentView === 'favs' || (currentView === 'companion' && _compTab === 'fav'))){ try{ renderCompanionFavList(); }catch(e){} }
   try{ showFavPopup(item.type, item); }catch(e){}
 }
 function maybeBotFavoriteSong(song){
@@ -7570,17 +7768,6 @@ function maybeBotFavoriteSong(song){
   const key = String(song.id || song.name);
   if(companionFavorites.some(function(f){ return f.type === 'song' && String(f.songId || f.name) === key; })) return;
   addCompanionFavorite({ type:'song', songId:String(song.id || ''), name:song.name, artist:song.artist || '', pic:song.pic || '', note: FAV_SONG_NOTES[Math.floor(Math.random()*FAV_SONG_NOTES.length)], at: Date.now() });
-}
-function maybeBotFavoriteChat(){
-  if(Math.random() > 0.12) return;
-  if(!Array.isArray(chatMessages) || !chatMessages.length) return;
-  const pool = chatMessages.slice(-40).filter(function(m){
-    return m && m.content && typeof m.content === 'string' && m.content.indexOf('data:') !== 0 && (m.type === 'text' || m.type === 'combo' || m.type === 'quote' || !m.type);
-  });
-  if(!pool.length) return;
-  const m = pool[Math.floor(Math.random() * pool.length)];
-  if(companionFavorites.some(function(f){ return f.type === 'chat' && f.msgId === m.id; })) return;
-  addCompanionFavorite({ type:'chat', msgId:m.id, from:(m.from === 'user' ? 'me' : 'ta'), content:String(m.content).slice(0,200), note: FAV_CHAT_NOTES[Math.floor(Math.random()*FAV_CHAT_NOTES.length)], at: Date.now() });
 }
 async function addCompanionTodo(){
   const inp = document.getElementById('compTodoInput');
@@ -7599,22 +7786,110 @@ async function delCompanionTodo(i){
   await sSet('companion-todos', companionTodos);
   renderCompanionBody();
 }
+
+/* ===== 首页习惯卡片（数据与「陪伴记录 → 习惯」共用）===== */
+function renderHomeHabits(){
+  const list=document.getElementById('homeHabitList'); if(!list) return;
+  const keep=list.scrollTop;
+  const cnt=document.getElementById('homeHabitCount');
+  if(!companionHabits.length){
+    list.innerHTML='<div class="h2-empty">长按这里<br>添加习惯</div>';
+    if(cnt) cnt.textContent='';
+    return;
+  }
+  const done=companionHabits.filter(h=>h.doneToday).length;
+  if(cnt) cnt.textContent=done+'/'+companionHabits.length;
+  list.innerHTML=companionHabits.map((h,i)=>`
+    <div class="h2-hab ${h.doneToday?'on':''}" onclick="toggleHomeHabit(${i})">
+      <span class="h2-chk"></span><span class="h2-hab-t">${escapeHtml(h.text)}</span>
+    </div>`).join('');
+  list.scrollTop=keep;
+}
+let _habLPAt=0;
+function openHabitEditor(){
+  _habLPAt=Date.now();
+  const rows=companionHabits.map((h,i)=>`
+    <div class="pet-add-row" style="margin-bottom:8px;">
+      <input type="text" value="${escapeHtml(h.text)}" onchange="habitEdSave(${i},this.value)">
+      <div class="go-btn" onclick="habitEdDel(${i})">删除</div>
+    </div>`).join('');
+  openOverlay(`
+    <div class="drawer-head"><h3>编辑习惯</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div id="habitEdRows">${rows||'<div class="empty-note">还没有习惯，在下面添加一条吧</div>'}</div>
+    <div class="pet-add-row" style="margin-top:6px;">
+      <input type="text" id="habitEdNew" placeholder="添加一条习惯…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)habitEdAdd()">
+      <div class="go-btn" onclick="habitEdAdd()">+添加</div>
+    </div>
+    <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay()">完成</div></div>`);
+}
+async function habitEdSave(i,v){
+  const t=String(v||'').trim(); if(!companionHabits[i]) return;
+  if(!t){ return; }
+  companionHabits[i].text=t;
+  await sSet('companion-habits', companionHabits);
+  renderHomeHabits();
+}
+async function habitEdDel(i){
+  if(!companionHabits[i]) return;
+  companionHabits.splice(i,1);
+  await sSet('companion-habits', companionHabits);
+  renderHomeHabits(); openHabitEditor();
+}
+async function habitEdAdd(){
+  const inp=document.getElementById('habitEdNew'); const t=(inp&&inp.value||'').trim(); if(!t) return;
+  companionHabits.push({id:uid(), text:t, doneToday:false});
+  await sSet('companion-habits', companionHabits);
+  renderHomeHabits(); openHabitEditor();
+  setTimeout(function(){ const n=document.getElementById('habitEdNew'); if(n) n.focus(); },30);
+}
+(function(){
+  function bind(){
+    var el=document.getElementById('habitCard'); if(!el||el._lp) return; el._lp=true;
+    var t=null,sx=0,sy=0;
+    function clear(){ if(t){ clearTimeout(t); t=null; } }
+    el.addEventListener('touchstart',function(e){
+      if(!e.touches||e.touches.length!==1) return;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY; clear();
+      t=setTimeout(function(){ t=null; openHabitEditor(); },520);
+    },{passive:true});
+    el.addEventListener('touchmove',function(e){
+      var x=e.touches[0].clientX,y=e.touches[0].clientY;
+      if(Math.abs(x-sx)>8||Math.abs(y-sy)>8) clear();
+    },{passive:true});
+    el.addEventListener('touchend',clear,{passive:true});
+    el.addEventListener('touchcancel',clear,{passive:true});
+    el.addEventListener('contextmenu',function(e){ e.preventDefault(); openHabitEditor(); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+async function toggleHomeHabit(i){
+  if(Date.now()-_habLPAt<600) return;
+  if(!companionHabits[i]) return;
+  companionHabits[i].doneToday=!companionHabits[i].doneToday;
+  await sSet('companion-habits', companionHabits);
+  renderHomeHabits();
+}
+function openCompanionTab(tab){ window._wantCompTab=tab; go('companion'); }
+
 async function addCompanionHabit(){
   const inp = document.getElementById('compHabitInput');
   const val = (inp&&inp.value||'').trim(); if(!val) return;
   companionHabits.push({id:uid(), text:val, doneToday:false});
   await sSet('companion-habits', companionHabits);
   renderCompanionBody();
+  try{ renderHomeHabits(); }catch(e){}
 }
 async function toggleCompanionHabit(i){
   companionHabits[i].doneToday = !companionHabits[i].doneToday;
   await sSet('companion-habits', companionHabits);
   renderCompanionBody();
+  try{ renderHomeHabits(); }catch(e){}
 }
 async function delCompanionHabit(i){
   companionHabits.splice(i,1);
   await sSet('companion-habits', companionHabits);
   renderCompanionBody();
+  try{ renderHomeHabits(); }catch(e){}
 }
 async function addCompanionAnniv(){
   const name = (document.getElementById('compAnnivName')||{}).value||''.trim();
@@ -7808,547 +8083,29 @@ async function doSearch(){
 
 
 /* ============================================================
-   TAROT 正规经典牌阵 + 模型解读（原文件风格）
-   ============================================================ */
-const TAROT_SPREADS = [
-  { id:'single', name:'单张', count:1, cat:['all','fortune'], positions:['核心指引'], hint:'适合日常随手问一问，答案简洁直接。' },
-  { id:'free', name:'无牌阵', count:3, cat:['all','love','study','fortune'], positions:['牌一','牌二','牌三'], hint:'不设固定位置含义，三张牌自由串联解读，适合随手一问。' },
-  { id:'three-rel', name:'三张·你与对方', count:3, cat:['love'], positions:['你','对方','关系动态'], hint:'爱情专用经典三张，看双方与关系本身。' },
-  { id:'cross5', name:'五张十字', count:5, cat:['all','study','fortune'], positions:['核心','过去','未来','助力','阻力'], hint:'传统十字变体，适合学业决策或运势全貌。' },
-  { id:'celtic', name:'凯尔特十字', count:10, cat:['all','love','study','fortune'], positions:['现状','阻碍','根基','过去','目标','近未来','自身','环境','希望与恐惧','结果'], hint:'塔罗最经典正规老牌阵，深度全面，适合重要问题。' },
-  { id:'love5', name:'五张关系阵', count:5, cat:['love'], positions:['你','对方','关系','阻碍','走向'], hint:'爱情专用，看双方位置与关系走向。' },
-  { id:'study5', name:'学业五张', count:5, cat:['study'], positions:['当前学业','优势','阻碍','建议','结果趋势'], hint:'针对考试/升学/学习状态。' },
-  { id:'xp5', name:'他的XP / 性癖倾向', count:5, cat:['all','love'], positions:['核心XP','显性部分','隐性部分','心理需求','对你时如何显现'], hint:'看他整体性偏好结构：核心癖好、敢说与不敢说的、背后需求、以及落到你身上时的样子。' },
-  { id:'fantasy6', name:'他对我的性幻想', count:6, cat:['all','love'], positions:['幻想核心','幻想中的你','身体层面','心理/角色层面','压抑或不敢说的','关系影响与建议'], hint:'专门看爱情里他对你的性幻想：核心欲望、脑中的你、身心两层、压抑部分与关系建议。' },
-  { id:'xp_fantasy7', name:'XP × 对我的幻想', count:7, cat:['all','love'], positions:['核心XP','对你的幻想主轴','两者重叠','仅幻想难落地','顾虑/羞耻/边界','你若回应他会如何','关系建议'], hint:'把性癖与对你的幻想合在一起看：重叠点火点、现实难落地处、边界与互动建议。' },
-];
-const TAROT_DECK = [
-  {n:'愚者', k:'新开始、冒险、纯真', t:'正位象征自由启程与信任直觉；逆位可能表示莽撞或逃避责任。'},
-  {n:'魔术师', k:'行动力、资源、创造', t:'你具备把想法落地的能力，关键是专注与启动。'},
-  {n:'女祭司', k:'直觉、内在、秘密', t:'答案在安静与内省中，先听内心再行动。'},
-  {n:'女皇', k:'丰盛、滋养、感性', t:'允许自己被照顾与享受成果，关系或学业都宜温和推进。'},
-  {n:'皇帝', k:'秩序、权威、结构', t:'需要规则与边界，用清晰计划稳住局面。'},
-  {n:'教皇', k:'传统、指引、信念', t:'向可靠的人请教，或回归已验证的方法。'},
-  {n:'恋人', k:'选择、联结、价值观', t:'重要选择关乎心与价值对齐，诚实面对关系或方向。'},
-  {n:'战车', k:'意志、前进、掌控', t:'集中目标向前冲，纪律能带来突破。'},
-  {n:'力量', k:'勇气、温柔的力量', t:'用耐心与内在力量化解阻力，而非硬碰硬。'},
-  {n:'隐者', k:'独处、寻求真理', t:'暂时退一步沉淀，答案会在独处中清晰。'},
-  {n:'命运之轮', k:'转折、周期、机遇', t:'运势在转动，抓住当下窗口，接受变化。'},
-  {n:'正义', k:'公平、因果、真相', t:'按事实与原则处理，诚实会带来平衡。'},
-  {n:'倒吊人', k:'换视角、暂停、牺牲', t:'暂时放下执念，换角度看会有新解。'},
-  {n:'死神', k:'结束、转化、重生', t:'旧阶段落幕，为新可能腾出空间，不必恐惧。'},
-  {n:'节制', k:'平衡、调和、耐心', t:'融合对立面，循序渐进比急于求成更有效。'},
-  {n:'恶魔', k:'束缚、欲望、执念', t:'觉察是否被恐惧或习惯绑住，意识是解脱的第一步。'},
-  {n:'塔', k:'突变、崩塌、觉醒', t:'旧结构可能被打破，混乱之后是更真实的基础。'},
-  {n:'星星', k:'希望、疗愈、灵感', t:'保持信心，灵感与支持正在靠近。'},
-  {n:'月亮', k:'不确定、潜意识、幻觉', t:'信息未明，避免过度解读，等真相浮现。'},
-  {n:'太阳', k:'成功、清晰、活力', t:'积极结果可期，展现真实的自己会带来好运。'},
-  {n:'审判', k:'觉醒、召唤、清算', t:'回顾过去做决定，回应内心真正的召唤。'},
-  {n:'世界', k:'完成、整合、圆满', t:'一个周期圆满，可以庆祝并开启下一章。'},
-  {n:'权杖ACE', k:'热情启动', t:'新项目或学习动力充足，适合立刻开始。'},
-  {n:'权杖二', k:'规划、抉择', t:'手握资源开始规划下一步，是时候做出方向性的选择了。'},
-  {n:'权杖三', k:'展望、扩张', t:'眼光放远，合作或布局会带来进展。'},
-  {n:'权杖四', k:'庆祝、稳定', t:'阶段性成果值得庆祝，家庭或团队氛围和谐。'},
-  {n:'权杖五', k:'竞争、摩擦', t:'意见不合带来一些内耗，试着把对立变成良性竞争。'},
-  {n:'权杖六', k:'胜利、认可', t:'努力被看见，好消息或认可正在路上。'},
-  {n:'权杖七', k:'坚持、防御', t:'顶住外部压力守住立场，你比想象中更有底气。'},
-  {n:'权杖八', k:'迅速、消息', t:'事情加速，消息或进展会很快到来。'},
-  {n:'权杖九', k:'疲惫、坚韧', t:'已经很累但还在硬撑，胜利往往就在再坚持一下之后。'},
-  {n:'权杖十', k:'负重、责任', t:'扛的责任有点多了，可以考虑分担或断舍离一部分。'},
-  {n:'权杖侍从', k:'好奇、跃跃欲试', t:'对新鲜事充满热情，适合大胆尝试和探索。'},
-  {n:'权杖骑士', k:'冲动、行动力', t:'带着热情快速出发，注意别只图一时痛快。'},
-  {n:'权杖王后', k:'自信、感染力', t:'用温暖又坚定的方式影响身边的人，魅力自然流露。'},
-  {n:'权杖国王', k:'远见、领导力', t:'敢于承担风险的领导者，能把想法落地成局面。'},
-  {n:'圣杯ACE', k:'情感新开端', t:'心有所感，感情或灵感正在萌芽。'},
-  {n:'圣杯二', k:'伙伴、吸引', t:'双向的吸引与合作，关系中的平等交流。'},
-  {n:'圣杯三', k:'庆祝、友谊', t:'与人同乐，社交支持对你有益。'},
-  {n:'圣杯四', k:'冷漠、错失', t:'沉浸在自己的情绪里，容易忽略眼前其实还不错的选择。'},
-  {n:'圣杯五', k:'遗憾、失落', t:'盯着失去的部分太久，回头看看还剩下的东西吧。'},
-  {n:'圣杯六', k:'怀旧、纯真', t:'过去的美好回忆浮现，也可能是重新联系某个人的时机。'},
-  {n:'圣杯七', k:'幻想、多选', t:'选项很多但都有点虚，先分清哪些是真实可行的。'},
-  {n:'圣杯八', k:'放下、转身', t:'表面的圆满不再满足你，去寻找更深层的意义。'},
-  {n:'圣杯九', k:'满足、如愿', t:'愿望达成带来的满足感，允许自己享受这份好状态。'},
-  {n:'圣杯十', k:'圆满、和谐', t:'情感层面的圆满与安稳，家人或伴侣关系融洽。'},
-  {n:'圣杯侍从', k:'纯真、直觉讯息', t:'带着孩子气的敏感去感受，一个小小的心动或灵感值得留意。'},
-  {n:'圣杯骑士', k:'浪漫、理想主义', t:'带着诚意去追求心之所向，是关系里主动靠近的一步。'},
-  {n:'圣杯王后', k:'共情、细腻', t:'情绪细腻又有包容力，是身边人愿意依靠的存在。'},
-  {n:'圣杯国王', k:'成熟、情绪稳定', t:'能把情绪照顾得很好，也善于安抚和支持他人。'},
-  {n:'宝剑ACE', k:'清晰、真相', t:'思维锋利，适合做决定或表达立场。'},
-  {n:'宝剑二', k:'犹豫、逃避', t:'蒙着眼不想面对选择，但答案其实心里已经有数。'},
-  {n:'宝剑三', k:'心痛、领悟', t:'痛苦带来清醒，疗愈需要时间与诚实。'},
-  {n:'宝剑四', k:'休整、暂停', t:'先从纷争里退出来喘口气，恢复比硬撑更重要。'},
-  {n:'宝剑五', k:'冲突、代价', t:'吵赢了道理却可能输了关系，值得想想值不值得。'},
-  {n:'宝剑六', k:'过渡、离开', t:'带着一些伤驶向更平静的地方，情况正在慢慢好转。'},
-  {n:'宝剑七', k:'独行、策略', t:'可能在单打独斗甚至耍点小心机，留意坦诚与信任的边界。'},
-  {n:'宝剑八', k:'受限、自我设限', t:'束缚多半来自想法，换个角度就能松绑。'},
-  {n:'宝剑九', k:'焦虑、失眠', t:'脑子里反复放大担忧，实际情况通常没有想的那么糟。'},
-  {n:'宝剑十', k:'触底、结束', t:'一个艰难阶段的谷底，也意味着最坏的部分已经过去了。'},
-  {n:'宝剑侍从', k:'警觉、好问', t:'保持敏锐观察，愿意问问题、也愿意听真话。'},
-  {n:'宝剑骑士', k:'果断、直接', t:'想清楚就立刻行动，说话做事都很直接利落。'},
-  {n:'宝剑王后', k:'理性、独立', t:'看事情很清醒，习惯用逻辑而不是情绪去判断。'},
-  {n:'宝剑国王', k:'公正、权威', t:'讲原则、重逻辑的判断者，决定往往经得起推敲。'},
-  {n:'星币ACE', k:'机会、物质基础', t:'务实的机会出现，适合投资时间或资源。'},
-  {n:'星币二', k:'平衡、取舍', t:'在几件事之间找节奏，忙但还算游刃有余。'},
-  {n:'星币三', k:'技艺、合作', t:'精进技能与团队合作会带来成果。'},
-  {n:'星币四', k:'掌控、守成', t:'守住已有的成果没问题，但太紧抓不放会错过流动的机会。'},
-  {n:'星币五', k:'匮乏、孤立', t:'一时的困顿让人觉得孤立无援，其实援手可能就在附近。'},
-  {n:'星币六', k:'施与受', t:'资源或帮助在公平地流动，给予和接受都值得被看见。'},
-  {n:'星币七', k:'耐心、评估', t:'投入之后需要耐心等待回报，也适合停下来评估值不值。'},
-  {n:'星币八', k:'勤勉、专精', t:'持续练习与投入，学业或工作会稳步提升。'},
-  {n:'星币九', k:'独立、自足', t:'靠自己的努力过上舒适的生活，允许自己享受这份成果。'},
-  {n:'星币十', k:'稳定、传承', t:'长期安全感与成果分享，家庭或团队支持。'},
-  {n:'星币侍从', k:'脚踏实地、学习', t:'认真对待一个新机会，愿意从头学起。'},
-  {n:'星币骑士', k:'稳扎稳打、可靠', t:'做事保守但值得信赖，慢一点也没关系。'},
-  {n:'星币王后', k:'务实、温暖', t:'把生活和资源打理得很好，也乐于照顾身边的人。'},
-  {n:'星币国王', k:'丰盛、白手起家', t:'成熟稳重的实干家，靠踏实积累换来的丰盛。'},
-];
-let tarotState = { spread: null, drawn: [], question: '', cat: 'all', count: 3 };
-let tarotModelOn = false;
-
-function switchTarotCat(el){
-  document.querySelectorAll('#tarotTabs .btn').forEach(t=>{
-    t.className = 'btn outline';
-  });
-  el.className = 'btn';
-  tarotState.cat = el.dataset.cat;
-  renderTarotSpreads();
-}
-function renderTarotSpreads(){
-  const grid = document.getElementById('tarotSpreadGrid');
-  if(!grid) return;
-  const list = TAROT_SPREADS.filter(s => s.cat.includes(tarotState.cat) || tarotState.cat==='all');
-  grid.innerHTML = list.map(s=>`
-    <div class="tarot-spread-item ${tarotState.spread&&tarotState.spread.id===s.id?'active':''}" data-id="${s.id}" onclick="selectTarotSpread('${s.id}')">
-      <div>${s.name}</div>
-      <div class="s-count">${s.count} 张</div>
-    </div>`).join('');
-  const hint = document.getElementById('tarotHint');
-  if(hint) hint.textContent = tarotState.spread ? tarotState.spread.hint : '选择牌阵后开始抽牌。推荐：无牌阵 / 五张十字 / 凯尔特十字。';
-}
-function selectTarotSpread(id){
-  tarotState.spread = TAROT_SPREADS.find(s=>s.id===id);
-  if(tarotState.spread){
-    tarotState.count = tarotState.spread.count;
-  }
-  renderTarotSpreads();
-  const hint = document.getElementById('tarotHint');
-  if(hint && tarotState.spread) hint.textContent = tarotState.spread.hint;
-}
-
-function getTarotPositions(n){
-  if(tarotState.spread && tarotState.spread.count === n) return tarotState.spread.positions.slice();
-  if(n === 1) return ['核心指引'];
-  if(n === 3) return ['过去','现在','未来'];
-  if(n === 5) return ['核心','过去','未来','助力','阻力'];
-  if(n === 7) return ['过去','现在','未来','自身','环境','建议','结果'];
-  if(n === 10) return ['现状','阻碍','根基','过去','目标','近未来','自身','环境','希望与恐惧','结果'];
-  const arr = [];
-  for(let i=0;i<n;i++) arr.push('位置 '+(i+1));
-  return arr;
-}
-function buildShuffledDeck(){
-  // 复制牌库并洗牌，生成可点选的牌堆（类似正规站牌背列表）
-  const deck = TAROT_DECK.slice();
-  for(let i=deck.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    const t = deck[i]; deck[i]=deck[j]; deck[j]=t;
-  }
-  // 若需要张数接近或超过牌库，多洗几副拼在一起
-  const need = tarotState.count || 3;
-  while(deck.length < Math.max(need + 8, 24)){
-    const extra = TAROT_DECK.slice();
-    for(let i=extra.length-1;i>0;i--){
-      const j = Math.floor(Math.random()*(i+1));
-      const t = extra[i]; extra[i]=extra[j]; extra[j]=t;
-    }
-    deck.push.apply(deck, extra);
-  }
-  return deck;
-}
-let tarotShuffling = false;
-let tarotShuffleToken = 0;   // 洗牌动画中途又开了新一局时，只认最新那次
-let tarotShTimer = null;
-let tarotRunId = 0;          // 每次洗牌 / 重开一局就 +1，用来丢掉上一局还没回来的 AI 解读
-function tarotReduceMotion(){
-  try{ return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; }
-}
-function renderTarotSlots(popIdx){
-  const slots = document.getElementById('tarotSlots');
-  if(!slots) return;
-  const n = tarotState.count || 3;
-  const pos = getTarotPositions(n);
-  slots.innerHTML = '';
-  for(let i=0;i<n;i++){
-    const d = document.createElement('div');
-    const c = tarotState.drawn[i];
-    d.className = 'tarot-slot' + (c ? ' filled' : '') + (c && i===popIdx ? ' pop' : '');
-    d.dataset.idx = i;
-    if(c){
-      d.innerHTML = '<div class="slot-pos">'+escapeHtml(pos[i])+'</div>'+escapeHtml(c.n)+(c.reversed ? '<div class="slot-rev">逆位</div>' : '');
-    } else {
-      d.innerHTML = '<div class="slot-pos">'+escapeHtml(pos[i])+'</div>待选';
-    }
-    slots.appendChild(d);
-  }
-}
-function renderTarotDeckStrip(animate){
-  const strip = document.getElementById('tarotDeckStrip');
-  if(!strip) return;
-  strip.innerHTML = '';
-  const deck = tarotState.deckList || [];
-  const frag = document.createDocumentFragment();
-  deck.forEach((card, i)=>{
-    const el = document.createElement('div');
-    el.className = 'tarot-deck-card' + (tarotState.deckUsed && tarotState.deckUsed[i] ? ' used' : '') + (animate ? ' deal' : '');
-    if(animate) el.style.setProperty('--d', Math.min(i, 26));
-    el.dataset.deckIdx = i;
-    el.onclick = function(){ pickTarotFromDeck(i); };
-    frag.appendChild(el);
-  });
-  strip.appendChild(frag);
-  if(animate) strip.scrollLeft = 0;
-}
-function playTarotShuffleAnim(){
-  return new Promise(function(resolve){
-    const stage = document.getElementById('tarotShuffleStage');
-    if(!stage || tarotReduceMotion()){ resolve(); return; }
-    clearTimeout(tarotShTimer);
-    stage.classList.remove('shuffling');
-    void stage.offsetWidth;            // 让动画能重新从头播
-    stage.classList.add('shuffling');
-    try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
-    tarotShTimer = setTimeout(function(){ stage.classList.remove('shuffling'); resolve(); }, 1600);
-  });
-}
-async function runTarotShuffle(){
-  const my = ++tarotShuffleToken;
-  tarotShuffling = true;
-  tarotRunId++;
-  const n = tarotState.count || 3;
-  tarotState.drawn = [];
-  tarotState.deckList = buildShuffledDeck();
-  tarotState.deckUsed = {};
-  const box = document.getElementById('tarotResultBox');
-  if(box){ box.classList.add('hidden'); box.innerHTML = ''; }
-  renderTarotSlots();
-  const prog = document.getElementById('tarotProgress');
-  const strip = document.getElementById('tarotDeckStrip');
-  if(prog) prog.textContent = '洗牌中…';
-  if(strip) strip.classList.add('shuffling-wait');
-  await playTarotShuffleAnim();
-  if(my !== tarotShuffleToken) return;   // 期间又开了新一局，收尾交给那一局
-  tarotShuffling = false;
-  if(strip) strip.classList.remove('shuffling-wait');
-  if(prog) prog.textContent = '已抽 0/'+n+' · 请从下方牌堆轻触选牌';
-  renderTarotDeckStrip(true);            // 洗完了，牌堆一张张发出来
-}
-function shuffleTarotDeck(){
-  if(tarotShuffling) return;
-  if((tarotState.drawn.filter(Boolean).length || 0) > 0){
-    if(!confirm('重新洗牌会清空已选牌，确定吗？')) return;
-  }
-  runTarotShuffle();
-}
-function pickTarotFromDeck(deckIdx){
-  if(tarotShuffling) return;
-  if(tarotState.deckUsed && tarotState.deckUsed[deckIdx]) return;
-  const n = tarotState.count || 3;
-  const done = tarotState.drawn.filter(Boolean).length;
-  if(done >= n) return;
-  const card = (tarotState.deckList || [])[deckIdx];
-  if(!card) return;
-  // 放入下一个空位
-  let slot = -1;
-  for(let i=0;i<n;i++){ if(!tarotState.drawn[i]){ slot=i; break; } }
-  if(slot < 0) return;
-  tarotState.drawn[slot] = Object.assign({ reversed: Math.random() < 0.5 }, card);
-  if(!tarotState.deckUsed) tarotState.deckUsed = {};
-  tarotState.deckUsed[deckIdx] = true;
-  const now = tarotState.drawn.filter(Boolean).length;
-  document.getElementById('tarotProgress').textContent = now >= n
-    ? ('已抽 '+n+'/'+n+' · 抽牌完成')
-    : ('已抽 '+now+'/'+n+' · 还需轻触 '+(n-now)+' 张牌');
-  // 只给这一张打上「已用」标记，不重绘整条牌堆（重绘会让横向滑动的位置跳回最左边）
-  const strip = document.getElementById('tarotDeckStrip');
-  const el = strip && strip.children[deckIdx];
-  if(el) el.classList.add('used');
-  renderTarotSlots(slot);
-  if(now >= n) showTarotResult();
-}
-function startTarotDraw(){
-  if(!tarotState.spread){ alert('请先选择一个牌阵'); return; }
-  tarotState.count = tarotState.spread.count;
-  const n = tarotState.count;
-  tarotState.question = (document.getElementById('tarotQuestion')||{}).value || '';
-  tarotState.drawn = [];
-  tarotState.deckList = [];
-  tarotState.deckUsed = {};
-  go('tarot-draw');
-  const title = tarotState.spread.name;
-  const q = tarotState.question.trim();
-  document.getElementById('tarotDrawTitle').textContent = title;
-  document.getElementById('tarotDrawSub').textContent = (q ? (q.length>18 ? q.slice(0,18)+'…' : q)+' · ' : '') + '需要抽 '+n+' 张';
-  const box = document.getElementById('tarotResultBox');
-  if(box){ box.classList.add('hidden'); box.innerHTML=''; }
-  renderTarotSlots();
-  renderTarotDeckStrip();
-  runTarotShuffle();   // 进来先洗一遍牌（带动画），洗完再发牌
-}
-function flipTarotCard(){ /* 兼容旧调用，已改用牌堆点选 */ }
-
-function cardLine(c, i, pos){
-  const rev = c.reversed ? '逆位' : '正位';
-  return '<div style="margin:8px 0;padding-bottom:8px;border-bottom:1px dotted var(--rule);"><b>'+(pos[i]||('位置'+(i+1)))+'</b>：'+c.n+'（'+rev+'） <span style="color:var(--ink-soft);font-size:12px;">'+c.k+'</span></div>';
-}
-async function showTarotResult(){
-  const box = document.getElementById('tarotResultBox');
-  if(!box) return;
-  const runId = tarotRunId;   // 等 AI 的时候如果又洗牌 / 重开了，这一局的结果就作废
-  const n = tarotState.count || tarotState.drawn.length;
-  const pos = getTarotPositions(n);
-  let html = '<div class="box-title">✦ 抽牌结果（'+n+' 张）</div>';
-  if(tarotState.question) html += '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px;">问题：'+escapeHtml(tarotState.question)+'</p>';
-  tarotState.drawn.forEach((c,i)=>{
-    if(!c) return;
-    html += cardLine(c, i, pos);
-  });
-  box.innerHTML = html;
-  box.classList.remove('hidden');
-  try{ box.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(e){}
-
-  // AI 解读（若已开启并配好接口），否则回退到本地简版解读
-  const interpBox = document.createElement('div');
-  interpBox.style.cssText = 'margin-top:14px;padding:12px;border:1px dashed var(--ink);background:var(--paper-2);font-size:13px;line-height:1.65;white-space:pre-wrap;';
-  const useAI = tarotModelOn && bgSettings.aiEndpoint && bgSettings.aiKey && bgSettings.aiModel;
-  if(useAI){
-    interpBox.textContent = '塔罗师正在为你解读…';
-    box.appendChild(interpBox);
-    try{
-      const text = await callTarotAI(pos);
-      if(runId !== tarotRunId) return;
-      interpBox.textContent = text;
-      saveTarotHistory(pos, text);
-    }catch(err){
-      if(runId !== tarotRunId) return;
-      const fb = localModelInterpret(pos);
-      interpBox.innerHTML = '<span style="color:var(--rouge);">AI 解读失败：'+String(err&&err.message||err).replace(/</g,'&lt;')+'</span><br><span style="font-size:11.5px;color:var(--ink-soft);">已改用本地简版解读：</span><br><br>'+fb.replace(/</g,'&lt;');
-      saveTarotHistory(pos, fb);
-    }
-  } else {
-    const localText = localModelInterpret(pos);
-    interpBox.textContent = localText;
-    box.appendChild(interpBox);
-    saveTarotHistory(pos, localText);
-    if(!tarotModelOn){
-      const hint = document.createElement('p');
-      hint.style.cssText = 'font-size:12px;color:var(--ink-soft);margin-top:12px;';
-      hint.textContent = '提示：到「设置 → 塔罗 AI 解读」填好接口信息并打开开关，可以让 AI 塔罗师给出更完整的解读。';
-      box.appendChild(hint);
-    } else {
-      const hint = document.createElement('p');
-      hint.style.cssText = 'font-size:12px;color:var(--ink-soft);margin-top:12px;';
-      hint.textContent = '提示：AI 解读已开启，但接口地址 / Key / 模型名还没填全，暂时用的是本地简版解读。';
-      box.appendChild(hint);
-    }
-  }
-}
-function localModelInterpret(pos){
-  const lines = [];
-  const q = tarotState.question ? ('围绕你的问题「'+tarotState.question+'」，') : '';
-  lines.push(q+'这次抽到的牌整体上给出了一条循序渐进的线索，逐张来看：');
-  tarotState.drawn.forEach((c,i)=>{
-    if(!c) return;
-    const posName = pos[i] || ('位置'+(i+1));
-    const rev = c.reversed ? '逆位' : '正位';
-    lines.push('【'+posName+'】'+c.n+'（'+rev+'）—— '+c.t+(c.reversed ? '（此处呈逆位，提醒你更关注被压抑或走向另一面的部分。）' : ''));
-  });
-  lines.push('把这些位置串起来看，牌面更像是在陪你把问题看得更清楚一些，而不是给一个非黑即白的结论——具体怎么落地，还是要结合你当下的处境自己感受一下。');
-  return lines.join('\n\n');
-}
-const TAROT_AI_SYSTEM_PROMPT = '你是一个精通塔罗牌的大师，深耕于玄梦领域，精通78张牌的正逆位牌意，帮助梦女和梦角进行传讯解读。你的语言风格平易近人、现代化，不表现得高深莫测，每张牌得出的东西都不止一句话。';
-async function callTarotAI(pos){
-  const cardsDesc = tarotState.drawn.map((c,i)=>{
-    if(!c) return null;
-    const posName = pos[i] || ('位置'+(i+1));
-    return (i+1)+'. 【'+posName+'】'+c.n+'（'+(c.reversed?'逆位':'正位')+'）关键词：'+c.k;
-  }).filter(Boolean).join('\n');
-  const userPrompt = (tarotState.question ? ('提问者的问题：'+tarotState.question+'\n\n') : '（提问者没有写具体问题，就当作是问近期的整体状况）\n\n')
-    + '本次抽到的牌阵与结果如下' + (tarotState.spread ? ('（牌阵：'+tarotState.spread.name+'）') : '') + '：\n' + cardsDesc
-    + '\n\n请逐张结合位置含义给出解读，每张牌不要只写一句话，再给一段整体的串联总结。';
-  // 加个 60 秒超时，接口卡住时不会一直显示「正在解读…」
-  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const tm = ctrl ? setTimeout(function(){ ctrl.abort(); }, 60000) : null;
-  let resp;
-  try{
-    resp = await fetch(bgSettings.aiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + bgSettings.aiKey
-      },
-      signal: ctrl ? ctrl.signal : undefined,
-      body: JSON.stringify({
-        model: bgSettings.aiModel,
-        temperature: (typeof bgSettings.temp === 'number') ? bgSettings.temp : 0.8,
-        messages: [
-          { role: 'system', content: TAROT_AI_SYSTEM_PROMPT },
-          { role: 'user', content: userPrompt }
-        ]
-      })
-    });
-  }catch(e){
-    if(e && e.name === 'AbortError') throw new Error('等了 60 秒接口还没回应，请检查接口地址或网络');
-    throw new Error('连不上接口（地址填错、网络不通，或该接口不允许网页直接调用）');
-  }finally{
-    if(tm) clearTimeout(tm);
-  }
-  if(!resp.ok){
-    let msg = '接口返回 ' + resp.status;
-    try{ const j = await resp.json(); msg = (j.error && (j.error.message||j.error)) || msg; }catch(e){}
-    throw new Error(msg);
-  }
-  const data = await resp.json();
-  const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if(!text) throw new Error('接口没有返回解读内容');
-  return text;
-}
-
-/* ---- 塔罗历史记录 ---- */
-async function saveTarotHistory(pos, interpText){
-  try{
-    let list = await sGet('tarot-history', []);
-    if(!Array.isArray(list)) list = [];
-    const entry = {
-      id: Date.now(),
-      time: new Date().toLocaleString('zh-CN', {hour12:false}),
-      question: tarotState.question || '',
-      spreadName: (tarotState.spread && tarotState.spread.name) || '',
-      count: tarotState.count,
-      cards: tarotState.drawn.filter(Boolean).map((c,i)=>({
-        pos: (pos && pos[i]) || ('位置'+(i+1)),
-        name: c.n,
-        reversed: !!c.reversed,
-        k: c.k
-      })),
-      interp: (interpText || '').slice(0, 4000)
-    };
-    list.unshift(entry);
-    if(list.length > 50) list = list.slice(0, 50);
-    await sSet('tarot-history', list);
-  }catch(e){ console.warn('save tarot history fail', e); }
-}
-async function openTarotHistory(){
-  let list = [];
-  try{ list = await sGet('tarot-history', []); }catch(e){}
-  if(!Array.isArray(list)) list = [];
-  let body = '';
-  if(!list.length){
-    body = '<div class="empty-note">还没有抽牌历史</div>';
-  } else {
-    body = list.map((h,i)=>{
-      const cards = (h.cards||[]).map(c=>c.pos+'：'+c.name+(c.reversed?'(逆)':'')).join(' · ');
-      const q = h.question ? h.question : '（无问题）';
-      return '<div class="box" style="margin-bottom:10px;padding:12px;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'
-        + '<b style="font-size:13.5px;">'+escapeHtml(h.spreadName||'牌阵')+'</b>'
-        + '<span style="font-size:11px;color:var(--ink-soft);">'+escapeHtml(h.time||'')+'</span></div>'
-        + '<div style="font-size:12.5px;margin-top:6px;">问题：'+q.replace(/</g,'&lt;')+'</div>'
-        + '<div style="font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.5;">'+cards.replace(/</g,'&lt;')+'</div>'
-        + (h.interp ? '<div style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px dotted var(--rule);white-space:pre-wrap;max-height:120px;overflow:auto;">'+String(h.interp).replace(/</g,'&lt;')+'</div>' : '')
-        + '<div class="btn-row" style="margin-top:8px;"><div class="btn outline" style="padding:4px 10px;font-size:12px;" onclick="deleteTarotHistoryItem('+h.id+')">删除这条</div></div>'
-        + '</div>';
-    }).join('');
-    body += '<div class="btn-row" style="margin-top:8px;"><div class="btn outline" onclick="clearTarotHistory()">清空全部历史</div></div>';
-  }
-  openOverlay('<div class="drawer-head"><h3>塔罗历史记录</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+body);
-}
-async function deleteTarotHistoryItem(id){
-  let list = await sGet('tarot-history', []);
-  if(!Array.isArray(list)) list = [];
-  list = list.filter(h=>h.id !== id);
-  await sSet('tarot-history', list);
-  openTarotHistory();
-}
-async function clearTarotHistory(){
-  if(!confirm('确定清空全部塔罗历史记录吗？')) return;
-  await sSet('tarot-history', []);
-  openTarotHistory();
-}
-
-
-function resetTarotDraw(){ go('tarot'); }
-function toggleTarotModel(){
-  tarotModelOn = !tarotModelOn;
-  const sw = document.getElementById('swTarotAI');
-  if(sw) sw.classList.toggle('on', tarotModelOn);
-  sSet('tarot-model-on', tarotModelOn);
-  saveBgSettings();   // 顺手把刚填的接口地址 / Key / 模型也存下来，不然没点「保存当前」就开开关，AI 解读永远用不上
-}
-function updateModelStatusLabel(){
-  const lab = document.getElementById('modelStatusLabel');
-  if(!lab) return;
-  const configured = !!(bgSettings.aiEndpoint && bgSettings.aiKey && bgSettings.aiModel);
-  if(!tarotModelOn) lab.textContent = configured ? '已配置，但开关未打开 · 当前用本地简版解读' : '尚未配置 · 关闭时仅使用本地简版解读';
-  else lab.textContent = configured ? '已开启 · 抽牌后会调用你配置的接口' : '已开启，但接口信息未填全，会先用本地简版解读';
-}
-
-const _goTarot = go;
-go = function(name){
-  _goTarot(name);
-  if(name==='tarot'){
-    tarotState.cat='all'; tarotState.spread=null; renderTarotSpreads();
-    // 分类标签的高亮也要一起回到「常用」，不然上次点的是「爱情」，列表已经变回常用了，标签还亮着爱情
-    document.querySelectorAll('#tarotTabs .btn').forEach(t=>{ t.className = (t.dataset.cat==='all') ? 'btn' : 'btn outline'; });
-  }
-};
-
-/* ============================================================
    后台消息通知 + 后台保活
    ============================================================ */
-let bgSettings = { notify:false, sound:true, keepAlive:false, temp:0.8 };
+let bgSettings = { notify:false, sound:true, keepAlive:false };
 let keepAliveAudio = null;
 let keepAliveWakeLock = null;
 let _keepAliveResumeBound = false; // 常驻标记：防止每次开关"后台保活"都往 document 上叠加监听器
 
 async function loadBgSettings(){
   bgSettings = await sGet('bg-settings', bgSettings);
-  tarotModelOn = !!(await sGet('tarot-model-on', false));
   applyBgSettingsUI();
 }
 function applyBgSettingsUI(){
   const n = document.getElementById('swBgNotify');
   const s = document.getElementById('swMsgSound');
   const k = document.getElementById('swKeepAlive');
-  const t = document.getElementById('aiTempSlider');
-  const swAI = document.getElementById('swTarotAI');
-  const epEl = document.getElementById('tarotApiEndpoint');
-  const keyEl = document.getElementById('tarotApiKey');
-  const modelEl = document.getElementById('tarotApiModel');
   if(n) n.classList.toggle('on', !!bgSettings.notify);
   if(s) s.classList.toggle('on', bgSettings.sound!==false);
   if(k) k.classList.toggle('on', !!bgSettings.keepAlive);
-  if(t){ t.value = (typeof bgSettings.temp === 'number') ? bgSettings.temp : 0.8; const lab=document.getElementById('tempValueLabel'); if(lab) lab.textContent = t.value; }
-  if(swAI) swAI.classList.toggle('on', !!tarotModelOn);
-  if(epEl && !epEl.value) epEl.value = bgSettings.aiEndpoint || '';
-  if(keyEl && !keyEl.value) keyEl.value = bgSettings.aiKey || '';
-  if(modelEl && !modelEl.value) modelEl.value = bgSettings.aiModel || '';
-  updateModelStatusLabel();
   if(bgSettings.keepAlive) startKeepAlive(); else stopKeepAlive();
   if(bgSettings.notify) ensureNotifySW();
 }
 async function saveBgSettings(){
-  const t = document.getElementById('aiTempSlider');
-  if(t){ const tv = parseFloat(t.value); bgSettings.temp = isNaN(tv) ? 0.8 : tv; }
-  const epEl = document.getElementById('tarotApiEndpoint');
-  const keyEl = document.getElementById('tarotApiKey');
-  const modelEl = document.getElementById('tarotApiModel');
-  if(epEl) bgSettings.aiEndpoint = epEl.value.trim();
-  if(keyEl) bgSettings.aiKey = keyEl.value.trim();
-  if(modelEl) bgSettings.aiModel = modelEl.value.trim();
   await sSet('bg-settings', bgSettings);
-  const lab = document.getElementById('savedConfigLabel');
-  if(lab) lab.textContent = '已保存 · 温度 '+bgSettings.temp + (bgSettings.aiEndpoint ? ' · 已填接口' : ' · 未填接口');
-  updateModelStatusLabel();
 }
 function toggleBgNotify(el){
   el.classList.toggle('on');
@@ -10784,6 +10541,279 @@ async function gm_match3_ta(){
 
 
 
+
+
+function goHomePage(k){
+  if(currentView!=='home') go('home');
+  requestAnimationFrame(()=>{ if(window.homePagerTo) homePagerTo(k,true); });
+}
+
+(function(){
+  /* 首页两页：自己接管左右滑动（不依赖浏览器的 scroll-snap，某些手机浏览器回滑会失灵） */
+  function init(){
+    var pg=document.getElementById('homePager'); if(!pg) return;
+    var dots=document.querySelectorAll('#homePagerDots i');
+    var anim=null, active=false, mode=0, sx=0, sy=0, sl=0, lx=0, lt=0, vx=0, owner=null, nested=false;
+    var dIdx=0, dSl=0;
+    var dTrack=document.getElementById('dailyTrack'), dView=document.getElementById('dailyView'), dDots=document.querySelectorAll('#dailyDots i');
+    function dW(){ return (dView&&dView.clientWidth)||1; }
+    function dSet(k,animate){ dIdx=Math.max(0,Math.min(1,k)); if(!dTrack) return; dTrack.style.transition=animate?'transform .24s ease':'none'; dTrack.style.transform='translateX('+(-dIdx*dW())+'px)'; dDots.forEach(function(d,j){ d.classList.toggle('on',j===dIdx); }); }
+    window.dailyTo=dSet;
+    function W(){ return pg.clientWidth||1; }
+    function cur(){ return Math.round(pg.scrollLeft/W()); }
+    function setDots(k){ dots.forEach(function(d,j){ d.classList.toggle('on',j===k); }); }
+    function to(k,instant){
+      k=Math.max(0,Math.min(1,k)); setDots(k);
+      if(anim){ cancelAnimationFrame(anim); anim=null; }
+      var from=pg.scrollLeft, target=k*W();
+      if(instant||Math.abs(from-target)<1){ pg.scrollLeft=target; return; }
+      var st=performance.now(), dur=240;
+      (function step(now){
+        var t=Math.min(1,(now-st)/dur), e=1-Math.pow(1-t,3);
+        pg.scrollLeft=from+(target-from)*e;
+        if(t<1) anim=requestAnimationFrame(step); else { anim=null; pg.scrollLeft=target; }
+      })(st);
+    }
+    window.homePagerTo=to;
+    pg.addEventListener('touchstart',function(e){
+      if(!e.touches||e.touches.length!==1){ active=false; return; }
+      if(anim){ cancelAnimationFrame(anim); anim=null; }
+      active=true; mode=0; owner=null;
+      nested=!!(e.target&&e.target.closest&&e.target.closest('#dailyView'));
+      sx=lx=e.touches[0].clientX; sy=e.touches[0].clientY; sl=pg.scrollLeft; lt=performance.now(); vx=0;
+    },{passive:true});
+    pg.addEventListener('touchmove',function(e){
+      if(!active||!e.touches||!e.touches.length) return;
+      var x=e.touches[0].clientX, y=e.touches[0].clientY, dx=x-sx, dy=y-sy;
+      if(mode===0){
+        if(Math.abs(dx)<6&&Math.abs(dy)<6) return;
+        mode=(Math.abs(dx)>Math.abs(dy)*0.8)?1:2;
+      }
+      if(mode!==1) return;
+      if(e.cancelable) e.preventDefault();
+      if(owner===null){
+        if(nested&&dTrack&&((dx<0&&dIdx<1)||(dx>0&&dIdx>0))){ owner='daily'; dSl=-dIdx*dW(); } else owner='pager';
+      }
+      if(owner==='daily'){
+        var w0=dW(), off=Math.max(-w0,Math.min(0,dSl+dx));
+        dTrack.style.transition='none'; dTrack.style.transform='translateX('+off+'px)';
+        var now0=performance.now(), dt0=Math.max(1,now0-lt); vx=0.8*vx+0.2*((x-lx)/dt0); lx=x; lt=now0;
+        return;
+      }
+      var now=performance.now(), dt=Math.max(1,now-lt);
+      vx=0.8*vx+0.2*((x-lx)/dt); lx=x; lt=now;
+      var max=W();
+      pg.scrollLeft=Math.max(0,Math.min(max,sl-dx));
+    },{passive:false});
+    function end(){
+      if(!active) return; active=false;
+      if(mode!==1) return;
+      if(owner==='daily'){
+        var m=(function(){ var tr=dTrack.style.transform.match(/-?[\d.]+/); return tr?parseFloat(tr[0]):0; })();
+        var moved2=m-dSl, k2=dIdx;
+        if(Math.abs(moved2)>dW()*0.18||Math.abs(vx)>0.25){ k2=(Math.abs(vx)>0.25)?(vx<0?1:0):(moved2<0?1:0); }
+        dSet(k2,true); return;
+      }
+      var w=W(), base=Math.round(sl/w), moved=pg.scrollLeft-sl, k=base;
+      if(Math.abs(moved)>w*0.1||Math.abs(vx)>0.25){
+        if(moved>0||(moved===0&&vx<0)) k=base+1; else k=base-1;
+        if(Math.abs(vx)>0.25) k=base+(vx<0?1:-1);
+      }
+      to(k);
+    }
+    pg.addEventListener('touchend',end,{passive:true});
+    pg.addEventListener('touchcancel',end,{passive:true});
+    dots.forEach(function(d,k){ d.addEventListener('click',function(){ to(k); }); });
+    dDots.forEach(function(d,k){ d.addEventListener('click',function(e){ e.stopPropagation(); dSet(k,true); }); });
+    dSet(0,false);
+    pg.addEventListener('scroll',function(){ setDots(cur()); },{passive:true});
+    window.addEventListener('resize',function(){ pg.scrollLeft=cur()*W(); dSet(dIdx,false); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
 </script>
 </body>
-</html>
+</html><style>
+/* 首页天气恢复原版 UI，仅恢复视觉样式 */
+#view-home #homePage1 #homeTZ{
+  order:0;
+  align-self:center;
+  margin:0 auto 10px!important;
+  padding:5px 14px!important;
+  min-height:0;
+  border:1px dashed rgba(60,50,40,.35);
+  border-radius:12px;
+  background:rgba(255,255,255,.5);
+  opacity:1;
+  font-size:11.5px;
+  letter-spacing:.6px;
+  line-height:1;
+}
+#view-home #homePage1 #homeTZ .tz-wx{gap:5px;}
+#view-home #homePage1 #homeTZ .tz-wx .wx-ico{font-size:14px;}
+#view-home #homePage1 #homeTZ .tz-wx .wx-temp{font-size:12.5px;}
+
+/* 横线与文字稍微放大、拉长，保持原本手账感 */
+#view-home .love-meter{margin-left:14px!important;margin-right:14px!important;}
+#view-home .love-meter-title{font-size:11px!important;letter-spacing:4.5px!important;}
+#view-home .love-meter-line{width:100%!important;height:15px!important;}
+#view-home .love-meter-line::before{left:0;right:0;top:7px;}
+#view-home .love-meter-line span{top:5px;}
+#view-home .love-meter-line i{font-size:13px!important;padding:0 7px;}
+#view-home .love-meter-sub{font-size:8px!important;letter-spacing:5.5px!important;}
+</style>
+<style id="home2-glass">
+/* 首页第二页：参照第一张图的圆角毛玻璃卡片，图标沿用原细线样式 */
+#view-home #homePage2.home-page{overflow:hidden!important;justify-content:flex-start!important;padding:0!important;}
+#view-home #homePage2 .h2-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 6px 14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none;overscroll-behavior:contain;}
+#view-home #homePage2 .h2-scroll::-webkit-scrollbar{display:none;}
+#view-home #homePage2 svg{fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;width:100%;height:100%;}
+#view-home #homePage2 .h2-card,#view-home #homePage2 .h2-search{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.75);border-radius:20px;box-shadow:0 6px 22px rgba(90,60,70,.09);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+#view-home #homePage2 .h2-card{padding:12px 14px;flex:0 0 auto;}
+#view-home #homePage2 .h2-search{display:flex;align-items:center;gap:8px;border-radius:999px;padding:9px 8px 9px 14px;flex:0 0 auto;}
+#view-home #homePage2 .h2-si{width:20px;height:20px;color:var(--ink-soft);flex:0 0 20px;}
+#view-home #homePage2 .h2-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:13px;letter-spacing:1px;color:var(--ink);font-family:inherit;}
+#view-home #homePage2 .h2-go{font-size:11px;letter-spacing:2px;color:#fff;background:var(--rouge);border-radius:999px;padding:6px 13px;}
+#view-home #homePage2 .h2-head{display:flex;align-items:center;gap:9px;}
+#view-home #homePage2 .h2-head b{font-size:15px;font-weight:500;letter-spacing:2px;color:var(--ink);}
+#view-home #homePage2 .h2-head small{font-size:10px;letter-spacing:1px;color:var(--ink-soft);margin-left:2px;}
+#view-home #homePage2 .h2-hi{width:20px;height:20px;flex:0 0 20px;color:var(--ink-soft);}
+#view-home #homePage2 .h2-arrow{margin-left:auto;font-size:20px;line-height:1;color:var(--ink-soft);opacity:.7;}
+#view-home #homePage2 .h2-en{font-family:Georgia,'Times New Roman',serif;font-size:17px!important;letter-spacing:2px!important;}
+#view-home #homePage2 .h2-txt{display:flex;flex-direction:column;gap:3px;min-width:0;}
+#view-home #homePage2 .h2-txt b{font-size:13.5px;font-weight:500;letter-spacing:1px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#view-home #homePage2 .h2-txt small{font-size:10px;letter-spacing:1px;color:var(--ink-soft);white-space:nowrap;}
+#view-home #homePage2 .h2-two{display:grid;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,31,.09);}
+#view-home #homePage2 .h2-half{display:flex;align-items:center;gap:9px;min-width:0;padding:0 4px;}
+#view-home #homePage2 .h2-half+.h2-half{border-left:1px solid rgba(42,36,31,.09);padding-left:14px;}
+#view-home #homePage2 .h2-half:active,#view-home #homePage2 .h2-mini:active,#view-home #homePage2 .h2-d:active{opacity:.6;}
+#view-home #homePage2 .h2-bubble{width:36px;height:36px;flex:0 0 36px;padding:8px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(90,60,70,.1);color:var(--ink);}
+#view-home #homePage2 .h2-txt b:empty::before{content:'—';color:var(--ink-soft);}
+#view-home #homePage2 .h2-habit .h2-head{margin-bottom:6px;}
+#view-home #homePage2 .h2-hab{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed rgba(42,36,31,.1);}
+#view-home #homePage2 .h2-chk{width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1.4px solid var(--rouge);position:relative;background:rgba(255,255,255,.7);}
+#view-home #homePage2 .h2-hab.on .h2-chk{background:var(--rouge);}
+#view-home #homePage2 .h2-hab.on .h2-chk::after{content:'';position:absolute;left:6px;top:2.5px;width:5px;height:9px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg);}
+#view-home #homePage2 .h2-hab-t{flex:1;min-width:0;font-size:13.5px;letter-spacing:1px;word-break:break-all;}
+#view-home #homePage2 .h2-hab.on .h2-hab-t{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:rgba(42,36,31,.35);}
+#view-home #homePage2 .h2-hab-x{font-size:11px;color:var(--ink-soft);opacity:.45;padding:4px 2px;}
+#view-home #homePage2 .h2-empty{font-size:12px;color:var(--ink-soft);text-align:center;padding:10px 0;letter-spacing:1px;}
+#view-home #homePage2 .h2-add{display:flex;align-items:center;gap:8px;margin-top:9px;background:rgba(255,255,255,.7);border-radius:999px;padding:5px 5px 5px 14px;}
+#view-home #homePage2 .h2-add input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:12.5px;letter-spacing:1px;color:var(--ink);font-family:inherit;}
+#view-home #homePage2 .h2-plus{width:28px;height:28px;border-radius:50%;background:var(--rouge);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;}
+#view-home #homePage2 .h2-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:0 0 auto;}
+#view-home #homePage2 .h2-mini{display:flex;flex-direction:column;align-items:flex-start;gap:10px;position:relative;padding:14px;}
+#view-home #homePage2 .h2-mi{width:34px;height:34px;padding:7px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(90,60,70,.1);color:var(--ink);}
+#view-home #homePage2 .h2-mini .h2-arrow{position:absolute;right:12px;top:14px;}
+#view-home #homePage2 .h2-daily-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:10px;padding-top:12px;border-top:1px solid rgba(42,36,31,.09);}
+#view-home #homePage2 .h2-d{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;}
+#view-home #homePage2 .h2-d span{width:42px;height:42px;padding:10px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(90,60,70,.1);color:var(--ink);}
+#view-home #homePage2 .h2-d em{font-style:normal;font-size:11.5px;letter-spacing:2px;color:var(--ink);}
+</style>
+<style id="home-lock">
+/* 首页两页都锁死：不能滑动、不出现滚动条；靠底部 ⌂ / ☰ 或小圆点切换 */
+#view-home .home-pager{overflow:hidden!important;scroll-snap-type:none!important;touch-action:pan-y!important;}
+#view-home .home-page{scroll-snap-align:none!important;overflow:hidden!important;}
+#view-home .home-pager-dots i{width:8px;height:8px;margin:0 3px;}
+#view-home .home-pager-dots i.on{width:20px;}
+/* 第一页：在一起卡片压短 */
+#view-home #homePage1 .anniv-card{margin:0 34px 2px!important;padding:3px 14px 3px!important;}
+#view-home #homePage1 .anniv-deco{display:none!important;}
+#view-home #homePage1 .anniv-text{font-size:14px!important;letter-spacing:2px!important;}
+#view-home #homePage1 .anniv-text b{font-size:23px!important;}
+/* 第一页底部四个入口：第一张图的圆角毛玻璃小方块 */
+#view-home #homePage1 .home-quick{border-top:0!important;padding:4px 2px 0!important;gap:8px!important;}
+#view-home #homePage1 .home-quick .fn-item{background:rgba(255,255,255,.6)!important;border:1px solid rgba(255,255,255,.75)!important;border-radius:18px!important;box-shadow:0 5px 16px rgba(90,60,70,.09);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:9px 0 7px!important;gap:4px!important;}
+#view-home #homePage1 .home-quick .fn-icon{width:28px!important;height:28px!important;opacity:.9;}
+#view-home #homePage1 .home-quick .fn-icon svg{width:24px!important;height:24px!important;stroke-width:1.3;}
+#view-home #homePage1 .home-quick .fn-label{font-size:10.5px!important;letter-spacing:1.5px!important;color:var(--ink);}
+/* 第二页：一屏放下，不滚动 */
+#view-home #homePage2 .h2-scroll{overflow:hidden!important;justify-content:space-evenly;gap:8px;padding:2px 6px 4px;}
+#view-home #homePage2 .h2-card{padding:10px 12px;}
+#view-home #homePage2 .h2-search{padding:7px 7px 7px 13px;}
+#view-home #homePage2 .h2-two{margin-top:8px;padding-top:8px;}
+#view-home #homePage2 .h2-mini{flex-direction:row;align-items:center;gap:10px;padding:10px 12px;}
+#view-home #homePage2 .h2-mini .h2-arrow{position:static;margin-left:auto;}
+#view-home #homePage2 .h2-mi{width:32px;height:32px;flex:0 0 32px;padding:6px;}
+#view-home #homePage2 .h2-squares{align-items:stretch;flex:1 1 auto;min-height:0;}
+#view-home #homePage2 .h2-sq{aspect-ratio:1/1;width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;padding:11px 12px;}
+#view-home #homePage2 .h2-sqhead{display:flex;align-items:center;gap:7px;flex:0 0 auto;margin-bottom:6px;}
+#view-home #homePage2 .h2-sqhead b{font-size:14px;font-weight:500;letter-spacing:2px;}
+#view-home #homePage2 .h2-sqhead small{font-size:10px;color:var(--ink-soft);}
+#view-home #homePage2 .h2-sqhead .h2-plus{margin-left:auto;width:24px;height:24px;font-size:15px;}
+#view-home #homePage2 .h2-hab{padding:5px 0;gap:8px;}
+#view-home #homePage2 .h2-hab-t{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#view-home #homePage2 .h2-chk{width:17px;height:17px;flex:0 0 17px;}
+#view-home #homePage2 .h2-hab.on .h2-chk::after{left:5px;top:1.5px;width:4px;height:8px;}
+#view-home #homePage2 .h2-more{font-size:10.5px;color:var(--ink-soft);padding-top:4px;text-align:right;}
+#view-home #homePage2 .h2-empty{padding:12px 0;line-height:1.7;}
+#view-home #homePage2 .h2-daily-grid{flex:1 1 auto;min-height:0;margin:0;padding:6px 0 0;border-top:1px solid rgba(42,36,31,.09);grid-template-columns:1fr 1fr;gap:6px 4px;align-content:space-evenly;}
+#view-home #homePage2 .h2-d{gap:4px;}
+#view-home #homePage2 .h2-d span{width:34px;height:34px;padding:8px;}
+#view-home #homePage2 .h2-d em{font-size:10.5px;letter-spacing:1px;}
+#view-home #homePage2 .h2-scroll{position:relative;}
+#view-home #homePage2 #searchResults:not(:empty){position:absolute;left:6px;right:6px;top:50px;z-index:20;max-height:62%;overflow-y:auto;background:rgba(255,255,255,.96);border-radius:16px;padding:8px 10px;box-shadow:0 10px 28px rgba(90,60,70,.18);}
+#view-home #homePage2 .h2-squares{align-items:start!important;flex:0 0 auto!important;}
+#view-home #homePage2 .h2-sq{height:auto!important;max-height:none!important;}
+/* ===== 修正：两页之间可以一滑就过去；上下方向不动 ===== */
+#view-home .home-pager{overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;touch-action:pan-x!important;overscroll-behavior:contain!important;}
+#view-home .home-page{scroll-snap-align:start!important;scroll-snap-stop:always!important;overflow:hidden!important;touch-action:pan-x!important;}
+#view-home #homePage2 .h2-scroll{touch-action:pan-x!important;}
+#view-home #homePage2 input{touch-action:manipulation;}
+html,body{overscroll-behavior:none;}
+#view-home .polaroid-hero,#view-home .pola-fan{touch-action:pan-x!important;}
+/* 首页整体不再比屏幕高，上下拖动不会整页晃动 */
+html:has(#view-home:not(.hidden)),html:has(#view-home:not(.hidden)) body{overflow:hidden!important;height:100dvh!important;}
+html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;padding-bottom:70px!important;}
+/* ===== 最终：左右滑动由脚本接管，浏览器只管上下（本来也不动） ===== */
+#view-home .home-pager{overflow-x:hidden!important;overflow-y:hidden!important;scroll-snap-type:none!important;touch-action:pan-y!important;overscroll-behavior:none!important;}
+#view-home .home-page,#view-home #homePage2 .h2-scroll,#view-home .polaroid-hero,#view-home .pola-fan{scroll-snap-align:none!important;scroll-snap-stop:normal!important;touch-action:pan-y!important;}
+/* ===== 习惯方卡：内部可上下滑；Daily 方卡：可左右滑（两页）===== */
+#view-home #homePage2 #homeHabitList{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:none;}
+#view-home #homePage2 #homeHabitList::-webkit-scrollbar{display:none;}
+#view-home #homePage2 .h2-habit .h2-empty{padding:18px 0;}
+#view-home #homePage2 .h2-dview{flex:1 1 0;min-height:0;overflow:hidden;position:relative;border-top:1px solid rgba(42,36,31,.09);margin-top:2px;}
+#view-home #homePage2 .h2-dtrack{display:flex;width:100%;height:100%;will-change:transform;}
+#view-home #homePage2 .h2-dpage{flex:0 0 100%;min-width:0;height:100%;box-sizing:border-box;border-top:0!important;padding:6px 0 0!important;margin:0!important;align-content:space-evenly;}
+#view-home #homePage2 .h2-ddots{margin-left:auto;display:inline-flex;gap:5px;padding:4px 0 4px 8px;}
+#view-home #homePage2 .h2-ddots i{width:5px;height:5px;border-radius:50%;background:rgba(42,36,31,.22);transition:all .2s;}
+#view-home #homePage2 .h2-ddots i.on{width:13px;border-radius:3px;background:var(--rouge);}
+#view-home #homePage2 .h2-d em{white-space:nowrap;}
+</style>
+
+<style id="user-requested-final-tweaks">
+/* 仅按本次要求：第一张图底部四个入口去掉外框；图标保持纯线稿无填充 */
+#view-home #homePage1 .home-quick{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+#view-home #homePage1 .home-quick .fn-item{
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+#view-home #homePage1 .home-quick .fn-icon,
+#view-home #homePage1 .home-quick .fn-icon svg{
+  background:transparent!important;
+  fill:none!important;
+}
+#view-home #homePage1 .home-quick .fn-icon svg *{fill:none!important;}
+
+/* 第二张图 Daily：标题略缩小、分隔横线上移，给四个入口文字留出空间 */
+#view-home #homePage2 .h2-en{font-size:15px!important;letter-spacing:1.5px!important;}
+#view-home #homePage2 .h2-sqhead{margin-bottom:2px!important;}
+#view-home #homePage2 .h2-dview{margin-top:0!important;border-top:1px solid rgba(42,36,31,.09)!important;}
+#view-home #homePage2 .h2-dpage{padding-top:2px!important;}
+#view-home #homePage2 .h2-daily-grid{padding-top:2px!important;gap:3px 4px!important;align-content:space-evenly!important;}
+#view-home #homePage2 .h2-d{gap:3px!important;}
+#view-home #homePage2 .h2-d em{font-size:10px!important;letter-spacing:.7px!important;line-height:1.2!important;}
+#view-home #homePage2 .h2-d span{width:33px!important;height:33px!important;padding:7px!important;}
+#view-home #homePage2 .h2-d span svg{fill:none!important;}
+#view-home #homePage2 .h2-d span svg *{fill:none!important;}
+</style>
