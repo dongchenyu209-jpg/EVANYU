@@ -1,5 +1,5 @@
 /* Love Diary PWA service worker */
-const CACHE = 'love-diary-v67';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
+const CACHE = 'love-diary-v43';   // 每次改了 index.html 等文件发布时，把这个版本号 +1，旧缓存会在 activate 时自动清掉
 const PRECACHE = [
   './',
   './index.html',
@@ -9,16 +9,21 @@ const PRECACHE = [
   './assets/icon-192.png',
   './assets/icon-512.png'
 ];
+var BASE = new URL('./', self.location).pathname;
+var INDEX_URL = new URL('./index.html', self.location).href;
+var ALLOWED = PRECACHE.map(function(u){ return new URL(u, self.location).pathname; });
 
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE)
-      .then(function(c){ return c.addAll(PRECACHE).catch(function(){}); })
+      // 逐个缓存：某个文件缺失时不会连累其它文件（addAll 是全有或全无）
+      .then(function(c){ return Promise.all(PRECACHE.map(function(u){ return c.add(u).catch(function(){}); })); })
       .then(function(){ return self.skipWaiting(); })
   );
 });
 self.addEventListener('activate', function(e){
   e.waitUntil(
+    // 只留当前版本的缓存，其余（旧版本、别的名字）全部删掉
     caches.keys().then(function(keys){
       return Promise.all(keys.filter(function(k){ return k!==CACHE; }).map(function(k){ return caches.delete(k); }));
     }).then(function(){ return self.clients.claim(); })
@@ -26,11 +31,17 @@ self.addEventListener('activate', function(e){
 });
 
 function isSameOrigin(req){ return req.url.indexOf(self.location.origin)===0; }
-function putInCache(req, res){
+// 只缓存白名单里的文件（预缓存列表 + assets/ 下的静态资源）；带 ?参数 的、sw.js 自己、其它杂项一律不缓存，避免堆出没用的缓存
+function cacheable(url){
+  if(url.search) return false;
+  if(/\/sw\.js$/.test(url.pathname)) return false;
+  return ALLOWED.indexOf(url.pathname) >= 0 || url.pathname.indexOf(BASE + 'assets/') === 0;
+}
+function putInCache(keyReq, res){
   try{
-    if(res && res.ok && res.status===200 && isSameOrigin(req)){
+    if(res && res.ok && res.status===200 && cacheable(new URL(keyReq.url))){
       var copy = res.clone();
-      caches.open(CACHE).then(function(c){ c.put(req, copy); });
+      caches.open(CACHE).then(function(c){ c.put(keyReq, copy); });
     }
   }catch(err){}
 }
@@ -43,22 +54,30 @@ self.addEventListener('fetch', function(e){
   if(!isSameOrigin(req)) return;
 
   var url = new URL(req.url);
-  var isDoc = req.mode === 'navigate' || /\.(html|webmanifest)$/.test(url.pathname) || /\/$/.test(url.pathname) || /\/sw\.js$/.test(url.pathname);
+  if(/\/sw\.js$/.test(url.pathname)) return;   // sw.js 本身始终走网络，不进缓存
+
+  var isNav = req.mode === 'navigate';
+  var isDoc = isNav || /\.(html|webmanifest)$/.test(url.pathname) || /\/$/.test(url.pathname);
 
   if(isDoc){
     // 页面本身：缓存优先，打开即秒显，不联网也能用；后台再去拉新版本，下次刷新生效
+    // 所有页面导航（含带 ?参数 的）统一用 index.html 当缓存键，不会为每个地址各存一份
+    var keyReq = isNav ? new Request(INDEX_URL) : req;
     e.respondWith(
-      caches.match(req).then(function(cached){
-        var net = fetch(req).then(function(res){ putInCache(req, res); return res; }).catch(function(){ return cached || caches.match('./index.html'); });
+      caches.match(keyReq).then(function(cached){
+        var net = fetch(req).then(function(res){ putInCache(keyReq, res); return res; })
+          .catch(function(){ return cached || caches.match(INDEX_URL) || Response.error(); });
         return cached || net;
       })
     );
     return;
   }
+  // 白名单之外的请求不接管，交给浏览器自己处理
+  if(!cacheable(url)) return;
   // 图片、音频等静态资源：缓存优先，后台顺便更新
   e.respondWith(
     caches.match(req).then(function(cached){
-      var net = fetch(req).then(function(res){ putInCache(req, res); return res; }).catch(function(){ return cached; });
+      var net = fetch(req).then(function(res){ putInCache(req, res); return res; }).catch(function(){ return cached || Response.error(); });
       return cached || net;
     })
   );

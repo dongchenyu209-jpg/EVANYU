@@ -35,11 +35,17 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  /* 全站禁止长按选中 / 调出「用 Google 搜索」菜单 */
+  /* 全站禁止长按选中 / 调出「用 Google 搜索」菜单，并去掉点击蓝色高亮方块 */
   html, body, * {
     -webkit-touch-callout: none !important;
     -webkit-user-select: none !important;
     user-select: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    tap-highlight-color: transparent !important;
+  }
+  a, button, .icon-btn, .btn, [onclick], .pola-card, .pola-card .ph, .pola-dots i {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
   }
   /* 只有输入框还能正常打字选字 */
   input, textarea {
@@ -49,10 +55,7 @@
   }
   body{
     background:var(--paper);
-    background-image:
-      linear-gradient(var(--rule) 1px, transparent 1px),
-      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: none;
     background-attachment: fixed;
     color:var(--ink);
     font-family: var(--font-body, 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif);
@@ -72,11 +75,7 @@
     pointer-events: none;
   }
   body > *{ position: relative; z-index: 1; }
-  body.paper-plain{ background-image:none; }
-  body.paper-dot{
-    background-image: radial-gradient(var(--rule) 1px, transparent 1px);
-    background-size: 18px 18px;
-  }
+  /* paper texture removed */
   .shell{ max-width:480px; margin:0 auto; min-height:100vh; padding:14px 14px 90px; position:relative; }
   .hidden{ display:none !important; }
 
@@ -105,9 +104,9 @@
   .avatar img{ width:100%; height:100%; object-fit:cover; }  /* ---- home hero (love diary layout) ---- */
   .polaroid-hero{ display:flex; flex-direction:column; align-items:center; margin-top:6px; }
   /* ---- 拍立得扇子（3 张可选，像扇子一样展开、可滑动切换） ---- */
-  .pola-fan{ --pw:min(52vw,190px); --pcard:calc(var(--pw) + 22px); position:relative; width:var(--pcard); max-width:100%; height:calc(var(--pw) + 96px); margin:2px auto 0; perspective:900px; touch-action:pan-y; }
-  .pola-fan .pola-card{ position:absolute; top:0; left:50%; transform-origin:50% 120%; transition:transform .38s cubic-bezier(.22,.61,.36,1), opacity .3s; will-change:transform; }
-  .pola-fan .pola-card .ph{ cursor:pointer; }
+  .pola-fan{ --pw:min(52vw,190px); --pcard:calc(var(--pw) + 22px); position:relative; width:var(--pcard); max-width:100%; height:calc(var(--pw) + 96px); margin:2px auto 0; perspective:900px; touch-action:pan-y; -webkit-tap-highlight-color:transparent; outline:none; }
+  .pola-fan .pola-card{ position:absolute; top:0; left:50%; transform-origin:50% 120%; transition:transform .38s cubic-bezier(.22,.61,.36,1), opacity .3s; will-change:transform; -webkit-tap-highlight-color:transparent; outline:none; }
+  .pola-fan .pola-card .ph{ cursor:pointer; -webkit-tap-highlight-color:transparent; outline:none; }
   .pola-fan .pola-card .cap{ font-family:'Xingkai SC', STXingkai, 'Kaiti SC', STKaiti, cursive; font-size:15px; }
   .pola-fan .pola-card{ background:#fff; border:1px solid rgba(42,36,31,.14); box-shadow:0 10px 22px rgba(42,36,31,.16); padding:9px 9px 30px; width:var(--pw); }
   .pola-fan .pola-card .ph{ width:100%; aspect-ratio:1/1; background:var(--paper-2); border:1px solid rgba(42,36,31,.1); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--ink-soft); overflow:hidden; }
@@ -1412,7 +1411,6 @@
       </div>
     </div>
     <div class="anniv-card" id="annivCardEl">
-      <div style="position:absolute;top:5px;right:8px;font-size:9px;cursor:pointer;opacity:.28;" onclick="editAnnivCardBg()" title="修改卡片背景">✦</div>
       <div class="anniv-deco">✦ &nbsp;♡&nbsp; ✦</div>
       <div class="anniv-text" onclick="editAnniversaryDate()">在一起 <b id="annivDaysText">0</b> 天</div>
       <div class="anniv-deco sub">t o g e t h e r &nbsp;·&nbsp; s i n c e &nbsp;d a y &nbsp;o n e</div>
@@ -1420,9 +1418,9 @@
 
     <div class="polaroid-hero">
       <div class="pola-fan" id="polaFan">
-        <div class="pola-card" data-i="0"><div class="ph" id="polaroidPh0" onclick="polaPickSlot(0)"></div><div class="cap">My love.</div></div>
-        <div class="pola-card" data-i="1"><div class="ph" id="polaroidPh1" onclick="polaPickSlot(1)"></div><div class="cap">My love.</div></div>
-        <div class="pola-card" data-i="2"><div class="ph" id="polaroidPh2" onclick="polaPickSlot(2)"></div><div class="cap">My love.</div></div>
+        <div class="pola-card" data-i="0"><div class="ph" id="polaroidPh0" onclick="polaGoto(0)"></div><div class="cap">My love.</div></div>
+        <div class="pola-card" data-i="1"><div class="ph" id="polaroidPh1" onclick="polaGoto(1)"></div><div class="cap">My love.</div></div>
+        <div class="pola-card" data-i="2"><div class="ph" id="polaroidPh2" onclick="polaGoto(2)"></div><div class="cap">My love.</div></div>
       </div>
       <div class="pola-dots" id="polaDots"><i onclick="polaGoto(0)"></i><i onclick="polaGoto(1)"></i><i onclick="polaGoto(2)"></i></div>
       <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="onPhotoUpload(event)">
@@ -1724,21 +1722,35 @@
       <input type="file" id="customBgImageInput" accept="image/*" class="hidden" onchange="onCustomBgImage(event)">
       <p style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">支持上传图片作为整页背景，或输入颜色代码。自定义背景会覆盖默认纸张。</p>
     </div>
+    <!-- 纪念日卡片背景 / 纸张纹理 已移除 -->
     <div class="box">
-      <div class="box-title">纪念日卡片样式</div>
-      <div class="btn-row" style="flex-wrap:wrap;">
-        <div class="btn outline" onclick="editAnnivCardBg()">卡片背景颜色</div>
-        <div class="btn outline" onclick="document.getElementById('annivBgImageInput').click()">📷 卡片背景图</div>
-        <div class="btn outline" onclick="clearAnnivCardBg()">清除卡片背景</div>
-      </div>
-      <input type="file" id="annivBgImageInput" accept="image/*" class="hidden" onchange="onAnnivBgImage(event)">
-    </div>
-    <div class="box">
-      <div class="box-title">纸张纹理</div>
-      <div class="btn-row">
-        <div class="btn outline" onclick="setPaperStyle('grid')">格纹</div>
-        <div class="btn outline" onclick="setPaperStyle('dot')">点阵</div>
-        <div class="btn outline" onclick="setPaperStyle('plain')">纯色</div>
+      <div class="box-title">主页拍立得（三张）</div>
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">在这里更换主页扇形拍立得的三张照片，主页上只能滑动查看。</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div id="polaSetPh0" style="width:72px;height:72px;border:1px solid var(--ink);background:var(--paper-2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;"></div>
+          <div style="font-size:11px;margin-top:4px;color:var(--ink-soft);">第 1 张</div>
+          <div class="btn-row" style="margin-top:4px;gap:4px;justify-content:center;">
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsPick(0)">更换</div>
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsClear(0)">清除</div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div id="polaSetPh1" style="width:72px;height:72px;border:1px solid var(--ink);background:var(--paper-2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;"></div>
+          <div style="font-size:11px;margin-top:4px;color:var(--ink-soft);">第 2 张</div>
+          <div class="btn-row" style="margin-top:4px;gap:4px;justify-content:center;">
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsPick(1)">更换</div>
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsClear(1)">清除</div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div id="polaSetPh2" style="width:72px;height:72px;border:1px solid var(--ink);background:var(--paper-2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;"></div>
+          <div style="font-size:11px;margin-top:4px;color:var(--ink-soft);">第 3 张</div>
+          <div class="btn-row" style="margin-top:4px;gap:4px;justify-content:center;">
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsPick(2)">更换</div>
+            <div class="btn outline" style="padding:4px 8px;font-size:11px;" onclick="polaSettingsClear(2)">清除</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="box">
@@ -2273,12 +2285,12 @@ let moyuState = {
 // 主动消息：开关 + 最短(分钟)/最长(分钟) 区间随机
 let proactiveMsgSettings = { enabled: true, minSeconds: 60, intervalMinutes: 60 };
 // 朋友圈互动概率（0~100）与主动发朋友圈最短(分钟)/最长(天) 区间，均可在传讯设置里调节
-let momentInteractSettings = { likeProb: 60, commentProb: 60, replyProb: 60, minMinutes: 1440, maxDays: 15 };
+let momentInteractSettings = { likeProb: 60, commentProb: 60, replyProb: 60, minMinutes: 1440, maxDays: 15, cardMin: 1, cardMax: 2, likeMinMin: 60, likeMaxHours: 48, replyMinMin: 1, replyMaxHours: 12 };
 let proactiveLetterSettings = { minMinutes: 60, maxH: 240 };
 // 拼字卡：开启后回复会随机把多张字卡拼成一段再发
 let spliceCardsEnabled = false;
 let currentView = 'home';
-let themeSettings = { accent:'#9C2F3B', paperStyle:'grid', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'', annivBg:'', annivBgImage:'' };
+let themeSettings = { accent:'#9C2F3B', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
 let customBubbleCSS = '';
 let pendingReplyTimer = null;
 let lastGroupUsed = null, lastCardUsed = {};
@@ -2340,8 +2352,6 @@ async function init(){
   } catch(e) {}
   if(!themeSettings.customBg) themeSettings.customBg = '';
   if(!themeSettings.customBgImage) themeSettings.customBgImage = '';
-  if(!themeSettings.annivBg) themeSettings.annivBg = '';
-  if(!themeSettings.annivBgImage) themeSettings.annivBgImage = '';
   if(themeSettings.inkColor === undefined) themeSettings.inkColor = '';
   if(!themeSettings.secondaryFont) themeSettings.secondaryFont = 'serif';
   if(themeSettings.nameColor === undefined) themeSettings.nameColor = '';
@@ -2530,6 +2540,18 @@ function normalizeLoadedSettings(){
   momentInteractSettings.replyProb = Math.max(0, Math.min(100, momentInteractSettings.replyProb));
   momentInteractSettings.minMinutes = Math.max(1, Math.min(43200, Math.round(momentInteractSettings.minMinutes)));
   momentInteractSettings.maxDays = Math.max(1, Math.min(30, momentInteractSettings.maxDays));
+  if(typeof momentInteractSettings.cardMin !== 'number') momentInteractSettings.cardMin = 1;
+  if(typeof momentInteractSettings.cardMax !== 'number') momentInteractSettings.cardMax = 2;
+  momentInteractSettings.cardMin = Math.max(1, Math.min(10, Math.round(momentInteractSettings.cardMin)));
+  momentInteractSettings.cardMax = Math.max(momentInteractSettings.cardMin, Math.min(10, Math.round(momentInteractSettings.cardMax)));
+  if(typeof momentInteractSettings.likeMinMin !== 'number') momentInteractSettings.likeMinMin = 60;
+  if(typeof momentInteractSettings.likeMaxHours !== 'number') momentInteractSettings.likeMaxHours = 48;
+  if(typeof momentInteractSettings.replyMinMin !== 'number') momentInteractSettings.replyMinMin = 1;
+  if(typeof momentInteractSettings.replyMaxHours !== 'number') momentInteractSettings.replyMaxHours = 12;
+  momentInteractSettings.likeMinMin = Math.max(1, Math.min(43200, Math.round(momentInteractSettings.likeMinMin)));
+  momentInteractSettings.likeMaxHours = Math.max(1, Math.min(720, Math.round(momentInteractSettings.likeMaxHours)));
+  momentInteractSettings.replyMinMin = Math.max(1, Math.min(43200, Math.round(momentInteractSettings.replyMinMin)));
+  momentInteractSettings.replyMaxHours = Math.max(1, Math.min(720, Math.round(momentInteractSettings.replyMaxHours)));
   // 旧版写信最短是「小时」，迁移成分钟
   if(typeof proactiveLetterSettings.minMinutes !== 'number'){
     proactiveLetterSettings.minMinutes = (typeof proactiveLetterSettings.minH === 'number') ? proactiveLetterSettings.minH*60 : 60;
@@ -2584,7 +2606,7 @@ function go(name){
   }
   if(name==='ledger'){ renderLedger(); }
   if(name==='diary'){ renderDiary(); }
-  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); }
+  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); }
 }
 function renderUnreadDots(){
   const cd = document.getElementById('chatDot'); if(cd) cd.classList.toggle('hidden', !chatUnread);
@@ -2622,7 +2644,7 @@ function renderPolaFan(){
     const ph = document.getElementById('polaroidPh'+i);
     if(ph){
       const d = photos[i];
-      ph.innerHTML = d ? '<img loading="lazy" decoding="async" src="'+d+'">' : '<span style="opacity:.6">+ 点击选图</span>';
+      ph.innerHTML = d ? '<img loading="lazy" decoding="async" src="'+d+'">' : '<span style="opacity:.45">暂无照片</span>';
     }
   }
   const dots = document.getElementById('polaDots');
@@ -2637,9 +2659,31 @@ function polaGoto(i){
   renderPolaFan();
 }
 function polaPickSlot(i){
-  if(i !== polaCur){ polaGoto(i); return; }
+  // 主页不再直接改图，改图请到设置 → 主页拍立得
+  polaGoto(i);
+}
+let _polaEditIdx = 0;
+function polaSettingsPick(i){
+  _polaEditIdx = i;
   const input = document.getElementById('photoInput');
   if(input) input.click();
+}
+async function polaSettingsClear(i){
+  if(!Array.isArray(profile.photos)) profile.photos = [null,null,null];
+  profile.photos[i] = null;
+  if(i === 0) profile.photo = profile.photos[0] || null;
+  await sSet('profile', profile);
+  renderHomeProfile();
+  renderPolaSettingsPreview();
+}
+function renderPolaSettingsPreview(){
+  const photos = polaArr();
+  for(let i=0;i<3;i++){
+    const el = document.getElementById('polaSetPh'+i);
+    if(!el) continue;
+    const d = photos[i];
+    el.innerHTML = d ? '<img loading="lazy" decoding="async" src="'+d+'" style="width:100%;height:100%;object-fit:cover;">' : '<span style="opacity:.5;font-size:11px;">空</span>';
+  }
 }
 function polaBindSwipe(){
   const fan = document.getElementById('polaFan');
@@ -2933,7 +2977,7 @@ function pickRandomStatusText(){
   return statusPool[Math.floor(Math.random()*statusPool.length)];
 }
 function nextStatusChangeDelay(){
-  const minH = 1, maxH = 24; // 1~24小时之间随机一个间隔
+  const minH = 1, maxH = 6; // 1~6小时之间随机一个间隔
   return (minH + Math.random()*(maxH-minH)) * 3600 * 1000;
 }
 function pruneStatusHistoryToToday(){
@@ -4840,6 +4884,12 @@ function openChatSettings(){
     <label class="field">主动发朋友圈最长：<span id="csMomMaxDaysVal">${momentInteractSettings.maxDays||15}</span> 天</label>
     <input type="range" min="1" max="30" step="1" value="${Math.min(30, momentInteractSettings.maxDays||15)}" oninput="document.getElementById('csMomMaxDaysVal').textContent=this.value" id="csMomMaxDays" style="width:100%;">
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在最短(分钟)～最长(天)之间纯随机挑时间发朋友圈，发完再排下一次，可多次触发</div>
+    <label class="field">主动发朋友圈每条用几张字卡（最少 ～ 最多）</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="10" step="1" value="${momentInteractSettings.cardMin||1}" id="csMomCardMin" style="width:100%;"><span>～</span><input type="number" min="1" max="10" step="1" value="${momentInteractSettings.cardMax||2}" id="csMomCardMax" style="width:100%;"><span>张</span></div>
+    <label class="field">TA 点赞 / 评论我的朋友圈：最短（分钟） ～ 最长（小时）</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="43200" step="1" value="${momentInteractSettings.likeMinMin||60}" id="csMomLikeMin" style="width:100%;"><span>分钟 ～</span><input type="number" min="1" max="720" step="1" value="${momentInteractSettings.likeMaxHours||48}" id="csMomLikeMax" style="width:100%;"><span>小时</span></div>
+    <label class="field">TA 回我的评论：最短（分钟） ～ 最长（小时）</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="43200" step="1" value="${momentInteractSettings.replyMinMin||1}" id="csMomReplyMin" style="width:100%;"><span>分钟 ～</span><input type="number" min="1" max="720" step="1" value="${momentInteractSettings.replyMaxHours||12}" id="csMomReplyMax" style="width:100%;"><span>小时</span></div>
 
     <div class="box-title" style="margin-top:14px;">主动写信给我</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">TA 隔一段时间会主动写一封信塞进信箱。这里设最短 / 最长间隔，实际在两者之间随机挑一个点。</div>
@@ -5194,6 +5244,13 @@ async function saveChatSettings(){
   momentInteractSettings.replyProb = Math.max(0, Math.min(100, parseInt(document.getElementById('csReplyProb').value,10) || 0));
   momentInteractSettings.minMinutes = Math.max(1, Math.min(43200, parseInt(document.getElementById('csMomMinDays').value,10) || 1440));
   momentInteractSettings.maxDays = Math.max(1, Math.min(30, parseInt(document.getElementById('csMomMaxDays').value,10) || 15));
+  { const cMin = Math.max(1, Math.min(10, parseInt(document.getElementById('csMomCardMin').value,10) || 1));
+    const cMax = Math.max(1, Math.min(10, parseInt(document.getElementById('csMomCardMax').value,10) || 2));
+    momentInteractSettings.cardMin = Math.min(cMin, cMax); momentInteractSettings.cardMax = Math.max(cMin, cMax); }
+  momentInteractSettings.likeMinMin = Math.max(1, Math.min(43200, parseInt(document.getElementById('csMomLikeMin').value,10) || 60));
+  momentInteractSettings.likeMaxHours = Math.max(1, Math.min(720, parseInt(document.getElementById('csMomLikeMax').value,10) || 48));
+  momentInteractSettings.replyMinMin = Math.max(1, Math.min(43200, parseInt(document.getElementById('csMomReplyMin').value,10) || 1));
+  momentInteractSettings.replyMaxHours = Math.max(1, Math.min(720, parseInt(document.getElementById('csMomReplyMax').value,10) || 12));
   await sSet('moment-interact-settings', momentInteractSettings);
   // 区间变了就按新区间重排下一次主动发朋友圈
   if(_oldMom.a !== momentInteractSettings.minMinutes || _oldMom.b !== momentInteractSettings.maxDays || !proactiveState.nextMomentAt) scheduleNextProactiveMoment();
@@ -5695,15 +5752,16 @@ async function postMoment(){
 /* ---- 朋友圈"待触发事件"：先决定要不要互动，再随机「什么时候」；
    存时间戳靠轮询检查（跟写信/主动消息同一套思路），不用超长 setTimeout ---- */
 async function addMomentEvent(type, postId, action){
-  // like / comment：1~48小时，模拟"过一阵子才刷到"（调用方已先按设置概率决定要不要）
-  // commentReply：1分钟~12小时；调用方已先按设置概率决定要不要回
+  // like / comment：默认 1~48 小时，模拟"过一阵子才刷到"；commentReply：默认 1 分钟~12 小时；范围都在传讯设置里可调
+  // 调用方已先按设置概率决定要不要互动
+  const ms = momentInteractSettings;
   const range = type==='commentReply'
-    ? [1*60*1000, 12*3600*1000]
-    : [1*3600*1000, 48*3600*1000];
+    ? [Math.max(1, Number(ms.replyMinMin)||1)*60*1000, Math.max(1, Number(ms.replyMaxHours)||12)*3600*1000]
+    : [Math.max(1, Number(ms.likeMinMin)||60)*60*1000, Math.max(1, Number(ms.likeMaxHours)||48)*3600*1000];
   momentEvents.push({
     id:uid(), type, postId,
     action: action || (type==='like'?'like': type==='comment'?'comment': null),
-    dueAt: Date.now() + randomBetween(range[0], range[1])
+    dueAt: Date.now() + randomBetween(Math.min(range[0],range[1]), Math.max(range[0],range[1]))
   });
   await sSet('moment-events', momentEvents);
 }
@@ -5751,7 +5809,9 @@ function scheduleNextProactiveMoment(){
   proactiveState.nextMomentAt = Date.now() + randomBetween(Math.min(a,b), Math.max(a,b));
 }
 async function sendProactiveMoment(){
-  const lineCount = 1 + Math.floor(Math.random()*2);
+  const cMin = Math.max(1, Number(momentInteractSettings.cardMin) || 1);
+  const cMax = Math.max(cMin, Number(momentInteractSettings.cardMax) || 2);
+  const lineCount = cMin + Math.floor(Math.random()*(cMax-cMin+1));
   const lines = [];
   for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
   if(lines.length===0) return;
@@ -6683,9 +6743,7 @@ function renderBeautify(){
 async function setAccent(c){
   themeSettings.accent = c; await sSet('theme-settings', themeSettings); applyTheme();
 }
-async function setPaperStyle(style){
-  themeSettings.paperStyle = style; await sSet('theme-settings', themeSettings); applyTheme();
-}
+/* setPaperStyle removed */
 async function setBodyFont(key){
   themeSettings.bodyFont = key; await sSet('theme-settings', themeSettings); applyTheme(); updateFontPreviews();
 }
@@ -6761,7 +6819,7 @@ async function resetNameColor(){
   renderBeautify();
 }
 async function resetAppearance(){
-  themeSettings = { accent:'#9C2F3B', paperStyle:'grid', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'', annivBg:'', annivBgImage:'' };
+  themeSettings = { accent:'#9C2F3B', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
   customBubbleCSS = '';
   await sSet('theme-settings', themeSettings);
   await sSet('custom-bubble-css', customBubbleCSS);
@@ -6786,14 +6844,9 @@ function applyTheme(){
   } else {
     document.documentElement.style.removeProperty('--name-color');
   }
-  // 不再应用「纸张颜色」预设（lavender/blush/sky 等），避免整页出现紫色/彩色纯色填充；
-  // 始终回退到 CSS :root 默认 cream。
-  // 自定义背景图 / 自定义纯色背景 功能完整保留。
+  // 不再应用「纸张颜色」预设；自定义背景图 / 纯色背景保留；纸张纹理与纪念日卡片背景已移除。
   document.documentElement.style.removeProperty('--paper');
   document.documentElement.style.removeProperty('--paper-2');
-  document.body.classList.remove('paper-plain','paper-dot');
-  if(themeSettings.paperStyle==='plain') document.body.classList.add('paper-plain');
-  if(themeSettings.paperStyle==='dot') document.body.classList.add('paper-dot');
   // 页面背景：优先图片（1px 轻微模糊），其次自定义纯色
   if(themeSettings.customBgImage){
     document.body.style.setProperty('--page-bg-image', 'url(' + themeSettings.customBgImage + ')');
@@ -6807,19 +6860,6 @@ function applyTheme(){
     document.body.style.removeProperty('--page-bg-image');
     document.body.style.backgroundImage = '';
     document.body.style.backgroundColor = '';
-  }
-  const ac = document.querySelector('.anniv-card');
-  if(ac){
-    // 先清掉旧的内联样式，再按优先级重设
-    ac.removeAttribute('style');
-    if(themeSettings.annivBgImage){
-      ac.style.backgroundImage = 'url(' + themeSettings.annivBgImage + ')';
-      ac.style.backgroundSize = 'cover';
-      ac.style.backgroundPosition = 'center';
-      ac.style.backgroundColor = 'transparent';
-    } else if(themeSettings.annivBg){
-      ac.style.background = themeSettings.annivBg;
-    }
   }
   applyChatBackground();
 }
@@ -7608,33 +7648,7 @@ async function delCompanionAnniv(i){
 
 
 
-async function editAnnivCardBg(){
-  const cur = themeSettings.annivBg || '#F5E6D3';
-  openOverlay(`
-    <div class="drawer-head"><h3>纪念日卡片背景</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <label class="field">颜色</label>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <input type="color" id="annivBgColorPicker" value="${cur.startsWith('#')&&cur.length<=7?cur:'#F5E6D3'}" style="width:48px;height:36px;border:1px solid var(--ink);padding:0;">
-      <input type="text" id="annivBgColorText" value="${cur}" placeholder="#F5E6D3 或 linear-gradient(...)" style="flex:1;">
-    </div>
-    <div class="btn-row" style="margin-top:14px;">
-      <div class="btn" onclick="confirmAnnivBgColor()">应用</div>
-      <div class="btn outline" onclick="document.getElementById('annivBgColorText').value='';confirmAnnivBgColor();">清除颜色</div>
-    </div>
-  `);
-  const picker = document.getElementById('annivBgColorPicker');
-  const text = document.getElementById('annivBgColorText');
-  if(picker && text){
-    picker.oninput = ()=>{ text.value = picker.value; };
-  }
-}
-async function confirmAnnivBgColor(){
-  const text = document.getElementById('annivBgColorText');
-  themeSettings.annivBg = (text && text.value || '').trim();
-  await sSet('theme-settings', themeSettings);
-  applyTheme();
-  closeOverlay();
-}
+/* editAnnivCardBg / confirmAnnivBgColor removed */
 async function editCustomBg(){
   const cur = themeSettings.customBg || '#F3EEE3';
   openOverlay(`
@@ -7681,26 +7695,7 @@ async function clearCustomBg(){
   await sSet('theme-settings', themeSettings);
   applyTheme();
 }
-async function onAnnivBgImage(e){
-  const f = e.target.files && e.target.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = async ()=>{
-    themeSettings.annivBgImage = await compressImage(reader.result, 1400); // 同样压缩，避免原图直接存进 IndexedDB
-    await sSet('theme-settings', themeSettings);
-    applyTheme();
-    alert('纪念日卡片背景图已应用');
-  };
-  reader.readAsDataURL(f);
-  e.target.value = '';
-}
-async function clearAnnivCardBg(){
-  themeSettings.annivBg = '';
-  themeSettings.annivBgImage = '';
-  await sSet('theme-settings', themeSettings);
-  applyTheme();
-}
-
+/* onAnnivBgImage / clearAnnivCardBg removed */
 
 
 /* ============================================================
@@ -7734,10 +7729,12 @@ async function onPhotoUpload(e){
       const compressed = await compressImage(reader.result, 900);
       if(!compressed){ alert('图片格式不支持或解码失败，请换一张试试'); return; }
       if(!Array.isArray(profile.photos)) profile.photos=[null,null,null];
-      profile.photos[polaCur] = compressed;
+      const idx = (typeof _polaEditIdx === 'number') ? _polaEditIdx : 0;
+      profile.photos[idx] = compressed;
       profile.photo = profile.photos[0];
       await sSet('profile', profile);
       renderHomeProfile();
+      renderPolaSettingsPreview();
       alert('照片已更新');
     }catch(err){ console.error(err); alert('照片上传失败：'+(err&&err.message?err.message:'未知错误')); }
   };
