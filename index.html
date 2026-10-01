@@ -3846,7 +3846,7 @@ function renderChat(preserveScroll, scrollToId){
       const stVal = m.sticker || '';
       const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(stVal)}">` : escapeHtml(stVal);
       const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
-      bubbleHtml = `<div class="msg combo ${m.from}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${readTag}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${readTag}${quoteBtn}</div></div>`;
     } else if(m.type==='invite'){
       bubbleHtml = renderInviteCardHtml(m, time);
     } else {
