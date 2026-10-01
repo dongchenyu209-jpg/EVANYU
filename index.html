@@ -398,6 +398,25 @@
   .msg.redpacket .rp-top{ font-size:12px; opacity:.9; }
   .msg.redpacket .rp-amount{ font-size:21px; font-weight:900; margin-top:4px; }
   .msg.redpacket .rp-tap{ font-size:12px; margin-top:6px; opacity:.85; border-top:1px dashed rgba(255,255,255,0.4); padding-top:6px; }
+  .msg.gift-card{
+    width:148px; max-width:58%; aspect-ratio:1/1; padding:0; overflow:hidden;
+    background:#ffffff; border:1px solid rgba(0,0,0,.08);
+    border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05);
+    display:flex; flex-direction:column;
+  }
+  .msg.gift-card .gift-inner{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; padding:14px 12px 6px; text-align:center;
+  }
+  .msg.gift-card .gift-emoji{ font-size:40px; line-height:1; flex-shrink:0; }
+  .msg.gift-card .gift-body{ min-width:0; width:100%; }
+  .msg.gift-card .gift-label{ font-size:10.5px; color:var(--ink-soft); letter-spacing:.5px; }
+  .msg.gift-card .gift-name{
+    font-size:13.5px; font-weight:700; color:var(--ink); margin-top:3px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .msg.gift-card .gift-price{ font-size:13px; color:var(--rouge); margin-top:4px; font-weight:700; }
+  .msg.gift-card .t{ padding:4px 10px 10px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
 .msg.questionnaire{
   background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
 }
@@ -1496,9 +1515,9 @@
 
     <div class="grid8 home-quick">
       <div class="fn-item" onclick="go('chat')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.6 0 8 3 8 6.8S16.6 17.6 12 17.6c-.9 0-1.7-.1-2.5-.3L5.5 19.5l1-3.4C5 15 4 13 4 10.800 4 7 7.400 4 12 4Z"/><path d="M9 10.500c.8 1.400 1.800 2 3 2s2.200-.6 3-2"/></svg><span id="chatDot" class="dot-badge hidden"></span></div><div class="fn-label">传讯</div></div>
-      <div class="fn-item" onclick="go('inboxLetters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span></div><div class="fn-label">来信</div></div>
-      <div class="fn-item" onclick="go('letters')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h5l10.500-10.500a2.100 2.100 0 0 0-3-3L6 17v3Z"/><path d="m14.500 8 3 3"/></svg><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">写信</div></div>
+      <div class="fn-item" onclick="go('mailbox')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">信箱</div></div>
       <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
+      <div class="fn-item" onclick="go('mall')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/><path d="M10 21V13h4v8"/></svg></div><div class="fn-label">商场</div></div>
     </div>
     </div><!-- /homePage1 -->
 
@@ -1949,6 +1968,12 @@
     <div class="mb-panel" id="mailboxBody"></div>
   </section>
 
+  <!-- ============ MALL 商场 ============ -->
+  <section id="view-mall" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>商场</h2></div>
+    <div id="mallBody" style="padding:12px 14px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
+  </section>
+
   <div class="bottom-nav">
     <div class="icon-btn" onclick="goHomePage(0)">⌂</div>
     <div class="bn-title" id="bnTitle">EVAN</div>
@@ -2344,12 +2369,13 @@ let moyuState = {
   nextAt: null
 };
 // 主动消息：开关 + 最短(分钟)/最长(分钟) 区间随机
-let proactiveMsgSettings = { enabled: true, minSeconds: 60, intervalMinutes: 60 }; // love 原版：最短秒～最长分 区间随机
+let proactiveMsgSettings = { enabled: true, minSeconds: 60, intervalMinutes: 60, maxCount: 3 }; // love 原版：最短秒～最长分 区间随机；maxCount=主动连发上限
 // 朋友圈互动概率（0~100）与主动发朋友圈最短(分钟)/最长(天) 区间，均可在传讯设置里调节
 let momentInteractSettings = { likeProb: 60, commentProb: 60, replyProb: 60, minMinutes: 1440, maxDays: 15, cardMin: 1, cardMax: 2, likeMinMin: 60, likeMaxHours: 48, replyMinMin: 1, replyMaxHours: 12 };
 let proactiveLetterSettings = { minMinutes: 60, maxH: 240 };
 // 拼字卡：开启后回复会随机把多张字卡拼成一段再发
 let spliceCardsEnabled = false;
+let spliceCardSettings = { min: 2, max: 4, freeEnabled: true, freeProb: 30 }; // 张数 + 自由拼句开关/概率
 let currentView = 'home';
 let themeSettings = { accent:'#9C2F3B', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
 let customBubbleCSS = '';
@@ -2442,7 +2468,7 @@ async function init(){
     _momentsPosts, _momentEvents, _letters, _inboxLetters, _callLogs,
     _proactiveState, _chatUnread, _letterUnread, _inboxLetterUnread, _momentsUnread,
     _lifePhotos, _statusPool, _todayStatus, _todayStatusHistory, _moyuState,
-    _proactiveMsgSettings, _momentInteractSettings, _proactiveLetterSettings, _spliceCardsEnabled,
+    _proactiveMsgSettings, _momentInteractSettings, _proactiveLetterSettings, _spliceCardsEnabled, _spliceCardSettings,
     _taMoodPool, _taDiaryMoods
   ] = await Promise.all([
     loadInitialPage('chatMessages'),
@@ -2469,6 +2495,7 @@ async function init(){
     sGet('moment-interact-settings', momentInteractSettings),
     sGet('proactive-letter-settings', proactiveLetterSettings),
     sGet('splice-cards-enabled', false),
+    sGet('splice-card-settings', { min:2, max:4, freeEnabled:true, freeProb:30 }),
     sGet('ta-mood-pool', null),
     sGet('ta-diary-moods', {})
   ]);
@@ -2498,6 +2525,15 @@ async function init(){
   proactiveLetterSettings = (_proactiveLetterSettings && typeof _proactiveLetterSettings==='object') ? _proactiveLetterSettings : proactiveLetterSettings;
   if(!_proactiveState || typeof _proactiveState!=='object') proactiveState = { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null };
   spliceCardsEnabled = !!_spliceCardsEnabled;
+  spliceCardSettings = (_spliceCardSettings && typeof _spliceCardSettings==='object') ? _spliceCardSettings : { min:2, max:4, freeEnabled:true, freeProb:30 };
+  if(typeof spliceCardSettings.min !== 'number') spliceCardSettings.min = 2;
+  if(typeof spliceCardSettings.max !== 'number') spliceCardSettings.max = 4;
+  if(typeof spliceCardSettings.freeEnabled !== 'boolean') spliceCardSettings.freeEnabled = true;
+  if(typeof spliceCardSettings.freeProb !== 'number') spliceCardSettings.freeProb = 30;
+  spliceCardSettings.min = Math.max(1, Math.min(10, Math.round(spliceCardSettings.min)));
+  spliceCardSettings.max = Math.max(1, Math.min(10, Math.round(spliceCardSettings.max)));
+  if(spliceCardSettings.min > spliceCardSettings.max){ const t=spliceCardSettings.min; spliceCardSettings.min=spliceCardSettings.max; spliceCardSettings.max=t; }
+  spliceCardSettings.freeProb = Math.max(0, Math.min(100, Math.round(spliceCardSettings.freeProb)));
   taMoodPool = (Array.isArray(_taMoodPool) && _taMoodPool.length) ? _taMoodPool : JSON.parse(JSON.stringify(TA_MOOD_DEFAULTS));
   taMoodPool = normalizeTaMoodPool(taMoodPool);
   taDiaryMoods = (_taDiaryMoods && typeof _taDiaryMoods==='object') ? _taDiaryMoods : {};
@@ -2589,6 +2625,8 @@ function normalizeLoadedSettings(){
     delete proactiveMsgSettings.maxMinutes;
   }
   if(typeof proactiveMsgSettings.enabled !== 'boolean') proactiveMsgSettings.enabled = true;
+  if(typeof proactiveMsgSettings.maxCount !== 'number') proactiveMsgSettings.maxCount = 3;
+  proactiveMsgSettings.maxCount = Math.max(1, Math.min(20, Math.round(proactiveMsgSettings.maxCount)));
   if(typeof momentInteractSettings.likeProb !== 'number') momentInteractSettings.likeProb = 60;
   if(typeof momentInteractSettings.commentProb !== 'number') momentInteractSettings.commentProb = 60;
   if(typeof momentInteractSettings.replyProb !== 'number') momentInteractSettings.replyProb = 60;
@@ -2629,7 +2667,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', mall:'商场' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2662,6 +2700,7 @@ function go(name){
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
+  if(name==='mall'){ renderMall(); }
   if(name==='moments'){
     renderMoments();
     if(momentsUnread){ momentsUnread=false; sSet('moments-unread', false); renderUnreadDots(); }
@@ -3170,7 +3209,7 @@ document.addEventListener('visibilitychange', ()=>{
 // 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
 window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
 setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
-setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
+setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
 
 
 function normalizeCardsJson(raw){
@@ -3853,6 +3892,20 @@ function renderChat(preserveScroll, scrollToId){
         ${revealed ? `<div class="rp-amount">¥${Number(m.amount).toFixed(2)}</div>` : `<div class="rp-tap">点击查收</div>`}
         <div class="t" style="color:rgba(255,255,255,0.75);">${time}${quoteBtn}</div>
       </div>`;
+    } else if(m.type==='gift'){
+      const fromMe = m.from==='user';
+      const label = fromMe ? ('送给 ' + (chatSettings.companionName||'TA')) : ('来自 ' + (chatSettings.companionName||'TA'));
+      bubbleHtml = `<div class="msg gift-card ${m.from}">
+        <div class="gift-inner">
+          <div class="gift-emoji">${escapeHtml(m.emoji||'🎁')}</div>
+          <div class="gift-body">
+            <div class="gift-label">🎁 ${escapeHtml(label)}</div>
+            <div class="gift-name">${escapeHtml(m.itemName||m.content||'礼物')}</div>
+            <div class="gift-price">¥${Number(m.price||0).toFixed(0)}</div>
+          </div>
+        </div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
+      </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
@@ -4333,21 +4386,59 @@ function displayCardText(text){
   const g = parseGestureCard(text);
   return g ? (g.emoji + ' ' + g.label) : String(text||'');
 }
-/* 拼字卡：从字卡库里随机抽 2~4 张拼成一段（跳过动作卡） */
-function getSplicedCardText(){
+/* ---- 字卡池（跳过动作卡） ---- */
+function getTextCardPool(){
   const groups = cardsData.groups||{};
   let pool = [];
   Object.keys(groups).forEach(g=> (groups[g]||[]).forEach(card=>{
     if(!isGestureCard(card)) pool.push(card);
   }));
+  return pool;
+}
+/* 从一句话里自由取：任意连续片段，或任意位置删字（可只剩单字） */
+function freeSnippet(raw){
+  let s = String(raw||'').trim().replace(/\s+/g,'');
+  if(!s) return '';
+  s = s.replace(/^[，。！？、；：…—\-\s]+|[，。！？、；：…—\-\s]+$/g,'');
+  if(!s) return String(raw||'').trim().slice(0,1) || '';
+  const chars = Array.from(s);
+  const len = chars.length;
+  if(len <= 1) return chars[0] || s;
+  if(Math.random() < 0.5){
+    const take = 1 + Math.floor(Math.random() * len);
+    const start = Math.floor(Math.random() * (len - take + 1));
+    return chars.slice(start, start + take).join('');
+  }
+  const keepProb = 0.35 + Math.random() * 0.45;
+  let kept = chars.filter(()=> Math.random() < keepProb);
+  if(!kept.length) kept = [chars[Math.floor(Math.random()*len)]];
+  return kept.join('');
+}
+/* 自由拼句（独立）：两张字卡删减后拼成「甲（乙）」 */
+function getFreeSplicedText(){
+  const pool = getTextCardPool();
+  if(pool.length < 2) return null;
+  const shuffled = pool.slice().sort(()=> Math.random()-0.5);
+  let left = freeSnippet(shuffled[0]);
+  let right = freeSnippet(shuffled[1]);
+  if(!left) left = freeSnippet(shuffled[0]) || String(shuffled[0]||'').trim().slice(0,2);
+  if(!right) right = freeSnippet(shuffled[1]) || String(shuffled[1]||'').trim().slice(0,2);
+  if(!left || !right) return null;
+  if(Math.random() < 0.12){ const t=left; left=right; right=t; }
+  return left + '（' + right + '）';
+}
+/* 拼字卡（独立）：抽 min~max 张，用换行拼成一段 */
+function getSplicedCardText(){
+  const pool = getTextCardPool();
   if(pool.length===0) return null;
   if(pool.length===1) return pool[0];
   const shuffled = pool.slice().sort(()=> Math.random()-0.5);
-  // 张数限制在 2~4 张之间（如果库里不够 4 张，就按实际张数封顶）
-  const maxN = Math.min(4, shuffled.length);
-  const n = maxN <= 2 ? maxN : 2 + Math.floor(Math.random() * (maxN - 1));
-  const picked = shuffled.slice(0, n);
-  return picked.join('\n');
+  const smin = Math.max(1, Math.min(10, (spliceCardSettings && spliceCardSettings.min) || 2));
+  const smax = Math.max(smin, Math.min(10, (spliceCardSettings && spliceCardSettings.max) || 4));
+  const maxN = Math.min(smax, shuffled.length);
+  const minN = Math.min(smin, maxN);
+  const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
+  return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
 const REDPACKET_NOTES = ['给你买奶茶','塞进你口袋','抢一个','爱的红包','恭喜发财','小心心'];
 function pickReplyFor(userText, opts){
@@ -4378,13 +4469,19 @@ function pickReplyFor(userText, opts){
     }
     return { type:'sticker', content: st.value };
   }
-  // 拼字卡开启后也不是每条都拼，对半几率触发；没触发就正常抽一张
-  let text;
-  if(spliceCardsEnabled && Math.random() < 0.5){
-    text = getSplicedCardText() || getRandomCardText();
-  } else {
-    text = getRandomCardText();
+  // 拼字卡 / 自由拼句 互相独立
+  let text = null;
+  const freeOn = !!(spliceCardSettings && spliceCardSettings.freeEnabled !== false);
+  const freeProb = freeOn ? (((typeof spliceCardSettings.freeProb === 'number') ? spliceCardSettings.freeProb : 30) / 100) : 0;
+  // 1) 自由拼句：独立开关 + 概率
+  if(freeOn && Math.random() < freeProb){
+    text = getFreeSplicedText();
   }
+  // 2) 拼字卡：独立开关，约一半几率多张换行拼
+  if(!text && spliceCardsEnabled && Math.random() < 0.5){
+    text = getSplicedCardText();
+  }
+  if(!text) text = getRandomCardText();
   if(!text) return null;
   const quoteOf = maybeQuoteMessage();
   return quoteOf ? { type:'text', content:text, quoteOf } : { type:'text', content:text };
@@ -4576,8 +4673,16 @@ function runProactiveBurst(manual){
     recPutMany('chatMessages', toSave).catch(()=>{});
     if(currentView==='chat'){ try{ renderChat(true); }catch(e){} }
   }
-  // 2) 这次连发几条：约 66% 发 1 条；剩余里约 85% 发 2 条、约 15% 发 3 条（整体约 29% / 5%）
-  const count = Math.random() < 0.66 ? 1 : (Math.random() < 0.85 ? 2 : 3);
+  // 2) 这次连发几条：1～maxCount 之间随机（偏向少条）
+  const maxC = Math.max(1, Math.min(20, Number(proactiveMsgSettings.maxCount) || 3));
+  let count = 1;
+  if(maxC > 1){
+    // 约 50% 发 1 条，剩余均匀到 2..maxC
+    if(Math.random() >= 0.5){
+      count = 2 + Math.floor(Math.random() * (maxC - 1));
+      if(count > maxC) count = maxC;
+    }
+  }
   _proMsgBusy = true;
   // 第一条：走传讯设置里的"最快/最慢回复"区间，跟平时回复用同一套；状态落盘，刷新也能接着发
   const delayMs = getReplyDelayMs();
@@ -4998,15 +5103,15 @@ function openChatSettings(){
       <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span>
     </div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">最快回复填秒数，最慢回复填分钟数；每次回复会在这个区间里随机挑一个时间</div>
-    <label class="field">对方「表情+文字」同回概率：<span id="csComboProbVal">${chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35}</span>%</label>
-    <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35))}" oninput="document.getElementById('csComboProbVal').textContent=this.value" id="csComboProb" style="width:100%;">
+    <label class="field">对方「表情+文字」同回概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,chatSettings.comboReplyProb!=null?chatSettings.comboReplyProb:35))}" id="csComboProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复时，有多大概率带上表情包（或表情+文字一起回）</div>
     <div class="switch-row">
       <span>已读不回<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后每条消息有概率已读不回，不是每次都不回</div></span>
       <div class="switch ${chatSettings.readNoReply?'on':''}" id="csReadNoReply" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
-    <label class="field">已读不回概率：<span id="csReadNoReplyProbVal">${chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20}</span>%</label>
-    <input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20))}" oninput="document.getElementById('csReadNoReplyProbVal').textContent=this.value" id="csReadNoReplyProb" style="width:100%;">
+    <label class="field">已读不回概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20))}" id="csReadNoReplyProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">开启后，每条消息有多大概率被已读不回（0%＝每次都回，100%＝条条不回）</div>
     <div class="switch-row">
       <span>允许发送红包<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 有机会随机给你发红包；关闭后不会自动发红包</div></span>
@@ -5022,21 +5127,23 @@ function openChatSettings(){
     </div>
     <label class="field">最短：</label>
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="10800" step="1" value="${proactiveMsgSettings.minSeconds||60}" id="csProMin" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">秒</span></div>
-    <label class="field" style="margin-top:10px;">最长：<span id="csProIntervalVal">${Math.min(180, proactiveMsgSettings.intervalMinutes||60)}</span> 分钟</label>
-    <input type="range" min="1" max="180" step="1" value="${Math.min(180, Math.max(1, proactiveMsgSettings.intervalMinutes||60))}" oninput="document.getElementById('csProIntervalVal').textContent=this.value" id="csProInterval" style="width:100%;">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 会在「最短」～「最长」之间随机挑一个时间主动来找你（有时连发 1～3 条）。App 开着才会计时，保存后从现在重新计。</div>
+    <label class="field" style="margin-top:10px;">最长</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="180" step="1" value="${Math.min(180, Math.max(1, proactiveMsgSettings.intervalMinutes||60))}" id="csProInterval" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
+    <label class="field" style="margin-top:10px;">主动连发最多</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="20" step="1" value="${Math.max(1,Math.min(20,proactiveMsgSettings.maxCount||3))}" id="csProMaxCount" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">条</span></div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 会在「最短」～「最长」之间随机挑一个时间主动来找你，连发 1～该数条。App 开着才会计时，保存后从现在重新计。</div>
     <div class="box-title" style="margin-top:14px;">朋友圈互动</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">你发朋友圈后，TA 点赞 / 评论的概率；以及你评论后 TA 回复的概率。0% 从不，100% 必做。</div>
-    <label class="field">点赞概率：<span id="csLikeProbVal">${momentInteractSettings.likeProb||60}</span>%</label>
-    <input type="range" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.likeProb||60)}" oninput="document.getElementById('csLikeProbVal').textContent=this.value" id="csLikeProb" style="width:100%;">
-    <label class="field">评论概率：<span id="csCommentProbVal">${momentInteractSettings.commentProb||60}</span>%</label>
-    <input type="range" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.commentProb||60)}" oninput="document.getElementById('csCommentProbVal').textContent=this.value" id="csCommentProb" style="width:100%;">
-    <label class="field">回评论概率：<span id="csReplyProbVal">${momentInteractSettings.replyProb||60}</span>%</label>
-    <input type="range" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.replyProb||60)}" oninput="document.getElementById('csReplyProbVal').textContent=this.value" id="csReplyProb" style="width:100%;">
+    <label class="field">点赞概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.likeProb||60)}" id="csLikeProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
+    <label class="field">评论概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.commentProb||60)}" id="csCommentProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
+    <label class="field">回评论概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.min(100, momentInteractSettings.replyProb||60)}" id="csReplyProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
     <label class="field">主动发朋友圈最短</label>
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="43200" step="1" value="${momentInteractSettings.minMinutes||1440}" id="csMomMinDays" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
-    <label class="field">主动发朋友圈最长：<span id="csMomMaxDaysVal">${momentInteractSettings.maxDays||15}</span> 天</label>
-    <input type="range" min="1" max="30" step="1" value="${Math.min(30, momentInteractSettings.maxDays||15)}" oninput="document.getElementById('csMomMaxDaysVal').textContent=this.value" id="csMomMaxDays" style="width:100%;">
+    <label class="field">主动发朋友圈最长</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="30" step="1" value="${Math.min(30, momentInteractSettings.maxDays||15)}" id="csMomMaxDays" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">天</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">在最短(分钟)～最长(天)之间纯随机挑时间发朋友圈，发完再排下一次，可多次触发</div>
     <label class="field">主动发朋友圈每条用几张字卡（最少 ～ 最多）</label>
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="10" step="1" value="${momentInteractSettings.cardMin||1}" id="csMomCardMin" style="width:100%;"><span>～</span><input type="number" min="1" max="10" step="1" value="${momentInteractSettings.cardMax||2}" id="csMomCardMax" style="width:100%;"><span>张</span></div>
@@ -5049,14 +5156,23 @@ function openChatSettings(){
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">TA 隔一段时间会主动写一封信塞进信箱。这里设最短 / 最长间隔，实际在两者之间随机挑一个点。</div>
     <label class="field">写信最短间隔</label>
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="14400" step="1" value="${proactiveLetterSettings.minMinutes||60}" id="csLetterMinH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
-    <label class="field">写信最长间隔：<span id="maxHVal">${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}</span> 小时</label>
-    <input type="range" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}" oninput="document.getElementById('maxHVal').textContent=this.value" id="csLetterMaxH">
+    <label class="field">写信最长间隔</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}" id="csLetterMaxH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">小时</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">最短填分钟，最长 1~240 小时（最多 10 天）。保存后按新间隔重新排下一封信。</div>
     <div class="box-title" style="margin-top:14px;">拼字卡</div>
     <div class="switch-row">
-      <span>拼字卡<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后有机会随机把 2~4 张字卡拼在一起发，不是每条都拼</div></span>
+      <span>拼字卡<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">独立功能：开启后有机会把多张字卡用换行拼在一起发</div></span>
       <div class="switch ${spliceCardsEnabled?'on':''}" id="csSpliceCards" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
+    <label class="field">拼字卡张数（最少 ～ 最多）</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="10" step="1" value="${(spliceCardSettings&&spliceCardSettings.min)||2}" id="csSpliceMin" style="width:100%;"><span>～</span><input type="number" min="1" max="10" step="1" value="${(spliceCardSettings&&spliceCardSettings.max)||4}" id="csSpliceMax" style="width:100%;"><span>张</span></div>
+    <div class="switch-row">
+      <span>自由拼句<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">独立功能：与拼字卡互不影响；开启后按概率删减拼成「甲（乙）」</div></span>
+      <div class="switch ${(spliceCardSettings&&spliceCardSettings.freeEnabled!==false)?'on':''}" id="csSpliceFreeEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
+    </div>
+    <label class="field">自由拼句概率（开启后生效）</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${(spliceCardSettings&&spliceCardSettings.freeProb!=null)?spliceCardSettings.freeProb:30}" id="csSpliceFreeProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">两条互不依赖：可只开其中一个。自由拼句＝任意取片段/删字后拼「甲（乙）」；拼字卡＝多张换行拼接。</div>
     <div class="box-title" style="margin-top:14px;">摸鱼记录</div>
     <div class="switch-row">
       <span>主动向我汇报工作</span>
@@ -5384,6 +5500,7 @@ async function saveChatSettings(){
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
   proactiveMsgSettings.intervalMinutes = Math.max(1, Math.min(180, parseInt(document.getElementById('csProInterval').value,10) || 60));
   proactiveMsgSettings.minSeconds = Math.max(1, Math.min(10800, parseInt(document.getElementById('csProMin').value,10) || 60));
+  { const mc = document.getElementById('csProMaxCount'); if(mc){ const v=parseInt(mc.value,10); proactiveMsgSettings.maxCount = Number.isFinite(v)?Math.max(1,Math.min(20,v)):3; } }
   delete proactiveMsgSettings.minMinutes;
   delete proactiveMsgSettings.maxMinutes;
   await sSet('proactive-msg-settings', proactiveMsgSettings);
@@ -5423,6 +5540,16 @@ async function saveChatSettings(){
   if(typeof _armPro === 'function') _armPro('letter');
   spliceCardsEnabled = document.getElementById('csSpliceCards').classList.contains('on');
   await sSet('splice-cards-enabled', spliceCardsEnabled);
+  {
+    let smin = Math.max(1, Math.min(10, parseInt(document.getElementById('csSpliceMin').value,10) || 2));
+    let smax = Math.max(1, Math.min(10, parseInt(document.getElementById('csSpliceMax').value,10) || 4));
+    if(smin > smax){ const t=smin; smin=smax; smax=t; }
+    const fp = Math.max(0, Math.min(100, parseInt(document.getElementById('csSpliceFreeProb').value,10) || 0));
+    const fe = document.getElementById('csSpliceFreeEnabled');
+    const freeEnabled = fe ? fe.classList.contains('on') : true;
+    spliceCardSettings = { min:smin, max:smax, freeEnabled, freeProb:fp };
+    await sSet('splice-card-settings', spliceCardSettings);
+  }
   const wasEnabled = moyuState.enabled;
   moyuState.enabled = document.getElementById('csMoyuEnabled').classList.contains('on');
   moyuState.showDetails = document.getElementById('csMoyuDetails').classList.contains('on');
@@ -6802,7 +6929,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -6840,7 +6967,7 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled,
+    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, mallState,
     companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
@@ -6884,6 +7011,20 @@ function onImportBackupFile(e){
     proactiveMsgSettings = data.proactiveMsgSettings || proactiveMsgSettings;
     momentInteractSettings = data.momentInteractSettings || momentInteractSettings;
     if(typeof data.spliceCardsEnabled === 'boolean') spliceCardsEnabled = data.spliceCardsEnabled;
+    if(data.spliceCardSettings && typeof data.spliceCardSettings==='object') spliceCardSettings = data.spliceCardSettings;
+    if(data.mallState && typeof data.mallState==='object'){
+      const ms = data.mallState;
+      mallState.myWallet = typeof ms.myWallet==='number' ? ms.myWallet : mallState.myWallet;
+      mallState.taWallet = typeof ms.taWallet==='number' ? ms.taWallet : mallState.taWallet;
+      mallState.gifts = Array.isArray(ms.gifts) ? ms.gifts : mallState.gifts;
+      mallState.ledger = Array.isArray(ms.ledger) ? ms.ledger : (mallState.ledger||[]);
+      mallState.customItems = Array.isArray(ms.customItems) ? ms.customItems : (mallState.customItems||[]);
+      mallState.buyProb = typeof ms.buyProb==='number' ? ms.buyProb : mallState.buyProb;
+      if(typeof ms.autoBuy === 'boolean') mallState.autoBuy = ms.autoBuy;
+      if(typeof ms.autoBuyMinMin === 'number') mallState.autoBuyMinMin = ms.autoBuyMinMin;
+      if(typeof ms.autoBuyMaxMin === 'number') mallState.autoBuyMaxMin = ms.autoBuyMaxMin;
+      mallState.nextAutoBuyAt = ms.nextAutoBuyAt || null;
+    }
     normalizeLoadedSettings();
     await sSet('profile', profile);
     await sSet('chat-settings', chatSettings);
@@ -6906,6 +7047,8 @@ function onImportBackupFile(e){
     if(data.proactiveLetterSettings && typeof data.proactiveLetterSettings==='object'){ proactiveLetterSettings = data.proactiveLetterSettings; }
     await sSet('proactive-letter-settings', proactiveLetterSettings);
     await sSet('splice-cards-enabled', spliceCardsEnabled);
+    await sSet('splice-card-settings', spliceCardSettings);
+    await sSet('mall-state', mallState);
     // 陪伴记录 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
     if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
@@ -10646,6 +10789,484 @@ function goHomePage(k){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
+
+/* ============================================================
+   商场 MALL —— 钱包 / 商品 / 礼物柜 / 流水 / 自定义 / TA自动买
+   ============================================================ */
+let mallState = {
+  myWallet: 500,
+  taWallet: 500,
+  gifts: [],      // {id, name, emoji, price, from:'me'|'ta', to:'me'|'ta', time}
+  ledger: [],     // {id, time, who:'me'|'ta'|'sys', type:'buy'|'topup'|'grant'|'auto', amount, note, balance}
+  customItems: [], // {id, cat, name, emoji, price}
+  buyProb: 25,
+  autoBuy: true,
+  autoBuyMinMin: 30,   // 最短间隔（分钟）
+  autoBuyMaxMin: 180,  // 最长间隔（分钟）
+  nextAutoBuyAt: null,
+  lastBuyCheck: 0
+};
+const MALL_ITEMS = {
+  daily: [
+    {id:'d1', name:'洗衣液', emoji:'🧴', price:28},
+    {id:'d2', name:'纸巾', emoji:'🧻', price:12},
+    {id:'d3', name:'牙膏', emoji:'🪥', price:15},
+    {id:'d4', name:'洗发水', emoji:'🧴', price:45},
+    {id:'d5', name:'毛巾', emoji:'🧺', price:22},
+    {id:'d6', name:'充电器', emoji:'🔌', price:39},
+    {id:'d7', name:'沐浴露', emoji:'🧼', price:36},
+    {id:'d8', name:'护手霜', emoji:'💅', price:29},
+    {id:'d9', name:'垃圾袋', emoji:'🗑️', price:9},
+    {id:'d10', name:'收纳盒', emoji:'📦', price:25},
+    {id:'d11', name:'拖鞋', emoji:'🩴', price:35},
+    {id:'d12', name:'雨伞', emoji:'☂️', price:42},
+    {id:'d13', name:'水杯', emoji:'🥤', price:28},
+    {id:'d14', name:'充电宝', emoji:'🔋', price:89},
+    {id:'d15', name:'耳机', emoji:'🎧', price:129},
+    {id:'d16', name:'口罩', emoji:'😷', price:15},
+    {id:'d17', name:'创可贴', emoji:'🩹', price:8},
+    {id:'d18', name:'维生素', emoji:'💊', price:48},
+    {id:'d19', name:'洗衣液补充装', emoji:'🧴', price:18},
+    {id:'d20', name:'衣架', emoji:'🪝', price:16}
+  ],
+  couple: [
+    {id:'c1', name:'情侣手链', emoji:'📿', price:88},
+    {id:'c2', name:'情侣马克杯', emoji:'☕', price:56},
+    {id:'c3', name:'情侣睡衣', emoji:'🛏️', price:128},
+    {id:'c4', name:'情侣钥匙扣', emoji:'🔑', price:35},
+    {id:'c5', name:'情侣手机壳', emoji:'📱', price:49},
+    {id:'c6', name:'情侣项链', emoji:'💎', price:199},
+    {id:'c7', name:'情侣戒指', emoji:'💍', price:299},
+    {id:'c8', name:'情侣围巾', emoji:'🧣', price:78},
+    {id:'c9', name:'情侣帽子', emoji:'🧢', price:55},
+    {id:'c10', name:'情侣拖鞋', emoji:'🩴', price:68},
+    {id:'c11', name:'情侣抱枕', emoji:'🧸', price:89},
+    {id:'c12', name:'情侣T恤', emoji:'👕', price:98},
+    {id:'c13', name:'情侣手表', emoji:'⌚', price:258},
+    {id:'c14', name:'情侣耳环', emoji:'✨', price:118},
+    {id:'c15', name:'情侣香薰', emoji:'🕯️', price:66},
+    {id:'c16', name:'情侣盲盒', emoji:'🎁', price:59},
+    {id:'c17', name:'情侣明信片套装', emoji:'📮', price:28},
+    {id:'c18', name:'情侣伞', emoji:'☂️', price:72}
+  ],
+  food: [
+    {id:'f1', name:'奶茶', emoji:'🧋', price:18},
+    {id:'f2', name:'蛋糕', emoji:'🍰', price:48},
+    {id:'f3', name:'巧克力', emoji:'🍫', price:25},
+    {id:'f4', name:'草莓', emoji:'🍓', price:32},
+    {id:'f5', name:'寿司套餐', emoji:'🍣', price:68},
+    {id:'f6', name:'火锅食材', emoji:'🍲', price:98},
+    {id:'f7', name:'冰淇淋', emoji:'🍦', price:15},
+    {id:'f8', name:'咖啡', emoji:'☕', price:22},
+    {id:'f9', name:'炸鸡', emoji:'🍗', price:38},
+    {id:'f10', name:'披萨', emoji:'🍕', price:55},
+    {id:'f11', name:'饺子', emoji:'🥟', price:28},
+    {id:'f12', name:'水果拼盘', emoji:'🍎', price:45},
+    {id:'f13', name:'小笼包', emoji:'🥟', price:26},
+    {id:'f14', name:'烧烤拼盘', emoji:'🍖', price:88},
+    {id:'f15', name:'甜甜圈', emoji:'🍩', price:16},
+    {id:'f16', name:'马卡龙', emoji:'🍪', price:42},
+    {id:'f17', name:'酸奶', emoji:'🥛', price:12},
+    {id:'f18', name:'薯片', emoji:'🥔', price:10},
+    {id:'f19', name:'泡面', emoji:'🍜', price:8},
+    {id:'f20', name:'红酒', emoji:'🍷', price:128}
+  ],
+  memorial: [
+    {id:'m1', name:'合照相框', emoji:'🖼️', price:66},
+    {id:'m2', name:'纪念相册', emoji:'📔', price:88},
+    {id:'m3', name:'定制星空灯', emoji:'✨', price:158},
+    {id:'m4', name:'手写情书本', emoji:'💌', price:45},
+    {id:'m5', name:'纪念银币', emoji:'🪙', price:120},
+    {id:'m6', name:'时间胶囊', emoji:'⏳', price:99},
+    {id:'m7', name:'定制星座图', emoji:'🌟', price:78},
+    {id:'m8', name:'恋爱日记本', emoji:'📓', price:38},
+    {id:'m9', name:'干花书签', emoji:'🌸', price:22},
+    {id:'m10', name:'定制音乐盒', emoji:'🎵', price:168},
+    {id:'m11', name:'纪念日蜡烛', emoji:'🕯️', price:48},
+    {id:'m12', name:'合影拍立得相纸', emoji:'📷', price:55},
+    {id:'m13', name:'定制抱枕印照', emoji:'🛏️', price:98},
+    {id:'m14', name:'恋爱纪念章', emoji:'🏅', price:66},
+    {id:'m15', name:'手绘肖像', emoji:'🎨', price:188},
+    {id:'m16', name:'定制钥匙牌', emoji:'🔑', price:35}
+  ]
+};
+const MALL_CAT_LABEL = { daily:'日常用品', couple:'情侣用品', food:'食物', memorial:'纪念品' };
+
+function mallGetItems(cat){
+  const base = (MALL_ITEMS[cat] || []).slice();
+  const custom = (mallState.customItems || []).filter(x => x.cat === cat);
+  return base.concat(custom);
+}
+function mallFindItem(itemId, cat){
+  if(cat){
+    return mallGetItems(cat).find(x => x.id === itemId) || null;
+  }
+  for(const k of Object.keys(MALL_ITEMS)){
+    const hit = mallGetItems(k).find(x => x.id === itemId);
+    if(hit) return hit;
+  }
+  return (mallState.customItems || []).find(x => x.id === itemId) || null;
+}
+function mallPushLedger(who, type, amount, note, balance){
+  if(!Array.isArray(mallState.ledger)) mallState.ledger = [];
+  mallState.ledger.unshift({
+    id: uid(), time: Date.now(), who, type, amount, note: note || '', balance
+  });
+  if(mallState.ledger.length > 200) mallState.ledger = mallState.ledger.slice(0, 200);
+}
+async function loadMallState(){
+  try{
+    const s = await sGet('mall-state', null);
+    if(s && typeof s==='object'){
+      mallState.myWallet = typeof s.myWallet==='number' ? s.myWallet : 500;
+      mallState.taWallet = typeof s.taWallet==='number' ? s.taWallet : 500;
+      mallState.gifts = Array.isArray(s.gifts) ? s.gifts : [];
+      mallState.ledger = Array.isArray(s.ledger) ? s.ledger : [];
+      mallState.customItems = Array.isArray(s.customItems) ? s.customItems : [];
+      mallState.buyProb = typeof s.buyProb==='number' ? Math.max(0,Math.min(100,s.buyProb)) : 25;
+      mallState.autoBuy = s.autoBuy !== false;
+      mallState.autoBuyMinMin = typeof s.autoBuyMinMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMinMin)) : 30;
+      mallState.autoBuyMaxMin = typeof s.autoBuyMaxMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMaxMin)) : 180;
+      if(mallState.autoBuyMinMin > mallState.autoBuyMaxMin){
+        const t = mallState.autoBuyMinMin; mallState.autoBuyMinMin = mallState.autoBuyMaxMin; mallState.autoBuyMaxMin = t;
+      }
+      mallState.nextAutoBuyAt = s.nextAutoBuyAt || null;
+      mallState.lastBuyCheck = s.lastBuyCheck || 0;
+    }
+  }catch(e){}
+}
+async function saveMallState(){
+  try{ await sSet('mall-state', mallState); }catch(e){}
+}
+function mallScheduleNextAutoBuy(){
+  const a = Math.max(1, Number(mallState.autoBuyMinMin)||30) * 60 * 1000;
+  const b = Math.max(1, Number(mallState.autoBuyMaxMin)||180) * 60 * 1000;
+  const wait = Math.min(a,b) + Math.random() * (Math.abs(b-a) + 1);
+  mallState.nextAutoBuyAt = Date.now() + wait;
+}
+async function checkMallAutoBuy(){
+  try{
+    if(mallState.autoBuy === false) return;
+    if(!mallState.nextAutoBuyAt){
+      mallScheduleNextAutoBuy();
+      await saveMallState();
+      return;
+    }
+    if(Date.now() < mallState.nextAutoBuyAt) return;
+    // 到期：按概率尝试买一件随机礼物
+    mallScheduleNextAutoBuy();
+    const prob = (mallState.buyProb||25) / 100;
+    if(Math.random() > prob){
+      await saveMallState();
+      return;
+    }
+    const cats = Object.keys(MALL_ITEMS);
+    const all = [];
+    cats.forEach(cat => mallGetItems(cat).forEach(it => all.push({...it, _cat: cat})));
+    if(!all.length){ await saveMallState(); return; }
+    const it = all[Math.floor(Math.random()*all.length)];
+    if(mallState.taWallet < it.price){
+      const amount = Math.max(it.price - mallState.taWallet + 30, 50);
+      mallState.taWallet += amount;
+      mallPushLedger('ta', 'grant', amount, '自动买礼物前系统拨款', mallState.taWallet);
+    }
+    if(mallState.taWallet < it.price){ await saveMallState(); return; }
+    mallState.taWallet -= it.price;
+    const giftId = it.id + '-' + Date.now();
+    mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
+    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你', mallState.taWallet);
+    await saveMallState();
+    await pushGiftChatMsg(it, 'bot');
+    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
+    if(currentView === 'mall') try{ renderMall(); }catch(e){}
+  }catch(e){ console.warn('checkMallAutoBuy', e); }
+}
+function renderMall(){
+  loadMallState().then(()=>{
+    const body = document.getElementById('mallBody');
+    if(!body) return;
+    const name = (chatSettings && chatSettings.companionName) || 'TA';
+    const safeName = (typeof escapeHtml==='function') ? escapeHtml(name) : String(name||'');
+    let html = `
+    <div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.04);">
+      <div style="font-size:12px;color:var(--ink-soft);letter-spacing:1px;margin-bottom:8px;">💰 钱包</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.03);">
+          <div style="font-size:11px;color:var(--ink-soft);">我的钱包</div>
+          <div style="font-size:20px;font-weight:700;color:var(--ink);margin-top:2px;">¥${Number(mallState.myWallet).toFixed(0)}</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.03);">
+          <div style="font-size:11px;color:var(--ink-soft);">${safeName} 的钱包</div>
+          <div style="font-size:20px;font-weight:700;color:var(--ink);margin-top:2px;">¥${Number(mallState.taWallet).toFixed(0)}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallApplyMoney()">申请系统拨款</div>
+        <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallTopUpMe()">给我充值 ¥100</div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--ink-soft);line-height:1.7;">
+        TA 买礼物概率：
+        <input type="number" id="mallBuyProb" min="0" max="100" value="${mallState.buyProb}" style="width:52px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetBuyProb(this.value)"> %
+        &nbsp;|&nbsp;
+        自动买礼物
+        <span class="switch ${mallState.autoBuy!==false?'on':''}" id="mallAutoBuySw" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))" style="display:inline-flex;vertical-align:middle;transform:scale(.85);"><div class="dot"></div></span>
+        <br>
+        自动间隔
+        <input type="number" id="mallAutoMin" min="1" max="10080" value="${mallState.autoBuyMinMin||30}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> ～
+        <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> 分钟
+      </div>
+    </div>
+    <div class="mb-tabs" style="margin-bottom:10px;">
+      <div class="mb-tab on" data-cat="daily" onclick="mallShowCat('daily',this)">日常用品</div>
+      <div class="mb-tab" data-cat="couple" onclick="mallShowCat('couple',this)">情侣用品</div>
+      <div class="mb-tab" data-cat="food" onclick="mallShowCat('food',this)">食物</div>
+      <div class="mb-tab" data-cat="memorial" onclick="mallShowCat('memorial',this)">纪念品</div>
+      <div class="mb-tab" data-cat="gifts" onclick="mallShowCat('gifts',this)">礼物柜</div>
+      <div class="mb-tab" data-cat="ledger" onclick="mallShowCat('ledger',this)">流水</div>
+      <div class="mb-tab" data-cat="custom" onclick="mallShowCat('custom',this)">自定义</div>
+    </div>
+    <div id="mallItems"></div>`;
+    body.innerHTML = html;
+    mallShowCat('daily');
+  });
+}
+function mallShowCat(cat, el){
+  document.querySelectorAll('#mallBody .mb-tab').forEach(t=>t.classList.remove('on'));
+  if(el) el.classList.add('on');
+  else {
+    const t = document.querySelector(`#mallBody .mb-tab[data-cat="${cat}"]`);
+    if(t) t.classList.add('on');
+  }
+  const box = document.getElementById('mallItems');
+  if(!box) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  const safeName = (typeof escapeHtml==='function') ? escapeHtml(name) : String(name||'');
+
+  if(cat==='gifts'){
+    if(!mallState.gifts.length){
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">礼物柜还是空的～去买点礼物吧</div>';
+      return;
+    }
+    const sorted = mallState.gifts.slice().sort((a,b)=> (b.time||0)-(a.time||0));
+    box.innerHTML = sorted.map(g=>{
+      const who = g.from==='me' ? `我 → ${safeName}` : `${safeName} → 我`;
+      const d = g.time ? new Date(g.time).toLocaleString() : '';
+      const gid = String(g.id||'').replace(/'/g,'');
+      return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
+        <div style="font-size:28px;">${g.emoji||'🎁'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(g.name):g.name}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${who} · ¥${g.price} · ${d}</div>
+        </div>
+        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);border-color:rgba(139,58,86,.35);" onclick="mallDeleteGift('${gid}')">删除</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  if(cat==='ledger'){
+    if(!mallState.ledger || !mallState.ledger.length){
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">还没有流水记录</div>';
+      return;
+    }
+    box.innerHTML = mallState.ledger.map(r=>{
+      const whoLabel = r.who==='me' ? '我' : (r.who==='ta' ? safeName : '系统');
+      const sign = r.amount >= 0 ? '+' : '';
+      const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
+      const d = r.time ? new Date(r.time).toLocaleString() : '';
+      return `<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <div style="font-weight:700;font-size:13px;">${whoLabel} · ${(typeof escapeHtml==='function')?escapeHtml(r.note||r.type): (r.note||r.type)}</div>
+          <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}${r.balance!=null?' · 余额 ¥'+Number(r.balance).toFixed(0):''}</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  if(cat==='custom'){
+    const list = mallState.customItems || [];
+    box.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(0,0,0,.08);">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">添加自定义商品</div>
+        <label class="field">分类</label>
+        <select id="mallCustomCat" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px;">
+          <option value="daily">日常用品</option>
+          <option value="couple">情侣用品</option>
+          <option value="food">食物</option>
+          <option value="memorial">纪念品</option>
+        </select>
+        <label class="field">名称</label>
+        <input type="text" id="mallCustomName" placeholder="例如：限定周边" style="width:100%;margin-bottom:8px;">
+        <label class="field">Emoji</label>
+        <input type="text" id="mallCustomEmoji" placeholder="🎁" style="width:100%;margin-bottom:8px;">
+        <label class="field">价格（元）</label>
+        <input type="number" id="mallCustomPrice" min="1" value="50" style="width:100%;margin-bottom:10px;">
+        <div class="btn" style="width:100%;text-align:center;" onclick="mallAddCustomItem()">添加商品</div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">已添加 ${list.length} 件自定义商品</div>
+      ${list.length ? list.map(it=>{
+        const cid = String(it.id||'').replace(/'/g,'');
+        return `<div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
+          <div style="font-size:26px;">${it.emoji||'🎁'}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(it.name):it.name}</div>
+            <div style="font-size:11px;color:var(--ink-soft);">${MALL_CAT_LABEL[it.cat]||it.cat} · ¥${it.price}</div>
+          </div>
+          <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallDeleteCustomItem('${cid}')">删除</div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink-soft);padding:16px;font-size:13px;">还没有自定义商品</div>'}
+    `;
+    return;
+  }
+
+  const items = mallGetItems(cat);
+  box.innerHTML = items.map(it=>{
+    const isCustom = String(it.id||'').startsWith('custom-');
+    return `
+    <div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
+      <div style="font-size:28px;">${it.emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;">${it.name}${isCustom?' <span style="font-size:10px;color:var(--ink-soft);font-weight:400;">自定义</span>':''}</div>
+        <div style="font-size:13px;color:var(--rouge);margin-top:2px;">¥${it.price}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="btn" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','me')">我买给${safeName}</div>
+        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','ta')">让${safeName}买给我</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function mallSetBuyProb(v){
+  mallState.buyProb = Math.max(0, Math.min(100, parseInt(v,10)||0));
+  await saveMallState();
+}
+async function mallSetAutoBuy(on){
+  mallState.autoBuy = !!on;
+  if(on && !mallState.nextAutoBuyAt) mallScheduleNextAutoBuy();
+  await saveMallState();
+}
+async function mallSetAutoInterval(){
+  let a = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMin').value,10)||30));
+  let b = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMax').value,10)||180));
+  if(a > b){ const t=a; a=b; b=t; }
+  mallState.autoBuyMinMin = a;
+  mallState.autoBuyMaxMin = b;
+  mallScheduleNextAutoBuy();
+  await saveMallState();
+  _flashToast('自动买礼物间隔已更新，已重新计时', false);
+}
+async function mallApplyMoney(){
+  const amount = 50 + Math.floor(Math.random()*151);
+  mallState.taWallet += amount;
+  mallPushLedger('ta', 'grant', amount, '向系统申请拨款', mallState.taWallet);
+  await saveMallState();
+  _flashToast(`${(chatSettings&&chatSettings.companionName)||'TA'} 向系统申请了 ¥${amount}，到账啦`, false);
+  renderMall();
+}
+async function mallTopUpMe(){
+  mallState.myWallet += 100;
+  mallPushLedger('me', 'topup', 100, '自行充值', mallState.myWallet);
+  await saveMallState();
+  _flashToast('已充值 ¥100', false);
+  renderMall();
+}
+async function mallDeleteGift(gid){
+  if(!confirm('确定从礼物柜删除这件礼物吗？')) return;
+  mallState.gifts = (mallState.gifts||[]).filter(g => String(g.id) !== String(gid));
+  await saveMallState();
+  _flashToast('已删除', false);
+  mallShowCat('gifts');
+}
+async function mallAddCustomItem(){
+  const cat = (document.getElementById('mallCustomCat')||{}).value || 'daily';
+  const name = ((document.getElementById('mallCustomName')||{}).value || '').trim();
+  let emoji = ((document.getElementById('mallCustomEmoji')||{}).value || '').trim() || '🎁';
+  const price = Math.max(1, parseInt((document.getElementById('mallCustomPrice')||{}).value,10) || 50);
+  if(!name){ _flashToast('请填写商品名称', true); return; }
+  if(!Array.isArray(mallState.customItems)) mallState.customItems = [];
+  mallState.customItems.push({ id:'custom-'+uid(), cat, name, emoji, price });
+  await saveMallState();
+  _flashToast('已添加「'+name+'」', false);
+  mallShowCat('custom');
+}
+async function mallDeleteCustomItem(cid){
+  if(!confirm('确定删除这个自定义商品吗？')) return;
+  mallState.customItems = (mallState.customItems||[]).filter(x => String(x.id) !== String(cid));
+  await saveMallState();
+  _flashToast('已删除', false);
+  mallShowCat('custom');
+}
+async function pushGiftChatMsg(it, from){
+  const msg = {
+    id: uid(),
+    from: from,
+    type: 'gift',
+    itemName: it.name,
+    emoji: it.emoji || '🎁',
+    price: it.price,
+    content: it.name,
+    time: Date.now(),
+    read: from === 'bot' ? true : false
+  };
+  chatMessages.push(msg);
+  try{ await recPut('chatMessages', msg); }catch(e){ console.warn('gift chat put fail', e); }
+  if(from === 'bot'){
+    if(currentView !== 'chat'){
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); }catch(e){}
+      try{ renderUnreadDots(); }catch(e){}
+    }
+  }
+  if(currentView === 'chat'){
+    try{ renderChat(); scrollChatBottom(); }catch(e){}
+  }
+}
+async function mallBuy(itemId, cat, who){
+  const it = mallFindItem(itemId, cat);
+  if(!it) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  if(who==='me'){
+    if(mallState.myWallet < it.price){ _flashToast('钱包不够啦，先充值或等系统拨款', true); return; }
+    mallState.myWallet -= it.price;
+    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
+    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name, mallState.myWallet);
+    await saveMallState();
+    await pushGiftChatMsg(it, 'user');
+    _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
+  } else {
+    if(mallState.taWallet < it.price){
+      const amount = Math.max(it.price - mallState.taWallet + 20, 50);
+      mallState.taWallet += amount;
+      mallPushLedger('ta', 'grant', amount, '买礼物前系统拨款', mallState.taWallet);
+      _flashToast(`${name} 钱不够，先向系统申请了 ¥${amount}`, false);
+    }
+    const prob = (mallState.buyProb||25)/100;
+    if(Math.random() > prob){
+      await saveMallState();
+      _flashToast(`${name} 这次没买成（概率 ${mallState.buyProb}%），再试试～`, true);
+      renderMall();
+      return;
+    }
+    mallState.taWallet -= it.price;
+    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
+    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你', mallState.taWallet);
+    await saveMallState();
+    await pushGiftChatMsg(it, 'bot');
+    _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
+  }
+  renderMall();
+}
+// 启动时加载 + 排自动买
+loadMallState().then(()=>{
+  if(mallState.autoBuy !== false && !mallState.nextAutoBuyAt){
+    mallScheduleNextAutoBuy();
+    saveMallState();
+  }
+}).catch(()=>{});
+
+
 </script>
 <style>
 /* 首页天气恢复原版 UI，仅恢复视觉样式 */
