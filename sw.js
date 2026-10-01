@@ -67,7 +67,6 @@ self.addEventListener('fetch', function(e){
       caches.match(keyReq).then(function(cached){
         var net = fetch(req).then(function(res){ putInCache(keyReq, res); return res; })
           .catch(function(){ return cached || caches.match(INDEX_URL) || Response.error(); });
-        // 有缓存时后台更新也要让 SW 等它跑完，否则可能没写进缓存就被浏览器终止
         if(cached) e.waitUntil(net.catch(function(){}));
         return cached || net;
       })
