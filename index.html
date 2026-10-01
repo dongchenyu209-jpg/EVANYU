@@ -5934,7 +5934,6 @@ function renderLedger(){
    PERIOD
    ============================================================ */
 async function addPeriod(){
-  // 陪伴记录里的输入框（若已打开）优先，否则用主页面那份
   const dateEl = document.getElementById('compPeriodDate') || document.getElementById('periodDate');
   const date = dateEl && dateEl.value;
   if(!date) return;
@@ -5948,7 +5947,6 @@ async function deletePeriod(id){
   await sSet('period-entries', periodEntries); renderPeriod();
 }
 function renderPeriod(){
-  // 主页面和陪伴记录各有一份，哪份在 DOM 里就刷新哪份
   [['periodList','periodPredict'],['compPeriodList','compPeriodPredict']].forEach(function(ids){
     const wrap = document.getElementById(ids[0]);
     if(wrap) wrap.innerHTML = periodEntries.length ? [...periodEntries].reverse().map(e=>`
@@ -6627,7 +6625,6 @@ async function deleteDiary(id){
   renderDiary();
 }
 function renderDiary(){
-  // 主页面和陪伴记录各有一份日历，哪份在 DOM 里就刷新哪份
   const y = diaryUI.year, m = diaryUI.month;
   const firstDow = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m+1, 0).getDate();
@@ -9981,7 +9978,6 @@ function refreshCompanionFloat(){
 var _compFloatIdle = false;
 setInterval(function(){
   try{
-    // 没有进行中的陪伴时，只在刚结束那一次刷新（用来隐藏挂件），之后不再空转
     if(!activeCompanionKind()){ if(_compFloatIdle) return; _compFloatIdle = true; }
     else _compFloatIdle = false;
     refreshCompanionFloat();
@@ -11019,22 +11015,9 @@ function renderMall(initialCat){
         检查间隔
         <input type="number" id="mallAutoMin" min="1" max="10080" value="${mallState.autoBuyMinMin||30}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> ～
         <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> 分钟
-        （每次到点后在此区间再抽下一次）
         <br>
         买到概率
         <input type="number" id="mallBuyProb" min="0" max="100" value="${mallState.buyProb}" style="width:52px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetBuyProb(this.value)"> %
-        （到点掷一次；没中不买，等下次到点再掷）
-        <br>
-        <span id="mallNextBuyHint">${(function(){
-          if(mallState.autoBuy===false) return '自动买礼物已关闭';
-          if(!mallState.nextAutoBuyAt) return '下次尝试：待安排';
-          const t = Number(mallState.nextAutoBuyAt);
-          if(!t) return '下次尝试：待安排';
-          const left = t - Date.now();
-          if(left <= 0) return '下次尝试：即将检查…';
-          const m = Math.ceil(left/60000);
-          return '下次尝试：约 ' + m + ' 分钟后（' + new Date(t).toLocaleString() + '）';
-        })()}</span>
       </div>
     </div>
     <div class="mb-tabs" style="margin-bottom:10px;">
