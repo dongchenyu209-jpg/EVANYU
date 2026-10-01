@@ -9675,8 +9675,7 @@ function cancelTogetherReply(kind){
   if(_togetherReplyTimers[kind]){ clearTimeout(_togetherReplyTimers[kind]); delete _togetherReplyTimers[kind]; }
 }
 function scheduleTogetherReply(kind){
-  const delayMs = (typeof getReplyDelayMs==='function') ? getReplyDelayMs() : (3000+Math.random()*5000);
-  // 自检/演示时可缩短：若刚点过自检，不改全局
+  const delayMs = Math.random()*60000;
   cancelTogetherReply(kind);
   _togetherReplyTimers[kind] = setTimeout(async function(){
     delete _togetherReplyTimers[kind];
