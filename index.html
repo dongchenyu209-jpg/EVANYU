@@ -811,12 +811,12 @@
 .invite-card-status.reschedule{ background:rgba(100,120,200,0.2); color:#334; }
 .invite-card-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
 .invite-card-actions .btn{ padding:6px 12px; font-size:12px; margin:0; }
-.msg.combo{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.msg.combo{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
 .msg.combo.user{ align-items:flex-end; }
 .msg.combo .combo-sticker{ font-size:26px; line-height:1; }
 .msg.combo .combo-sticker img{ width:44px; height:44px; object-fit:contain; }
-.msg.combo .combo-text{ padding:8px 12px; border-radius:14px; max-width:100%; background:var(--paper); border:1px solid var(--rule); }
-.msg.combo.user .combo-text{ background:var(--blush); }
+.msg.combo .combo-text{ padding:0; margin:0; max-width:100%; background:transparent; border:none; border-radius:0; }
+.msg.combo.user .combo-text{ background:transparent; }
 .pending-sticker-bar{ display:none; align-items:center; gap:8px; padding:6px 12px; border-top:1px solid var(--rule); background:rgba(255,248,252,0.9); font-size:13px; }
 .pending-sticker-bar.show{ display:flex; }
 .pending-sticker-preview{ font-size:22px; line-height:1; }
@@ -2457,6 +2457,7 @@ async function init(){
   taMoodPool = normalizeTaMoodPool(taMoodPool);
   taDiaryMoods = (_taDiaryMoods && typeof _taDiaryMoods==='object') ? _taDiaryMoods : {};
   await loadCompanionData();
+  try{ await loadTogetherState(); }catch(e){ console.warn('loadTogetherState', e); }
   try{ await ensureTaMoodFor(todayKey()); }catch(e){}
 
   // 兼容旧数据：写信/来信混在一起
@@ -6687,7 +6688,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -8190,13 +8191,43 @@ function tryBgNotify(title, body){
    聊天功能面板 + 一起听 / 学 / 睡
    ============================================================ */
 let togetherState = {
-  music: { official:false, shuffle:false, active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false, bg:null, vinylImg:null },
+  music: { shuffle:false, active:false, playlist:[], playlistName:'', index:0, playing:false, progress:0, duration:180, timer:null, inviter:null, accepted:false, bg:null, vinylImg:null },
   study: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   sleep: { active:false, inviter:null, accepted:false, note:'', bg:null, light:'soft', startedAt:null, durationLimit:0 },
   watch: { active:false, inviter:null, accepted:false, bvid:'', title:'', scheduledAt:null, note:'' },
   roomTimer: null
 };
 let letterInviteKind = 'sleep';
+
+/* v67：陪伴状态持久化——刷新 / 重开后，正在进行的陪伴（听/学/睡/看）还能接着来。
+   之前 togetherState 只在内存里，一刷新就清空：空间关掉、小胶囊消失、计时清零。
+   现在把「谁发起的、是否已接受、几点开始、限时多久、灯光/背景」等写进本地库，打开时读回来。 */
+function togetherStateSnapshot(){
+  function pick(o, keys){ var r = {}; keys.forEach(function(k){ r[k] = o[k]; }); return r; }
+  return {
+    music: pick(togetherState.music, ['active','accepted','inviter','note','index','playlistName']),
+    study: pick(togetherState.study, ['active','accepted','inviter','note','bg','light','startedAt','durationLimit']),
+    sleep: pick(togetherState.sleep, ['active','accepted','inviter','note','bg','light','startedAt','durationLimit']),
+    watch: pick(togetherState.watch, ['active','accepted','inviter','bvid','title','scheduledAt','note'])
+  };
+}
+function saveTogetherState(){ try{ sSet('together-state', togetherStateSnapshot()); }catch(e){} }
+async function loadTogetherState(){
+  try{
+    var d = await sGet('together-state', null);
+    if(!d || typeof d!=='object') return;
+    ['music','study','sleep','watch'].forEach(function(k){
+      if(d[k] && typeof d[k]==='object') Object.assign(togetherState[k], d[k]);
+    });
+    // 防「幽灵陪伴」：超过 12 小时仍挂着的旧记录直接清掉（和通话记录同样的处理）
+    ['study','sleep'].forEach(function(k){
+      var st = togetherState[k];
+      if(st && st.active && st.accepted && st.startedAt && (Date.now()-st.startedAt) > 12*3600*1000){
+        st.active = false; st.accepted = false;
+      }
+    });
+  }catch(e){ console.warn('loadTogetherState', e); }
+}
 let compRoomBg = null; // 陪伴空间统一背景（学习/睡觉共用，持久化保存）
 
 let pendingSticker = null; // { value, isImage }
@@ -8321,12 +8352,14 @@ async function respondInviteCard(msgId, action){
       openSleepTogetherPanel(false);
       try{ refreshCompanionFloat(); }catch(e){}
     }
+    saveTogetherState();
   } else if(action==='decline'){
     await updateInviteCardStatus(msgId, 'declined');
     if(kind==='watch') togetherState.watch.active = false;
     if(kind==='music') togetherState.music.active = false;
     if(kind==='study') togetherState.study.active = false;
     if(kind==='sleep') togetherState.sleep.active = false;
+    saveTogetherState();
   } else if(action==='reschedule' && kind==='watch'){
     const next = prompt('想改到什么时间？例如 21:30 或 明天晚上', '');
     if(!next) return;
@@ -8340,6 +8373,7 @@ async function respondInviteCard(msgId, action){
     }
     await updateInviteCardStatus(msgId, 'reschedule', { scheduledAt: ts, note: ((profile&&profile.myName)||'我')+' 改到 '+next });
     togetherState.watch.scheduledAt = ts;
+    saveTogetherState();
     // 对方再回应改约
     scheduleTogetherReply('watch');
   }
@@ -8456,6 +8490,7 @@ async function sendLetterInvite(){
     await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起学习'+(note?' · '+note:''), {
       kind:'study', status:'pending', inviter:'user', note:note
     });
+    saveTogetherState();
     if(typeof go==='function') go('chat');
     scheduleTogetherReply('study');
     return;
@@ -8468,6 +8503,7 @@ async function sendLetterInvite(){
   await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起睡觉'+(note?' · '+note:''), {
     kind:'sleep', status:'pending', inviter:'user', note:note
   });
+  saveTogetherState();
   if(typeof go==='function') go('chat');
   scheduleTogetherReply('sleep');
 }
@@ -9374,6 +9410,7 @@ async function inviteListenTogether(){
   await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起听「'+(song.name||'音乐')+'」', {
     kind:'music', status:'pending', inviter:'user', detail:'曲目：'+(song.name||'')
   });
+  saveTogetherState();
   closeOverlay();
   scheduleTogetherReply('music');
 }
@@ -9392,8 +9429,9 @@ function scheduleTogetherReply(kind){
     const accept = Math.random() < 0.75;
     const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user');
     // v63：如果用户已经按了“结束”（不再是“等他回应”），对方就不再回应了
-    var _stv = togetherState[kind];
-    if(!lastInvite || !_stv || !_stv.active || _stv.accepted || _stv.inviter!=='user'){ return; }
+    // v67：只看邀请卡是否仍在“等待回应”（用户按“结束”会把卡置为 ended，lastInvite 就找不到了）。
+    // 不再依赖内存里的 togetherState.active/inviter——否则刷新页面后状态被重置，等待中的邀请会永远等不到回应。
+    if(!lastInvite){ return; }
     if(kind==='music'){
       togetherState.music.accepted = accept;
       if(accept){
@@ -9474,6 +9512,7 @@ function scheduleTogetherReply(kind){
         }
       }
     }
+    saveTogetherState();
     if(currentView==='chat') renderChat();
     else { chatUnread = true; try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){} }
   }, delayMs);
@@ -9484,6 +9523,7 @@ async function endCompanionInvite(kind, text, extra){
   cancelTogetherReply(kind);
   const lastPending = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending');
   if(togetherState[kind]){ togetherState[kind].active = false; togetherState[kind].accepted = false; }
+  saveTogetherState();
   if(lastPending){ await updateInviteCardStatus(lastPending.id, 'ended', { content:text, detail:text }); }
   else { await postTogetherSystemMsg(text, extra); }
 }
@@ -9492,6 +9532,7 @@ async function endListenTogether(){
   togetherState.music.playing = false;
   await endCompanionInvite('music', '一起听歌结束了', { kind:'music', status:'ended', inviter: togetherState.music.inviter||'user', from:'user' });
   togetherState.music.active=false; togetherState.music.accepted=false;
+  saveTogetherState();
   closeOverlay();
 }
 
@@ -9569,6 +9610,7 @@ function openCompanionRoom(kind){
   // timer label click
   var lab = document.getElementById('compTimerLabel');
   if(lab) lab.onclick = function(){ pickCompanionDuration(kind); };
+  saveTogetherState();
   togetherState.roomTimer = setInterval(function(){ tickCompanionRoom(kind); }, 1000);
   tickCompanionRoom(kind);
   try{ refreshCompanionFloat(); }catch(e){}
@@ -9592,6 +9634,7 @@ function pickCompanionDuration(kind){
   if(isNaN(n) || n<0) n = 0;
   togetherState[kind].durationLimit = n ? n*60*1000 : 0;
   togetherState[kind].startedAt = Date.now();
+  saveTogetherState();
   var lab = document.getElementById('compTimerLabel');
   if(lab) lab.textContent = n ? ('限时 '+n+' 分钟 · 点击可改') : '不限时陪伴 · 点击可改';
 }
@@ -9607,6 +9650,7 @@ function setCompanionLight(mode){
   room.querySelectorAll('.comp-light-row button').forEach(function(b){
     b.classList.toggle('on', b.textContent.indexOf(({dim:'微光',soft:'柔光',warm:'暖光'})[mode])>=0);
   });
+  saveTogetherState();
 }
 function onCompanionBgFile(e){
   var f = e.target.files && e.target.files[0];
@@ -9865,6 +9909,7 @@ async function inviteStudyTogether(){
   togetherState.study.accepted = false;
   togetherState.study.inviter = 'user';
   await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起学习', { kind:'study', status:'pending', inviter:'user', note:togetherState.study.note||'' });
+  saveTogetherState();
   closeOverlay();
   scheduleTogetherReply('study');
 }
@@ -9899,6 +9944,7 @@ async function inviteSleepTogether(){
   togetherState.sleep.accepted = false;
   togetherState.sleep.inviter = 'user';
   await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起睡觉', { kind:'sleep', status:'pending', inviter:'user', note:togetherState.sleep.note||'' });
+  saveTogetherState();
   closeOverlay();
   scheduleTogetherReply('sleep');
 }
@@ -9974,6 +10020,7 @@ async function inviteWatchTogether(){
     kind:'watch', status:'pending', inviter:'user',
     bvid: bvid, scheduledAt: togetherState.watch.scheduledAt, note: togetherState.watch.note
   });
+  saveTogetherState();
   closeOverlay();
   if(typeof go==='function') go('chat');
   scheduleTogetherReply('watch');
@@ -10015,6 +10062,7 @@ function maybeBotInviteTogether(){
       text = chatSettings.companionName+' 邀请你一起看视频';
       await postTogetherSystemMsg(text, { kind:'watch', status:'pending', inviter:'bot', from:'bot', bvid:togetherState.watch.bvid, scheduledAt:togetherState.watch.scheduledAt });
     }
+    saveTogetherState();
     if(currentView==='chat') renderChat();
     else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 的邀请', text); }
   }, delayMs);
