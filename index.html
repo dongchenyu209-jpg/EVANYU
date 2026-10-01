@@ -5934,8 +5934,8 @@ function renderLedger(){
    PERIOD
    ============================================================ */
 async function addPeriod(){
-  const root = document.getElementById('companionBody') || document;
-  const dateEl = (root.querySelector && root.querySelector('#periodDate')) || document.getElementById('periodDate');
+  // 陪伴记录里的输入框（若已打开）优先，否则用主页面那份
+  const dateEl = document.getElementById('compPeriodDate') || document.getElementById('periodDate');
   const date = dateEl && dateEl.value;
   if(!date) return;
   periodEntries.push({id:uid(), date});
@@ -5948,24 +5948,25 @@ async function deletePeriod(id){
   await sSet('period-entries', periodEntries); renderPeriod();
 }
 function renderPeriod(){
-  const root = document.getElementById('companionBody') || document;
-  const wrap = (root.querySelector && root.querySelector('#periodList')) || document.getElementById('periodList');
-  if(!wrap) return;
-  wrap.innerHTML = periodEntries.length ? [...periodEntries].reverse().map(e=>`
+  // 主页面和陪伴记录各有一份，哪份在 DOM 里就刷新哪份
+  [['periodList','periodPredict'],['compPeriodList','compPeriodPredict']].forEach(function(ids){
+    const wrap = document.getElementById(ids[0]);
+    if(wrap) wrap.innerHTML = periodEntries.length ? [...periodEntries].reverse().map(e=>`
     <div class="list-item"><div>${e.date}</div><span class="del" onclick="deletePeriod('${e.id}')">✕</span></div>`).join('')
     : '<div class="empty-note">还没有记录</div>';
-  const predictBox = (root.querySelector && root.querySelector('#periodPredict')) || document.getElementById('periodPredict');
-  if(!predictBox) return;
-  if(periodEntries.length < 1){ predictBox.textContent = '记录至少一次开始日期后即可预测'; return; }
-  let avgCycle = 28;
-  if(periodEntries.length >= 2){
-    const diffs=[];
-    for(let i=1;i<periodEntries.length;i++){ diffs.push((new Date(periodEntries[i].date)-new Date(periodEntries[i-1].date))/86400000); }
-    avgCycle = Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length);
-  }
-  const last = new Date(periodEntries[periodEntries.length-1].date);
-  const next = new Date(last.getTime() + avgCycle*86400000);
-  predictBox.innerHTML = `平均周期约 <b>${avgCycle}</b> 天，预测下次开始日期：<b style="color:var(--rouge)">${next.toISOString().slice(0,10)}</b>`;
+    const predictBox = document.getElementById(ids[1]);
+    if(!predictBox) return;
+    if(periodEntries.length < 1){ predictBox.textContent = '记录至少一次开始日期后即可预测'; return; }
+    let avgCycle = 28;
+    if(periodEntries.length >= 2){
+      const diffs=[];
+      for(let i=1;i<periodEntries.length;i++){ diffs.push((new Date(periodEntries[i].date)-new Date(periodEntries[i-1].date))/86400000); }
+      avgCycle = Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length);
+    }
+    const last = new Date(periodEntries[periodEntries.length-1].date);
+    const next = new Date(last.getTime() + avgCycle*86400000);
+    predictBox.innerHTML = `平均周期约 <b>${avgCycle}</b> 天，预测下次开始日期：<b style="color:var(--rouge)">${next.toISOString().slice(0,10)}</b>`;
+  });
 }
 
 /* ============================================================
@@ -6626,12 +6627,7 @@ async function deleteDiary(id){
   renderDiary();
 }
 function renderDiary(){
-  // 优先用陪伴记录里可见的日历，避免与隐藏主页面重复 id 抢元素
-  const root = document.getElementById('companionBody') || document;
-  const label = (root.querySelector && root.querySelector('#diaryMonthLabel')) || document.getElementById('diaryMonthLabel');
-  if(label) label.textContent = `${diaryUI.year}年${diaryUI.month+1}月`;
-  const grid = (root.querySelector && root.querySelector('#diaryCalendarGrid')) || document.getElementById('diaryCalendarGrid');
-  if(!grid) return;
+  // 主页面和陪伴记录各有一份日历，哪份在 DOM 里就刷新哪份
   const y = diaryUI.year, m = diaryUI.month;
   const firstDow = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m+1, 0).getDate();
@@ -6654,7 +6650,12 @@ function renderDiary(){
       ${_taMoodCell(key)}
     </div>`;
   }
-  grid.innerHTML = html;
+  [['diaryMonthLabel','diaryCalendarGrid'],['compDiaryMonthLabel','compDiaryCalendarGrid']].forEach(function(ids){
+    const label = document.getElementById(ids[0]);
+    if(label) label.textContent = `${y}年${m+1}月`;
+    const grid = document.getElementById(ids[1]);
+    if(grid) grid.innerHTML = html;
+  });
 }
 
 /* ============================================================
@@ -7854,13 +7855,13 @@ function renderCompanionBody(){
       <div class="box" style="padding:12px 10px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px;">
           <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(-1)">‹</span>
-          <span id="diaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
+          <span id="compDiaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
           <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(1)">›</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
           <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
         </div>
-        <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
+        <div id="compDiaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
       </div>
       <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>`;
     renderDiary();
@@ -7868,14 +7869,14 @@ function renderCompanionBody(){
     body.innerHTML = `
       <div class="box">
         <div class="box-title">月经记录与预测</div>
-        <div id="periodList"></div>
-        <div id="periodPredict" style="margin:10px 0;font-size:13px;color:var(--ink-soft);"></div>
+        <div id="compPeriodList"></div>
+        <div id="compPeriodPredict" style="margin:10px 0;font-size:13px;color:var(--ink-soft);"></div>
         <label class="field">记录开始日期</label>
-        <input type="date" id="periodDate">
+        <input type="date" id="compPeriodDate">
         <div class="btn-row"><div class="btn" onclick="addPeriod()">添加记录</div></div>
       </div>`;
     renderPeriod();
-    const _pd = document.getElementById('periodDate'); if(_pd && !_pd.value) _pd.value = localDateStr();
+    const _pd = document.getElementById('compPeriodDate'); if(_pd && !_pd.value) _pd.value = localDateStr();
   } else if(_compTab === 'fav'){
     body.innerHTML = `
       <div class="box">
@@ -8391,7 +8392,7 @@ async function ensureNotifySW(){
   if(!('serviceWorker' in navigator)) return null;
   try{
     if(_swReg) return _swReg;
-    _swReg = await navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' });
+    _swReg = (await navigator.serviceWorker.getRegistration('./')) || (await navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' }));
     await navigator.serviceWorker.ready;
     return _swReg;
   }catch(e){
@@ -9583,7 +9584,6 @@ function vinylTogglePlay(){
   });
 }
 function stopVinylTimer(){
-  if(togetherState.music.timer){ clearInterval(togetherState.music.timer); togetherState.music.timer = null; }
   if(_vinylAudio){ try{ _vinylAudio.pause(); }catch(e){} }
 }
 function vinylNext(auto){
@@ -9978,7 +9978,15 @@ function refreshCompanionFloat(){
   if(textEl) textEl.textContent = '陪伴中 '+timerText;
   el.classList.remove('hidden');
 }
-setInterval(function(){ try{ refreshCompanionFloat(); }catch(e){} }, 1000);
+var _compFloatIdle = false;
+setInterval(function(){
+  try{
+    // 没有进行中的陪伴时，只在刚结束那一次刷新（用来隐藏挂件），之后不再空转
+    if(!activeCompanionKind()){ if(_compFloatIdle) return; _compFloatIdle = true; }
+    else _compFloatIdle = false;
+    refreshCompanionFloat();
+  }catch(e){}
+}, 1000);
 
 // 陪伴挂件：可拖动 + 点击回到陪伴空间（拖过就不触发点击）
 (function initCompFloatDrag(){
@@ -10953,12 +10961,12 @@ async function checkMallAutoBuy(){
       return;
     }
     if(Date.now() < mallState.nextAutoBuyAt) return;
-    // 到期：按概率尝试买一件随机礼物
+    // 流程：到点 → 先在间隔内再抽一个下次时间 → 再掷概率；没中就不买，等下次到点再掷
     mallScheduleNextAutoBuy();
     const prob = (mallState.buyProb||25) / 100;
     if(Math.random() > prob){
       await saveMallState();
-      return;
+      return; // 没抽中：不买，已排好下一次时间
     }
     const cats = Object.keys(MALL_ITEMS);
     const all = [];
@@ -10981,7 +10989,7 @@ async function checkMallAutoBuy(){
     if(currentView === 'mall') try{ renderMall(); }catch(e){}
   }catch(e){ console.warn('checkMallAutoBuy', e); }
 }
-function renderMall(){
+function renderMall(initialCat){
   loadMallState().then(()=>{
     const body = document.getElementById('mallBody');
     if(!body) return;
@@ -11004,16 +11012,29 @@ function renderMall(){
         <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallApplyMoney()">申请系统拨款</div>
         <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallTopUpMe()">给我充值 ¥100</div>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--ink-soft);line-height:1.7;">
-        TA 买礼物概率：
-        <input type="number" id="mallBuyProb" min="0" max="100" value="${mallState.buyProb}" style="width:52px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetBuyProb(this.value)"> %
-        &nbsp;|&nbsp;
+      <div style="margin-top:10px;font-size:11px;color:var(--ink-soft);line-height:1.75;">
         自动买礼物
         <span class="switch ${mallState.autoBuy!==false?'on':''}" id="mallAutoBuySw" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))" style="display:inline-flex;vertical-align:middle;transform:scale(.85);"><div class="dot"></div></span>
         <br>
-        自动间隔
+        检查间隔
         <input type="number" id="mallAutoMin" min="1" max="10080" value="${mallState.autoBuyMinMin||30}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> ～
         <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> 分钟
+        （每次到点后在此区间再抽下一次）
+        <br>
+        买到概率
+        <input type="number" id="mallBuyProb" min="0" max="100" value="${mallState.buyProb}" style="width:52px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetBuyProb(this.value)"> %
+        （到点掷一次；没中不买，等下次到点再掷）
+        <br>
+        <span id="mallNextBuyHint">${(function(){
+          if(mallState.autoBuy===false) return '自动买礼物已关闭';
+          if(!mallState.nextAutoBuyAt) return '下次尝试：待安排';
+          const t = Number(mallState.nextAutoBuyAt);
+          if(!t) return '下次尝试：待安排';
+          const left = t - Date.now();
+          if(left <= 0) return '下次尝试：即将检查…';
+          const m = Math.ceil(left/60000);
+          return '下次尝试：约 ' + m + ' 分钟后（' + new Date(t).toLocaleString() + '）';
+        })()}</span>
       </div>
     </div>
     <div class="mb-tabs" style="margin-bottom:10px;">
@@ -11027,10 +11048,12 @@ function renderMall(){
     </div>
     <div id="mallItems"></div>`;
     body.innerHTML = html;
-    mallShowCat('daily');
+    const tab = (initialCat && ['daily','couple','food','memorial','gifts','ledger','custom'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
+    mallShowCat(tab);
   });
 }
 function mallShowCat(cat, el){
+  mallState._lastCat = cat;
   document.querySelectorAll('#mallBody .mb-tab').forEach(t=>t.classList.remove('on'));
   if(el) el.classList.add('on');
   else {
@@ -11163,14 +11186,14 @@ async function mallApplyMoney(){
   mallPushLedger('ta', 'grant', amount, '向系统申请拨款', mallState.taWallet);
   await saveMallState();
   _flashToast(`${(chatSettings&&chatSettings.companionName)||'TA'} 向系统申请了 ¥${amount}，到账啦`, false);
-  renderMall();
+  renderMall(mallState._lastCat || 'daily');
 }
 async function mallTopUpMe(){
   mallState.myWallet += 100;
   mallPushLedger('me', 'topup', 100, '自行充值', mallState.myWallet);
   await saveMallState();
   _flashToast('已充值 ¥100', false);
-  renderMall();
+  renderMall(mallState._lastCat || 'daily');
 }
 async function mallDeleteGift(gid){
   if(!confirm('确定从礼物柜删除这件礼物吗？')) return;
@@ -11246,7 +11269,7 @@ async function mallBuy(itemId, cat, who){
     if(Math.random() > prob){
       await saveMallState();
       _flashToast(`${name} 这次没买成（概率 ${mallState.buyProb}%），再试试～`, true);
-      renderMall();
+      renderMall(cat || mallState._lastCat || 'daily');
       return;
     }
     mallState.taWallet -= it.price;
@@ -11256,7 +11279,8 @@ async function mallBuy(itemId, cat, who){
     await pushGiftChatMsg(it, 'bot');
     _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
   }
-  renderMall();
+  // 买完留在当前分类，商品不会下架，可重复购买
+  renderMall(cat || mallState._lastCat || 'daily');
 }
 // 启动时加载 + 排自动买
 loadMallState().then(()=>{
