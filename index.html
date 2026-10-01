@@ -47,6 +47,19 @@
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
   }
+  /* 按键(.fn-item)、拍立得：图片/图标/任何子元素点击都不出现蓝色方块（选中/拖拽/焦点框） */
+  .fn-item, .fn-item *, .pola-fan, .pola-fan *, .pola-dots, .pola-dots *, .hero-caption, svg, svg *, img {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important; user-select: none !important;
+    outline: none !important;
+  }
+  img{ -webkit-user-drag:none; user-drag:none; }
+  .pola-fan img, .fn-item img{ pointer-events:none; }
+  *:focus, *:focus-visible{ outline:none; }
+  input:focus, textarea:focus, select:focus{ outline:none; }
+  ::selection{ background:transparent; }
+  input::selection, textarea::selection{ background:rgba(120,150,255,.28); }
   /* 只有输入框还能正常打字选字 */
   input, textarea {
     -webkit-user-select: text !important;
@@ -326,7 +339,7 @@
   .chat-head{ display:flex; align-items:center; gap:0; padding:10px 10px; border-bottom:1px solid var(--rule); background:transparent; position:sticky; top:0; z-index:5; flex-shrink:0; }
   .chat-head .info{ flex:1; min-width:0; }
   .chat-head .cname{ font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .chat-head .cstat{ font-size:11px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .chat-head .cstat{ font-size:13px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .chat-msgs{ flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
   .msg-row{ display:flex; align-items:flex-end; gap:6px; max-width:82%; }
   .msg-row.bot{ align-self:flex-start; flex-direction:row; }
@@ -340,7 +353,7 @@
   .msg-body{ display:flex; flex-direction:column; min-width:0; max-width:100%; align-items:flex-start; }
   .msg-row.user .msg-body{ align-items:flex-end; }
   .gname-tag{ font-size:10.5px; color:var(--ink-soft); margin:0 0 3px 4px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .msg{ max-width:100%; padding:8px 12px; font-size:13.5px; line-height:1.5; position:relative; box-shadow:none; white-space:pre-line; }
+  .msg{ max-width:100%; padding:8px 12px; font-size:13.5px; line-height:1.5; position:relative; box-shadow:none; white-space:pre-line; font-family: var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif); }
 .msg.bot{
   background:#fff;
   border:1.5px solid #1a1a1a;
@@ -704,7 +717,7 @@
 #view-home .anniv-text b{font-size:21px;font-weight:500;}
 
 #view-home .polaroid-hero{margin:0 -2px;padding-top:0;}
-#view-home .hero-caption{margin-top:18px;max-width:330px;padding:0 12px 12px;border-bottom:0;font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-size:15px;line-height:1.7;letter-spacing:1px;color:var(--ink);}
+#view-home .hero-caption{margin-top:18px;max-width:330px;padding:0 12px 12px;border-bottom:0;font-family:var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif);font-size:15px;line-height:1.7;letter-spacing:1px;color:var(--ink);}
 #view-home .hero-caption::before{content:'“';color:rgba(42,36,31,.16);font-size:27px;vertical-align:-5px;margin-right:5px;}
 #view-home .hero-caption::after{content:'”';color:rgba(42,36,31,.16);font-size:27px;vertical-align:-5px;margin-left:5px;}
 
@@ -1275,17 +1288,17 @@
   padding:0 22px!important;
   border:0!important;
   max-width:300px!important;
-  font-family:'Songti SC',STSong,SimSun,serif;
-  font-size:12px!important;
-  line-height:1.5!important;
-  letter-spacing:1px!important;
+  font-family:var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif)!important;
+  font-size:15.5px!important;
+  line-height:1.55!important;
+  letter-spacing:1.5px!important;
   color:var(--ink-soft)!important;
   text-align:center;
 }
 #view-home #homePage1 .hero-caption::before,
 #view-home #homePage1 .hero-caption::after{
-  font-size:17px!important;
-  color:rgba(42,36,31,.16)!important;
+  font-size:20px!important;
+  color:rgba(42,36,31,.22)!important;
 }
 /* LOVE METER 保留数据和逻辑，仅从第一页视觉层级中拿掉 */
 #view-home #homePage1 .love-meter{display:none!important;}
@@ -1407,8 +1420,8 @@
       </div>
     </div>
     <div class="anniv-card" id="annivCardEl">
-      <div class="anniv-deco">✦ &nbsp;♡&nbsp; ✦</div>
-      <div class="anniv-text" onclick="editAnniversaryDate()">在一起 <b id="annivDaysText">0</b> 天</div>
+      <div class="anniv-deco">· &nbsp;✦ &nbsp;♡&nbsp; ✦ &nbsp;·</div>
+      <div class="anniv-text" onclick="editAnniversaryDate()"><i class="al"></i><span class="at-mid">在一起 <b id="annivDaysText">0</b> 天</span><i class="al r"></i></div>
       <div class="anniv-deco sub">t o g e t h e r &nbsp;·&nbsp; s i n c e &nbsp;d a y &nbsp;o n e</div>
     </div>
 
@@ -1754,10 +1767,14 @@
     </div>
     <div class="box">
       <div class="box-title">主字体（正文）</div>
-      <div class="btn-row">
-        <div class="btn outline" onclick="setBodyFont('sans')">圆体（默认）</div>
-        <div class="btn outline" onclick="setBodyFont('serif')">衬线体</div>
-        <div class="btn outline" onclick="setBodyFont('hand')">手写体</div>
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 8px;">可以直接粘贴字体文件链接（.ttf / .otf / .woff / .woff2），也可以粘贴 @font-face 代码，点应用。不填就用默认字体。</p>
+      <textarea id="fontCss_body" placeholder="https://xxx.ttf　或　@font-face{ font-family:'MyFont'; src:url(...); }" style="min-height:96px;font-family:monospace;font-size:11px;"></textarea>
+      <input type="text" id="fontName_body" placeholder="字体名（font-family，例如 MyFont；留空会自动识别）" style="margin-top:6px;">
+      <div class="btn-row" style="margin-top:8px;">
+        <div class="btn" onclick="applyFontCss('body')">应用</div>
+        <div class="btn outline" onclick="document.getElementById('fontFile_body').click()">上传字体文件</div>
+        <input type="file" id="fontFile_body" accept=".ttf,.otf,.woff,.woff2,font/*" class="hidden" onchange="onFontFile('body',event)">
+        <div class="btn outline" onclick="clearFontCss('body')">恢复默认字体</div>
       </div>
       <div id="bodyFontPreview" style="margin-top:10px;padding:12px;border:1px dashed var(--rule);font-size:15px;line-height:1.6;">预览：在一起的每一天 · The days we stay together 123</div>
       <label class="field" style="margin-top:12px;">正文文字颜色</label>
@@ -1772,21 +1789,24 @@
       </div>
     </div>
     <div class="box">
-      <div class="box-title">副字体（名字 / 状态）</div>
-      <p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 8px;">用于纪念日两人名字、状态文案、标题名等。</p>
-      <div class="btn-row">
-        <div class="btn outline" onclick="setSecondaryFont('sans')">圆体</div>
-        <div class="btn outline" onclick="setSecondaryFont('serif')">衬线体</div>
-        <div class="btn outline" onclick="setSecondaryFont('hand')">手写体</div>
+      <div class="box-title">副字体（名字 / 聊天 / 状态）</div>
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 8px;">用于纪念日两人名字、聊天顶部名字、聊天气泡文字、状态文案、标题名等。</p>
+      <textarea id="fontCss_secondary" placeholder="https://xxx.ttf　或　@font-face{ font-family:'MyNameFont'; src:url(...); }" style="min-height:96px;font-family:monospace;font-size:11px;"></textarea>
+      <input type="text" id="fontName_secondary" placeholder="字体名（font-family；留空会自动识别）" style="margin-top:6px;">
+      <div class="btn-row" style="margin-top:8px;">
+        <div class="btn" onclick="applyFontCss('secondary')">应用</div>
+        <div class="btn outline" onclick="document.getElementById('fontFile_secondary').click()">上传字体文件</div>
+        <input type="file" id="fontFile_secondary" accept=".ttf,.otf,.woff,.woff2,font/*" class="hidden" onchange="onFontFile('secondary',event)">
+        <div class="btn outline" onclick="clearFontCss('secondary')">恢复默认字体</div>
       </div>
-      <div id="secondaryFontPreview" style="margin-top:10px;padding:12px;border:1px dashed var(--rule);font-size:16px;font-weight:700;line-height:1.6;">预览：陆沉 · 羽羽 · Status 状态名</div>
-      <label class="field" style="margin-top:12px;">名字 / 状态颜色</label>
+      <div id="secondaryFontPreview" style="margin-top:10px;padding:12px;border:1px dashed var(--rule);font-size:16px;font-weight:700;line-height:1.6;">预览：陆沉 · 羽羽 · 状态文案</div>
+      <label class="field" style="margin-top:12px;">名字颜色</label>
       <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
         <input type="color" id="nameColorPicker" value="#2A241F" style="width:48px;height:36px;border:1px solid var(--ink);padding:0;" oninput="document.getElementById('nameColorText').value=this.value; previewNameColor(this.value)">
         <input type="text" id="nameColorText" value="#2A241F" placeholder="#2A241F 或留空用正文色" style="flex:1;" oninput="previewNameColor(this.value)">
         <div class="btn outline" style="padding:8px 12px;" onclick="setNameColor()">应用</div>
       </div>
-      <div id="nameColorPreview" style="margin-top:8px;padding:10px 12px;border:1px dashed var(--rule);font-size:15px;font-weight:700;">颜色预览：名字 / 状态会变成这个颜色</div>
+      <div id="nameColorPreview" style="margin-top:8px;padding:10px 12px;border:1px dashed var(--rule);font-size:15px;font-weight:700;">颜色预览：名字会变成这个颜色</div>
       <div class="btn-row" style="margin-top:8px;">
         <div class="btn outline" onclick="resetNameColor()">恢复默认</div>
       </div>
@@ -2286,8 +2306,9 @@ let proactiveLetterSettings = { minMinutes: 60, maxH: 240 };
 // 拼字卡：开启后回复会随机把多张字卡拼成一段再发
 let spliceCardsEnabled = false;
 let currentView = 'home';
-let themeSettings = { accent:'#9C2F3B', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
+let themeSettings = { accent:'#9C2F3B', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
 let customBubbleCSS = '';
+let _fontFileCss = { body:'', secondary:'' }; // 上传的字体文件（@font-face + data URL），单独存库，不放进 theme-settings
 let pendingReplyTimer = null;
 let lastGroupUsed = null;
 // 默认值快照：读取旧数据/导入备份时先铺一层默认值，避免老版本数据缺字段（比如没有 stickers）导致页面报错
@@ -2349,9 +2370,9 @@ async function init(){
   if(!themeSettings.customBg) themeSettings.customBg = '';
   if(!themeSettings.customBgImage) themeSettings.customBgImage = '';
   if(themeSettings.inkColor === undefined) themeSettings.inkColor = '';
-  if(!themeSettings.secondaryFont) themeSettings.secondaryFont = 'serif';
   if(themeSettings.nameColor === undefined) themeSettings.nameColor = '';
   try { customBubbleCSS = await sGet('custom-bubble-css', ''); } catch(e) {}
+  try { _fontFileCss.body = await sGet('font-file-body', '') || ''; _fontFileCss.secondary = await sGet('font-file-secondary', '') || ''; } catch(e) {}
   applyTheme();
   applyCustomBubbleCSSToPage();
   renderHomeProfile();
@@ -2640,7 +2661,11 @@ function renderPolaFan(){
     const ph = document.getElementById('polaroidPh'+i);
     if(ph){
       const d = photos[i];
-      ph.innerHTML = d ? '<img loading="lazy" decoding="async" src="'+d+'">' : '<span style="opacity:.45">暂无照片</span>';
+      const key = d ? (d.length+':'+d.slice(-32)) : '';
+      if(ph._polaKey !== key || !ph.firstChild){ // 照片没变就不重建，避免点击时图片被重新插入而闪出蓝色方块
+        ph._polaKey = key;
+        ph.innerHTML = d ? '<img loading="lazy" decoding="async" draggable="false" src="'+d+'">' : '<span style="opacity:.45">暂无照片</span>';
+      }
     }
   }
   const dots = document.getElementById('polaDots');
@@ -3205,7 +3230,9 @@ async function applyImport(mode){
   const normalized = _pendingImport;
   if(!normalized) return;
   if(mode==='replace'){
+    const keepPats = getPatList();
     cardsData = normalized;
+    if(keepPats.length && !Array.isArray(cardsData.pats)) cardsData.pats = keepPats;
   } else {
     Object.keys(normalized.groups).forEach(g=>{
       if(!cardsData.groups[g]) cardsData.groups[g]=[];
@@ -3404,7 +3431,7 @@ function renderCardsMain(){
     </div>
     <div class="card-toolbar">
       <button type="button" class="btn-add" onclick="addCardTo('${escAttr(cardsActiveGroup)}')">添加字卡</button>
-      <button type="button" class="btn-add" onclick="openAddGestureCard('${escAttr(cardsActiveGroup)}')" style="background:var(--blush);">＋ 拍一拍/动作</button>
+      <button type="button" class="btn-add" onclick="openPatLibrary()" style="background:var(--blush);">👋 拍一拍库（${getPatList().length}）</button>
       <button type="button" class="btn-light" onclick="dedupCardsInGroup()">全库查重</button>
       <button type="button" class="btn-light" onclick="exportCardsFile()">导出</button>
       <button type="button" class="btn-light" onclick="document.getElementById('cardsFileInput').click()">导入</button>
@@ -3629,30 +3656,37 @@ async function confirmRenameGroup(oldName){
 async function deleteCard(g, idx){
   cardsData.groups[g].splice(idx,1); await sSet('cards-data', cardsData); renderCardsView();
 }
-function openAddGestureCard(g){
-  if(!g){ alert('请先选一个分组'); return; }
+function openPatLibrary(){
+  const list = getPatList();
   openOverlay(`
-    <div class="drawer-head"><h3>添加动作到字卡库</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">加进「${escapeHtml(g)}」后，TA 回复/主动发消息时会按字卡一起随机抽到（不再另有 5% 独立拍一拍）。</p>
-    <div class="btn-row" style="flex-wrap:wrap;">
-      ${QUICK_ACTIONS.map(a=>`<div class="btn outline" onclick="addGestureCardToGroup('${escAttr(g)}','${a.key}')">${a.emoji} ${a.label}</div>`).join('')}
+    <div class="drawer-head"><h3>👋 拍一拍库</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">TA 想拍你的时候，只会从这里随机抽一条。每行一条，写在「TA 的名字」后面，例如：拍了拍你的脑袋。（普通字卡不会抽到这里的内容）</p>
+    <div class="card-add-area"><textarea id="patAddInput" placeholder="每行一条，例如：&#10;拍了拍你的脑袋&#10;轻轻拍了拍你，说别熬夜了"></textarea></div>
+    <div class="btn-row"><div class="btn" onclick="addPatsFromInput()">添加</div></div>
+    <div id="patListBox" style="margin-top:10px;">
+      ${list.length ? list.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 2px;border-bottom:1px dotted rgba(42,36,31,.15);font-size:13px;"><span style="flex:1;word-break:break-all;">${escapeHtml(t)}</span><span style="color:var(--rouge);padding:2px 8px;" onclick="deletePat(${i})">删除</span></div>`).join('') : '<div class="empty-note">还没有拍一拍，添加几条吧。库是空的时候 TA 不会拍你。</div>'}
     </div>
   `);
 }
-async function addGestureCardToGroup(g, key){
-  if(!g || !key) return;
-  const token = formatGestureCard(key);
-  if(!cardsData.groups[g]) cardsData.groups[g] = [];
-  if(cardsData.groups[g].includes(token)){
-    alert('这个分组里已经有这个动作了');
-    closeOverlay();
-    return;
-  }
-  cardsData.groups[g].push(token);
+async function addPatsFromInput(){
+  const inp = document.getElementById('patAddInput');
+  if(!inp) return;
+  const lines = inp.value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return;
+  if(!Array.isArray(cardsData.pats)) cardsData.pats = [];
+  let added = 0;
+  lines.forEach(l=>{ if(!cardsData.pats.includes(l)){ cardsData.pats.push(l); added++; } });
   await sSet('cards-data', cardsData);
-  closeOverlay();
+  openPatLibrary();
   renderCardsView();
-  try{ _flashToast('已添加：' + displayCardText(token)); }catch(e){}
+  try{ _flashToast('已添加 ' + added + ' 条拍一拍'); }catch(e){}
+}
+async function deletePat(i){
+  if(!Array.isArray(cardsData.pats)) return;
+  cardsData.pats.splice(i,1);
+  await sSet('cards-data', cardsData);
+  openPatLibrary();
+  renderCardsView();
 }
 async function addCardTo(g){
   const inp = document.getElementById('addcard-'+g);
@@ -4214,10 +4248,25 @@ function getRandomCardText(){
   const groups = cardsData.groups||{};
   const groupNames = Object.keys(groups);
   let pool = [];
-  groupNames.forEach(g=> (groups[g]||[]).forEach(card=> pool.push({group:g, card})));
+  groupNames.forEach(g=> (groups[g]||[]).forEach(card=>{ if(!isGestureCard(card)) pool.push({group:g, card}); })); // 旧的动作卡不参与抽选
   if(pool.length===0) return null;
   const idx = Math.floor(Math.random()*pool.length);
   return pool[idx].card;
+}
+/* ---- 拍一拍库：专门存「拍一拍」的句子（字卡页里的 👋 拍一拍库），TA 拍你时只从这里抽 ---- */
+function getPatList(){
+  return (cardsData && Array.isArray(cardsData.pats)) ? cardsData.pats.filter(x=> typeof x==='string' && x.trim()) : [];
+}
+function getRandomPatText(){
+  const list = getPatList();
+  if(!list.length) return null;
+  return list[Math.floor(Math.random()*list.length)];
+}
+function patReplyFromLibrary(){
+  const t = getRandomPatText();
+  if(!t) return null;
+  const name = (chatSettings && chatSettings.companionName) ? chatSettings.companionName : 'TA';
+  return { type:'gesture', content: name + t.trim() };
 }
 /* 字卡里的「拍一拍/小动作」：用 §g:key§ 存，不参与独立 5% 抽签，只跟字卡一起抽 */
 function isGestureCard(text){
@@ -4229,16 +4278,9 @@ function parseGestureCard(text){
   const list = (typeof QUICK_ACTIONS !== 'undefined' && QUICK_ACTIONS) ? QUICK_ACTIONS : [];
   return list.find(a => a.key === m[1]) || { key:m[1], emoji:'👋', label:m[1], verb:'拍了拍' };
 }
-function formatGestureCard(key){ return '§g:' + key + '§'; }
 function displayCardText(text){
   const g = parseGestureCard(text);
   return g ? (g.emoji + ' ' + g.label) : String(text||'');
-}
-function gestureReplyFromCard(cardText){
-  const g = parseGestureCard(cardText);
-  if(!g) return null;
-  const name = (chatSettings && chatSettings.companionName) ? chatSettings.companionName : 'TA';
-  return { type:'gesture', content: name + g.verb + '你' };
 }
 /* 拼字卡：从字卡库里随机抽 2~4 张拼成一段（跳过动作卡） */
 function getSplicedCardText(){
@@ -4262,13 +4304,17 @@ function pickReplyFor(userText, opts){
   const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发红包、拍一拍
   // 各类型各自独立抽签（以前共用一个 roll，表情概率一调高，拍一拍就永远抽不到）
   if(!followup){
+    // 拍一拍：和 milk-Message-Cards 一样，每次回复有 3% 几率改发一条拍一拍，只从「拍一拍库」里抽（库是空的就不拍）
+    if(Math.random() < 0.03){
+      const pr = patReplyFromLibrary();
+      if(pr) return pr;
+    }
     // 开启“允许发送红包”后才会随机发；关闭时完全不会自动发红包
     if(chatSettings.redPacketEnabled && Math.random() < 0.05){
       const amount = (Math.random()*188+1).toFixed(2);
       const note = REDPACKET_NOTES[Math.floor(Math.random()*REDPACKET_NOTES.length)];
       return { type:'redpacket', amount, note, opened:false };
     }
-    // 注意：原来的「5% 随机拍一拍」已取消；拍一拍只从字卡库里抽（动作字卡）
   }
   // 表情包 / 表情+文字（只用「对方可用」那套）；若抽到动作字卡则不当成文字混进表情
   const comboProb = (typeof chatSettings.comboReplyProb === 'number' ? chatSettings.comboReplyProb : 35) / 100;
@@ -4276,12 +4322,7 @@ function pickReplyFor(userText, opts){
   if(taPool.length && Math.random() < comboProb){
     const st = taPool[Math.floor(Math.random()*taPool.length)];
     if(Math.random() < 0.55){
-      let text = (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯。';
-      // 动作卡不当文字，改发纯表情或再抽一次文字
-      if(isGestureCard(text)){
-        text = getRandomCardText();
-        if(isGestureCard(text) || !text) return { type:'sticker', content: st.value };
-      }
+      let text = getRandomCardText() || '嗯。';
       return { type:'combo', content: text, sticker: st.value };
     }
     return { type:'sticker', content: st.value };
@@ -4294,16 +4335,6 @@ function pickReplyFor(userText, opts){
     text = getRandomCardText();
   }
   if(!text) return null;
-  // 字卡库里的动作卡 → 发拍一拍/戳一戳等
-  if(isGestureCard(text)){
-    if(followup){
-      // 连发后续条尽量发文字，动作卡再抽一次
-      text = getRandomCardText();
-      if(!text || isGestureCard(text)) return gestureReplyFromCard(text || formatGestureCard('pat'));
-    } else {
-      return gestureReplyFromCard(text);
-    }
-  }
   const quoteOf = maybeQuoteMessage();
   return quoteOf ? { type:'text', content:text, quoteOf } : { type:'text', content:text };
 }
@@ -4340,7 +4371,7 @@ function scheduleNextProactiveLetter(){
   proactiveState.nextLetterAt = Date.now() + randomBetween(Math.min(a,b), Math.max(a,b));
 }
 function scheduleNextProactiveCall(){
-  proactiveState.nextCallAt = Date.now() + randomBetween(5*60*1000, 12*3600*1000);
+  proactiveState.nextCallAt = Date.now() + randomBetween(15*60*1000, 60*60*1000); // 和 milk-Message-Cards 一样：每 15~60 分钟抽一次
 }
 function ensureProactiveSchedule(){
   const now = Date.now();
@@ -4361,7 +4392,7 @@ function ensureProactiveSchedule(){
   if(!proactiveState.nextLetterAt) scheduleNextProactiveLetter();
   if(!proactiveState.nextMomentAt) scheduleNextProactiveMoment();
   // 来电：过期的别在刚打开的瞬间弹出来，重新排一个
-  if(!proactiveState.nextCallAt || proactiveState.nextCallAt <= now) scheduleNextProactiveCall();
+  if(!proactiveState.nextCallAt || proactiveState.nextCallAt <= now || proactiveState.nextCallAt - now > 61*60*1000) scheduleNextProactiveCall();
   sSet('proactive-state', proactiveState);
 }
 
@@ -4394,7 +4425,7 @@ function _fireProactive(kind){
   try{
     if(kind==='msg') sendProactiveMessage();
     else if(kind==='letter') sendProactiveLetter();
-    else if(kind==='call'){ if(!activeCall) receiveIncomingCall(); }
+    else if(kind==='call'){ if(!activeCall && Math.random() < 0.35) receiveIncomingCall(); } // 每次抽到有 35% 真的来电
     else sendProactiveMoment();
   }catch(e){ console.error('主动触发失败', kind, e); }
 }
@@ -4680,10 +4711,18 @@ function startOutgoingCall(){
   document.getElementById('callStatusLabel').textContent = '视频呼叫中…';
   document.getElementById('callTimerLabel').classList.add('hidden');
   document.getElementById('callActions').innerHTML = `<div class="call-btn hangup" onclick="endCall('cancelled')">✕</div>`;
-  activeCall.ringTimeout = setTimeout(()=>{
-    if(!activeCall || activeCall.status!=='ringing') return;
-    if(Math.random() < 0.85){ connectCall(); } else { endCall('missed_by_them'); }
-  }, 1000 + Math.random()*14000); // TA 最多有 15 秒的"考虑时间"再接听/不接
+  // 我打给 TA：75% 接通（1.4~2.8 秒后），25% 没接（4~12 秒后）
+  if(Math.random() < 0.25){
+    activeCall.ringTimeout = setTimeout(()=>{
+      if(!activeCall || activeCall.status!=='ringing') return;
+      endCall('missed_by_them');
+    }, 4000 + Math.random()*8000);
+  } else {
+    activeCall.ringTimeout = setTimeout(()=>{
+      if(!activeCall || activeCall.status!=='ringing') return;
+      connectCall();
+    }, 1400 + Math.random()*1400);
+  }
 }
 function receiveIncomingCall(){
   if(activeCall || currentView==='calls' && document.hidden) return;
@@ -4695,9 +4734,11 @@ function receiveIncomingCall(){
   document.getElementById('callActions').innerHTML = `
     <div class="call-btn decline" onclick="endCall('declined')">✕</div>
     <div class="call-btn accept" onclick="connectCall()">✓</div>`;
+  // 和 milk-Message-Cards 一样：30% 会在 4~10 秒后自动变成未接，其余响 22 秒
+  const _ringMs = (Math.random() < 0.30) ? (4000 + Math.random()*6000) : 22000;
   activeCall.missedTimeout = setTimeout(()=>{
     if(activeCall && activeCall.status==='ringing'){ endCall('missed'); }
-  }, 20000);
+  }, _ringMs);
   if(typeof tryBgNotify==='function') tryBgNotify(chatSettings.companionName+' 的视频来电', '点开接听');
 }
 function connectCall(){
@@ -5996,7 +6037,7 @@ function scheduleLetterReply(id, delayMs){
   setTimeout(async ()=>{
     const l = letters.find(x=>x.id===id);
     if(!l || l.replied) return;
-    const lineCount = 5 + Math.floor(Math.random()*6); // 一封回信随机 5~10 句字卡内容
+    const lineCount = 5 + Math.floor(Math.random()*11); // 一封回信随机 5~15 句字卡内容
     const lines = [];
     for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
     if(lines.length===0) return; // 字卡库是空的，先不生成回信
@@ -6096,7 +6137,7 @@ function scheduleInboxLetterBotReply(id, delayMs){
   setTimeout(async ()=>{
     const l = inboxLetters.find(x=>x.id===id);
     if(!l || l.botReplied || !l.userReply) return;
-    const lineCount = 2 + Math.floor(Math.random()*5); // 再回信 2~6 句字卡
+    const lineCount = 5 + Math.floor(Math.random()*11); // 再回信随机 5~15 句字卡
     const lines = [];
     for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
     if(lines.length===0) return;
@@ -6646,7 +6687,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','vinyl-settings','call-session'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -6685,7 +6726,7 @@ async function exportBackup(){
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled,
-    companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, vinylSettings: vinylForExport, momentEvents,
+    companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -6759,6 +6800,7 @@ function onImportBackupFile(e){
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
       await sSet('bg-settings', bgSettings);
     }
+    if(typeof data.companionRoomBg === 'string'){ compRoomBg = data.companionRoomBg; await sSet('companion-room-bg', { bg: compRoomBg }); }
     if(data.vinylSettings && typeof data.vinylSettings === 'object'){
       await sSet('vinyl-settings', { bg: data.vinylSettings.bg || null, vinylImg: data.vinylSettings.vinylImg || null, playlist: Array.isArray(data.vinylSettings.playlist)?data.vinylSettings.playlist:[], playlistName: data.vinylSettings.playlistName || '' });
       if(!togetherState.music) togetherState.music = {};
@@ -6801,6 +6843,11 @@ function renderBeautify(){
   // 纸张颜色色块已彻底移除
   const cssInput = document.getElementById('bubbleCssInput');
   if(cssInput) cssInput.value = customBubbleCSS || '';
+  ['body','secondary'].forEach(function(w){
+    const c = document.getElementById('fontCss_'+w), n = document.getElementById('fontName_'+w);
+    if(c) c.value = themeSettings[w+'FontCss'] || '';
+    if(n) n.value = themeSettings[w+'FontName'] || '';
+  });
   // 同步文字颜色输入框
   const curInk = themeSettings.inkColor || '#2A241F';
   const picker = document.getElementById('inkColorPicker');
@@ -6819,21 +6866,83 @@ async function setAccent(c){
   themeSettings.accent = c; await sSet('theme-settings', themeSettings); applyTheme();
 }
 /* setPaperStyle removed */
-async function setBodyFont(key){
-  themeSettings.bodyFont = key; await sSet('theme-settings', themeSettings); applyTheme(); updateFontPreviews();
+/* ---- 自定义字体 CSS：粘贴 @font-face 代码 + 字体名，分别用于正文 / 名字状态 ---- */
+function _guessFontName(css){
+  const m = String(css||'').match(/font-family\s*:\s*['"]?([^;'"}]+)['"]?/i);
+  return m ? m[1].trim() : '';
 }
-async function setSecondaryFont(key){
-  themeSettings.secondaryFont = key; await sSet('theme-settings', themeSettings); applyTheme(); updateFontPreviews();
+async function applyFontCss(which){
+  const cssEl = document.getElementById('fontCss_'+which);
+  const nameEl = document.getElementById('fontName_'+which);
+  if(!cssEl || !nameEl) return;
+  let css = cssEl.value.trim();
+  let name = nameEl.value.trim().replace(/^['"]|['"]$/g,'');
+  // 只贴了字体文件链接（.ttf / .otf / .woff / .woff2）：自动生成 @font-face
+  if(css && !/@font-face/i.test(css)){
+    const um = css.match(/https?:\/\/[^\s'")]+?\.(ttf|otf|woff2?)(?:\?[^\s'")]*)?/i);
+    if(um){
+      const fmt = ({ttf:'truetype', otf:'opentype', woff:'woff', woff2:'woff2'})[um[1].toLowerCase()];
+      if(!name) name = (which==='body' ? 'UserFontBody' : 'UserFontSecondary');
+      css = "@font-face{font-family:'"+name.replace(/'/g,'')+"';src:url('"+um[0]+"') format('"+fmt+"');font-display:swap;}";
+    }
+  }
+  if(!name) name = _guessFontName(css);
+  if(!css && !name){ alert('请先粘贴字体 CSS 或填写字体名'); return; }
+  if(!name){ alert('没能识别出字体名，请在下面的框里填写 font-family 的名字'); return; }
+  nameEl.value = name;
+  _fontFileCss[which] = ''; try{ await sSet('font-file-'+which, ''); }catch(err){}
+  themeSettings[which+'FontCss'] = css;
+  themeSettings[which+'FontName'] = name;
+  await sSet('theme-settings', themeSettings);
+  applyTheme(); updateFontPreviews();
+}
+function onFontFile(which, e){
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const ext = (f.name.split('.').pop()||'').toLowerCase();
+  const fmt = ({ttf:'truetype', otf:'opentype', woff:'woff', woff2:'woff2'})[ext];
+  if(!fmt){ alert('请选择 .ttf / .otf / .woff / .woff2 字体文件'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = async function(){
+    const name = (which==='body' ? 'UserFontBody' : 'UserFontSecondary');
+    const css = "@font-face{font-family:'"+name+"';src:url('"+reader.result+"') format('"+fmt+"');font-display:swap;}";
+    _fontFileCss[which] = css;
+    try{ await sSet('font-file-'+which, css); }catch(err){ alert('字体文件保存失败，可能太大了'); }
+    themeSettings[which+'FontCss'] = '';
+    themeSettings[which+'FontName'] = name;
+    await sSet('theme-settings', themeSettings);
+    const cssEl = document.getElementById('fontCss_'+which), nameEl = document.getElementById('fontName_'+which);
+    if(cssEl) cssEl.value = ''; if(nameEl) nameEl.value = name;
+    applyTheme(); updateFontPreviews();
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+}
+async function clearFontCss(which){
+  _fontFileCss[which] = ''; try{ await sSet('font-file-'+which, ''); }catch(err){}
+  themeSettings[which+'FontCss'] = '';
+  themeSettings[which+'FontName'] = '';
+  const cssEl = document.getElementById('fontCss_'+which);
+  const nameEl = document.getElementById('fontName_'+which);
+  if(cssEl) cssEl.value = '';
+  if(nameEl) nameEl.value = '';
+  await sSet('theme-settings', themeSettings);
+  applyTheme(); updateFontPreviews();
+}
+function _fontStack(which){
+  const name = themeSettings[which+'FontName'];
+  const def = which==='body' ? FONT_MAP.sans : FONT_MAP.serif;
+  return name ? ("'"+name.replace(/'/g,'')+"', "+def) : def;
 }
 function updateFontPreviews(){
   const bodyPrev = document.getElementById('bodyFontPreview');
   const secPrev = document.getElementById('secondaryFontPreview');
   if(bodyPrev){
-    bodyPrev.style.fontFamily = FONT_MAP[themeSettings.bodyFont] || FONT_MAP.sans;
+    bodyPrev.style.fontFamily = _fontStack('body');
     bodyPrev.style.color = themeSettings.inkColor || '';
   }
   if(secPrev){
-    secPrev.style.fontFamily = FONT_MAP[themeSettings.secondaryFont] || FONT_MAP.serif;
+    secPrev.style.fontFamily = _fontStack('secondary');
     secPrev.style.color = themeSettings.nameColor || themeSettings.inkColor || '';
   }
   // 同步颜色预览框
@@ -6894,8 +7003,9 @@ async function resetNameColor(){
   renderBeautify();
 }
 async function resetAppearance(){
-  themeSettings = { accent:'#9C2F3B', bodyFont:'sans', secondaryFont:'serif', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
+  themeSettings = { accent:'#9C2F3B', inkColor:'', nameColor:'', customBg:'', customBgImage:'' };
   customBubbleCSS = '';
+  _fontFileCss = { body:'', secondary:'' }; try{ await sSet('font-file-body',''); await sSet('font-file-secondary',''); }catch(err){}
   await sSet('theme-settings', themeSettings);
   await sSet('custom-bubble-css', customBubbleCSS);
   applyTheme(); applyCustomBubbleCSSToPage(); renderBeautify();
@@ -6903,8 +7013,13 @@ async function resetAppearance(){
 function applyTheme(){
   document.documentElement.style.setProperty('--rouge', themeSettings.accent);
   document.documentElement.style.setProperty('--rouge-deep', themeSettings.accent);
-  document.documentElement.style.setProperty('--font-body', FONT_MAP[themeSettings.bodyFont] || FONT_MAP.sans);
-  document.documentElement.style.setProperty('--font-secondary', FONT_MAP[themeSettings.secondaryFont] || FONT_MAP.serif);
+  document.documentElement.style.setProperty('--font-body', _fontStack('body'));
+  document.documentElement.style.setProperty('--font-secondary', _fontStack('secondary'));
+  // 自定义字体 CSS（@font-face 等）注入页面
+  let _fst = document.getElementById('customFontStyleTag');
+  if(!_fst){ _fst = document.createElement('style'); _fst.id = 'customFontStyleTag'; document.head.appendChild(_fst); }
+  _fst.textContent = [_fontFileCss.body, themeSettings.bodyFontCss, _fontFileCss.secondary, themeSettings.secondaryFontCss].filter(Boolean).join('\n');
+  if(themeSettings.bodyFontName) document.documentElement.style.setProperty('--font-custom-body', _fontStack('body')); else document.documentElement.style.removeProperty('--font-custom-body');
   // 正文颜色
   if(themeSettings.inkColor){
     document.documentElement.style.setProperty('--ink', themeSettings.inkColor);
@@ -7869,6 +7984,7 @@ let _keepAliveResumeBound = false; // 常驻标记：防止每次开关"后台�
 
 async function loadBgSettings(){
   bgSettings = await sGet('bg-settings', bgSettings);
+  try{ const rb = await sGet('companion-room-bg', null); compRoomBg = (rb && rb.bg) ? rb.bg : null; }catch(e){}
   applyBgSettingsUI();
 }
 function applyBgSettingsUI(){
@@ -8081,6 +8197,7 @@ let togetherState = {
   roomTimer: null
 };
 let letterInviteKind = 'sleep';
+let compRoomBg = null; // 陪伴空间统一背景（学习/睡觉共用，持久化保存）
 
 let pendingSticker = null; // { value, isImage }
 
@@ -9403,8 +9520,8 @@ function openCompanionRoom(kind){
   var sub = isSleep ? '在同一片暗下来的光里，慢慢把呼吸放慢' : '各自做自己的事，也算陪在对方旁边';
   var name = chatSettings.companionName || '对方';
   var bgStyle = '';
-  var bgClass = st.bg ? '' : (isSleep ? 'grad-moon' : 'grad-study');
-  if(st.bg) bgStyle = 'background-image:url('+st.bg+')';
+  var bgClass = compRoomBg ? '' : (isSleep ? 'grad-moon' : 'grad-study');
+  if(compRoomBg) bgStyle = 'background-image:url('+compRoomBg+')';
   root.innerHTML =
     '<div class="comp-room" id="compRoom" data-kind="'+kind+'">'+
       '<div class="comp-room-bg '+bgClass+'" id="compRoomBg" style="'+bgStyle+'"></div>'+
@@ -9494,13 +9611,13 @@ function setCompanionLight(mode){
 function onCompanionBgFile(e){
   var f = e.target.files && e.target.files[0];
   if(!f) return;
-  var room = document.getElementById('compRoom');
-  var kind = (room && room.getAttribute('data-kind')) || 'sleep';
   var reader = new FileReader();
-  reader.onload = function(){
-    togetherState[kind].bg = reader.result;
+  reader.onload = async function(){
+    var data = await compressImage(reader.result, 1080) || reader.result;
+    compRoomBg = data;
+    try{ await sSet('companion-room-bg', { bg: data }); }catch(err){}
     var bg = document.getElementById('compRoomBg');
-    if(bg){ bg.className = 'comp-room-bg'; bg.style.backgroundImage = 'url('+reader.result+')'; }
+    if(bg){ bg.className = 'comp-room-bg'; bg.style.backgroundImage = 'url('+data+')'; }
   };
   reader.readAsDataURL(f);
   e.target.value = '';
@@ -9508,7 +9625,8 @@ function onCompanionBgFile(e){
 function resetCompanionBg(){
   var room = document.getElementById('compRoom');
   var kind = (room && room.getAttribute('data-kind')) || 'sleep';
-  togetherState[kind].bg = null;
+  compRoomBg = null;
+  try{ sSet('companion-room-bg', { bg: null }); }catch(err){}
   var bg = document.getElementById('compRoomBg');
   if(bg){
     bg.style.backgroundImage = '';
@@ -10415,7 +10533,7 @@ function goHomePage(k){
 #view-home #homePage2 .h2-arrow{margin-left:auto;font-size:20px;line-height:1;color:var(--ink-soft);opacity:.7;}
 #view-home #homePage2 .h2-en{font-family:Georgia,'Times New Roman',serif;font-size:17px!important;letter-spacing:2px!important;}
 #view-home #homePage2 .h2-txt{display:flex;flex-direction:column;gap:3px;min-width:0;}
-#view-home #homePage2 .h2-txt b{font-size:13.5px;font-weight:500;letter-spacing:1px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#view-home #homePage2 .h2-txt b{font-size:15.5px;font-weight:500;letter-spacing:1px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #view-home #homePage2 .h2-txt small{font-size:10px;letter-spacing:1px;color:var(--ink-soft);white-space:nowrap;}
 #view-home #homePage2 .h2-two{display:grid;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,31,.09);}
 #view-home #homePage2 .h2-half{display:flex;align-items:center;gap:9px;min-width:0;padding:0 4px;}
@@ -10540,6 +10658,22 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 #view-home #homePage2 .h2-d span{width:33px!important;height:33px!important;padding:7px!important;}
 #view-home #homePage2 .h2-d span svg{fill:none!important;}
 #view-home #homePage2 .h2-d span svg *{fill:none!important;}
+
+/* ===== 首页：在一起 / 拍立得下的字 / EVAN 的样式（参考截图） ===== */
+#view-home{--h-mauve:#8d6470;--h-dark:#4c3c42;}
+#view-home .anniv-card{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;width:100%!important;min-width:0!important;max-width:none!important;padding:0 14px!important;margin:0 auto!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+#view-home .anniv-card::before,#view-home .anniv-card::after{display:none!important;content:none!important;}
+#view-home .anniv-deco{color:var(--h-mauve)!important;opacity:.85!important;font-size:11px!important;letter-spacing:3px!important;line-height:1.6!important;text-align:center;}
+#view-home .anniv-deco.sub{display:block!important;opacity:.7!important;font-size:8.5px!important;letter-spacing:0!important;margin-top:4px!important;color:var(--h-mauve)!important;text-align:center;white-space:nowrap;}
+#view-home .anniv-card .anniv-text{font-family:var(--font-body)!important;display:flex!important;align-items:center;justify-content:center;gap:14px;width:100%;margin:2px 0 0!important;padding:0!important;border:0!important;font-size:17px!important;letter-spacing:4px!important;color:var(--h-mauve)!important;white-space:nowrap;}
+#view-home .anniv-card .anniv-text .at-mid{display:inline-flex;align-items:baseline;gap:8px;}
+#view-home .anniv-card .anniv-text b{font-family:var(--font-custom-body,Georgia,'Times New Roman',serif)!important;font-size:38px!important;font-weight:400!important;letter-spacing:3px!important;color:var(--h-dark)!important;line-height:1;}
+#view-home .anniv-text .al{flex:1 1 0;min-width:18px;height:9px;position:relative;display:block;}
+#view-home .anniv-text .al::before{content:'';position:absolute;left:0;right:0;top:4px;height:1px;background:var(--h-mauve);opacity:.55;}
+#view-home .anniv-text .al::after{content:'';position:absolute;left:0;top:1px;width:6px;height:6px;background:var(--h-mauve);opacity:.8;transform:rotate(45deg);}
+#view-home .anniv-text .al.r::after{left:auto;right:0;}
+#view-home .hero-caption{color:var(--h-mauve)!important;font-family:var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif)!important;font-size:16px!important;letter-spacing:3px!important;line-height:1.6!important;font-weight:400!important;}
+#view-home .hero-caption::before,#view-home .hero-caption::after{color:var(--h-mauve)!important;opacity:.85;font-size:17px!important;vertical-align:5px!important;margin:0 8px!important;}
 </style>
 </body>
 </html>
