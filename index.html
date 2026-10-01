@@ -1547,7 +1547,7 @@
 
   <!-- ============ INBOX LETTERS 来信（TA主动写的信） ============ -->
   <section id="view-inboxLetters" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>来信</h2></div>
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>来信</h2><div class="icon-btn" style="margin-left:auto;" onclick="go('letterRecords')" title="信件记录">📜</div></div>
     <p style="font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;">这里是 TA 自己想到就主动寄给你的信。收到后可以在信的下面直接回信，TA 大概会再花 8~14 小时写回你。</p>
     <div id="inboxLettersList"></div>
   </section>
@@ -1895,13 +1895,20 @@
 
   <!-- ============ LETTERS 写信 ============ -->
   <section id="view-letters" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>写信</h2></div>
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>写信</h2><div class="icon-btn" style="margin-left:auto;" onclick="go('letterRecords')" title="信件记录">📜</div></div>
     <div class="box">
       <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">想什么时候写都可以，TA 收到信后大概会花 8~14 小时写回信给你。</p>
       <textarea id="letterText" placeholder="写封信给TA…" style="min-height:100px;"></textarea>
       <div class="btn-row"><div class="btn" onclick="sendLetter()">寄出</div></div>
     </div>
     <div id="lettersList"></div>
+  </section>
+
+  <!-- ============ LETTER RECORDS 信件记录 ============ -->
+  <section id="view-letterRecords" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>记录</h2></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;">这里汇总所有信件：我写的信 + TA 的回信，以及 TA 写来的信 + 我的回信，按时间排在一起。</p>
+    <div id="letterRecordsList"></div>
   </section>
 
   <div class="bottom-nav">
@@ -2500,7 +2507,7 @@ async function init(){
   });
   setInterval(checkMomentEvents, 20000);
   setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
-  setInterval(checkQuestionnaireReplies, 20000);
+  setInterval(checkQuestionnaireReplies, 5000);   // 5 秒一查，兜底刷新后的「10 秒内回复」
   // 今日状态 / 摸鱼小记 首页卡片自动刷新（仅当首页可见时重绘；摸鱼重绘已由上面的定时器负责）
   setInterval(function(){
     const home = document.getElementById('view-home');
@@ -2584,7 +2591,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', letters:'写信', inboxLetters:'来信', calls:'通话' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', letters:'写信', inboxLetters:'来信', letterRecords:'记录', calls:'通话' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
@@ -2618,6 +2625,7 @@ function go(name){
     renderInboxLetters();
     if(inboxLetterUnread){ inboxLetterUnread=false; sSet('inbox-letter-unread', false); renderUnreadDots(); }
   }
+  if(name==='letterRecords'){ renderLetterRecords(); }
   if(name==='moments'){
     renderMoments();
     if(momentsUnread){ momentsUnread=false; sSet('moments-unread', false); renderUnreadDots(); }
@@ -3818,8 +3826,14 @@ function renderChat(preserveScroll, scrollToId){
       if(m.answered){
         statusHtml = `<div class="q-meta">已选择 · ${formatMsgTime(m.answerTime||m.time)}</div>`;
       } else if(m.scheduledReplyAt){
-        const eta = new Date(m.scheduledReplyAt).toLocaleString('zh-CN');
-        statusHtml = `<div class="q-waiting">等待回复中…大概 ${eta} 前会选好</div>`;
+        if(m.timeMode === 'fast'){
+          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 10 秒内选好</div>`;
+        } else if(m.timeMode === 'slow'){
+          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 1~6 分钟内选好</div>`;
+        } else {
+          const eta = new Date(m.scheduledReplyAt).toLocaleString('zh-CN');
+          statusHtml = `<div class="q-waiting">等待回复中…大概 ${eta} 前会选好</div>`;
+        }
       }
       bubbleHtml = `<div class="msg questionnaire ${m.from}">
         ${quoteRefHtml}
@@ -5545,39 +5559,31 @@ async function sendRedPacket(){
 }
 
 /* ---- 梦向问卷：写问题 + 选项，发送给TA，TA在1~10分钟内随机选一个回复 ---- */
+var _qTimeMode = 'fast';   // 'fast' = 10 秒内随机；'slow' = 1~6 分钟内随机
+function pickQTime(mode){
+  _qTimeMode = (mode === 'slow') ? 'slow' : 'fast';
+  var fEl = document.getElementById('qTimeFast');
+  var sEl = document.getElementById('qTimeSlow');
+  if(fEl) fEl.classList.toggle('rouge', _qTimeMode === 'fast');
+  if(sEl) sEl.classList.toggle('rouge', _qTimeMode === 'slow');
+}
 function openQuestionnaireComposer(){
+  _qTimeMode = 'fast';   // 每次打开默认选中「10 秒内」
   openOverlay(`
     <div class="drawer-head"><h3>📋 梦向问卷</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">写一个问题，给出几个选项。发送后 TA 会在你设定的时间范围内随机选一个选项回复你。</p>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">写一个问题，给出几个选项。发送后 TA 会在下面选中的回复时间里随机挑一点，选一个选项回复你。</p>
     <label class="field">问题</label>
     <textarea id="qQuestion" placeholder="例如：今天想吃什么？" style="min-height:60px;"></textarea>
     <label class="field">选项（至少 2 个，每行一个）</label>
     <textarea id="qOptions" placeholder="每行一个选项，例如：&#10;奶茶&#10;咖啡&#10;果汁" style="min-height:90px;"></textarea>
-    <label class="field">最快回复：<span id="qMinHVal">1</span> 分钟</label>
-    <input type="range" min="1" max="10" step="1" value="1" id="qMinH" oninput="document.getElementById('qMinHVal').textContent=this.value; syncQMax()" style="width:100%;">
-    <label class="field">最慢回复：<span id="qMaxHVal">10</span> 分钟</label>
-    <input type="range" min="1" max="10" step="1" value="10" id="qMaxH" oninput="document.getElementById('qMaxHVal').textContent=this.value; syncQMin()" style="width:100%;">
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">在最短～最长分钟数之间纯随机挑一个时间点回复（1～10 分钟）</div>
+    <label class="field">回复时间（二选一）</label>
+    <div class="btn-row" id="qTimeRow">
+      <div class="btn rouge" id="qTimeFast" style="flex:1;text-align:center;padding:9px 8px;font-size:12.5px;" onclick="pickQTime('fast')">⚡ 10 秒内回复</div>
+      <div class="btn" id="qTimeSlow" style="flex:1;text-align:center;padding:9px 8px;font-size:12.5px;" onclick="pickQTime('slow')">⏳ 1~6 分钟内回复</div>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">不用再自己拖时间，TA 会在选中的范围内随机挑一点回复</div>
     <div class="btn-row" style="margin-top:14px;"><div class="btn rouge" onclick="sendQuestionnaire()">发送问卷</div></div>
   `);
-}
-function syncQMax(){
-  const minEl = document.getElementById('qMinH');
-  const maxEl = document.getElementById('qMaxH');
-  if(!minEl || !maxEl) return;
-  if(parseInt(maxEl.value,10) < parseInt(minEl.value,10)){
-    maxEl.value = minEl.value;
-    document.getElementById('qMaxHVal').textContent = maxEl.value;
-  }
-}
-function syncQMin(){
-  const minEl = document.getElementById('qMinH');
-  const maxEl = document.getElementById('qMaxH');
-  if(!minEl || !maxEl) return;
-  if(parseInt(minEl.value,10) > parseInt(maxEl.value,10)){
-    minEl.value = maxEl.value;
-    document.getElementById('qMinHVal').textContent = minEl.value;
-  }
 }
 async function sendQuestionnaire(){
   const qEl = document.getElementById('qQuestion');
@@ -5586,11 +5592,11 @@ async function sendQuestionnaire(){
   const options = (oEl && oEl.value || '').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(!question){ alert('请填写问题'); return; }
   if(options.length < 2){ alert('至少需要 2 个选项'); return; }
-  let minM = parseInt((document.getElementById('qMinH')||{}).value,10) || 1;
-  let maxM = parseInt((document.getElementById('qMaxH')||{}).value,10) || 10;
-  minM = Math.max(1, Math.min(10, minM));
-  maxM = Math.max(minM, Math.min(10, maxM));
-  const delayMs = randomBetween(minM * 60 * 1000, maxM * 60 * 1000);
+  const timeMode = (_qTimeMode === 'slow') ? 'slow' : 'fast';
+  // fast：10 秒内随机；slow：1~6 分钟内随机
+  const delayMs = (timeMode === 'slow')
+    ? randomBetween(1 * 60 * 1000, 6 * 60 * 1000)
+    : randomBetween(1 * 1000, 10 * 1000);
   const scheduledReplyAt = Date.now() + delayMs;
   const msg = {
     id: uid(),
@@ -5604,13 +5610,15 @@ async function sendQuestionnaire(){
     chosenOption: null,
     answerTime: null,
     scheduledReplyAt,
-    minM, maxM
+    timeMode
   };
   if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   chatMessages.push(msg);
   await recPut('chatMessages', msg);
   renderChat();
   closeOverlay();
+  // 精确定时：到点立刻触发，不等轮询；刷新后由轮询兜底
+  setTimeout(function(){ try{ checkQuestionnaireReplies(); }catch(e){} }, Math.max(200, delayMs + 150));
 }
 async function checkQuestionnaireReplies(){
   const now = Date.now();
@@ -6032,6 +6040,7 @@ async function sendLetter(){
   await sSet('letters', letters);
   document.getElementById('letterText').value = '';
   renderLetters();
+  if(currentView==='letterRecords'){ renderLetterRecords(); }
   scheduleLetterReply(letter.id, scheduledReplyAt - Date.now());
 }
 function scheduleLetterReply(id, delayMs){
@@ -6047,6 +6056,7 @@ function scheduleLetterReply(id, delayMs){
     l.replied = true;
     await sSet('letters', letters);
     if(currentView==='letters'){ renderLetters(); }
+    if(currentView==='letterRecords'){ renderLetterRecords(); }
     else{ letterUnread = true; await sSet('letter-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 回信了', '点开查看回信'); }
   }, Math.max(0, delayMs));
 }
@@ -6075,6 +6085,51 @@ function renderLetters(){
     }
     return `<div class="box"><div style="font-size:11px;color:var(--ink-soft);">${sentTime}</div><div style="font-size:13px;margin-top:4px;white-space:pre-line;">${escapeHtml(l.content)}</div>${replyBlock}</div>`;
   }).join('') : '<div class="empty-note">还没有写过信，什么时候想写都可以</div>';
+}
+function renderLetterRecords(){
+  const wrap = document.getElementById('letterRecordsList');
+  if(!wrap) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  const items = [];
+  (letters||[]).forEach(l=>{ items.push({t:l.time, dir:'out', l}); });
+  (inboxLetters||[]).forEach(l=>{ items.push({t:l.time, dir:'in', l}); });
+  items.sort((a,b)=>(b.t||0)-(a.t||0));
+  if(!items.length){ wrap.innerHTML = '<div class="empty-note">\u8fd8\u6ca1\u6709\u4fe1\u4ef6\u8bb0\u5f55\uff0c\u5199\u4fe1\u6216\u6536\u5230\u6765\u4fe1\u540e\u90fd\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc</div>'; return; }
+  const line = 'margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);';
+  wrap.innerHTML = items.map(it=>{
+    const l = it.l;
+    const timeStr = new Date(l.time).toLocaleString('zh-CN');
+    let body = '';
+    if(it.dir==='out'){
+      body += '<div style="font-size:11px;color:var(--ink-soft);">\u6211\u5199\u7ed9 '+escapeHtml(name)+' \u00b7 '+timeStr+'</div>';
+      body += '<div style="font-size:13px;margin-top:4px;white-space:pre-line;">'+escapeHtml(l.content||'')+'</div>';
+      if(l.replied){
+        const rt = new Date(l.replyTime).toLocaleString('zh-CN');
+        body += '<div style="'+line+'"><div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u7684\u56de\u4fe1 \u00b7 '+rt+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.replyContent||'')+'</div></div>';
+      } else if(l.scheduledReplyAt){
+        const eta = new Date(l.scheduledReplyAt).toLocaleString('zh-CN');
+        body += '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA \u8fd8\u5728\u5199\u56de\u4fe1\u2026\u5927\u6982 '+eta+' \u524d\u4f1a\u5bc4\u5230</div>';
+      }
+      return '<div class="box">'+body+'</div>';
+    } else {
+      body += '<div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u5199\u6765\u7684\u4fe1 \u00b7 '+timeStr+'</div>';
+      body += '<div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.content||'')+'</div>';
+      if(l.userReply){
+        const ut = new Date(l.userReplyTime).toLocaleString('zh-CN');
+        body += '<div style="'+line+'"><div style="font-size:11px;color:var(--ink-soft);">\u6211\u7684\u56de\u4fe1 \u00b7 '+ut+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.userReply||'')+'</div></div>';
+        if(l.botReplied && l.botReplyContent){
+          const bt = new Date(l.botReplyTime).toLocaleString('zh-CN');
+          body += '<div style="'+line+'"><div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u7684\u518d\u56de\u4fe1 \u00b7 '+bt+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.botReplyContent||'')+'</div></div>';
+        } else if(l.scheduledBotReplyAt){
+          const eta = new Date(l.scheduledBotReplyAt).toLocaleString('zh-CN');
+          body += '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA \u8fd8\u5728\u5199\u56de\u4fe1\u2026\u5927\u6982 '+eta+' \u524d\u4f1a\u5bc4\u5230</div>';
+        }
+      } else {
+        body += '<div style="margin-top:6px;font-size:11px;color:var(--ink-soft);">\uff08\u8fd8\u6ca1\u6709\u5199\u56de\u4fe1\uff09</div>';
+      }
+      return '<div class="box">'+body+'</div>';
+    }
+  }).join('');
 }
 function renderInboxLetters(){
   const wrap = document.getElementById('inboxLettersList');
@@ -6132,6 +6187,7 @@ async function replyToInboxLetter(id){
   l.scheduledBotReplyAt = Date.now() + hours*3600*1000;
   await sSet('inbox-letters', inboxLetters);
   renderInboxLetters();
+  if(currentView==='letterRecords'){ renderLetterRecords(); }
   scheduleInboxLetterBotReply(l.id, l.scheduledBotReplyAt - Date.now());
 }
 function scheduleInboxLetterBotReply(id, delayMs){
@@ -6147,6 +6203,7 @@ function scheduleInboxLetterBotReply(id, delayMs){
     l.botReplied = true;
     await sSet('inbox-letters', inboxLetters);
     if(currentView==='inboxLetters'){ renderInboxLetters(); }
+    if(currentView==='letterRecords'){ renderLetterRecords(); }
     else{ inboxLetterUnread = true; await sSet('inbox-letter-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 回信了', '点开查看回信'); }
   }, Math.max(0, delayMs));
 }
