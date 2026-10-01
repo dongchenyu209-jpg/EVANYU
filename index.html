@@ -896,6 +896,57 @@
   letter-spacing:1px; box-shadow:0 6px 18px rgba(100,40,60,0.28);
 }
 
+
+/* —— 信箱（收到的信 / 寄出的信 / 写封信 / 信件数据） —— */
+.mb-tabs{ display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px; margin:0 -2px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.mb-tabs::-webkit-scrollbar{ display:none; }
+.mb-tab{ position:relative; flex:0 0 auto; padding:9px 16px; border-radius:999px; border:1.5px solid var(--rule); background:rgba(255,255,255,.55); color:var(--ink-soft); font-size:14px; font-weight:700; letter-spacing:1px; white-space:nowrap; cursor:pointer; transition:background .15s,color .15s,border-color .15s; }
+.mb-tab.on{ background:var(--ink); border-color:var(--ink); color:var(--paper); }
+.mb-tabdot{ position:absolute; top:5px; right:7px; width:8px; height:8px; border-radius:50%; background:var(--rouge); }
+.mb-tabdot.hidden{ display:none; }
+.mb-panel{ border:1.5px solid var(--rule); border-radius:24px; background:rgba(255,255,255,.55); padding:16px 14px 18px; box-shadow:0 6px 22px -14px rgba(42,36,31,.35); min-height:240px; }
+.mb-sec{ font-size:12.5px; color:var(--ink-soft); font-weight:700; letter-spacing:1px; margin:2px 4px 10px; }
+.mb-card{ display:flex; align-items:center; gap:12px; padding:13px 12px; margin-bottom:10px; border:1px solid var(--rule); border-radius:18px; background:rgba(255,255,255,.8); cursor:pointer; transition:transform .12s, background .12s; }
+.mb-card:active{ transform:scale(.985); background:var(--blush); }
+.mb-ico{ flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:rgba(42,36,31,.07); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); }
+.mb-ico svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.mb-main{ flex:1; min-width:0; }
+.mb-who{ font-size:14.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:6px; }
+.mb-tag{ font-size:10px; font-weight:600; padding:1px 7px; border-radius:999px; background:rgba(156,47,59,.1); color:var(--rouge); white-space:nowrap; }
+.mb-tag.wait{ background:rgba(42,36,31,.07); color:var(--ink-soft); }
+.mb-prev{ font-size:13px; color:var(--ink-soft); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mb-time{ flex:0 0 auto; font-size:11.5px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.mb-month{ display:flex; align-items:center; justify-content:space-between; padding:13px 14px; margin:4px 0 10px; border-radius:16px; background:rgba(42,36,31,.05); cursor:pointer; }
+.mb-month b{ font-size:15px; letter-spacing:1px; color:var(--ink); }
+.mb-month .r{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); }
+.mb-month .pill{ background:#fff; border-radius:999px; padding:3px 11px; }
+.mb-month .arr{ font-size:10px; transition:transform .2s; }
+.mb-month.open .arr{ transform:rotate(180deg); }
+.mb-empty{ text-align:center; font-size:13px; color:var(--ink-soft); padding:40px 0; line-height:1.9; }
+.mb-back{ display:inline-flex; align-items:center; gap:4px; padding:6px 14px; margin:0 0 12px; border-radius:999px; border:1px solid var(--rule); background:rgba(255,255,255,.8); font-size:13px; color:var(--ink); cursor:pointer; }
+.mb-msg{ border:1px solid var(--rule); border-radius:18px; background:rgba(255,255,255,.85); padding:13px 14px; margin-bottom:10px; }
+.mb-msg.mine{ background:rgba(233,207,199,.35); }
+.mb-msg-h{ display:flex; justify-content:space-between; gap:8px; font-size:11.5px; color:var(--ink-soft); margin-bottom:8px; }
+.mb-msg-h b{ color:var(--rouge); font-weight:700; }
+.mb-msg.mine .mb-msg-h b{ color:var(--ink); }
+.mb-msg-t{ font-size:14px; line-height:1.85; white-space:pre-line; word-break:break-word; color:var(--ink); }
+.mb-wait{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:10px 0 2px; }
+.mb-compose textarea, .mb-reply textarea{ width:100%; min-height:150px; border:1px solid var(--rule); border-radius:18px; background:rgba(255,255,255,.9); padding:14px; font-size:14px; line-height:1.8; font-family:inherit; color:var(--ink); resize:vertical; outline:none; }
+.mb-reply textarea{ min-height:96px; }
+.mb-hint{ font-size:12px; color:var(--ink-soft); margin:0 4px 10px; line-height:1.7; }
+.mb-send{ display:block; width:100%; margin-top:12px; padding:13px; border:none; border-radius:999px; background:var(--ink); color:var(--paper); font-size:15px; font-weight:700; letter-spacing:3px; text-align:center; cursor:pointer; }
+.mb-send:active{ opacity:.8; }
+.mb-stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.mb-stat{ border:1px solid var(--rule); border-radius:18px; background:rgba(255,255,255,.85); padding:14px 14px 12px; }
+.mb-stat .n{ font-size:26px; font-weight:800; color:var(--ink); line-height:1.1; font-variant-numeric:tabular-nums; }
+.mb-stat .l{ font-size:12px; color:var(--ink-soft); margin-top:5px; }
+.mb-bars-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12px; color:var(--ink-soft); }
+.mb-bars-row .m{ flex:0 0 46px; }
+.mb-bars-row .bars{ flex:1; display:flex; flex-direction:column; gap:3px; }
+.mb-bar{ height:7px; border-radius:99px; min-width:3px; }
+.mb-bar.i{ background:var(--rouge); } .mb-bar.o{ background:var(--ink); opacity:.55; }
+.mb-bars-row .c{ flex:0 0 52px; text-align:right; font-variant-numeric:tabular-nums; }
+
 /* —— 陪伴空间（原创氛围页） —— */
 .comp-room{
   position:fixed; inset:0; z-index:60; display:flex; flex-direction:column;
@@ -1545,13 +1596,6 @@
     <div id="companionBody"></div>
   </section>
 
-  <!-- ============ INBOX LETTERS 来信（TA主动写的信） ============ -->
-  <section id="view-inboxLetters" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>来信</h2><div class="icon-btn" style="margin-left:auto;" onclick="go('letterRecords')" title="信件记录">📜</div></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;">这里是 TA 自己想到就主动寄给你的信。收到后可以在信的下面直接回信，TA 大概会再花 8~14 小时写回你。</p>
-    <div id="inboxLettersList"></div>
-  </section>
-
   <!-- ============ CALLS 通话（挂在传讯页面下面，从聊天头部进入） ============ -->
   <section id="view-calls" class="view hidden">
     <div class="view-head"><div class="icon-btn" onclick="go('chat')">←</div><h2>通话</h2></div>
@@ -1893,22 +1937,16 @@
     <div class="moments-fab" onclick="openMomentComposer()">＋</div>
   </section>
 
-  <!-- ============ LETTERS 写信 ============ -->
-  <section id="view-letters" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>写信</h2><div class="icon-btn" style="margin-left:auto;" onclick="go('letterRecords')" title="信件记录">📜</div></div>
-    <div class="box">
-      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">想什么时候写都可以，TA 收到信后大概会花 8~14 小时写回信给你。</p>
-      <textarea id="letterText" placeholder="写封信给TA…" style="min-height:100px;"></textarea>
-      <div class="btn-row"><div class="btn" onclick="sendLetter()">寄出</div></div>
+  <!-- ============ MAILBOX 信箱（收到的信 / 寄出的信 / 写封信 / 信件数据） ============ -->
+  <section id="view-mailbox" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="mailboxBack()">←</div><h2>信箱</h2></div>
+    <div class="mb-tabs" id="mbTabs">
+      <div class="mb-tab" data-tab="in" onclick="mailboxSetTab('in')">收到的信<span class="mb-tabdot hidden" id="mbDotIn"></span></div>
+      <div class="mb-tab" data-tab="sent" onclick="mailboxSetTab('sent')">寄出的信</div>
+      <div class="mb-tab" data-tab="compose" onclick="mailboxSetTab('compose')">写封信</div>
+      <div class="mb-tab" data-tab="stats" onclick="mailboxSetTab('stats')">信件数据</div>
     </div>
-    <div id="lettersList"></div>
-  </section>
-
-  <!-- ============ LETTER RECORDS 信件记录 ============ -->
-  <section id="view-letterRecords" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>记录</h2></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:-6px 0 12px;">这里汇总所有信件：我写的信 + TA 的回信，以及 TA 写来的信 + 我的回信，按时间排在一起。</p>
-    <div id="letterRecordsList"></div>
+    <div class="mb-panel" id="mailboxBody"></div>
   </section>
 
   <div class="bottom-nav">
@@ -2591,9 +2629,15 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', letters:'写信', inboxLetters:'来信', letterRecords:'记录', calls:'通话' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
+  // 来信 / 写信 / 记录 都并入「信箱」
+  if(name==='inboxLetters' || name==='letters' || name==='letterRecords'){
+    mailboxState.tab = (name==='letters') ? 'compose' : (name==='letterRecords' ? 'sent' : 'in');
+    mailboxState.open = null;
+    name = 'mailbox';
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   const target = document.getElementById('view-'+name);
   if(!target){ console.warn('view not found:', name); go('home'); return; }
@@ -2617,15 +2661,7 @@ function go(name){
   if(name==='favs'){ try{ renderCompanionFavList(); }catch(e){} }
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
-  if(name==='letters'){
-    renderLetters();
-    if(letterUnread){ letterUnread=false; sSet('letter-unread', false); renderUnreadDots(); }
-  }
-  if(name==='inboxLetters'){
-    renderInboxLetters();
-    if(inboxLetterUnread){ inboxLetterUnread=false; sSet('inbox-letter-unread', false); renderUnreadDots(); }
-  }
-  if(name==='letterRecords'){ renderLetterRecords(); }
+  if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
   if(name==='moments'){
     renderMoments();
     if(momentsUnread){ momentsUnread=false; sSet('moments-unread', false); renderUnreadDots(); }
@@ -4571,8 +4607,7 @@ async function sendProactiveLetter(){
   if(lines.length===0) return; // 字卡库是空的，先不主动写信
   inboxLetters.unshift({ id:uid(), from:'bot', content: lines.join('\n'), time:Date.now() });
   await sSet('inbox-letters', inboxLetters);
-  if(currentView==='inboxLetters'){ renderInboxLetters(); }
-  else{ inboxLetterUnread = true; await sSet('inbox-letter-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 寄来一封信', '点开查看来信'); }
+  await mailboxNotify('inbox', chatSettings.companionName+' 寄来一封信', '点开查看来信');
 }
 
 /* ============================================================
@@ -6039,8 +6074,8 @@ async function sendLetter(){
   letters.unshift(letter);
   await sSet('letters', letters);
   document.getElementById('letterText').value = '';
-  renderLetters();
-  if(currentView==='letterRecords'){ renderLetterRecords(); }
+  mailboxState.tab = 'sent'; mailboxState.open = null;
+  renderMailbox();
   scheduleLetterReply(letter.id, scheduledReplyAt - Date.now());
 }
 function scheduleLetterReply(id, delayMs){
@@ -6055,9 +6090,7 @@ function scheduleLetterReply(id, delayMs){
     l.replyTime = Date.now();
     l.replied = true;
     await sSet('letters', letters);
-    if(currentView==='letters'){ renderLetters(); }
-    if(currentView==='letterRecords'){ renderLetterRecords(); }
-    else{ letterUnread = true; await sSet('letter-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 回信了', '点开查看回信'); }
+    await mailboxNotify('letter', chatSettings.companionName+' 回信了', '点开查看回信');
   }, Math.max(0, delayMs));
 }
 function resumeLetterTimers(){
@@ -6067,109 +6100,136 @@ function resumeLetterTimers(){
     }
   });
 }
-function renderLetters(){
-  const wrap = document.getElementById('lettersList');
-  if(!wrap) return;
-  wrap.innerHTML = letters.length ? letters.map(l=>{
-    const sentTime = new Date(l.time).toLocaleString('zh-CN');
-    let replyBlock;
-    if(l.replied){
-      const replyTime = new Date(l.replyTime).toLocaleString('zh-CN');
-      replyBlock = `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <div style="font-size:11px;color:var(--ink-soft);">${escapeHtml(chatSettings.companionName)} 的回信 · ${replyTime}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.replyContent)}</div>
-      </div>`;
-    } else {
-      const eta = new Date(l.scheduledReplyAt).toLocaleString('zh-CN');
-      replyBlock = `<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA 还在写回信…大概 ${eta} 前会寄到</div>`;
-    }
-    return `<div class="box"><div style="font-size:11px;color:var(--ink-soft);">${sentTime}</div><div style="font-size:13px;margin-top:4px;white-space:pre-line;">${escapeHtml(l.content)}</div>${replyBlock}</div>`;
-  }).join('') : '<div class="empty-note">还没有写过信，什么时候想写都可以</div>';
+/* ============================================================
+   信箱 MAILBOX —— 收到的信 / 寄出的信 / 写封信 / 信件数据 合在一个页面
+   ============================================================ */
+let mailboxState = { tab:'in', open:null, openMonths:{} };
+const MB_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7.5 8 6 8-6"/></svg>';
+function mbName(){ return (chatSettings && chatSettings.companionName) || 'TA'; }
+function mbPad(n){ return String(n).padStart(2,'0'); }
+function mbFmt(ts){ const d=new Date(ts); return (d.getMonth()+1)+'月'+d.getDate()+'日 '+mbPad(d.getHours())+':'+mbPad(d.getMinutes()); }
+function mbFmtFull(ts){ const d=new Date(ts); return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+mbPad(d.getHours())+':'+mbPad(d.getMinutes()); }
+function mbWeekStart(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime(); }
+function mbPreview(t){ return String(t||'').replace(/\s+/g,' ').trim(); }
+function mbItems(tab){
+  const name = mbName(), out = [];
+  if(tab==='in'){
+    (inboxLetters||[]).forEach(l=>{
+      out.push({ref:'inbox', id:l.id, t:l.time, who:'来自 '+name, text:l.content});
+      if(l.userReply && l.botReplied && l.botReplyContent) out.push({ref:'inbox', id:l.id, t:l.botReplyTime, who:'来自 '+name, tag:'再回信', text:l.botReplyContent});
+    });
+    (letters||[]).forEach(l=>{
+      if(l.replied && l.replyContent) out.push({ref:'mine', id:l.id, t:l.replyTime, who:'来自 '+name, tag:'回信', text:l.replyContent});
+    });
+  } else {
+    (letters||[]).forEach(l=>{
+      out.push({ref:'mine', id:l.id, t:l.time, who:'寄给 '+name, tag:(l.replied?'':'等待回信'), wait:!l.replied, text:l.content});
+    });
+    (inboxLetters||[]).forEach(l=>{
+      if(l.userReply) out.push({ref:'inbox', id:l.id, t:l.userReplyTime, who:'回信给 '+name, tag:(l.botReplied?'':'等待回信'), wait:!l.botReplied, text:l.userReply});
+    });
+  }
+  out.sort((a,b)=>(b.t||0)-(a.t||0));
+  return out;
 }
-function renderLetterRecords(){
-  const wrap = document.getElementById('letterRecordsList');
-  if(!wrap) return;
-  const name = (chatSettings && chatSettings.companionName) || 'TA';
-  const items = [];
-  (letters||[]).forEach(l=>{ items.push({t:l.time, dir:'out', l}); });
-  (inboxLetters||[]).forEach(l=>{ items.push({t:l.time, dir:'in', l}); });
-  items.sort((a,b)=>(b.t||0)-(a.t||0));
-  if(!items.length){ wrap.innerHTML = '<div class="empty-note">\u8fd8\u6ca1\u6709\u4fe1\u4ef6\u8bb0\u5f55\uff0c\u5199\u4fe1\u6216\u6536\u5230\u6765\u4fe1\u540e\u90fd\u4f1a\u51fa\u73b0\u5728\u8fd9\u91cc</div>'; return; }
-  const line = 'margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);';
-  wrap.innerHTML = items.map(it=>{
-    const l = it.l;
-    const timeStr = new Date(l.time).toLocaleString('zh-CN');
-    let body = '';
-    if(it.dir==='out'){
-      body += '<div style="font-size:11px;color:var(--ink-soft);">\u6211\u5199\u7ed9 '+escapeHtml(name)+' \u00b7 '+timeStr+'</div>';
-      body += '<div style="font-size:13px;margin-top:4px;white-space:pre-line;">'+escapeHtml(l.content||'')+'</div>';
-      if(l.replied){
-        const rt = new Date(l.replyTime).toLocaleString('zh-CN');
-        body += '<div style="'+line+'"><div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u7684\u56de\u4fe1 \u00b7 '+rt+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.replyContent||'')+'</div></div>';
-      } else if(l.scheduledReplyAt){
-        const eta = new Date(l.scheduledReplyAt).toLocaleString('zh-CN');
-        body += '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA \u8fd8\u5728\u5199\u56de\u4fe1\u2026\u5927\u6982 '+eta+' \u524d\u4f1a\u5bc4\u5230</div>';
-      }
-      return '<div class="box">'+body+'</div>';
-    } else {
-      body += '<div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u5199\u6765\u7684\u4fe1 \u00b7 '+timeStr+'</div>';
-      body += '<div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.content||'')+'</div>';
-      if(l.userReply){
-        const ut = new Date(l.userReplyTime).toLocaleString('zh-CN');
-        body += '<div style="'+line+'"><div style="font-size:11px;color:var(--ink-soft);">\u6211\u7684\u56de\u4fe1 \u00b7 '+ut+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.userReply||'')+'</div></div>';
-        if(l.botReplied && l.botReplyContent){
-          const bt = new Date(l.botReplyTime).toLocaleString('zh-CN');
-          body += '<div style="'+line+'"><div style="font-size:11px;color:var(--rouge);">'+escapeHtml(name)+' \u7684\u518d\u56de\u4fe1 \u00b7 '+bt+'</div><div style="font-size:13px;margin-top:6px;white-space:pre-line;">'+escapeHtml(l.botReplyContent||'')+'</div></div>';
-        } else if(l.scheduledBotReplyAt){
-          const eta = new Date(l.scheduledBotReplyAt).toLocaleString('zh-CN');
-          body += '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA \u8fd8\u5728\u5199\u56de\u4fe1\u2026\u5927\u6982 '+eta+' \u524d\u4f1a\u5bc4\u5230</div>';
-        }
-      } else {
-        body += '<div style="margin-top:6px;font-size:11px;color:var(--ink-soft);">\uff08\u8fd8\u6ca1\u6709\u5199\u56de\u4fe1\uff09</div>';
-      }
-      return '<div class="box">'+body+'</div>';
-    }
-  }).join('');
+function mbCard(it){
+  const tag = it.tag ? '<span class="mb-tag'+(it.wait?' wait':'')+'">'+escapeHtml(it.tag)+'</span>' : '';
+  return '<div class="mb-card" onclick="mailboxOpen(\''+it.ref+'\',\''+it.id+'\')"><div class="mb-ico">'+MB_ICON+'</div><div class="mb-main"><div class="mb-who">'+escapeHtml(it.who)+tag+'</div><div class="mb-prev">'+escapeHtml(mbPreview(it.text))+'</div></div><div class="mb-time">'+mbFmt(it.t)+'</div></div>';
 }
-function renderInboxLetters(){
-  const wrap = document.getElementById('inboxLettersList');
-  if(!wrap) return;
-  wrap.innerHTML = inboxLetters.length ? inboxLetters.map(l=>{
-    const t = new Date(l.time).toLocaleString('zh-CN');
-    let thread = '';
-    // 我的回信
+function mbList(tab){
+  const items = mbItems(tab);
+  if(!items.length){
+    return tab==='in'
+      ? '<div class="mb-empty">还没有收到信<br>TA 想到你的时候，会自己寄来</div>'
+      : '<div class="mb-empty">还没有寄出过信<br>去「写封信」写第一封吧</div>';
+  }
+  const ws = mbWeekStart();
+  const week = items.filter(i=>i.t>=ws), older = items.filter(i=>i.t<ws);
+  let html = '';
+  if(week.length) html += '<div class="mb-sec">本周</div>' + week.map(mbCard).join('');
+  const groups = {}, order = [];
+  older.forEach(i=>{ const d=new Date(i.t); const k=d.getFullYear()+'年'+(d.getMonth()+1)+'月'; if(!groups[k]){ groups[k]=[]; order.push(k); } groups[k].push(i); });
+  order.forEach(k=>{
+    const key = tab+'|'+k, open = !!mailboxState.openMonths[key];
+    html += '<div class="mb-month'+(open?' open':'')+'" onclick="mailboxToggleMonth(\''+key+'\')"><b>'+k+'</b><div class="r"><span class="pill">'+groups[k].length+' 封</span><span class="arr">▼</span></div></div>';
+    if(open) html += groups[k].map(mbCard).join('');
+  });
+  return html;
+}
+function mbMsg(label, ts, text, mine){
+  return '<div class="mb-msg'+(mine?' mine':'')+'"><div class="mb-msg-h"><b>'+escapeHtml(label)+'</b><span>'+mbFmtFull(ts)+'</span></div><div class="mb-msg-t">'+escapeHtml(text||'')+'</div></div>';
+}
+function mbDetail(){
+  const o = mailboxState.open, name = mbName();
+  let html = '<div class="mb-back" onclick="mailboxCloseDetail()">‹ 返回</div>';
+  if(o.ref==='mine'){
+    const l = (letters||[]).find(x=>x.id===o.id);
+    if(!l) return html+'<div class="mb-empty">这封信不见了</div>';
+    html += mbMsg('我写给 '+name, l.time, l.content, true);
+    if(l.replied) html += mbMsg(name+' 的回信', l.replyTime, l.replyContent, false);
+    else html += '<div class="mb-wait">TA 还在写回信…大概 '+mbFmt(l.scheduledReplyAt)+' 前会寄到</div>';
+  } else {
+    const l = (inboxLetters||[]).find(x=>x.id===o.id);
+    if(!l) return html+'<div class="mb-empty">这封信不见了</div>';
+    html += mbMsg(name+' 写来的信', l.time, l.content, false);
     if(l.userReply){
-      const urt = new Date(l.userReplyTime).toLocaleString('zh-CN');
-      thread += `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <div style="font-size:11px;color:var(--ink-soft);">我的回信 · ${urt}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.userReply)}</div>
-      </div>`;
+      html += mbMsg('我的回信', l.userReplyTime, l.userReply, true);
+      if(l.botReplied && l.botReplyContent) html += mbMsg(name+' 的再回信', l.botReplyTime, l.botReplyContent, false);
+      else if(l.scheduledBotReplyAt) html += '<div class="mb-wait">TA 还在写回信…大概 '+mbFmt(l.scheduledBotReplyAt)+' 前会寄到</div>';
+    } else {
+      html += '<div class="mb-reply"><textarea id="inboxReply_'+l.id+'" placeholder="给这封信写回信…"></textarea><div class="mb-send" onclick="replyToInboxLetter(\''+l.id+'\')">寄出回信</div></div>';
     }
-    // TA 对我回信的再回复
-    if(l.botReplied && l.botReplyContent){
-      const brt = new Date(l.botReplyTime).toLocaleString('zh-CN');
-      thread += `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <div style="font-size:11px;color:var(--rouge);">${escapeHtml(chatSettings.companionName)} 的再回信 · ${brt}</div>
-        <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.botReplyContent)}</div>
-      </div>`;
-    } else if(l.userReply && !l.botReplied && l.scheduledBotReplyAt){
-      const eta = new Date(l.scheduledBotReplyAt).toLocaleString('zh-CN');
-      thread += `<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);">TA 还在写回信…大概 ${eta} 前会寄到</div>`;
-    }
-    // 还没回过：显示输入框
-    let replyForm = '';
-    if(!l.userReply){
-      replyForm = `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);">
-        <textarea id="inboxReply_${l.id}" placeholder="给这封信写回信…" style="min-height:72px;"></textarea>
-        <div class="btn-row"><div class="btn" onclick="replyToInboxLetter('${l.id}')">寄出回信</div></div>
-      </div>`;
-    }
-    return `<div class="box">
-      <div style="font-size:11px;color:var(--rouge);">${escapeHtml(chatSettings.companionName)} · ${t}</div>
-      <div style="font-size:13px;margin-top:6px;white-space:pre-line;">${escapeHtml(l.content)}</div>
-      ${thread}${replyForm}
-    </div>`;
-  }).join('') : '<div class="empty-note">TA 还没有主动寄过信来，什么时候想写全看TA自己</div>';
+  }
+  return html;
+}
+function mbCompose(){
+  return '<div class="mb-compose"><p class="mb-hint">想什么时候写都可以，TA 收到信后大概会花 8~14 小时写回信给你。</p><textarea id="letterText" placeholder="写封信给 '+escapeHtml(mbName())+'…"></textarea><div class="mb-send" onclick="sendLetter()">寄出</div></div>';
+}
+function mbStats(){
+  const inN = mbItems('in').length, outN = mbItems('sent').length;
+  const waiting = (letters||[]).filter(l=>!l.replied).length + (inboxLetters||[]).filter(l=>l.userReply && !l.botReplied).length;
+  const all = [...mbItems('in'), ...mbItems('sent')];
+  const first = all.length ? Math.min(...all.map(i=>i.t||Date.now())) : null;
+  const now = new Date(), months = [];
+  for(let i=5;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); months.push({y:d.getFullYear(), m:d.getMonth(), i:0, o:0}); }
+  const bump = (list,key)=>list.forEach(it=>{ const d=new Date(it.t); const r=months.find(x=>x.y===d.getFullYear() && x.m===d.getMonth()); if(r) r[key]++; });
+  bump(mbItems('in'),'i'); bump(mbItems('sent'),'o');
+  const mx = Math.max(1, ...months.map(r=>Math.max(r.i,r.o)));
+  const stat = (n,l)=>'<div class="mb-stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';
+  let html = '<div class="mb-stats">'+stat(inN,'收到的信')+stat(outN,'寄出的信')+stat(waiting,'等待回信')+stat(first? mbFmtFull(first).slice(0,-6) : '—','第一封信')+'</div>';
+  html += '<div class="mb-sec">最近 6 个月　<span style="color:var(--rouge)">● 收到</span>　<span style="opacity:.7">● 寄出</span></div>';
+  html += months.map(r=>'<div class="mb-bars-row"><div class="m">'+(r.m+1)+'月</div><div class="bars"><div class="mb-bar i" style="width:'+(r.i/mx*100)+'%"></div><div class="mb-bar o" style="width:'+(r.o/mx*100)+'%"></div></div><div class="c">'+r.i+' / '+r.o+'</div></div>').join('');
+  return html;
+}
+function renderMailbox(){
+  const body = document.getElementById('mailboxBody');
+  if(!body) return;
+  document.querySelectorAll('#mbTabs .mb-tab').forEach(t=>t.classList.toggle('on', t.dataset.tab===mailboxState.tab));
+  const dot = document.getElementById('mbDotIn'); if(dot) dot.classList.toggle('hidden', !(inboxLetterUnread || letterUnread) || (currentView==='mailbox' && mailboxState.tab==='in'));
+  if(mailboxState.open && (mailboxState.tab==='in' || mailboxState.tab==='sent')) body.innerHTML = mbDetail();
+  else if(mailboxState.tab==='compose') body.innerHTML = mbCompose();
+  else if(mailboxState.tab==='stats') body.innerHTML = mbStats();
+  else body.innerHTML = mbList(mailboxState.tab);
+}
+function mailboxSetTab(tab){
+  mailboxState.tab = tab; mailboxState.open = null;
+  if(tab==='in'){
+    if(inboxLetterUnread){ inboxLetterUnread=false; sSet('inbox-letter-unread', false); }
+    if(letterUnread){ letterUnread=false; sSet('letter-unread', false); }
+    renderUnreadDots();
+  }
+  renderMailbox();
+}
+function mailboxOpen(ref,id){ mailboxState.open = {ref:ref, id:id}; renderMailbox(); window.scrollTo(0,0); }
+function mailboxCloseDetail(){ mailboxState.open = null; renderMailbox(); }
+function mailboxBack(){ if(mailboxState.open){ mailboxCloseDetail(); } else { go('home'); } }
+function mailboxToggleMonth(key){ mailboxState.openMonths[key] = !mailboxState.openMonths[key]; renderMailbox(); }
+async function mailboxNotify(unreadKind, title, body){
+  if(currentView==='mailbox' && mailboxState.tab==='in' && !(mailboxState.open)){ renderMailbox(); return; }
+  if(currentView==='mailbox') renderMailbox();
+  if(unreadKind==='letter'){ letterUnread = true; await sSet('letter-unread', true); }
+  else { inboxLetterUnread = true; await sSet('inbox-letter-unread', true); }
+  renderUnreadDots(); tryBgNotify(title, body);
 }
 async function replyToInboxLetter(id){
   const l = inboxLetters.find(x=>x.id===id);
@@ -6186,8 +6246,7 @@ async function replyToInboxLetter(id){
   l.botReplyTime = null;
   l.scheduledBotReplyAt = Date.now() + hours*3600*1000;
   await sSet('inbox-letters', inboxLetters);
-  renderInboxLetters();
-  if(currentView==='letterRecords'){ renderLetterRecords(); }
+  renderMailbox();
   scheduleInboxLetterBotReply(l.id, l.scheduledBotReplyAt - Date.now());
 }
 function scheduleInboxLetterBotReply(id, delayMs){
@@ -6202,9 +6261,7 @@ function scheduleInboxLetterBotReply(id, delayMs){
     l.botReplyTime = Date.now();
     l.botReplied = true;
     await sSet('inbox-letters', inboxLetters);
-    if(currentView==='inboxLetters'){ renderInboxLetters(); }
-    if(currentView==='letterRecords'){ renderLetterRecords(); }
-    else{ inboxLetterUnread = true; await sSet('inbox-letter-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 回信了', '点开查看回信'); }
+    await mailboxNotify('inbox', chatSettings.companionName+' 回信了', '点开查看回信');
   }, Math.max(0, delayMs));
 }
 function resumeInboxLetterReplyTimers(){
@@ -6878,8 +6935,8 @@ function onImportBackupFile(e){
     applyTheme();
     applyCustomBubbleCSSToPage();
     renderHomeProfile(); renderChat(); renderCardsView(); renderLedger(); renderPeriod();
-    renderDiary(); renderBeautify(); renderMoments(); renderLetters();
-    renderInboxLetters(); renderCallLog(); renderLifePhotos(); renderTodayStatusHome();
+    renderDiary(); renderBeautify(); renderMoments(); renderMailbox();
+    renderCallLog(); renderLifePhotos(); renderTodayStatusHome();
     resumeLetterTimers();
     resumeInboxLetterReplyTimers();
     resumeMoyuSchedule();
