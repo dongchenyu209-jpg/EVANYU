@@ -408,10 +408,27 @@
     border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05);
     display:flex; flex-direction:column;
   }
+  .msg.gift-card.bouquet,
+  .msg.gift-card.user.bouquet,
+  .msg.gift-card.ta.bouquet{
+    width:212px !important; max-width:82% !important;
+    aspect-ratio:auto !important; height:auto !important;
+    min-height:0 !important;
+  }
+  .msg.gift-card.bouquet .gift-emoji{ font-size:28px !important; }
+  .msg.gift-card.bouquet .gift-name{ white-space:normal !important; margin-top:1px !important; }
+  .msg.gift-card.bouquet .gift-body{ text-align:left !important; }
   .msg.gift-card .gift-inner{
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:6px; padding:14px 12px 6px; text-align:center;
   }
+  .msg.gift-card.bouquet .gift-inner{
+    flex-direction:row !important; align-items:center !important;
+    justify-content:flex-start !important; text-align:left !important;
+    background:linear-gradient(120deg,rgba(255,240,248,.95),rgba(255,255,255,.9));
+    padding:9px 12px !important; gap:9px !important;
+  }
+  .msg.gift-card.bouquet .gift-note{ font-size:10.5px !important; margin-top:2px !important; }
   .msg.gift-card .gift-emoji{ font-size:40px; line-height:1; flex-shrink:0; }
   .msg.gift-card .gift-body{ min-width:0; width:100%; }
   .msg.gift-card .gift-label{ font-size:10.5px; color:var(--ink-soft); letter-spacing:.5px; }
@@ -420,6 +437,10 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .msg.gift-card .gift-price{ font-size:13px; color:var(--rouge); margin-top:4px; font-weight:700; }
+  .msg.gift-card .gift-note{
+    font-size:11px; color:var(--ink-soft); margin-top:4px; line-height:1.45;
+    white-space:normal; word-break:break-word;
+  }
   .msg.gift-card .t{ padding:4px 10px 10px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
 .msg.questionnaire{
   background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
@@ -1521,7 +1542,7 @@
       <div class="fn-item" onclick="go('chat')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.6 0 8 3 8 6.8S16.6 17.6 12 17.6c-.9 0-1.7-.1-2.5-.3L5.5 19.5l1-3.4C5 15 4 13 4 10.800 4 7 7.400 4 12 4Z"/><path d="M9 10.500c.8 1.400 1.800 2 3 2s2.200-.6 3-2"/></svg><span id="chatDot" class="dot-badge hidden"></span></div><div class="fn-label">传讯</div></div>
       <div class="fn-item" onclick="go('mailbox')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">信箱</div></div>
       <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
-      <div class="fn-item" onclick="go('mall')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/><path d="M10 21V13h4v8"/></svg></div><div class="fn-label">商场</div></div>
+      <div class="fn-item" onclick="go('garden')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-4 0-7-2.5-7-6 0-2.5 1.5-4.5 3.5-5.5C7 7 9 4 12 3c3 1 5 4 3.5 7.5 2 1 3.5 3 3.5 5.5 0 3.5-3 6-7 6z"/><path d="M12 13v9"/><path d="M9 16c1.5 1 4.5 1 6 0"/></svg></div><div class="fn-label">花园</div></div>
     </div>
     </div><!-- /homePage1 -->
 
@@ -1789,6 +1810,16 @@
       <div class="btn-row"><div class="btn outline" onclick="tzRefreshNow()">↻ 立即刷新天气</div></div>
     </div>
     <div class="box">
+      <div class="box-title">花园 · TA 来访</div>
+      <p style="font-size:12px;color:var(--ink-soft);">设置 TA 多久来一次花园（帮浇水 / 种一朵 / 说句话）。范围 1 小时～7 天（168 小时）。</p>
+      <label class="field">间隔（小时）</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+        <input type="number" id="gardenTaVisitHours" min="1" max="168" step="1" value="24" style="width:80px;text-align:center;">
+        <div class="btn outline" onclick="gardenSaveTaVisitFromSettings()">保存</div>
+      </div>
+      <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">常用：6=半天 · 12=半天多 · 24=一天 · 48=两天 · 72=三天 · 168=一周</p>
+    </div>
+    <div class="box">
       <div class="box-title">自定义背景</div>
       <div class="btn-row" style="margin-top:4px; flex-wrap:wrap;">
         <div class="btn outline" onclick="editCustomBg()">自定义颜色</div>
@@ -1972,10 +2003,10 @@
     <div class="mb-panel" id="mailboxBody"></div>
   </section>
 
-  <!-- ============ MALL 商场 ============ -->
-  <section id="view-mall" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>商场</h2></div>
-    <div id="mallBody" style="padding:12px 14px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
+  <!-- ============ GARDEN 花园 ============ -->
+  <section id="view-garden" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>花园</h2></div>
+    <div id="gardenBody" style="padding:10px 12px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
   </section>
 
   <div class="bottom-nav">
@@ -2673,7 +2704,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', mall:'商场' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', garden:'花园' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2706,14 +2737,14 @@ function go(name){
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
-  if(name==='mall'){ renderMall(); }
+  if(name==='garden'){ renderGarden(); }
   if(name==='moments'){
     renderMoments();
     if(momentsUnread){ momentsUnread=false; sSet('moments-unread', false); renderUnreadDots(); }
   }
   if(name==='ledger'){ renderLedger(); }
   if(name==='diary'){ renderDiary(); }
-  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); }
+  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); if(typeof gardenFillSettings==='function') gardenFillSettings(); }
 }
 function renderUnreadDots(){
   const cd = document.getElementById('chatDot'); if(cd) cd.classList.toggle('hidden', !chatUnread);
@@ -3909,14 +3940,20 @@ function renderChat(preserveScroll, scrollToId){
       </div>`;
     } else if(m.type==='gift'){
       const fromMe = m.from==='user';
-      const label = fromMe ? ('送给 ' + (chatSettings.companionName||'TA')) : ('来自 ' + (chatSettings.companionName||'TA'));
-      bubbleHtml = `<div class="msg gift-card ${m.from}">
+      const isBouquet = !!m.bouquet || Number(m.price||0)===0 && (m.note||'').indexOf('花语')>=0;
+      const label = isBouquet
+        ? (fromMe ? ('花束送给 ' + (chatSettings.companionName||'TA')) : ((chatSettings.companionName||'TA') + ' 送来的花束'))
+        : (fromMe ? ('送给 ' + (chatSettings.companionName||'TA')) : ('来自 ' + (chatSettings.companionName||'TA')));
+      const priceOrNote = m.note
+        ? `<div class="gift-note">${escapeHtml(m.note)}</div>`
+        : (Number(m.price||0)>0 ? `<div class="gift-price">¥${Number(m.price||0).toFixed(0)}</div>` : '');
+      bubbleHtml = `<div class="msg gift-card ${m.from}${isBouquet?' bouquet':''}">
         <div class="gift-inner">
           <div class="gift-emoji">${escapeHtml(m.emoji||'🎁')}</div>
           <div class="gift-body">
-            <div class="gift-label">🎁 ${escapeHtml(label)}</div>
+            <div class="gift-label">${isBouquet?'💐':'🎁'} ${escapeHtml(label)}</div>
             <div class="gift-name">${escapeHtml(m.itemName||m.content||'礼物')}</div>
-            <div class="gift-price">¥${Number(m.price||0).toFixed(0)}</div>
+            ${priceOrNote}
           </div>
         </div>
         <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
@@ -4052,6 +4089,7 @@ function buildQuotePreview(m){
   if(m.type==='combo') return '[表情+文字] '+(m.content||'').slice(0,20);
   if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
   if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
+  if(m.type==='gift') return (m.bouquet?'[花束] ':'[礼物] ') + (m.itemName||m.content||'');
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
@@ -4618,6 +4656,7 @@ function armAllProactiveTimers(){
    这里比对 next*At 与当前时间，过期了就补发一次（并从现在起重新计时）。 */
 function checkProactiveDue(){
   const now = Date.now();
+  try{ if(typeof gCheckTaGift==='function') gCheckTaGift().catch(function(){}); }catch(e){}
   ['msg','letter','call','moment'].forEach(function(kind){
     if(kind==='msg' && proactiveMsgSettings.enabled === false) return;
     const at = proactiveState[_proKeys[kind]];
@@ -5580,6 +5619,8 @@ async function saveChatSettings(){
     const freeEnabled = fe ? fe.classList.contains('on') : true;
     spliceCardSettings = { min:smin, max:smax, freeEnabled, freeProb:fp };
     await sSet('splice-card-settings', spliceCardSettings);
+    if(data.gardenData && typeof data.gardenData==='object'){ gardenData = data.gardenData; await sSet('garden-data', gardenData); }
+
   }
   const wasEnabled = moyuState.enabled;
   moyuState.enabled = document.getElementById('csMoyuEnabled').classList.contains('on');
@@ -6975,7 +7016,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -7013,7 +7054,7 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, mallState,
+    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, gardenData,
     companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
@@ -7058,17 +7099,7 @@ function onImportBackupFile(e){
     momentInteractSettings = data.momentInteractSettings || momentInteractSettings;
     if(typeof data.spliceCardsEnabled === 'boolean') spliceCardsEnabled = data.spliceCardsEnabled;
     if(data.spliceCardSettings && typeof data.spliceCardSettings==='object') spliceCardSettings = data.spliceCardSettings;
-    if(data.mallState && typeof data.mallState==='object'){
-      const ms = data.mallState;
-      mallState.gifts = Array.isArray(ms.gifts) ? ms.gifts : mallState.gifts;
-      mallState.ledger = Array.isArray(ms.ledger) ? ms.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : (mallState.ledger||[]);
-      mallState.customItems = Array.isArray(ms.customItems) ? ms.customItems : (mallState.customItems||[]);
-      mallState.buyProb = typeof ms.buyProb==='number' ? ms.buyProb : mallState.buyProb;
-      if(typeof ms.autoBuy === 'boolean') mallState.autoBuy = ms.autoBuy;
-      if(typeof ms.autoBuyMinMin === 'number') mallState.autoBuyMinMin = ms.autoBuyMinMin;
-      if(typeof ms.autoBuyMaxMin === 'number') mallState.autoBuyMaxMin = ms.autoBuyMaxMin;
-      mallState.nextAutoBuyAt = ms.nextAutoBuyAt || null;
-    }
+
     normalizeLoadedSettings();
     await sSet('profile', profile);
     await sSet('chat-settings', chatSettings);
@@ -7092,7 +7123,6 @@ function onImportBackupFile(e){
     await sSet('proactive-letter-settings', proactiveLetterSettings);
     await sSet('splice-cards-enabled', spliceCardsEnabled);
     await sSet('splice-card-settings', spliceCardSettings);
-    await sSet('mall-state', mallState);
     // 陪伴记录 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
     if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
@@ -10838,432 +10868,790 @@ function goHomePage(k){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 
-/* ============================================================
-   商场 MALL —— 商品 / 礼物柜 / 流水 / 自定义 / TA自动买
-   ============================================================ */
-let mallState = {
-  gifts: [],      // {id, name, emoji, price, from:'me'|'ta', to:'me'|'ta', time}
-  ledger: [],     // {id, time, who:'me'|'ta', type:'buy'|'auto', amount, note}
-  customItems: [], // {id, cat, name, emoji, price}
-  buyProb: 25,
-  autoBuy: true,
-  autoBuyMinMin: 30,   // 最短间隔（分钟）
-  autoBuyMaxMin: 180,  // 最长间隔（分钟）
-  nextAutoBuyAt: null,
-  lastBuyCheck: 0
-};
-const MALL_ITEMS = {
-  daily: [
-    {id:'d1', name:'洗衣液', emoji:'🧴', price:28},
-    {id:'d2', name:'纸巾', emoji:'🧻', price:12},
-    {id:'d3', name:'牙膏', emoji:'🪥', price:15},
-    {id:'d4', name:'洗发水', emoji:'🧴', price:45},
-    {id:'d5', name:'毛巾', emoji:'🧺', price:22},
-    {id:'d6', name:'充电器', emoji:'🔌', price:39},
-    {id:'d7', name:'沐浴露', emoji:'🧼', price:36},
-    {id:'d8', name:'护手霜', emoji:'💅', price:29},
-    {id:'d9', name:'垃圾袋', emoji:'🗑️', price:9},
-    {id:'d10', name:'收纳盒', emoji:'📦', price:25},
-    {id:'d11', name:'拖鞋', emoji:'🩴', price:35},
-    {id:'d12', name:'雨伞', emoji:'☂️', price:42},
-    {id:'d13', name:'水杯', emoji:'🥤', price:28},
-    {id:'d14', name:'充电宝', emoji:'🔋', price:89},
-    {id:'d15', name:'耳机', emoji:'🎧', price:129},
-    {id:'d16', name:'口罩', emoji:'😷', price:15},
-    {id:'d17', name:'创可贴', emoji:'🩹', price:8},
-    {id:'d18', name:'维生素', emoji:'💊', price:48},
-    {id:'d19', name:'洗衣液补充装', emoji:'🧴', price:18},
-    {id:'d20', name:'衣架', emoji:'🪝', price:16}
-  ],
-  couple: [
-    {id:'c1', name:'情侣手链', emoji:'📿', price:88},
-    {id:'c2', name:'情侣马克杯', emoji:'☕', price:56},
-    {id:'c3', name:'情侣睡衣', emoji:'🛏️', price:128},
-    {id:'c4', name:'情侣钥匙扣', emoji:'🔑', price:35},
-    {id:'c5', name:'情侣手机壳', emoji:'📱', price:49},
-    {id:'c6', name:'情侣项链', emoji:'💎', price:199},
-    {id:'c7', name:'情侣戒指', emoji:'💍', price:299},
-    {id:'c8', name:'情侣围巾', emoji:'🧣', price:78},
-    {id:'c9', name:'情侣帽子', emoji:'🧢', price:55},
-    {id:'c10', name:'情侣拖鞋', emoji:'🩴', price:68},
-    {id:'c11', name:'情侣抱枕', emoji:'🧸', price:89},
-    {id:'c12', name:'情侣T恤', emoji:'👕', price:98},
-    {id:'c13', name:'情侣手表', emoji:'⌚', price:258},
-    {id:'c14', name:'情侣耳环', emoji:'✨', price:118},
-    {id:'c15', name:'情侣香薰', emoji:'🕯️', price:66},
-    {id:'c16', name:'情侣盲盒', emoji:'🎁', price:59},
-    {id:'c17', name:'情侣明信片套装', emoji:'📮', price:28},
-    {id:'c18', name:'情侣伞', emoji:'☂️', price:72}
-  ],
-  food: [
-    {id:'f1', name:'奶茶', emoji:'🧋', price:18},
-    {id:'f2', name:'蛋糕', emoji:'🍰', price:48},
-    {id:'f3', name:'巧克力', emoji:'🍫', price:25},
-    {id:'f4', name:'草莓', emoji:'🍓', price:32},
-    {id:'f5', name:'寿司套餐', emoji:'🍣', price:68},
-    {id:'f6', name:'火锅食材', emoji:'🍲', price:98},
-    {id:'f7', name:'冰淇淋', emoji:'🍦', price:15},
-    {id:'f8', name:'咖啡', emoji:'☕', price:22},
-    {id:'f9', name:'炸鸡', emoji:'🍗', price:38},
-    {id:'f10', name:'披萨', emoji:'🍕', price:55},
-    {id:'f11', name:'饺子', emoji:'🥟', price:28},
-    {id:'f12', name:'水果拼盘', emoji:'🍎', price:45},
-    {id:'f13', name:'小笼包', emoji:'🥟', price:26},
-    {id:'f14', name:'烧烤拼盘', emoji:'🍖', price:88},
-    {id:'f15', name:'甜甜圈', emoji:'🍩', price:16},
-    {id:'f16', name:'马卡龙', emoji:'🍪', price:42},
-    {id:'f17', name:'酸奶', emoji:'🥛', price:12},
-    {id:'f18', name:'薯片', emoji:'🥔', price:10},
-    {id:'f19', name:'泡面', emoji:'🍜', price:8},
-    {id:'f20', name:'红酒', emoji:'🍷', price:128}
-  ],
-  memorial: [
-    {id:'m1', name:'合照相框', emoji:'🖼️', price:66},
-    {id:'m2', name:'纪念相册', emoji:'📔', price:88},
-    {id:'m3', name:'定制星空灯', emoji:'✨', price:158},
-    {id:'m4', name:'手写情书本', emoji:'💌', price:45},
-    {id:'m5', name:'纪念银币', emoji:'🪙', price:120},
-    {id:'m6', name:'时间胶囊', emoji:'⏳', price:99},
-    {id:'m7', name:'定制星座图', emoji:'🌟', price:78},
-    {id:'m8', name:'恋爱日记本', emoji:'📓', price:38},
-    {id:'m9', name:'干花书签', emoji:'🌸', price:22},
-    {id:'m10', name:'定制音乐盒', emoji:'🎵', price:168},
-    {id:'m11', name:'纪念日蜡烛', emoji:'🕯️', price:48},
-    {id:'m12', name:'合影拍立得相纸', emoji:'📷', price:55},
-    {id:'m13', name:'定制抱枕印照', emoji:'🛏️', price:98},
-    {id:'m14', name:'恋爱纪念章', emoji:'🏅', price:66},
-    {id:'m15', name:'手绘肖像', emoji:'🎨', price:188},
-    {id:'m16', name:'定制钥匙牌', emoji:'🔑', price:35}
-  ]
-};
-const MALL_CAT_LABEL = { daily:'日常用品', couple:'情侣用品', food:'食物', memorial:'纪念品' };
 
-function mallGetItems(cat){
-  const base = (MALL_ITEMS[cat] || []).slice();
-  const custom = (mallState.customItems || []).filter(x => x.cat === cat);
-  return base.concat(custom);
-}
-function mallFindItem(itemId, cat){
-  if(cat){
-    return mallGetItems(cat).find(x => x.id === itemId) || null;
-  }
-  for(const k of Object.keys(MALL_ITEMS)){
-    const hit = mallGetItems(k).find(x => x.id === itemId);
-    if(hit) return hit;
-  }
-  return (mallState.customItems || []).find(x => x.id === itemId) || null;
-}
-function mallPushLedger(who, type, amount, note){
-  if(!Array.isArray(mallState.ledger)) mallState.ledger = [];
-  mallState.ledger.unshift({
-    id: uid(), time: Date.now(), who, type, amount, note: note || ''
-  });
-  if(mallState.ledger.length > 200) mallState.ledger = mallState.ledger.slice(0, 200);
-}
-async function loadMallState(){
+
+/* ============================================================
+   花园 GARDEN —— 移植自 Mochi（无装饰 / 无成就 / 无年报 / 无排行榜）
+   含：全花种、杂交、花束、施肥、品质、一键操作、访客、TA代管
+   ============================================================ */
+const GARDEN_PLOTS_BASE = 12;
+const GARDEN_WILT_SEC = 345600;
+const GARDEN_WATER_SEC = 172800;
+const GARDEN_FLOWERS = {
+  rose:      { n:'玫瑰',     e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[172800,432000], xp:30, lv:1, ss:3, m:'热烈的爱' },
+  sunflower: { n:'向日葵',   e:['🌱','🌿','🌻'], sn:['种子','发芽','开花'], g:[172800,518400], xp:40, lv:2, ss:1, m:'沉默的爱' },
+  tulip:     { n:'郁金香',   e:['🌱','🌿','🌷'], sn:['种子','发芽','开花'], g:[172800,432000], xp:30, lv:1, ss:0, m:'永恒的祝福' },
+  cactus:    { n:'仙人掌',   e:['🌱','🌵'],     sn:['小芽','成型'],         g:[432000],         xp:50, lv:4, ss:1, m:'坚韧，外刚内柔' },
+  lavender:  { n:'薰衣草',   e:['🌱','🌿','💐'], sn:['种子','发芽','开花'], g:[86400,345600],  xp:25, lv:3, ss:2, m:'等待爱情' },
+  daisy:     { n:'雏菊',     e:['🌱','🌿','🌼'], sn:['种子','发芽','开花'], g:[86400,259200],  xp:20, lv:1, ss:0, m:'纯真' },
+  sakura:    { n:'樱花',     e:['🌱','🌿','🌸'], sn:['种子','发芽','开花'], g:[86400,259200],  xp:25, lv:1, ss:0, m:'一生幸福' },
+  hibiscus:  { n:'芙蓉',     e:['🌱','🌿','🌺'], sn:['种子','发芽','开花'], g:[172800,345600], xp:35, lv:1, ss:1, m:'纤细之美' },
+  lotus:     { n:'荷花',     e:['🌱','🌿','🪷'], sn:['种子','发芽','开花'], g:[259200,432000], xp:45, lv:1, ss:1, m:'清雅坚贞' },
+  clover:    { n:'幸运草',   e:['🌱','🌿','🍀'], sn:['种子','发芽','成型'], g:[43200,129600],  xp:15, lv:1, ss:2, m:'幸运与希望' },
+  camellia:  { n:'山茶花',   e:['🌱','🌿','💮'], sn:['种子','发芽','开花'], g:[172800,259200], xp:30, lv:1, ss:3, m:'理想的爱' },
+  lily:      { n:'百合',     e:['🌱','🌿','💮'], sn:['种子','发芽','开花'], g:[172800,432000], xp:35, lv:2, ss:0, m:'纯洁的爱' },
+  peony:     { n:'牡丹',     e:['🌱','🌿','🌺'], sn:['种子','发芽','开花'], g:[259200,518400], xp:45, lv:3, ss:1, m:'富贵吉祥' },
+  orchid:    { n:'兰花',     e:['🌱','🌿','orchid'], sn:['种子','发芽','开花'], g:[345600,691200], xp:55, lv:4, ss:2, m:'高洁典雅' },
+  maple:     { n:'枫叶',     e:['🌱','🌿','🍁'], sn:['种子','发芽','成型'], g:[86400,259200],  xp:25, lv:2, ss:2, m:'美好的回忆' },
+  wheat:     { n:'麦穗',     e:['🌱','🌿','🌾'], sn:['种子','发芽','成熟'], g:[172800,345600], xp:35, lv:3, ss:2, m:'丰收与希望' },
+  jasmine:   { n:'茉莉',     e:['🌱','🌿','🌼'], sn:['种子','发芽','开花'], g:[86400,172800],  xp:20, lv:2, ss:1, m:'清新淡雅' },
+  iris:      { n:'凤尾',     e:['🌱','🌿','💜'], sn:['种子','发芽','开花'], g:[172800,345600], xp:30, lv:3, ss:0, m:'爱的使者' },
+  bamboo:    { n:'竹',       e:['🌱','🌿','🎋'], sn:['笋','发芽','成竹'],   g:[432000,864000], xp:60, lv:4, ss:3, m:'坚韧不拔' },
+  flameRose: { n:'炽樱玫瑰', e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[432000,864000], xp:120, lv:5, ss:0, rare:true, m:'炽热永恒的爱' },
+  blueRose:  { n:'蓝玫瑰',   e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[432000,864000], xp:150, lv:6, ss:1, rare:true, m:'奇迹与不可能的爱' },
+  goldSun:   { n:'金向日葵', e:['🌱','🌿','🌻'], sn:['种子','发芽','开花'], g:[432000,777600], xp:130, lv:5, ss:1, rare:true, m:'忠诚的信仰' },
+  nightLotus:{ n:'夜莲',     e:['🌱','🌿','🪷'], sn:['种子','发芽','开花'], g:[604800,1036800],xp:180, lv:7, ss:2, rare:true, m:'暗夜里的坚守' },
+  rainbowClover:{ n:'彩虹草', e:['🌱','🌿','🍀'], sn:['种子','发芽','成型'], g:[259200,518400], xp:100, lv:5, ss:3, rare:true, m:'幸运降临' },
+  iceRose:   { n:'冰玫瑰',   e:['🌱','🌿','❄️'], sn:['种子','发芽','开花'], g:[518400,950400], xp:140, lv:6, ss:3, rare:true, m:'冷静而深沉的爱' },
+  crystalOrchid:{ n:'水晶兰', e:['🌱','🌿','✨'], sn:['种子','发芽','开花'], g:[604800,1209600],xp:200, lv:8, ss:2, rare:true, m:'珍贵而透明' },
+  starLily:  { n:'星百合',   e:['🌱','🌿','🌟'], sn:['种子','发芽','开花'], g:[518400,864000], xp:160, lv:7, ss:0, rare:true, m:'星光下的约定' },
+  phoenix:   { n:'凤凰花',   e:['🌱','🌿','🔥'], sn:['种子','发芽','开花'], g:[691200,1209600],xp:220, lv:8, ss:1, rare:true, m:'浴火重生' },
+  moonFlower:{ n:'月见草',   e:['🌱','🌿','🌙'], sn:['种子','发芽','开花'], g:[432000,777600], xp:150, lv:6, ss:2, rare:true, m:'只为你在夜里绽放' }
+};
+// fix orchid emoji
+GARDEN_FLOWERS.orchid.e = ['🌱','🌿','🏵️'];
+
+const GARDEN_HYBRIDS = [
+  { a:'rose', b:'sakura', r:'flameRose' },
+  { a:'rose', b:'clover', r:'blueRose' },
+  { a:'sunflower', b:'daisy', r:'goldSun' },
+  { a:'lotus', b:'lavender', r:'nightLotus' },
+  { a:'clover', b:'camellia', r:'rainbowClover' },
+  { a:'lily', b:'orchid', r:'crystalOrchid' },
+  { a:'peony', b:'jasmine', r:'starLily' },
+  { a:'maple', b:'wheat', r:'phoenix' },
+  { a:'iris', b:'lavender', r:'moonFlower' },
+  { a:'lily', b:'clover', r:'iceRose' }
+];
+const GARDEN_WX = [{i:'☀️',t:'晴朗'},{i:'⛅',t:'多云'},{i:'🌧️',t:'小雨'},{i:'🌈',t:'放晴'}];
+const GARDEN_SEA = ['🌸 春季','☀️ 夏季','🍂 秋季','❄️ 冬季'];
+const GARDEN_VISITORS = [
+  { type:'butterfly', e:'🦋', n:'蝴蝶' },
+  { type:'bee', e:'🐝', n:'蜜蜂' },
+  { type:'bird', e:'🐦', n:'小鸟' },
+  { type:'ladybug', e:'🐞', n:'瓢虫' }
+];
+
+let gardenData = null;
+let gardenSel = -1;
+let gardenTab = 'field'; // field | bag | hybrid | bouquet | dex | log
+let gardenTool = 'none'; // none | hybrid | fert
+
+function gPn(){
   try{
-    const s = await sGet('mall-state', null);
-    if(s && typeof s==='object'){
-      mallState.gifts = Array.isArray(s.gifts) ? s.gifts : [];
-      mallState.ledger = Array.isArray(s.ledger) ? s.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : [];
-      mallState.customItems = Array.isArray(s.customItems) ? s.customItems : [];
-      mallState.buyProb = typeof s.buyProb==='number' ? Math.max(0,Math.min(100,s.buyProb)) : 25;
-      mallState.autoBuy = s.autoBuy !== false;
-      mallState.autoBuyMinMin = typeof s.autoBuyMinMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMinMin)) : 30;
-      mallState.autoBuyMaxMin = typeof s.autoBuyMaxMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMaxMin)) : 180;
-      if(mallState.autoBuyMinMin > mallState.autoBuyMaxMin){
-        const t = mallState.autoBuyMinMin; mallState.autoBuyMinMin = mallState.autoBuyMaxMin; mallState.autoBuyMaxMin = t;
-      }
-      mallState.nextAutoBuyAt = s.nextAutoBuyAt || null;
-      mallState.lastBuyCheck = s.lastBuyCheck || 0;
+    if(typeof profile!=='undefined' && profile && profile.name) return profile.name;
+    if(typeof mbName==='function') return mbName();
+  }catch(e){}
+  return 'TA';
+}
+
+function gardenDefault(){
+  return {
+    p: new Array(GARDEN_PLOTS_BASE).fill(null),
+    plotN: GARDEN_PLOTS_BASE,
+    exp: 0,
+    inv: { daisy:3, sakura:2, clover:2, rose:2, tulip:1 },
+    dex: {},
+    log: [],
+    lastTaVisit: 0,
+    taVisitHours: 24,
+    nextTaGiftAt: 0,
+    lastSeed: 'daisy',
+    bouquetCnt: 0,
+    visitor: null,
+    st: { plant:0, water:0, harvest:0, fert:0, hybrid:0 }
+  };
+}
+
+async function loadGarden(){
+  try{
+    const raw = await sGet('garden-data', null);
+    if(raw && typeof raw==='object'){
+      gardenData = raw;
+      if(!Array.isArray(gardenData.p)) gardenData.p = [];
+      while(gardenData.p.length < GARDEN_PLOTS_BASE) gardenData.p.push(null);
+      if(!gardenData.plotN) gardenData.plotN = GARDEN_PLOTS_BASE;
+      if(!gardenData.inv) gardenData.inv = {};
+      if(!gardenData.dex) gardenData.dex = {};
+      if(!gardenData.log) gardenData.log = [];
+      if(typeof gardenData.exp !== 'number') gardenData.exp = 0;
+      if(typeof gardenData.taVisitHours !== 'number') gardenData.taVisitHours = 24;
+      if(typeof gardenData.nextTaGiftAt !== 'number') gardenData.nextTaGiftAt = 0;
+      if(!gardenData.st) gardenData.st = { plant:0, water:0, harvest:0, fert:0, hybrid:0 };
+    } else {
+      gardenData = gardenDefault();
+      await saveGarden();
     }
+  }catch(e){ gardenData = gardenDefault(); }
+  return gardenData;
+}
+async function saveGarden(){ try{ await sSet('garden-data', gardenData); }catch(e){} }
+
+function gLv(){ return Math.floor(Math.sqrt((gardenData.exp||0)/10)) + 1; }
+function gPlotEntitled(){
+  const lv = gLv();
+  return GARDEN_PLOTS_BASE + (lv>=3?2:0) + (lv>=5?2:0) + (lv>=8?2:0) + (lv>=12?4:0);
+}
+function gUnlocked(type){
+  const tp = GARDEN_FLOWERS[type];
+  if(!tp) return false;
+  return gLv() >= (tp.lv||1);
+}
+function gWx(){ const d=new Date(); return GARDEN_WX[(d.getDate()+d.getMonth()+d.getHours())%4]; }
+function gSea(){ return Math.floor(new Date().getMonth()/3)%4; }
+
+function gStageInfo(plot){
+  if(!plot) return null;
+  const tp = GARDEN_FLOWERS[plot.type]; if(!tp) return null;
+  const now = Math.floor(Date.now()/1000);
+  const elapsed = now - plot.planted;
+  const seaIdx = gSea();
+  const seaBoost = (tp.ss === seaIdx) ? 1.3 : 0.85;
+  const w = gWx();
+  const wBoost = (w.t==='晴朗') ? 1.1 : (w.t==='小雨') ? 0.9 : 1.0;
+  const boost = seaBoost * wBoost;
+  const eff = Math.floor(elapsed * boost);
+  let stage = 0;
+  for(let i=0;i<tp.g.length;i++){ if(eff >= tp.g[i]) stage = i+1; else break; }
+  const stageMax = tp.g.length;
+  const bloomed = stage >= stageMax;
+  const wilted = bloomed && plot.bloomedAt && (now - plot.bloomedAt > GARDEN_WILT_SEC);
+  let nextSec = 0;
+  if(!bloomed){
+    const need = tp.g.slice(0, stage+1).reduce((a,b)=>a+b,0);
+    nextSec = Math.ceil((need - eff) / boost);
+  }
+  return {
+    key: plot.type, name: tp.n, stage, stageMax,
+    stageName: tp.sn[Math.min(stage, tp.sn.length-1)],
+    emoji: tp.e[Math.min(stage, tp.e.length-1)],
+    bloomed, wilted: !!wilted, nextSec,
+    plantedBy: plot.by || '我', rare: !!tp.rare, m: tp.m || ''
+  };
+}
+function gWaterLvl(plot){
+  if(!plot || !plot.watered) return 0;
+  return Math.max(0, 1 - (Math.floor(Date.now()/1000) - plot.watered) / GARDEN_WATER_SEC);
+}
+function gFmtTime(sec){
+  if(sec<=0) return '就绪';
+  if(sec<3600) return Math.ceil(sec/60)+'分';
+  if(sec<86400) return Math.floor(sec/3600)+'时'+Math.ceil((sec%3600)/60)+'分';
+  return Math.floor(sec/86400)+'天'+Math.floor((sec%86400)/3600)+'时';
+}
+function gAddLog(who, act){
+  if(!gardenData.log) gardenData.log = [];
+  gardenData.log.unshift({ t: Date.now(), who, act });
+  if(gardenData.log.length > 100) gardenData.log = gardenData.log.slice(0,100);
+}
+function gToast(msg){
+  if(typeof _flashToast === 'function') _flashToast(msg, false);
+  else try{ alert(msg); }catch(e){}
+}
+function gRollQuality(){
+  const r = Math.random();
+  if(r < 0.05) return 'p';
+  if(r < 0.30) return 'f';
+  return 'n';
+}
+function gQualLabel(q){ return q==='p'?'【完美】': q==='f'?'【优质】':''; }
+function gQualMul(q){ return q==='p'?2: q==='f'?1.5:1; }
+
+async function gPlant(idx, type){
+  if(idx<0 || idx>=(gardenData.plotN||GARDEN_PLOTS_BASE)) return;
+  if(gardenData.p[idx]){ gToast('这里已经有花了'); return; }
+  const tp = GARDEN_FLOWERS[type];
+  if(!tp) return;
+  if(!gUnlocked(type)){ gToast('等级不够，需要 Lv.'+(tp.lv||1)); return; }
+  // 种植不限制数量、不消耗种子；收获后的花才进「花束」库存
+  gardenData.p[idx] = { type, planted: Math.floor(Date.now()/1000), by:'我', watered:0 };
+  gardenData.dex[type] = (gardenData.dex[type]||0)+1;
+  gardenData.lastSeed = type;
+  gardenData.st.plant = (gardenData.st.plant||0)+1;
+  gAddLog('我', '种下了「'+tp.n+'」');
+  await saveGarden();
+  gardenTab = 'field';
+  renderGarden();
+  gToast('种下了 '+(tp.e[tp.e.length-1]||'🌱')+' '+tp.n);
+}
+
+async function gWater(idx){
+  const plot = gardenData.p[idx];
+  if(!plot){ gToast('空地不用浇'); return; }
+  const now = Math.floor(Date.now()/1000);
+  if(plot.watered && (now - plot.watered) < 3600){
+    gToast('刚浇过，再等等（1小时内只能浇一次）'); return;
+  }
+  plot.watered = now;
+  plot.planted = Math.max(0, plot.planted - 14400);
+  gardenData.st.water = (gardenData.st.water||0)+1;
+  gAddLog('我', '浇了水');
+  await saveGarden();
+  renderGarden();
+  gToast('💧 浇水完成，生长加速了');
+}
+
+async function gFertilize(idx){
+  const plot = gardenData.p[idx];
+  if(!plot){ gToast('空地不用施肥'); return; }
+  plot.planted = Math.max(0, plot.planted - 43200);
+  const si = gStageInfo(plot);
+  gardenData.st.fert = (gardenData.st.fert||0)+1;
+  gAddLog('我', '给「'+(si?si.name:'植物')+'」施了肥');
+  await saveGarden();
+  renderGarden();
+  gToast('✨ 施肥完成，大幅加速生长');
+  if(Math.random()<0.1) gPartnerAct(true);
+}
+
+async function gHarvest(idx){
+  const plot = gardenData.p[idx];
+  if(!plot) return;
+  const si = gStageInfo(plot);
+  if(!si || !si.bloomed){ gToast('还没成熟'); return; }
+  if(si.wilted){
+    gardenData.p[idx] = null;
+    gAddLog('我', '清理了凋谢的「'+si.name+'」');
+    await saveGarden(); renderGarden();
+    gToast('已清理凋谢的花');
+    return;
+  }
+  const tp = GARDEN_FLOWERS[plot.type];
+  const q = gRollQuality();
+  const xp = Math.round(((tp&&tp.xp)||20) * gQualMul(q));
+  gardenData.exp = (gardenData.exp||0) + xp;
+  gardenData.p[idx] = null;
+  gardenData.st.harvest = (gardenData.st.harvest||0)+1;
+  // 返还种子（品质只影响经验）
+  gardenData.inv[plot.type] = (gardenData.inv[plot.type]||0) + 1;
+  if(Math.random() < 0.12){
+    const rares = Object.keys(GARDEN_FLOWERS).filter(k=>GARDEN_FLOWERS[k].rare && gUnlocked(k));
+    if(rares.length){
+      const r = rares[Math.floor(Math.random()*rares.length)];
+      gardenData.inv[r] = (gardenData.inv[r]||0)+1;
+      gToast('✨ 额外获得稀有种子：'+GARDEN_FLOWERS[r].n);
+    }
+  }
+  gAddLog('我', '收获了「'+si.name+'」'+gQualLabel(q)+' +'+xp+'经验');
+  await saveGarden();
+  renderGarden();
+  gToast(si.emoji+' 收获「'+si.name+'」'+gQualLabel(q)+' +'+xp+' XP（已入花束库存）');
+}
+
+async function gHarvestAll(){
+  let cnt=0, totalXp=0;
+  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
+    const pl = gardenData.p[i];
+    if(!pl) continue;
+    const si = gStageInfo(pl);
+    if(!si || !si.bloomed || si.wilted) continue;
+    const tp = GARDEN_FLOWERS[pl.type];
+    const q = gRollQuality();
+    const xp = Math.round(((tp&&tp.xp)||20)*gQualMul(q));
+    gardenData.exp = (gardenData.exp||0)+xp;
+    gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
+    gardenData.p[i] = null;
+    totalXp += xp; cnt++;
+  }
+  if(!cnt){ gToast('没有可收获的花'); return; }
+  gardenData.st.harvest = (gardenData.st.harvest||0)+cnt;
+  gAddLog('我', '一键收获 '+cnt+' 朵花 (+'+totalXp+'经验)');
+  await saveGarden();
+  renderGarden();
+  gToast('一键收获 '+cnt+' 朵 +'+totalXp+' XP');
+}
+
+async function gWaterAll(){
+  const now = Math.floor(Date.now()/1000);
+  let cnt=0;
+  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
+    const pl = gardenData.p[i];
+    if(!pl) continue;
+    if(pl.watered && (now - pl.watered) < 3600) continue;
+    pl.watered = now;
+    pl.planted = Math.max(0, pl.planted - 14400);
+    cnt++;
+  }
+  if(!cnt){ gToast('没有需要浇水的'); return; }
+  gardenData.st.water = (gardenData.st.water||0)+cnt;
+  gAddLog('我', '一键浇水 '+cnt+' 株');
+  await saveGarden();
+  renderGarden();
+  gToast('💧 一键浇水 '+cnt+' 株');
+}
+
+async function gReplantAll(){
+  const empties = [];
+  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
+  for(let i=0;i<n;i++) if(!gardenData.p[i]) empties.push(i);
+  if(!empties.length){ gToast('没有空地'); return; }
+  let seed = gardenData.lastSeed;
+  if(!seed || !GARDEN_FLOWERS[seed] || GARDEN_FLOWERS[seed].rare || !gUnlocked(seed)){
+    seed = Object.keys(GARDEN_FLOWERS).find(k=>!GARDEN_FLOWERS[k].rare && gUnlocked(k));
+  }
+  if(!seed){ gToast('没有可种的普通花'); return; }
+  const now = Math.floor(Date.now()/1000);
+  empties.forEach(i=>{
+    gardenData.p[i] = { type:seed, planted:now, by:'我', watered:0 };
+  });
+  const planted = empties.length;
+  gardenData.st.plant = (gardenData.st.plant||0)+planted;
+  gAddLog('我', '一键补种 '+planted+' 株 '+GARDEN_FLOWERS[seed].n);
+  await saveGarden();
+  renderGarden();
+  gToast('一键补种 '+planted+' 株 '+GARDEN_FLOWERS[seed].n);
+  if(Math.random()<0.1) gPartnerAct(true);
+}
+
+async function gHybrid(idx){
+  const plot = gardenData.p[idx];
+  if(!plot){ gToast('空地无法杂交'); return; }
+  const si = gStageInfo(plot);
+  if(!si) return;
+  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
+  // 邻居：左右上下（按 3/4 列近似）
+  const cols = window.innerWidth>=420 ? 4 : 3;
+  const neighbors = [idx-1, idx+1, idx-cols, idx+cols];
+  let target = -1;
+  for(const ni of neighbors){
+    if(ni<0 || ni>=n) continue;
+    if(!gardenData.p[ni]) continue;
+    // 同一行左右才有效（避免跨行）
+    if((ni===idx-1 || ni===idx+1) && Math.floor(ni/cols)!==Math.floor(idx/cols)) continue;
+    const nsi = gStageInfo(gardenData.p[ni]);
+    if(nsi && nsi.stage===si.stage && gardenData.p[ni].type !== plot.type){ target=ni; break; }
+  }
+  if(target<0){ gToast('需要相邻且同阶段的不同花朵'); return; }
+  let recipe = null;
+  for(const h of GARDEN_HYBRIDS){
+    if((h.a===plot.type && h.b===gardenData.p[target].type) || (h.b===plot.type && h.a===gardenData.p[target].type)){ recipe=h; break; }
+  }
+  if(!recipe){
+    const other = gStageInfo(gardenData.p[target]);
+    gToast(si.name+' 和 '+(other?other.name:'?')+' 暂无杂交配方');
+    return;
+  }
+  const result = GARDEN_FLOWERS[recipe.r];
+  if(!result) return;
+  // 消耗两株，在当前格长出杂交结果（从种子阶段）
+  gardenData.p[idx] = { type: recipe.r, planted: Math.floor(Date.now()/1000), by:'我', watered: Math.floor(Date.now()/1000) };
+  gardenData.p[target] = null;
+  gardenData.dex[recipe.r] = (gardenData.dex[recipe.r]||0)+1;
+  gardenData.st.hybrid = (gardenData.st.hybrid||0)+1;
+  gardenData.inv[recipe.r] = (gardenData.inv[recipe.r]||0); // ensure key
+  gAddLog('我', '杂交出了「'+result.n+'」✨');
+  gardenTool = 'none';
+  await saveGarden();
+  renderGarden();
+  gToast('✨ 杂交成功：'+result.e[result.e.length-1]+' '+result.n);
+}
+
+async function gMakeBouquet(type){
+  const tp = GARDEN_FLOWERS[type];
+  if(!tp || !(gardenData.inv[type]>0)){ gToast('没有这朵花'); return; }
+  gardenData.inv[type]--;
+  gardenData.bouquetCnt = (gardenData.bouquetCnt||0)+1;
+  const emoji = tp.e[tp.e.length-1] || '💐';
+  const meaning = tp.m || '';
+  const name = gPn();
+  gAddLog('我', '制作了「'+tp.n+'」花束送给'+name);
+  await saveGarden();
+  // 发礼物卡片到传讯（与商场礼物同一套 gift 卡片样式）
+  try{
+    const msg = {
+      id: (typeof uid==='function' ? uid() : String(Date.now())),
+      from: 'user',
+      type: 'gift',
+      emoji: emoji,
+      itemName: '一束' + tp.n,
+      price: 0,
+      note: meaning ? ('花语：' + meaning) : ('送给你一束我们一起种的' + tp.n),
+      content: '[花束] 一束' + tp.n,
+      time: Date.now(),
+      read: false,
+      bouquet: true
+    };
+    if(typeof chatMessages!=='undefined' && Array.isArray(chatMessages)){
+      chatMessages.push(msg);
+    }
+    if(typeof recPut==='function'){
+      await recPut('chatMessages', msg);
+    }
+    if(typeof renderChat==='function'){
+      try{ renderChat(); }catch(e){}
+    }
+    // 切到传讯方便看到卡片
+    if(typeof go==='function'){
+      try{ go('chat'); }catch(e){}
+    }
+  }catch(e){ console.warn('bouquet chat fail', e); }
+  renderGarden();
+  gToast(emoji+' 花束卡片已送到传讯');
+}
+
+async function gExpand(){
+  const entitled = gPlotEntitled();
+  const cur = gardenData.plotN || GARDEN_PLOTS_BASE;
+  if(cur >= entitled){ gToast('当前等级最多 '+entitled+' 块地（Lv.'+gLv()+'）'); return; }
+  gardenData.plotN = cur+1;
+  while(gardenData.p.length < gardenData.plotN) gardenData.p.push(null);
+  gAddLog('我', '开垦了第 '+gardenData.plotN+' 块地');
+  await saveGarden();
+  renderGarden();
+  gToast('🌿 新开垦了一块地');
+}
+
+async function gPartnerAct(silent){
+  if(!gardenData) return;
+  const pName = gPn();
+  const r = Math.random();
+  const empty=[], planted=[], bloomed=[], dry=[];
+  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
+  for(let i=0;i<n;i++){
+    if(!gardenData.p[i]) empty.push(i);
+    else {
+      planted.push(i);
+      const si = gStageInfo(gardenData.p[i]);
+      if(si && si.bloomed && !si.wilted) bloomed.push(i);
+      if(gWaterLvl(gardenData.p[i]) < 0.35) dry.push(i);
+    }
+  }
+  const pick = arr => arr.length ? arr[Math.floor(Math.random()*arr.length)] : -1;
+  let actType;
+  if(r<0.15) actType='plant';
+  else if(r<0.35) actType='water';
+  else if(r<0.50) actType='waterall';
+  else if(r<0.65) actType='harvest';
+  else if(r<0.78) actType='harvestall';
+  else if(r<0.90) actType='fertilize';
+  else actType='patrol';
+
+  let acted=false;
+  if(actType==='plant' && empty.length){
+    const keys = Object.keys(GARDEN_FLOWERS).filter(k=>gUnlocked(k) && !GARDEN_FLOWERS[k].rare);
+    if(keys.length){
+      const t = keys[Math.floor(Math.random()*keys.length)];
+      const idx = pick(empty);
+      gardenData.p[idx] = { type:t, planted:Math.floor(Date.now()/1000), by:pName, watered:Math.floor(Date.now()/1000) };
+      gardenData.dex[t]=(gardenData.dex[t]||0)+1;
+      gAddLog(pName, '种下了「'+GARDEN_FLOWERS[t].n+'」');
+      acted=true;
+    }
+  } else if(actType==='water' && dry.length){
+    const idx = pick(dry);
+    gardenData.p[idx].watered = Math.floor(Date.now()/1000);
+    gardenData.p[idx].planted = Math.max(0, gardenData.p[idx].planted-7200);
+    const si = gStageInfo(gardenData.p[idx]);
+    gAddLog(pName, '给「'+(si?si.name:'植物')+'」浇了水');
+    acted=true;
+  } else if(actType==='waterall' && dry.length){
+    dry.forEach(i=>{
+      gardenData.p[i].watered = Math.floor(Date.now()/1000);
+      gardenData.p[i].planted = Math.max(0, gardenData.p[i].planted-7200);
+    });
+    gAddLog(pName, '把花园都浇了一遍（'+dry.length+'株）');
+    acted=true;
+  } else if(actType==='harvest' && bloomed.length){
+    const idx = pick(bloomed);
+    const pl = gardenData.p[idx];
+    const si = gStageInfo(pl);
+    const tp = GARDEN_FLOWERS[pl.type];
+    const xp = Math.round(((tp&&tp.xp)||20)*0.8);
+    gardenData.exp = (gardenData.exp||0)+xp;
+    gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
+    gardenData.p[idx] = null;
+    gAddLog(pName, '帮你收了「'+(si?si.name:'花')+'」');
+    acted=true;
+  } else if(actType==='harvestall' && bloomed.length){
+    let c=0;
+    bloomed.forEach(i=>{
+      const pl=gardenData.p[i]; if(!pl) return;
+      const tp=GARDEN_FLOWERS[pl.type];
+      gardenData.exp = (gardenData.exp||0)+Math.round(((tp&&tp.xp)||20)*0.7);
+      gardenData.inv[pl.type]=(gardenData.inv[pl.type]||0)+1;
+      gardenData.p[i]=null; c++;
+    });
+    gAddLog(pName, '一键帮你收了 '+c+' 朵花');
+    acted=true;
+  } else if(actType==='fertilize' && planted.length){
+    const idx = pick(planted);
+    gardenData.p[idx].planted = Math.max(0, gardenData.p[idx].planted-28800);
+    const si = gStageInfo(gardenData.p[idx]);
+    gAddLog(pName, '给「'+(si?si.name:'植物')+'」施了肥');
+    acted=true;
+  } else {
+    const phrases = ['来花园转了一圈','顺手浇了点水就走啦','在花园里坐了一会儿','说花开得真好看然后离开了'];
+    gAddLog(pName, phrases[Math.floor(Math.random()*phrases.length)]);
+    acted=true;
+  }
+  if(acted){
+    await saveGarden();
+    if(!silent) gToast(pName+' 来过花园了');
+  }
+}
+
+/* ===== TA 送花：每 1~12 小时抽一次，25% 概率送来一束花 ===== */
+function gTaGiftGapMs(){ return (1 + Math.random()*11) * 3600 * 1000; }
+function gPickTaGiftFlower(){
+  const keys = Object.keys(GARDEN_FLOWERS).filter(k=>!GARDEN_FLOWERS[k].rare);
+  const seen = keys.filter(k=>(gardenData.dex && gardenData.dex[k]) || (gardenData.inv && gardenData.inv[k]));
+  const pool = seen.length ? seen : keys;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+let _taGiftBusy = false;
+async function gTaSendBouquet(){
+  const type = gPickTaGiftFlower();
+  const tp = GARDEN_FLOWERS[type];
+  if(!tp) return;
+  const name = gPn();
+  const emoji = tp.e[tp.e.length-1] || '💐';
+  const msg = {
+    id: (typeof uid==='function' ? uid() : String(Date.now())+Math.random().toString(36).slice(2,6)),
+    from: 'bot',
+    type: 'gift',
+    emoji: emoji,
+    itemName: '一束' + tp.n,
+    price: 0,
+    note: tp.m ? ('花语：' + tp.m) : ('送给你一束我们一起种的' + tp.n),
+    content: '[花束]一束' + tp.n,
+    time: Date.now(),
+    read: true,
+    bouquet: true
+  };
+  try{
+    if(typeof chatMessages!=='undefined' && Array.isArray(chatMessages)) chatMessages.push(msg);
+    if(typeof recPut==='function') await recPut('chatMessages', msg);
+    const _inChat = (typeof currentView!=='undefined' && currentView==='chat');
+    if(typeof renderChat==='function' && _inChat){ try{ renderChat(); }catch(e){} }
+    if(!_inChat){
+      if(typeof chatUnread!=='undefined'){ chatUnread = true; try{ await sSet('chat-unread', true); }catch(e){} }
+      if(typeof renderUnreadDots==='function'){ try{ renderUnreadDots(); }catch(e){} }
+      if(typeof tryBgNotify==='function'){ try{ tryBgNotify(name+' 送来一束花', '💐 '+tp.n); }catch(e){} }
+    }
+  }catch(e){ console.warn('ta bouquet fail', e); }
+  gAddLog(name, '送来一束「'+tp.n+'」💐');
+}
+async function gCheckTaGift(){
+  if(_taGiftBusy) return;
+  _taGiftBusy = true;
+  try{
+    if(!gardenData) await loadGarden();
+    const now = Date.now();
+    if(!gardenData.nextTaGiftAt){ gardenData.nextTaGiftAt = now + gTaGiftGapMs(); await saveGarden(); return; }
+    if(now < gardenData.nextTaGiftAt) return;
+    // 到点了：先重排下一次，再按 25% 概率决定是否送花
+    gardenData.nextTaGiftAt = now + gTaGiftGapMs();
+    if(Math.random() < 0.25){ await gTaSendBouquet(); }
+    await saveGarden();
+  }catch(e){ console.warn('ta gift fail', e); }
+  finally{ _taGiftBusy = false; }
+}
+async function gCheckTaVisit(){
+  if(!gardenData) await loadGarden();
+  const hours = Math.max(1, Math.min(168, gardenData.taVisitHours||24));
+  const intervalMs = hours * 3600 * 1000;
+  const now = Date.now();
+  if(!gardenData.lastTaVisit) gardenData.lastTaVisit = now;
+  if(now - gardenData.lastTaVisit < intervalMs) return;
+  gardenData.lastTaVisit = now;
+  await gPartnerAct(false);
+  // 偶尔访客
+  if(Math.random()<0.35){
+    const vi = GARDEN_VISITORS[Math.floor(Math.random()*GARDEN_VISITORS.length)];
+    const dur = 3600 + Math.floor(Math.random()*10800);
+    gardenData.visitor = { type:vi.type, e:vi.e, n:vi.n, start:Math.floor(Date.now()/1000), dur };
+    gAddLog(vi.n, vi.e+' 来访了花园');
+    await saveGarden();
+  }
+}
+
+
+function renderGarden(){
+  const body = document.getElementById('gardenBody');
+  if(!body) return;
+  if(!gardenData){ loadGarden().then(()=>renderGarden()); return; }
+  const now = Math.floor(Date.now()/1000);
+  let changed=false;
+  for(let i=0;i<gardenData.p.length;i++){
+    const pl=gardenData.p[i];
+    if(!pl) continue;
+    const si=gStageInfo(pl);
+    if(si && si.bloomed && !pl.bloomedAt){ pl.bloomedAt=now; changed=true; }
+  }
+  // visitor expire
+  if(gardenData.visitor && (now - (gardenData.visitor.start||0) > (gardenData.visitor.dur||3600))){
+    gardenData.visitor=null; changed=true;
+  }
+  if(changed) saveGarden();
+
+  const lv=gLv(), exp=gardenData.exp||0, nextExp=(lv*lv)*10;
+  const wx=gWx(), sea=GARDEN_SEA[gSea()];
+  const plotN=gardenData.plotN||GARDEN_PLOTS_BASE, entitled=gPlotEntitled();
+  const st=gardenData.st||{};
+
+  let h='';
+  h += '<div class="gd-top">';
+  h += '<div class="gd-meta">Lv.'+lv+' · 经验 '+exp+'/'+nextExp+' · '+sea+' '+wx.i+wx.t+'</div>';
+  h += '<div class="gd-meta2">地块 '+plotN+'/'+entitled+' · 种'+ (st.plant||0)+' / 浇'+(st.water||0)+' / 收'+(st.harvest||0)+' / 肥'+(st.fert||0)+' / 杂'+(st.hybrid||0);
+  if(gardenData.visitor) h += ' · '+ (gardenData.visitor.e||'')+(gardenData.visitor.n||'')+'来访中';
+  h += '</div></div>';
+
+  h += '<div class="gd-tabs">';
+  [['field','田地'],['bag','种子袋'],['hybrid','杂交'],['bouquet','花束'],['dex','图鉴'],['log','日志']].forEach(([k,lab])=>{
+    h += '<div class="gd-tab'+(gardenTab===k?' on':'')+'" onclick="gardenTab=\''+k+'\';gardenTool=\'none\';renderGarden()">'+lab+'</div>';
+  });
+  h += '</div>';
+
+  if(gardenTab==='field'){
+    h += '<div class="gd-quick">';
+    h += '<div class="btn outline sm" onclick="gWaterAll()">一键浇水</div>';
+    h += '<div class="btn outline sm" onclick="gHarvestAll()">一键收获</div>';
+    h += '<div class="btn outline sm" onclick="gReplantAll()">一键补种</div>';
+    if(plotN < entitled) h += '<div class="btn outline sm" onclick="gExpand()">开垦</div>';
+    h += '</div>';
+
+    h += '<div class="gd-grid">';
+    for(let i=0;i<plotN;i++){
+      const pl=gardenData.p[i];
+      const si=gStageInfo(pl);
+      const wl=gWaterLvl(pl);
+      let cls='gd-plot'+(si?'':' empty')+(wl>0.3?' watered':'')+(gardenSel===i?' selected':'')+(si&&si.bloomed?' bloomed':'')+(si&&si.wilted?' wilted':'')+(si&&si.rare?' rare':'');
+      h += '<div class="'+cls+'" onclick="gOnPlotClick('+i+')">';
+      if(si){
+        h += '<div class="gd-emoji">'+si.emoji+'</div>';
+        h += '<div class="gd-name">'+si.name+'</div>';
+        if(si.wilted) h += '<div class="gd-stage wilt">已凋谢</div>';
+        else if(si.bloomed) h += '<div class="gd-stage ok">成熟</div>';
+        else h += '<div class="gd-stage">'+si.stageName+' · '+gFmtTime(si.nextSec)+'</div>';
+        if(wl>0) h += '<div class="gd-water"><i style="width:'+Math.round(wl*100)+'%"></i></div>';
+      } else {
+        h += '<div class="gd-emoji empty-ico">⬜</div><div class="gd-name">空地</div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+
+    h += '<div class="gd-ops">';
+    if(gardenSel>=0 && gardenSel<plotN){
+      const pl=gardenData.p[gardenSel];
+      const si=gStageInfo(pl);
+      if(!pl){
+        h += '<div class="gd-hint">选中空地 · 去「种子袋」选种子种植</div>';
+        h += '<div class="btn-row" style="margin-top:6px;"><div class="btn outline" onclick="gardenTab=\'bag\';renderGarden()">去种子袋</div></div>';
+      } else {
+        h += '<div class="gd-hint">'+si.emoji+' '+si.name+(si.m?' · '+si.m:'')+'（'+(si.plantedBy||'我')+'种的）</div>';
+        h += '<div class="btn-row" style="margin-top:8px;flex-wrap:wrap;gap:6px;">';
+        h += '<div class="btn" onclick="gWater('+gardenSel+')">💧 浇水</div>';
+        h += '<div class="btn outline" onclick="gFertilize('+gardenSel+')">施肥</div>';
+        if(si.bloomed) h += '<div class="btn" onclick="gHarvest('+gardenSel+')">'+(si.wilted?'清理':'收获')+'</div>';
+        h += '<div class="btn outline" onclick="gardenTool=\'hybrid\';gHybrid('+gardenSel+')">杂交</div>';
+        h += '</div>';
+      }
+    } else {
+      h += '<div class="gd-hint">点选一块地开始操作</div>';
+    }
+    h += '</div>';
+  } else if(gardenTab==='bag'){
+    h += '<div class="gd-bag">';
+    Object.keys(GARDEN_FLOWERS).forEach(k=>{
+      const tp=GARDEN_FLOWERS[k];
+      const cnt=gardenData.inv[k]||0;
+      const locked=!gUnlocked(k);
+      h += '<div class="gd-seed'+(locked?' locked':'')+(tp.rare?' rare':'')+'" onclick="'+( !locked && gardenSel>=0 && !gardenData.p[gardenSel] ? 'gPlant('+gardenSel+',\''+k+'\')' : '' )+'">';
+      h += '<span class="e">'+(tp.e[tp.e.length-1]||'🌱')+'</span>';
+      h += '<span class="n">'+tp.n+(tp.rare?' ✦':'')+'</span>';
+      h += '<span class="c">'+(cnt>0?('花束×'+cnt):'可种')+'</span>';
+      if(locked) h += '<span class="lk">Lv.'+tp.lv+'</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+    h += '<p class="gd-hint" style="margin-top:10px;">先在「田地」选中空地，再点花种即可种植（不限数量）。收获后的花会出现在「花束」库存里可赠送；杂交可得到稀有花。</p>';
+  } else if(gardenTab==='hybrid'){
+    h += '<div class="gd-hint" style="margin-bottom:10px;">把两株<strong>相邻、同阶段、不同种类</strong>的花放在一起，点其中一株的「杂交」按钮。配方如下：</div>';
+    h += '<div class="gd-hybrid-list">';
+    GARDEN_HYBRIDS.forEach(hrec=>{
+      const a=GARDEN_FLOWERS[hrec.a], b=GARDEN_FLOWERS[hrec.b], r=GARDEN_FLOWERS[hrec.r];
+      if(!a||!b||!r) return;
+      h += '<div class="gd-hy-row">'+a.e[a.e.length-1]+a.n+' + '+b.e[b.e.length-1]+b.n+' → <b>'+r.e[r.e.length-1]+' '+r.n+'</b></div>';
+    });
+    h += '</div>';
+    h += '<div class="btn-row" style="margin-top:12px;"><div class="btn outline" onclick="gardenTab=\'field\';renderGarden()">回田地操作</div></div>';
+  } else if(gardenTab==='bouquet'){
+    h += '<div class="gd-hint" style="margin-bottom:8px;">用收获后的花制作花束送给 '+gPn()+'（会写入聊天）。已送 '+(gardenData.bouquetCnt||0)+' 束。</div>';
+    h += '<div class="gd-bag">';
+    let any=false;
+    Object.keys(GARDEN_FLOWERS).forEach(k=>{
+      const cnt=gardenData.inv[k]||0;
+      if(cnt<1) return;
+      any=true;
+      const tp=GARDEN_FLOWERS[k];
+      h += '<div class="gd-seed" onclick="gMakeBouquet(\''+k+'\')">';
+      h += '<span class="e">'+(tp.e[tp.e.length-1])+'</span>';
+      h += '<span class="n">'+tp.n+'</span>';
+      h += '<span class="c">×'+cnt+'</span>';
+      h += '</div>';
+    });
+    if(!any) h += '<div class="gd-hint">还没有可送的花，先去田地收获吧</div>';
+    h += '</div>';
+  } else if(gardenTab==='dex'){
+    h += '<div class="gd-dex">';
+    Object.keys(GARDEN_FLOWERS).forEach(k=>{
+      const tp=GARDEN_FLOWERS[k];
+      const seen=gardenData.dex[k]||0;
+      h += '<div class="gd-dex-item'+(seen?'':' off')+(tp.rare?' rare':'')+'">';
+      h += '<span class="e">'+(seen?tp.e[tp.e.length-1]:'❓')+'</span>';
+      h += '<span class="n">'+(seen?tp.n:'???')+(tp.rare&&seen?' ✦':'')+'</span>';
+      if(seen) h += '<span class="c">'+seen+'次 · '+(tp.m||'')+'</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  } else if(gardenTab==='log'){
+    h += '<div class="gd-log">';
+    if(!gardenData.log||!gardenData.log.length) h += '<div class="gd-hint">还没有记录</div>';
+    else gardenData.log.slice(0,50).forEach(e=>{
+      const d=new Date(e.t);
+      const ts=(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      h += '<div class="gd-log-row"><span class="t">'+ts+'</span> <b>'+escapeHtml(e.who||'')+'</b> '+escapeHtml(e.act||'')+'</div>';
+    });
+    h += '</div>';
+  }
+
+  body.innerHTML = h;
+  gCheckTaVisit().catch(()=>{});
+  gCheckTaGift().catch(()=>{});
+}
+
+function gOnPlotClick(i){
+  gardenSel = i;
+  if(gardenTool==='hybrid'){ gHybrid(i); return; }
+  renderGarden();
+}
+
+async function gardenSetTaVisitHours(v){
+  if(!gardenData) await loadGarden();
+  let h = parseFloat(v); if(isNaN(h)) h=24;
+  h = Math.max(1, Math.min(168, h));
+  gardenData.taVisitHours = h;
+  await saveGarden();
+  gToast('TA 来访间隔已设为 '+h+' 小时');
+}
+async function gardenSaveTaVisitFromSettings(){
+  const el = document.getElementById('gardenTaVisitHours');
+  if(!el) return;
+  await gardenSetTaVisitHours(el.value);
+}
+async function gardenFillSettings(){
+  try{
+    if(!gardenData) await loadGarden();
+    const el = document.getElementById('gardenTaVisitHours');
+    if(el) el.value = gardenData.taVisitHours || 24;
   }catch(e){}
 }
-async function saveMallState(){
-  try{ await sSet('mall-state', mallState); }catch(e){}
-}
-function mallScheduleNextAutoBuy(){
-  const a = Math.max(1, Number(mallState.autoBuyMinMin)||30) * 60 * 1000;
-  const b = Math.max(1, Number(mallState.autoBuyMaxMin)||180) * 60 * 1000;
-  const wait = Math.min(a,b) + Math.random() * (Math.abs(b-a) + 1);
-  mallState.nextAutoBuyAt = Date.now() + wait;
-}
-async function checkMallAutoBuy(){
-  try{
-    if(mallState.autoBuy === false) return;
-    if(!mallState.nextAutoBuyAt){
-      mallScheduleNextAutoBuy();
-      await saveMallState();
-      return;
-    }
-    if(Date.now() < mallState.nextAutoBuyAt) return;
-    // 流程：到点 → 先在间隔内再抽一个下次时间 → 再掷概率；没中就不买，等下次到点再掷
-    mallScheduleNextAutoBuy();
-    const prob = (mallState.buyProb||25) / 100;
-    if(Math.random() > prob){
-      await saveMallState();
-      return; // 没抽中：不买，已排好下一次时间
-    }
-    const cats = Object.keys(MALL_ITEMS);
-    const all = [];
-    cats.forEach(cat => mallGetItems(cat).forEach(it => all.push({...it, _cat: cat})));
-    if(!all.length){ await saveMallState(); return; }
-    const it = all[Math.floor(Math.random()*all.length)];
-    const giftId = it.id + '-' + Date.now();
-    mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
-    await saveMallState();
-    await pushGiftChatMsg(it, 'bot');
-    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
-    if(currentView === 'mall') try{ renderMall(); }catch(e){}
-  }catch(e){ console.warn('checkMallAutoBuy', e); }
-}
-function renderMall(initialCat){
-  loadMallState().then(()=>{
-    const body = document.getElementById('mallBody');
-    if(!body) return;
-    let html = `
-    <div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.04);">
-      <div style="font-size:11px;color:var(--ink-soft);line-height:1.75;">
-        自动买礼物
-        <span class="switch ${mallState.autoBuy!==false?'on':''}" id="mallAutoBuySw" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))" style="display:inline-flex;vertical-align:middle;transform:scale(.85);"><div class="dot"></div></span>
-        <br>
-        检查间隔
-        <input type="number" id="mallAutoMin" min="1" max="10080" value="${mallState.autoBuyMinMin||30}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> ～
-        <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:56px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetAutoInterval()"> 分钟
-        <br>
-        买到概率
-        <input type="number" id="mallBuyProb" min="0" max="100" value="${mallState.buyProb}" style="width:52px;text-align:center;border:1px solid #ddd;border-radius:6px;padding:2px 4px;" onchange="mallSetBuyProb(this.value)"> %
-      </div>
-    </div>
-    <div class="mb-tabs" style="margin-bottom:10px;">
-      <div class="mb-tab on" data-cat="daily" onclick="mallShowCat('daily',this)">日常用品</div>
-      <div class="mb-tab" data-cat="couple" onclick="mallShowCat('couple',this)">情侣用品</div>
-      <div class="mb-tab" data-cat="food" onclick="mallShowCat('food',this)">食物</div>
-      <div class="mb-tab" data-cat="memorial" onclick="mallShowCat('memorial',this)">纪念品</div>
-      <div class="mb-tab" data-cat="gifts" onclick="mallShowCat('gifts',this)">礼物柜</div>
-      <div class="mb-tab" data-cat="ledger" onclick="mallShowCat('ledger',this)">流水</div>
-      <div class="mb-tab" data-cat="custom" onclick="mallShowCat('custom',this)">自定义</div>
-    </div>
-    <div id="mallItems"></div>`;
-    body.innerHTML = html;
-    const tab = (initialCat && ['daily','couple','food','memorial','gifts','ledger','custom'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
-    mallShowCat(tab);
-  });
-}
-function mallShowCat(cat, el){
-  mallState._lastCat = cat;
-  document.querySelectorAll('#mallBody .mb-tab').forEach(t=>t.classList.remove('on'));
-  if(el) el.classList.add('on');
-  else {
-    const t = document.querySelector(`#mallBody .mb-tab[data-cat="${cat}"]`);
-    if(t) t.classList.add('on');
-  }
-  const box = document.getElementById('mallItems');
-  if(!box) return;
-  const name = (chatSettings && chatSettings.companionName) || 'TA';
-  const safeName = (typeof escapeHtml==='function') ? escapeHtml(name) : String(name||'');
 
-  if(cat==='gifts'){
-    if(!mallState.gifts.length){
-      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">礼物柜还是空的～去买点礼物吧</div>';
-      return;
-    }
-    const sorted = mallState.gifts.slice().sort((a,b)=> (b.time||0)-(a.time||0));
-    box.innerHTML = sorted.map(g=>{
-      const who = g.from==='me' ? `我 → ${safeName}` : `${safeName} → 我`;
-      const d = g.time ? new Date(g.time).toLocaleString() : '';
-      const gid = String(g.id||'').replace(/'/g,'');
-      return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
-        <div style="font-size:28px;">${g.emoji||'🎁'}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(g.name):g.name}</div>
-          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${who} · ¥${g.price} · ${d}</div>
-        </div>
-        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);border-color:rgba(139,58,86,.35);" onclick="mallDeleteGift('${gid}')">删除</div>
-      </div>`;
-    }).join('');
-    return;
-  }
+loadGarden().then(()=>{ gCheckTaVisit().catch(()=>{}); gCheckTaGift().catch(()=>{}); }).catch(()=>{});
+setInterval(()=>{ try{ gCheckTaGift().catch(()=>{}); }catch(e){} }, 5*60*1000);
 
-  if(cat==='ledger'){
-    if(!mallState.ledger || !mallState.ledger.length){
-      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">还没有流水记录</div>';
-      return;
-    }
-    box.innerHTML = mallState.ledger.map(r=>{
-      const whoLabel = r.who==='me' ? '我' : safeName;
-      const sign = r.amount >= 0 ? '+' : '';
-      const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
-      const d = r.time ? new Date(r.time).toLocaleString() : '';
-      return `<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
-        <div style="display:flex;justify-content:space-between;gap:8px;">
-          <div style="font-weight:700;font-size:13px;">${whoLabel} · ${(typeof escapeHtml==='function')?escapeHtml(r.note||r.type): (r.note||r.type)}</div>
-          <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
-        </div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}</div>
-      </div>`;
-    }).join('');
-    return;
-  }
 
-  if(cat==='custom'){
-    const list = mallState.customItems || [];
-    box.innerHTML = `
-      <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(0,0,0,.08);">
-        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">添加自定义商品</div>
-        <label class="field">分类</label>
-        <select id="mallCustomCat" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px;">
-          <option value="daily">日常用品</option>
-          <option value="couple">情侣用品</option>
-          <option value="food">食物</option>
-          <option value="memorial">纪念品</option>
-        </select>
-        <label class="field">名称</label>
-        <input type="text" id="mallCustomName" placeholder="例如：限定周边" style="width:100%;margin-bottom:8px;">
-        <label class="field">Emoji</label>
-        <input type="text" id="mallCustomEmoji" placeholder="🎁" style="width:100%;margin-bottom:8px;">
-        <label class="field">价格（元）</label>
-        <input type="number" id="mallCustomPrice" min="1" value="50" style="width:100%;margin-bottom:10px;">
-        <div class="btn" style="width:100%;text-align:center;" onclick="mallAddCustomItem()">添加商品</div>
-      </div>
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">已添加 ${list.length} 件自定义商品</div>
-      ${list.length ? list.map(it=>{
-        const cid = String(it.id||'').replace(/'/g,'');
-        return `<div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
-          <div style="font-size:26px;">${it.emoji||'🎁'}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(it.name):it.name}</div>
-            <div style="font-size:11px;color:var(--ink-soft);">${MALL_CAT_LABEL[it.cat]||it.cat} · ¥${it.price}</div>
-          </div>
-          <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallDeleteCustomItem('${cid}')">删除</div>
-        </div>`;
-      }).join('') : '<div style="text-align:center;color:var(--ink-soft);padding:16px;font-size:13px;">还没有自定义商品</div>'}
-    `;
-    return;
-  }
-
-  const items = mallGetItems(cat);
-  box.innerHTML = items.map(it=>{
-    const isCustom = String(it.id||'').startsWith('custom-');
-    return `
-    <div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
-      <div style="font-size:28px;">${it.emoji}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:14px;">${it.name}${isCustom?' <span style="font-size:10px;color:var(--ink-soft);font-weight:400;">自定义</span>':''}</div>
-        <div style="font-size:13px;color:var(--rouge);margin-top:2px;">¥${it.price}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <div class="btn" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','me')">我买给${safeName}</div>
-        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','ta')">让${safeName}买给我</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-async function mallSetBuyProb(v){
-  mallState.buyProb = Math.max(0, Math.min(100, parseInt(v,10)||0));
-  await saveMallState();
-}
-async function mallSetAutoBuy(on){
-  mallState.autoBuy = !!on;
-  if(on && !mallState.nextAutoBuyAt) mallScheduleNextAutoBuy();
-  await saveMallState();
-}
-async function mallSetAutoInterval(){
-  let a = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMin').value,10)||30));
-  let b = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMax').value,10)||180));
-  if(a > b){ const t=a; a=b; b=t; }
-  mallState.autoBuyMinMin = a;
-  mallState.autoBuyMaxMin = b;
-  mallScheduleNextAutoBuy();
-  await saveMallState();
-  _flashToast('自动买礼物间隔已更新，已重新计时', false);
-}
-async function mallDeleteGift(gid){
-  if(!confirm('确定从礼物柜删除这件礼物吗？')) return;
-  mallState.gifts = (mallState.gifts||[]).filter(g => String(g.id) !== String(gid));
-  await saveMallState();
-  _flashToast('已删除', false);
-  mallShowCat('gifts');
-}
-async function mallAddCustomItem(){
-  const cat = (document.getElementById('mallCustomCat')||{}).value || 'daily';
-  const name = ((document.getElementById('mallCustomName')||{}).value || '').trim();
-  let emoji = ((document.getElementById('mallCustomEmoji')||{}).value || '').trim() || '🎁';
-  const price = Math.max(1, parseInt((document.getElementById('mallCustomPrice')||{}).value,10) || 50);
-  if(!name){ _flashToast('请填写商品名称', true); return; }
-  if(!Array.isArray(mallState.customItems)) mallState.customItems = [];
-  mallState.customItems.push({ id:'custom-'+uid(), cat, name, emoji, price });
-  await saveMallState();
-  _flashToast('已添加「'+name+'」', false);
-  mallShowCat('custom');
-}
-async function mallDeleteCustomItem(cid){
-  if(!confirm('确定删除这个自定义商品吗？')) return;
-  mallState.customItems = (mallState.customItems||[]).filter(x => String(x.id) !== String(cid));
-  await saveMallState();
-  _flashToast('已删除', false);
-  mallShowCat('custom');
-}
-async function pushGiftChatMsg(it, from){
-  const msg = {
-    id: uid(),
-    from: from,
-    type: 'gift',
-    itemName: it.name,
-    emoji: it.emoji || '🎁',
-    price: it.price,
-    content: it.name,
-    time: Date.now(),
-    read: from === 'bot' ? true : false
-  };
-  chatMessages.push(msg);
-  try{ await recPut('chatMessages', msg); }catch(e){ console.warn('gift chat put fail', e); }
-  if(from === 'bot'){
-    if(currentView !== 'chat'){
-      chatUnread = true;
-      try{ await sSet('chat-unread', true); }catch(e){}
-      try{ renderUnreadDots(); }catch(e){}
-    }
-  }
-  if(currentView === 'chat'){
-    try{ renderChat(); scrollChatBottom(); }catch(e){}
-  }
-}
-async function mallBuy(itemId, cat, who){
-  const it = mallFindItem(itemId, cat);
-  if(!it) return;
-  const name = (chatSettings && chatSettings.companionName) || 'TA';
-  if(who==='me'){
-    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
-    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name);
-    await saveMallState();
-    await pushGiftChatMsg(it, 'user');
-    _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
-  } else {
-    const prob = (mallState.buyProb||25)/100;
-    if(Math.random() > prob){
-      await saveMallState();
-      _flashToast(`${name} 这次没买成（概率 ${mallState.buyProb}%），再试试～`, true);
-      renderMall(cat || mallState._lastCat || 'daily');
-      return;
-    }
-    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你');
-    await saveMallState();
-    await pushGiftChatMsg(it, 'bot');
-    _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
-  }
-  // 买完留在当前分类，商品不会下架，可重复购买
-  renderMall(cat || mallState._lastCat || 'daily');
-}
-// 启动时加载 + 排自动买
-loadMallState().then(()=>{
-  if(mallState.autoBuy !== false && !mallState.nextAutoBuyAt){
-    mallScheduleNextAutoBuy();
-    saveMallState();
-  }
-}).catch(()=>{});
 
 
 </script>
@@ -11456,6 +11844,55 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 #view-home .anniv-text .al.r::after{left:auto;right:0;}
 #view-home .hero-caption{color:var(--h-mauve)!important;font-family:var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif)!important;font-size:16px!important;letter-spacing:3px!important;line-height:1.6!important;font-weight:400!important;}
 #view-home .hero-caption::before,#view-home .hero-caption::after{color:var(--h-mauve)!important;opacity:.85;font-size:17px!important;vertical-align:5px!important;margin:0 8px!important;}
+
+/* ===== 花园 GARDEN ===== */
+#view-garden .gd-top{margin-bottom:10px;}
+#view-garden .gd-meta{font-size:13px;font-weight:600;letter-spacing:1px;}
+#view-garden .gd-meta2{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+#view-garden .gd-tabs{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap;}
+#view-garden .gd-tab{padding:6px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(42,36,31,.15);background:rgba(255,255,255,.55);cursor:pointer;}
+#view-garden .gd-tab.on{background:var(--blush,#f3d6dc);border-color:var(--rouge,#c45c6a);color:var(--rouge,#c45c6a);font-weight:600;}
+#view-garden .gd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+#view-garden .gd-plot{border:1px solid rgba(42,36,31,.12);border-radius:14px;padding:10px 6px 8px;text-align:center;background:rgba(255,255,255,.6);min-height:92px;cursor:pointer;transition:transform .12s,box-shadow .12s;}
+#view-garden .gd-plot:active{transform:scale(.97);}
+#view-garden .gd-plot.selected{box-shadow:0 0 0 2px var(--rouge,#c45c6a);background:rgba(255,240,245,.85);}
+#view-garden .gd-plot.empty{opacity:.75;border-style:dashed;}
+#view-garden .gd-plot.watered{background:rgba(200,230,245,.45);}
+#view-garden .gd-plot.bloomed{background:rgba(255,235,245,.7);}
+#view-garden .gd-plot.wilted{opacity:.55;filter:grayscale(.4);}
+#view-garden .gd-plot.rare{border-color:rgba(196,92,106,.45);}
+#view-garden .gd-emoji{font-size:26px;line-height:1.2;}
+#view-garden .gd-name{font-size:12px;margin-top:2px;letter-spacing:.5px;}
+#view-garden .gd-stage{font-size:10px;color:var(--ink-soft);margin-top:2px;}
+#view-garden .gd-stage.ok{color:var(--rouge,#c45c6a);font-weight:600;}
+#view-garden .gd-stage.wilt{color:#999;}
+#view-garden .gd-water{height:3px;background:rgba(0,0,0,.06);border-radius:2px;margin-top:6px;overflow:hidden;}
+#view-garden .gd-water i{display:block;height:100%;background:#6ab0d8;border-radius:2px;}
+#view-garden .gd-ops{margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid rgba(42,36,31,.08);}
+#view-garden .gd-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;}
+#view-garden .gd-bag,#view-garden .gd-dex{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+#view-garden .gd-seed,#view-garden .gd-dex-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.6);border:1px solid rgba(42,36,31,.1);cursor:pointer;}
+#view-garden .gd-seed.empty{opacity:.45;}
+#view-garden .gd-seed.locked{opacity:.4;cursor:not-allowed;}
+#view-garden .gd-seed.rare{border-color:rgba(196,92,106,.4);}
+#view-garden .gd-seed .e,#view-garden .gd-dex-item .e{font-size:22px;}
+#view-garden .gd-seed .n,#view-garden .gd-dex-item .n{flex:1;font-size:13px;}
+#view-garden .gd-seed .c{font-size:12px;color:var(--ink-soft);}
+#view-garden .gd-seed .lk{font-size:10px;color:var(--rouge);}
+#view-garden .gd-dex-item.off{opacity:.4;}
+#view-garden .gd-log{font-size:12.5px;line-height:1.7;}
+#view-garden .gd-log-row{padding:6px 0;border-bottom:1px dashed rgba(42,36,31,.08);}
+#view-garden .gd-log-row .t{color:var(--ink-soft);margin-right:6px;font-size:11px;}
+@media (min-width:420px){#view-garden .gd-grid{grid-template-columns:repeat(4,1fr);}}
+
+#view-garden .gd-quick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+#view-garden .btn.sm{padding:6px 10px;font-size:11px;}
+#view-garden .gd-emoji.empty-ico{opacity:.35;font-size:18px;}
+#view-garden .gd-hybrid-list{display:flex;flex-direction:column;gap:6px;}
+#view-garden .gd-hy-row{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.55);border:1px solid rgba(42,36,31,.08);font-size:12.5px;line-height:1.4;}
+#view-garden .gd-hy-row b{color:var(--rouge,#c45c6a);}
+
+
 </style>
 </body>
 </html>
