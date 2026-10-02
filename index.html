@@ -2458,7 +2458,7 @@ async function init(){
   chatSettings = withDefaults('chatSettings', await sGet('chat-settings', null));
   if(typeof chatSettings.delayMin !== 'number') chatSettings.delayMin = 30;
   if(typeof chatSettings.delayMax !== 'number') chatSettings.delayMax = 5;
-  chatSettings.delayMin = Math.max(1, Math.min(3600, Math.round(chatSettings.delayMin)));
+  chatSettings.delayMin = Math.max(0, Math.min(3600, Math.round(chatSettings.delayMin)));
   chatSettings.delayMax = Math.max(1, Math.min(1440, Math.round(chatSettings.delayMax)));
   delete chatSettings.delayUnit;
   if(typeof chatSettings.transferEnabled !== 'boolean') chatSettings.transferEnabled = !!chatSettings.redPacketEnabled;
@@ -3835,12 +3835,12 @@ function memberColor(name){
   let s=0; const str=String(name||''); for(let i=0;i<str.length;i++) s += str.charCodeAt(i)*(i+1);
   return palette[s % palette.length];
 }
-/* 多人回复（参考包 partnerPersonas 机制）：每轮回复前约 30% 概率随机指派一位伙伴，其余仍是默认梦角；
+/* 多人回复（参考包 partnerPersonas 机制）：每轮回复前 25% 概率随机指派一位伙伴，其余 75% 仍是默认梦角；
    被指派的人真正写进消息 sender 字段，历史消息永不被改写。 */
 function pickGroupPersona(){
   const g = chatSettings.group;
   if(!g || !g.enabled || !Array.isArray(g.members) || g.members.length===0) return null;
-  if(Math.random() >= 0.3) return null;
+  if(Math.random() >= 0.25) return null;
   return g.members[Math.floor(Math.random()*g.members.length)] || null;
 }
 function assignGroupSender(msg){
@@ -4277,7 +4277,7 @@ function handleIncomingForBot(userText){
 
 /** 最快回复：delayMin 秒；最慢回复：delayMax 分钟 */
 function getReplyDelayMs(){
-  const loMs = Math.max(1, Number(chatSettings.delayMin) || 30) * 1000;
+  const loMs = Math.max(0, Number.isFinite(Number(chatSettings.delayMin)) ? Number(chatSettings.delayMin) : 30) * 1000;
   const hiMs = Math.max(1, Number(chatSettings.delayMax) || 5) * 60 * 1000;
   const lo = Math.min(loMs, hiMs);
   const hi = Math.max(loMs, hiMs);
@@ -5125,7 +5125,7 @@ function openChatSettings(){
     </div>
     <label class="field">最快回复</label>
     <div style="display:flex;align-items:center;gap:8px;">
-      <input type="number" min="1" max="3600" step="1" value="${chatSettings.delayMin||30}" id="csDelayMin" style="width:100%;">
+      <input type="number" min="0" max="3600" step="1" value="${chatSettings.delayMin}" id="csDelayMin" style="width:100%;">
       <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">秒</span>
     </div>
     <label class="field" style="margin-top:10px;">最慢回复</label>
@@ -5515,7 +5515,7 @@ function onStickerFile(e, which){
 }
 async function saveChatSettings(){
   chatSettings.companionName = document.getElementById('csName').value.trim() || chatSettings.companionName;
-  chatSettings.delayMin = Math.max(1, Math.min(3600, parseInt(document.getElementById('csDelayMin').value,10) || 30));
+  chatSettings.delayMin = (function(){ const v = parseInt(document.getElementById('csDelayMin').value,10); return Number.isFinite(v) ? Math.max(0, Math.min(3600, v)) : 30; })();
   chatSettings.delayMax = Math.max(1, Math.min(1440, parseInt(document.getElementById('csDelayMax').value,10) || 5));
   delete chatSettings.delayUnit;
   chatSettings.readNoReply = document.getElementById('csReadNoReply').classList.contains('on');
@@ -7473,9 +7473,8 @@ function scheduleNextMoyu(){
   }
   moyuState.nextAt = Date.now() + interval;
 }
-// 班间等待：下班后 0~12 小时随机再开新班（照抄 ZY3）
 function scheduleNextSession(){
-  moyuState.nextAt = Date.now() + Math.floor(Math.random()*13)*60*60*1000;
+  moyuState.nextAt = Date.now() + Math.floor(Math.random()*8*60*60*1000);
 }
 async function startMoyuSession(){
   if(!moyuState.enabled) return;
@@ -7489,7 +7488,7 @@ async function startMoyuSession(){
     moyuState.history.unshift(moyuState.currentSession);
     if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
   }
-  const workMs = Math.floor(Math.random()*13)*60*60*1000; // 0~12 小时一班（照抄 ZY3）
+  const workMs = Math.floor(Math.random()*8*60*60*1000);
   moyuState.currentSession = {
     id: uid(),
     location: pickMoyuLocation(),
@@ -7520,7 +7519,7 @@ async function generateMoyuRecord(){
   }
   const sess = moyuState.currentSession;
   const elapsed = Date.now() - sess.startTime;
-  // 下班了：先归档本班，再随机等 0~12 小时开新班（照抄 ZY3）
+  // 下班了：先归档本班，再随机等一段时间开新班
   if(elapsed >= sess.workMs){
     if(!moyuState.history) moyuState.history = [];
     moyuState.history.unshift(sess);
