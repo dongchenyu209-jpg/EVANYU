@@ -373,7 +373,7 @@
 .msg.sticker img{ width:48px; height:48px; object-fit:contain; }
 .msg.image{ background:none !important; border:none !important; padding:0; box-shadow:none; max-width:65%; }
 .chat-image{ max-width:100%; max-height:220px; border-radius:8px; display:block; cursor:pointer; box-shadow:0 2px 6px -2px rgba(42,36,31,0.3); }
-.msg.redpacket{ background:linear-gradient(135deg,#C0392B,#8A2331); color:#fff; border:none !important; border-radius:12px; padding:10px 16px; min-width:130px; cursor:default; box-shadow:0 3px 8px -2px rgba(122,37,48,0.55); }  .quote-ref{
+.quote-ref{
     font-size:11px; opacity:.8; border-left:2.5px solid currentColor; padding:3px 8px; margin-bottom:6px; border-radius:3px;
     background:rgba(0,0,0,0.06); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
     cursor:pointer;
@@ -394,10 +394,14 @@
   .quote-bar{ padding:7px 12px; border-top:1px dashed var(--rule); background:transparent; }
   .quote-bar-inner{ display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-soft); }
   .quote-bar-inner span:first-child{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .msg.redpacket.bot{ cursor:pointer; }
-  .msg.redpacket .rp-top{ font-size:12px; opacity:.9; }
-  .msg.redpacket .rp-amount{ font-size:21px; font-weight:900; margin-top:4px; }
-  .msg.redpacket .rp-tap{ font-size:12px; margin-top:6px; opacity:.85; border-top:1px dashed rgba(255,255,255,0.4); padding-top:6px; }
+  .msg.transfer{ background:#F79C46; color:#fff; border:none !important; border-radius:10px; padding:10px 14px; min-width:170px; cursor:default; box-shadow:0 3px 8px -2px rgba(160,90,20,0.45); }
+  .msg.transfer .tf-main{ display:flex; align-items:center; gap:10px; }
+  .msg.transfer .tf-ico{ width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; flex-shrink:0; }
+  .msg.transfer .tf-amount{ font-size:20px; font-weight:800; line-height:1.2; }
+  .msg.transfer .tf-status{ font-size:12px; opacity:.95; margin-top:1px; }
+  .msg.transfer .tf-note{ font-size:11px; margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.35); opacity:.9; }
+  .msg.transfer.accepted, .msg.transfer.returned{ background:#F9D3A8; box-shadow:none; }
+  .msg.transfer.bot.pending{ cursor:pointer; }
   .msg.gift-card{
     width:148px; max-width:58%; aspect-ratio:1/1; padding:0; overflow:hidden;
     background:#ffffff; border:1px solid rgba(0,0,0,.08);
@@ -1670,7 +1674,7 @@
         <div class="mini-btn" onclick="openStickerPicker('attach','ta')" title="对方的表情包（可与文字同发）">
           <svg viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="13" rx="2.5"/><path d="M8.5 9h.01M14.5 9h.01M9 12.5c.9 1 1.9 1.5 3 1.5s2.1-.5 3-1.5"/><path d="M8 20.5h8"/></svg>
         </div>
-        <div class="mini-btn" onclick="openSendRedPacket()" title="红包">
+        <div class="mini-btn" onclick="openSendTransfer()" title="转账">
           <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M5 9h14"/><circle cx="12" cy="13.5" r="2.2"/></svg>
         </div>
         <div class="mini-btn" onclick="document.getElementById('chatImageInput').click()" title="图片">
@@ -2323,7 +2327,7 @@ function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toStrin
    ============================================================ */
 let profile = { name:'陆沉', status:'', avatar:'🌙', photo:null, photos:[null,null,null], myName:'我', myAvatar:'🙂', myBio:'', momentsCover:null, anniversaryDate:null };
 let polaCur = 0;
-let chatSettings = { companionName:'陆沉', delayMin:30, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, redPacketEnabled:false, comboReplyProb:35, group:{ enabled:false, showName:true, members:[] }, background:null, stickers:[], myStickers:[
+let chatSettings = { companionName:'陆沉', delayMin:30, delayMax:5, readNoReply:false, readNoReplyProb:20, replyMaxCount:1, transferEnabled:false, comboReplyProb:35, group:{ enabled:false, showName:true, members:[] }, background:null, stickers:[], myStickers:[
   {id:'e1', type:'emoji', value:'🌙'}, {id:'e2', type:'emoji', value:'☕'}, {id:'e3', type:'emoji', value:'📖'}
 ], taStickers:[
   {id:'t1', type:'emoji', value:'🌙'}, {id:'t2', type:'emoji', value:'☕'}, {id:'t3', type:'emoji', value:'📖'}
@@ -2457,7 +2461,8 @@ async function init(){
   chatSettings.delayMin = Math.max(1, Math.min(3600, Math.round(chatSettings.delayMin)));
   chatSettings.delayMax = Math.max(1, Math.min(1440, Math.round(chatSettings.delayMax)));
   delete chatSettings.delayUnit;
-  if(typeof chatSettings.redPacketEnabled !== 'boolean') chatSettings.redPacketEnabled = false;
+  if(typeof chatSettings.transferEnabled !== 'boolean') chatSettings.transferEnabled = !!chatSettings.redPacketEnabled;
+  delete chatSettings.redPacketEnabled;
   if(typeof chatSettings.comboReplyProb !== 'number') chatSettings.comboReplyProb = 35;
   chatSettings.comboReplyProb = Math.max(0, Math.min(100, Math.round(chatSettings.comboReplyProb)));
 
@@ -2572,6 +2577,7 @@ async function init(){
     checkQuestionnaireReplies();
     resumeMoyuSchedule();
     resumePendingInviteReplies();
+    try{ checkTransferDue(); }catch(e){}
     if(typeof resumeCall === 'function'){ resumeCall(); }
     if(typeof tzStart === "function") tzStart();
     if(!hasReplyScheduled()){
@@ -3209,7 +3215,7 @@ document.addEventListener('visibilitychange', ()=>{
 // 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
 window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
 setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
-setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
+setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
 
 
 function normalizeCardsJson(raw){
@@ -3877,20 +3883,29 @@ function renderChat(preserveScroll, scrollToId){
   const _senderAvatar = (_isGroup && m.sender && m.senderAvatar && String(m.senderAvatar).startsWith('data:')) ? m.senderAvatar : null;
   const _gmAvatar = _isGroup ? (_senderAvatar ? `<img loading="lazy" decoding="async" src="${_senderAvatar}">` : (m.sender ? `<span class="gname-fallback" style="background:${memberColor(m.sender)}">${escapeHtml((String(m.sender).trim().charAt(0))||'?')}</span>` : botAvatar)) : botAvatar;
   const avatarHtml = `<div class="msg-avatar">${m.from==='user'?myAvatar:_gmAvatar}</div>`;
+    if(m.type==='redpacket'){
+      m.type = 'transfer'; m.status = (m.from==='user' || m.opened) ? 'accepted' : 'pending'; delete m.opened;
+      m.content = '[转账] ¥' + Number(m.amount).toFixed(2);
+      recPut('chatMessages', m).catch(function(){});
+    }
     let bubbleHtml;
     if(m.type==='sticker'){
       const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
       bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${quoteBtn}</div></div>`;
     } else if(m.type==='image'){
       bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div></div>`;
-    } else if(m.type==='redpacket'){
-      const revealed = m.from==='user' || m.opened;
-      const tapAttr = revealed ? '' : `onclick="openRedPacket('${m.id}')"`;
-      bubbleHtml = `<div class="msg redpacket ${m.from}" ${tapAttr}>
+    } else if(m.type==='transfer'){
+      const st = m.status || 'pending';
+      const mine = m.from==='user';
+      const who = (mine && m.receiver) ? escapeHtml(m.receiver) : '';
+      const stText = st==='accepted' ? (who+'已收下') : (st==='returned' ? (who+'已退回') : (mine ? '待对方收款' : '点击收款'));
+      const stIco = st==='accepted' ? '✓' : (st==='returned' ? '↩' : '⇄');
+      const tapAttr = (!mine && st==='pending') ? `onclick="openTransferAction('${m.id}')"` : '';
+      bubbleHtml = `<div class="msg transfer ${m.from} ${st}" ${tapAttr}>
         ${quoteRefHtml}
-        <div class="rp-top">🧧 ${escapeHtml(m.note||'红包')}</div>
-        ${revealed ? `<div class="rp-amount">¥${Number(m.amount).toFixed(2)}</div>` : `<div class="rp-tap">点击查收</div>`}
-        <div class="t" style="color:rgba(255,255,255,0.75);">${time}${quoteBtn}</div>
+        <div class="tf-main"><div class="tf-ico">${stIco}</div><div><div class="tf-amount">¥${Number(m.amount).toFixed(2)}</div><div class="tf-status">${stText}</div></div></div>
+        <div class="tf-note">${escapeHtml(m.note||'转账')}</div>
+        <div class="t" style="color:rgba(255,255,255,0.85);">${time}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='gift'){
       const fromMe = m.from==='user';
@@ -4003,12 +4018,28 @@ async function jumpToMessage(id){
   }
   renderChat(false, id);
 }
-async function openRedPacket(id){
+function openTransferAction(id){
   const m = chatMessages.find(x=>x.id===id);
-  if(!m || m.opened) return;
-  m.opened = true;
+  if(!m || m.status!=='pending') return;
+  openOverlay(`
+    <div class="drawer-head"><h3>转账</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div style="text-align:center;padding:10px 0 4px;">
+      <div style="font-size:28px;font-weight:800;">¥${Number(m.amount).toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:6px;">${escapeHtml(m.note||'转账')}</div>
+    </div>
+    <div class="btn-row">
+      <div class="btn rouge" onclick="resolveTransfer('${m.id}', true)">收款</div>
+      <div class="btn outline" onclick="resolveTransfer('${m.id}', false)">退还</div>
+    </div>
+  `);
+}
+async function resolveTransfer(id, accept){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || m.status!=='pending') return;
+  m.status = accept ? 'accepted' : 'returned';
   await recPut('chatMessages', m);
-  renderChat();
+  closeOverlay();
+  renderChat(true);
 }
 function scrollChatBottom(){
   const wrap = document.getElementById('chatMsgs');
@@ -4020,7 +4051,7 @@ function buildQuotePreview(m){
   if(m.type==='sticker') return '[表情]';
   if(m.type==='combo') return '[表情+文字] '+(m.content||'').slice(0,20);
   if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
-  if(m.type==='redpacket') return '[红包]' + (m.note ? ('·'+m.note) : '');
+  if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
@@ -4440,10 +4471,10 @@ function getSplicedCardText(){
   const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
-const REDPACKET_NOTES = ['给你买奶茶','塞进你口袋','抢一个','爱的红包','恭喜发财','小心心'];
+const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦啦'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
-  const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发红包、拍一拍
+  const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发转账、拍一拍
   // 各类型各自独立抽签（以前共用一个 roll，表情概率一调高，拍一拍就永远抽不到）
   if(!followup){
     // 拍一拍：和 milk-Message-Cards 一样，每次回复有 3% 几率改发一条拍一拍，只从「拍一拍库」里抽（库是空的就不拍）
@@ -4451,11 +4482,11 @@ function pickReplyFor(userText, opts){
       const pr = patReplyFromLibrary();
       if(pr) return pr;
     }
-    // 开启“允许发送红包”后才会随机发；关闭时完全不会自动发红包
-    if(chatSettings.redPacketEnabled && Math.random() < 0.05){
-      const amount = (Math.random()*188+1).toFixed(2);
-      const note = REDPACKET_NOTES[Math.floor(Math.random()*REDPACKET_NOTES.length)];
-      return { type:'redpacket', amount, note, opened:false };
+    // 开启“允许发送转账”后才会随机发；关闭时完全不会自动发转账
+    if(chatSettings.transferEnabled && Math.random() < 0.05){
+      const amount = (5.2 * Math.pow(666666/5.2, Math.random())).toFixed(2);
+      const note = TRANSFER_NOTES[Math.floor(Math.random()*TRANSFER_NOTES.length)];
+      return { type:'transfer', amount, note, content:'[转账] ¥'+amount, status:'pending' };
     }
   }
   // 表情包 / 表情+文字（只用「对方可用」那套）；若抽到动作字卡则不当成文字混进表情
@@ -5114,8 +5145,8 @@ function openChatSettings(){
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,chatSettings.readNoReplyProb!=null?chatSettings.readNoReplyProb:20))}" id="csReadNoReplyProb" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">开启后，每条消息有多大概率被已读不回（0%＝每次都回，100%＝条条不回）</div>
     <div class="switch-row">
-      <span>允许发送红包<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 有机会随机给你发红包；关闭后不会自动发红包</div></span>
-      <div class="switch ${chatSettings.redPacketEnabled?'on':''}" id="csRedPacketEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
+      <span>允许发送转账<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 有机会随机给你转账；关闭后不会自动转账</div></span>
+      <div class="switch ${chatSettings.transferEnabled?'on':''}" id="csTransferEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
     <div class="box-title" style="margin-top:14px;">回复连发</div>
     <label class="field">一次最多连回：<input type="number" id="csReplyMaxCount" min="1" max="20" step="1" value="${Math.max(1,Math.min(20,chatSettings.replyMaxCount||1))}" inputmode="numeric" style="width:70px;text-align:center;"> 条</label>
@@ -5494,7 +5525,7 @@ async function saveChatSettings(){
   if(cp){ const cv = parseInt(cp.value,10); chatSettings.comboReplyProb = Number.isFinite(cv) ? Math.max(0, Math.min(100, cv)) : 35; } // 0 也是合法值（以前 ||35 会把 0 变回 35）
     const rmc = document.getElementById('csReplyMaxCount');
   if(rmc){ const rmv = parseInt(rmc.value,10); chatSettings.replyMaxCount = Number.isFinite(rmv) ? Math.max(1, Math.min(20, rmv)) : 1; }
-  chatSettings.redPacketEnabled = document.getElementById('csRedPacketEnabled').classList.contains('on');
+  chatSettings.transferEnabled = document.getElementById('csTransferEnabled').classList.contains('on');
   await sSet('chat-settings', chatSettings);
   const _oldPro = { e: proactiveMsgSettings.enabled !== false, a: proactiveMsgSettings.minSeconds, b: proactiveMsgSettings.intervalMinutes };
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -5697,27 +5728,44 @@ async function sendStickerMsg(value){
   handleIncomingForBot('[表情]');
 }
 
-/* ---- 红包：我可以发给梦角，梦角也会随机发给我（见 pickReplyFor） ---- */
-function openSendRedPacket(){
+/* ---- 转账：我发给梦角，3 小时内随机时间 85% 收下、15% 退回；梦角也会随机转账给我（见 pickReplyFor） ---- */
+function openSendTransfer(){
   openOverlay(`
-    <div class="drawer-head"><h3>发红包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div class="drawer-head"><h3>转账</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">金额</label>
-    <input type="number" id="rpAmount" placeholder="0.00">
-    <label class="field">留言</label>
-    <input type="text" id="rpNote" placeholder="恭喜发财" value="恭喜发财">
-    <div class="btn-row"><div class="btn rouge" onclick="sendRedPacket()">塞进对方口袋</div></div>
+    <input type="number" id="tfAmount" placeholder="0.00" step="0.01" min="0.01">
+    <label class="field">备注</label>
+    <input type="text" id="tfNote" placeholder="转账给你" value="转账给你">
+    <div class="btn-row"><div class="btn rouge" onclick="sendTransfer()">转账</div></div>
   `);
 }
-async function sendRedPacket(){
-  const amount = parseFloat(document.getElementById('rpAmount').value);
-  const note = document.getElementById('rpNote').value.trim() || '恭喜发财';
+async function sendTransfer(){
+  const amount = Math.round(parseFloat(document.getElementById('tfAmount').value) * 100) / 100;
+  const note = document.getElementById('tfNote').value.trim() || '转账给你';
   if(isNaN(amount) || amount<=0){ alert('请输入金额'); return; }
-  const msg = {id:uid(), from:'user', type:'redpacket', amount, note, opened:true, time:Date.now(), read:false};
+  const now = Date.now();
+  const receiver = (chatSettings.group && chatSettings.group.enabled) ? ((pickGroupPersona()||{}).name || chatSettings.companionName) : '';
+  const msg = {id:uid(), from:'user', type:'transfer', amount, note, content:'[转账] ¥'+amount.toFixed(2), status:'pending', receiver, willAccept: Math.random() < 0.85, respondAt: now + Math.random()*3*3600*1000, time:now, read:false};
   if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
   chatMessages.push(msg);
   await recPut('chatMessages', msg);
   renderChat(); closeOverlay();
-  handleIncomingForBot('[红包]');
+  handleIncomingForBot('[转账]');
+}
+async function checkTransferDue(){
+  try{
+    const now = Date.now();
+    const due = (chatMessages||[]).filter(m=>m.type==='transfer' && m.from==='user' && m.status==='pending' && m.respondAt<=now);
+    if(!due.length) return;
+    for(const m of due){
+      m.status = m.willAccept ? 'accepted' : 'returned';
+      await recPut('chatMessages', m);
+    }
+    if(currentView==='chat' || (typeof roomIsOpen==='function' && roomIsOpen())){ try{ renderChat(true); }catch(e){} }
+    const last = due[due.length-1];
+    const name = last.receiver || (chatSettings && chatSettings.companionName) || 'TA';
+    _flashToast(name + (last.status==='accepted' ? ' 已收下你的转账' : ' 退回了你的转账'), false);
+  }catch(e){ console.warn('checkTransferDue', e); }
 }
 
 /* ---- 梦向问卷：写问题 + 选项，发送给TA，TA在1~10分钟内随机选一个回复 ---- */
@@ -7012,10 +7060,8 @@ function onImportBackupFile(e){
     if(data.spliceCardSettings && typeof data.spliceCardSettings==='object') spliceCardSettings = data.spliceCardSettings;
     if(data.mallState && typeof data.mallState==='object'){
       const ms = data.mallState;
-      mallState.myWallet = typeof ms.myWallet==='number' ? ms.myWallet : mallState.myWallet;
-      mallState.taWallet = typeof ms.taWallet==='number' ? ms.taWallet : mallState.taWallet;
       mallState.gifts = Array.isArray(ms.gifts) ? ms.gifts : mallState.gifts;
-      mallState.ledger = Array.isArray(ms.ledger) ? ms.ledger : (mallState.ledger||[]);
+      mallState.ledger = Array.isArray(ms.ledger) ? ms.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : (mallState.ledger||[]);
       mallState.customItems = Array.isArray(ms.customItems) ? ms.customItems : (mallState.customItems||[]);
       mallState.buyProb = typeof ms.buyProb==='number' ? ms.buyProb : mallState.buyProb;
       if(typeof ms.autoBuy === 'boolean') mallState.autoBuy = ms.autoBuy;
@@ -10073,7 +10119,7 @@ function renderRoomChat(){
     else if(m.type==='image') inner = '<img alt="" src="'+escapeHtml(m.content)+'">';
     else if(m.type==='text' || (!m.type && m.content)) inner = '<div class="tx">'+escapeHtml(m.content||'')+'</div>';
     else if(m.type==='gesture' || m.type==='pat'){ html += '<div class="cm-sys">'+escapeHtml(m.content||'')+'</div>'; shown++; return; }
-    else if(m.type==='redpacket'){ html += '<div class="cm-sys">🧧 '+escapeHtml(name)+' 发来一个红包，去聊天页领取</div>'; shown++; return; }
+    else if(m.type==='transfer' && m.from==='bot'){ html += '<div class="cm-sys">💸 '+escapeHtml(name)+' 发来一笔转账，去聊天页收款</div>'; shown++; return; }
     else return;   // 邀请卡片等不在这里显示
     html += '<div class="cm'+(me?' me':'')+'">'+inner+'</div>';
     shown++;
@@ -10794,13 +10840,11 @@ function goHomePage(k){
 })();
 
 /* ============================================================
-   商场 MALL —— 钱包 / 商品 / 礼物柜 / 流水 / 自定义 / TA自动买
+   商场 MALL —— 商品 / 礼物柜 / 流水 / 自定义 / TA自动买
    ============================================================ */
 let mallState = {
-  myWallet: 500,
-  taWallet: 500,
   gifts: [],      // {id, name, emoji, price, from:'me'|'ta', to:'me'|'ta', time}
-  ledger: [],     // {id, time, who:'me'|'ta'|'sys', type:'buy'|'topup'|'grant'|'auto', amount, note, balance}
+  ledger: [],     // {id, time, who:'me'|'ta', type:'buy'|'auto', amount, note}
   customItems: [], // {id, cat, name, emoji, price}
   buyProb: 25,
   autoBuy: true,
@@ -10910,10 +10954,10 @@ function mallFindItem(itemId, cat){
   }
   return (mallState.customItems || []).find(x => x.id === itemId) || null;
 }
-function mallPushLedger(who, type, amount, note, balance){
+function mallPushLedger(who, type, amount, note){
   if(!Array.isArray(mallState.ledger)) mallState.ledger = [];
   mallState.ledger.unshift({
-    id: uid(), time: Date.now(), who, type, amount, note: note || '', balance
+    id: uid(), time: Date.now(), who, type, amount, note: note || ''
   });
   if(mallState.ledger.length > 200) mallState.ledger = mallState.ledger.slice(0, 200);
 }
@@ -10921,10 +10965,8 @@ async function loadMallState(){
   try{
     const s = await sGet('mall-state', null);
     if(s && typeof s==='object'){
-      mallState.myWallet = typeof s.myWallet==='number' ? s.myWallet : 500;
-      mallState.taWallet = typeof s.taWallet==='number' ? s.taWallet : 500;
       mallState.gifts = Array.isArray(s.gifts) ? s.gifts : [];
-      mallState.ledger = Array.isArray(s.ledger) ? s.ledger : [];
+      mallState.ledger = Array.isArray(s.ledger) ? s.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : [];
       mallState.customItems = Array.isArray(s.customItems) ? s.customItems : [];
       mallState.buyProb = typeof s.buyProb==='number' ? Math.max(0,Math.min(100,s.buyProb)) : 25;
       mallState.autoBuy = s.autoBuy !== false;
@@ -10968,16 +11010,9 @@ async function checkMallAutoBuy(){
     cats.forEach(cat => mallGetItems(cat).forEach(it => all.push({...it, _cat: cat})));
     if(!all.length){ await saveMallState(); return; }
     const it = all[Math.floor(Math.random()*all.length)];
-    if(mallState.taWallet < it.price){
-      const amount = Math.max(it.price - mallState.taWallet + 30, 50);
-      mallState.taWallet += amount;
-      mallPushLedger('ta', 'grant', amount, '自动买礼物前系统拨款', mallState.taWallet);
-    }
-    if(mallState.taWallet < it.price){ await saveMallState(); return; }
-    mallState.taWallet -= it.price;
     const giftId = it.id + '-' + Date.now();
     mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你', mallState.taWallet);
+    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
     try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
@@ -10988,26 +11023,9 @@ function renderMall(initialCat){
   loadMallState().then(()=>{
     const body = document.getElementById('mallBody');
     if(!body) return;
-    const name = (chatSettings && chatSettings.companionName) || 'TA';
-    const safeName = (typeof escapeHtml==='function') ? escapeHtml(name) : String(name||'');
     let html = `
     <div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.04);">
-      <div style="font-size:12px;color:var(--ink-soft);letter-spacing:1px;margin-bottom:8px;">💰 钱包</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:120px;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.03);">
-          <div style="font-size:11px;color:var(--ink-soft);">我的钱包</div>
-          <div style="font-size:20px;font-weight:700;color:var(--ink);margin-top:2px;">¥${Number(mallState.myWallet).toFixed(0)}</div>
-        </div>
-        <div style="flex:1;min-width:120px;background:#ffffff;border-radius:12px;padding:10px 12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 4px rgba(0,0,0,.03);">
-          <div style="font-size:11px;color:var(--ink-soft);">${safeName} 的钱包</div>
-          <div style="font-size:20px;font-weight:700;color:var(--ink);margin-top:2px;">¥${Number(mallState.taWallet).toFixed(0)}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallApplyMoney()">申请系统拨款</div>
-        <div class="btn outline" style="padding:6px 12px;font-size:12px;" onclick="mallTopUpMe()">给我充值 ¥100</div>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--ink-soft);line-height:1.75;">
+      <div style="font-size:11px;color:var(--ink-soft);line-height:1.75;">
         自动买礼物
         <span class="switch ${mallState.autoBuy!==false?'on':''}" id="mallAutoBuySw" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))" style="display:inline-flex;vertical-align:middle;transform:scale(.85);"><div class="dot"></div></span>
         <br>
@@ -11075,7 +11093,7 @@ function mallShowCat(cat, el){
       return;
     }
     box.innerHTML = mallState.ledger.map(r=>{
-      const whoLabel = r.who==='me' ? '我' : (r.who==='ta' ? safeName : '系统');
+      const whoLabel = r.who==='me' ? '我' : safeName;
       const sign = r.amount >= 0 ? '+' : '';
       const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
       const d = r.time ? new Date(r.time).toLocaleString() : '';
@@ -11084,7 +11102,7 @@ function mallShowCat(cat, el){
           <div style="font-weight:700;font-size:13px;">${whoLabel} · ${(typeof escapeHtml==='function')?escapeHtml(r.note||r.type): (r.note||r.type)}</div>
           <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
         </div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}${r.balance!=null?' · 余额 ¥'+Number(r.balance).toFixed(0):''}</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}</div>
       </div>`;
     }).join('');
     return;
@@ -11162,21 +11180,6 @@ async function mallSetAutoInterval(){
   await saveMallState();
   _flashToast('自动买礼物间隔已更新，已重新计时', false);
 }
-async function mallApplyMoney(){
-  const amount = 50 + Math.floor(Math.random()*151);
-  mallState.taWallet += amount;
-  mallPushLedger('ta', 'grant', amount, '向系统申请拨款', mallState.taWallet);
-  await saveMallState();
-  _flashToast(`${(chatSettings&&chatSettings.companionName)||'TA'} 向系统申请了 ¥${amount}，到账啦`, false);
-  renderMall(mallState._lastCat || 'daily');
-}
-async function mallTopUpMe(){
-  mallState.myWallet += 100;
-  mallPushLedger('me', 'topup', 100, '自行充值', mallState.myWallet);
-  await saveMallState();
-  _flashToast('已充值 ¥100', false);
-  renderMall(mallState._lastCat || 'daily');
-}
 async function mallDeleteGift(gid){
   if(!confirm('确定从礼物柜删除这件礼物吗？')) return;
   mallState.gifts = (mallState.gifts||[]).filter(g => String(g.id) !== String(gid));
@@ -11233,20 +11236,12 @@ async function mallBuy(itemId, cat, who){
   if(!it) return;
   const name = (chatSettings && chatSettings.companionName) || 'TA';
   if(who==='me'){
-    if(mallState.myWallet < it.price){ _flashToast('钱包不够啦，先充值或等系统拨款', true); return; }
-    mallState.myWallet -= it.price;
     mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
-    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name, mallState.myWallet);
+    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name);
     await saveMallState();
     await pushGiftChatMsg(it, 'user');
     _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
   } else {
-    if(mallState.taWallet < it.price){
-      const amount = Math.max(it.price - mallState.taWallet + 20, 50);
-      mallState.taWallet += amount;
-      mallPushLedger('ta', 'grant', amount, '买礼物前系统拨款', mallState.taWallet);
-      _flashToast(`${name} 钱不够，先向系统申请了 ¥${amount}`, false);
-    }
     const prob = (mallState.buyProb||25)/100;
     if(Math.random() > prob){
       await saveMallState();
@@ -11254,9 +11249,8 @@ async function mallBuy(itemId, cat, who){
       renderMall(cat || mallState._lastCat || 'daily');
       return;
     }
-    mallState.taWallet -= it.price;
     mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你', mallState.taWallet);
+    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
     _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
