@@ -1405,7 +1405,7 @@
   padding:6px 4px 2px!important;
   border-top:1px solid rgba(42,36,31,.10);
   display:grid!important;
-  grid-template-columns:repeat(4,1fr)!important;
+  grid-template-columns:repeat(5,1fr)!important;
   gap:0!important;
   background:transparent!important;
 }
@@ -1542,6 +1542,7 @@
       <div class="fn-item" onclick="go('chat')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.6 0 8 3 8 6.8S16.6 17.6 12 17.6c-.9 0-1.7-.1-2.5-.3L5.5 19.5l1-3.4C5 15 4 13 4 10.800 4 7 7.400 4 12 4Z"/><path d="M9 10.500c.8 1.400 1.800 2 3 2s2.200-.6 3-2"/></svg><span id="chatDot" class="dot-badge hidden"></span></div><div class="fn-label">传讯</div></div>
       <div class="fn-item" onclick="go('mailbox')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">信箱</div></div>
       <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
+      <div class="fn-item" onclick="go('mall')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/><path d="M10 21V13h4v8"/></svg></div><div class="fn-label">商场</div></div>
       <div class="fn-item" onclick="go('garden')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-4 0-7-2.5-7-6 0-2.5 1.5-4.5 3.5-5.5C7 7 9 4 12 3c3 1 5 4 3.5 7.5 2 1 3.5 3 3.5 5.5 0 3.5-3 6-7 6z"/><path d="M12 13v9"/><path d="M9 16c1.5 1 4.5 1 6 0"/></svg></div><div class="fn-label">花园</div></div>
     </div>
     </div><!-- /homePage1 -->
@@ -1621,7 +1622,7 @@
   <section id="view-favs" class="view hidden">
     <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>收藏</h2></div>
     <div class="box">
-      <div class="box-title">TA悄悄收藏的歌曲</div>
+      <div class="box-title">TA悄悄收藏的</div>
       <div id="favsViewList"></div>
     </div>
   </section>
@@ -2001,6 +2002,11 @@
       <div class="mb-tab" data-tab="stats" onclick="mailboxSetTab('stats')">信件数据</div>
     </div>
     <div class="mb-panel" id="mailboxBody"></div>
+  </section>
+
+  <section id="view-mall" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>商场</h2></div>
+    <div id="mallBody" style="padding:12px 14px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
   </section>
 
   <!-- ============ GARDEN 花园 ============ -->
@@ -2704,7 +2710,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', garden:'花园' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', garden:'花园', mall:'商场' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2738,6 +2744,7 @@ function go(name){
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
   if(name==='garden'){ renderGarden(); }
+  if(name==='mall'){ renderMall(); }
   if(name==='moments'){
     renderMoments();
     if(momentsUnread){ momentsUnread=false; sSet('moments-unread', false); renderUnreadDots(); }
@@ -3871,7 +3878,8 @@ function memberColor(name){
 function pickGroupPersona(){
   const g = chatSettings.group;
   if(!g || !g.enabled || !Array.isArray(g.members) || g.members.length===0) return null;
-  if(Math.random() >= 0.25) return null;
+  const pr = (typeof g.partnerProb==='number') ? g.partnerProb : 25;
+  if(Math.random()*100 >= pr) return null;
   return g.members[Math.floor(Math.random()*g.members.length)] || null;
 }
 function assignGroupSender(msg){
@@ -3901,6 +3909,9 @@ function renderChat(preserveScroll, scrollToId){
     const time = formatMsgTime(m.time);
     if(m.type==='pat' || m.type==='gesture'){
       return `<div id="msg-${m.id}" style="text-align:center;font-size:11.5px;color:var(--ink-soft);margin:6px 0;">${escapeHtml(m.content)}</div>`;
+    }
+    if(m.type==='call'){
+      return `<div id="msg-${m.id}" style="text-align:center;margin:8px 0;"><span style="display:inline-block;font-size:12px;padding:5px 12px;border-radius:14px;background:rgba(0,0,0,.05);color:${m.callBad?'var(--rouge)':'var(--ink-soft)'};">📹 ${escapeHtml(m.content)} · ${time}</span></div>`;
     }
     if(m.type==='recalled'){
       const _who = m.from==='user' ? '我' : (chatSettings.companionName || 'TA');
@@ -4267,6 +4278,7 @@ async function sendUserMessage(){
   try{ renderChat(); }catch(e){ console.error('renderChat', e); }
   try{ await recPut('chatMessages', msg); }catch(e){ console.warn('recPut chat fail', e); }
   try{ handleIncomingForBot(text || '[表情]'); }catch(e){ console.error('handleIncoming', e); }
+  try{ maybeBotFavoriteMessage(msg); }catch(e){}
 }
 function onChatImageFile(e){
   const f = e.target.files[0]; if(!f) return;
@@ -4868,6 +4880,7 @@ function callSessionSnapshot(){
     muted: !!activeCall.muted,
     camOn: activeCall.camOn !== false,
     startTime: activeCall.startTime || null,
+    taHangAt: activeCall.taHangAt || null,
     ringStart: activeCall.ringStart || null,
     minimized: !!activeCall.minimized,
     savedAt: Date.now()
@@ -4885,7 +4898,7 @@ async function resumeCall(){
   const stale = (now - (saved.savedAt || 0)) > 2*3600*1000;
   if(saved.status === 'connected'){
     if(stale && (!saved.startTime || (now - saved.startTime) > 2*3600*1000)){ clearCallSession(); return; }
-    activeCall = { direction:saved.direction, status:'connected', muted:!!saved.muted, camOn:saved.camOn!==false, startTime:saved.startTime || now, minimized:!!saved.minimized };
+    activeCall = { direction:saved.direction, status:'connected', muted:!!saved.muted, camOn:saved.camOn!==false, startTime:saved.startTime || now, minimized:!!saved.minimized, taHangAt:saved.taHangAt || null };
     showCallOverlay();
     document.getElementById('callStatusLabel').textContent = '视频通话中';
     document.getElementById('callTimerLabel').classList.remove('hidden');
@@ -4897,6 +4910,7 @@ async function resumeCall(){
     try{ const cb=document.getElementById('camBtn'); if(cb) cb.classList.toggle('on', !activeCall.camOn); const pip=document.getElementById('callSelfPip'); if(pip) pip.classList.toggle('cam-off', !activeCall.camOn); }catch(e){}
     activeCall.timerInterval = setInterval(updateCallTimer, 1000);
     updateCallTimer();
+    armTaHangup();
     if(activeCall.minimized) minimizeCall();
   } else if(saved.status === 'ringing'){
     if(stale){ clearCallSession(); return; }
@@ -4973,6 +4987,8 @@ function connectCall(){
   activeCall.status = 'connected';
   activeCall.startTime = Date.now();
   activeCall.minimized = false;
+  const hangProb = (typeof chatSettings.taHangupProb === 'number') ? chatSettings.taHangupProb : 15;
+  if(Math.random()*100 < hangProb) activeCall.taHangAt = Date.now() + 10000 + Math.random()*110000;
   saveCallSession();
   document.getElementById('callStatusLabel').textContent = '视频通话中';
   document.getElementById('callTimerLabel').classList.remove('hidden');
@@ -4982,6 +4998,14 @@ function connectCall(){
     <div class="call-btn-sm" id="camBtn" onclick="toggleCamera()">📷</div>`;
   activeCall.timerInterval = setInterval(updateCallTimer, 1000);
   updateCallTimer();
+  armTaHangup();
+}
+function armTaHangup(){
+  if(!activeCall || !activeCall.taHangAt) return;
+  clearTimeout(activeCall.taHangTimer);
+  activeCall.taHangTimer = setTimeout(function(){
+    if(activeCall && activeCall.status === 'connected') endCall('hung_up_by_them');
+  }, Math.max(0, activeCall.taHangAt - Date.now()));
 }
 function toggleMute(){
   if(!activeCall) return;
@@ -5091,22 +5115,45 @@ function updateCallBubbleText(){
 }
 async function endCall(reason){
   if(!activeCall) return;
-  // 先把 activeCall 摘出来置空：以前是存完库才置空，挂断键连点两下会记两条通话
   const call = activeCall;
   activeCall = null;
   clearCallSession();
   clearTimeout(call.missedTimeout);
   clearTimeout(call.ringTimeout);
+  clearTimeout(call.taHangTimer);
   clearInterval(call.timerInterval);
   const duration = call.startTime ? Math.floor((Date.now()-call.startTime)/1000) : 0;
   let status = 'completed';
+  let cancelled = false;
+  const endedBy = reason==='hung_up_by_them' ? 'them' : 'me';
   if(reason==='missed' || reason==='missed_by_them') status = 'missed';
   if(reason==='declined') status = 'declined';
-  if(reason==='cancelled') status = call.status==='connected' ? 'completed' : 'missed';
+  if(reason==='cancelled' && call.status!=='connected'){ status = 'missed'; cancelled = true; }
   hideCallOverlay();
-  callLogs.unshift({ id:uid(), direction:call.direction, status, duration, time:Date.now() });
+  const entry = { id:uid(), direction:call.direction, status, duration, endedBy, cancelled, time:Date.now() };
+  callLogs.unshift(entry);
   await sSet('call-logs', callLogs);
   renderCallLog();
+  const cm = { id:uid(), from:'system', type:'call', content:callSummary(entry), callBad: status!=='completed', time:entry.time, read:true };
+  if(!Array.isArray(chatMessages)) chatMessages = [];
+  chatMessages.push(cm);
+  try{ await recPut('chatMessages', cm); }catch(e){ console.warn('call msg save fail', e); }
+  if(currentView==='chat'){ try{ renderChat(); }catch(e){} }
+}
+function callClock(sec){
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  const mm = String(m).padStart(2,'0'), ss = String(s).padStart(2,'0');
+  return h ? (h+':'+mm+':'+ss) : (mm+':'+ss);
+}
+function callSummary(c){
+  const name = chatSettings.companionName || 'TA';
+  if(c.status==='completed'){
+    return (c.endedBy==='them' ? (name+' 挂断了视频通话') : '你挂断了视频通话') + ' · ' + callClock(c.duration||0);
+  }
+  if(c.cancelled) return '你已取消视频通话';
+  if(c.status==='declined') return '你拒绝了 '+name+' 的视频来电';
+  if(c.direction==='in') return '你未接听 '+name+' 的视频来电';
+  return name+' 未接听你的视频通话';
 }
 function showCallOverlay(){
   const box = document.getElementById('callAvatarBox');
@@ -5138,7 +5185,7 @@ function renderCallLog(){
   wrap.innerHTML = callLogs.length ? callLogs.map(c=>{
     const icon = c.direction==='in' ? '📹' : '📹';
     const label = c.direction==='in' ? (escapeHtml(chatSettings.companionName)+' 的视频来电') : '视频呼出';
-    const statusText = c.status==='completed' ? formatCallDuration(c.duration) : (c.status==='missed' ? '未接' : '已拒接');
+    const statusText = c.status==='completed' ? (formatCallDuration(c.duration) + (c.endedBy==='them' ? ' · TA 挂断' : '')) : (c.cancelled ? '已取消' : (c.status==='missed' ? '未接' : '已拒接'));
     const color = c.status==='completed' ? 'var(--ink-soft)' : 'var(--rouge)';
     return `<div class="list-item"><div>${icon} ${label}<div class="meta" style="color:${color};">${statusText} · ${formatMsgTime(c.time)}</div></div></div>`;
   }).join('') : '<div class="empty-note">还没有通话记录</div>';
@@ -5159,9 +5206,27 @@ function openChatSettings(){
       <span>显示伙伴名字</span>
       <div class="switch ${(!chatSettings.group||chatSettings.group.showName!==false)?'on':''}" id="csGroupShowName" onclick="this.classList.toggle('on'); setGroupFlag('showName', this.classList.contains('on'))"><div class="dot"></div></div>
     </div>
+    <label class="field">伙伴发言概率（其余为默认梦角）</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="0" max="100" step="1" value="${(chatSettings.group&&typeof chatSettings.group.partnerProb==='number')?chatSettings.group.partnerProb:25}" id="csGroupProb" style="width:100%;" onchange="setGroupProb(this.value)">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span>
+    </div>
     <div class="btn-row" style="margin-top:8px;">
       <div class="btn outline" onclick="closeOverlay(); openGroupManagePanel();">👥 管理伙伴（${chatSettings.group&&Array.isArray(chatSettings.group.members)?chatSettings.group.members.length:0}）</div>
     </div>
+    <div class="box-title" style="margin-top:14px;">收藏</div>
+    <label class="field">TA 收藏我消息的概率（每条文字消息）</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="0" max="100" step="1" value="${(typeof chatSettings.favMsgProb==='number')?chatSettings.favMsgProb:10}" id="csFavMsgProb" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span>
+    </div>
+    <div class="box-title" style="margin-top:14px;">视频通话</div>
+    <label class="field">TA 挂断我的概率（接通后）</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="0" max="100" step="1" value="${(typeof chatSettings.taHangupProb==='number')?chatSettings.taHangupProb:15}" id="csTaHangupProb" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">命中时，TA 会在接通后 10～120 秒内挂断</div>
     <label class="field">最快回复</label>
     <div style="display:flex;align-items:center;gap:8px;">
       <input type="number" min="0" max="3600" step="1" value="${chatSettings.delayMin}" id="csDelayMin" style="width:100%;">
@@ -5307,6 +5372,13 @@ async function setGroupFlag(key, val){
   await sSet('chat-settings', chatSettings);
   renderChat();
 }
+async function setGroupProb(v){
+  const g = ensureGroup();
+  let n = parseInt(v,10); if(isNaN(n)) n = 25;
+  g.partnerProb = Math.max(0, Math.min(100, n));
+  const el = document.getElementById('csGroupProb'); if(el) el.value = g.partnerProb;
+  await sSet('chat-settings', chatSettings);
+}
 function genGroupId(){ return 'gm_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function openGroupManagePanel(){
   ensureGroup();
@@ -5340,7 +5412,7 @@ function renderGroupManagePanel(){
   const editing = _groupEditId ? g.members.find(x=>x.id===_groupEditId) : null;
   openOverlay(`
     <div class="drawer-head"><h3>伙伴管理</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:8px;">开启后，TA 的回复会随机由下面某位伙伴发出（大家共用同一个字卡库，只是在不同的时间回你话）。每轮约 30% 概率抽中伙伴，其余仍是默认梦角。</div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-bottom:8px;">开启后，TA 的回复会随机由下面某位伙伴发出（大家共用同一个字卡库，只是在不同的时间回你话）。每轮约 ${(typeof g.partnerProb==='number')?g.partnerProb:25}% 概率抽中伙伴，其余仍是默认梦角。可在「传讯设置」里调整。</div>
     <div class="box-title" style="margin-top:6px;">当前伙伴（${g.members.length}）</div>
     <div id="groupMemberList">${list}</div>
     <div class="box-title" style="margin-top:16px;">${editing?'编辑伙伴':'添加伙伴'}</div>
@@ -5565,6 +5637,10 @@ async function saveChatSettings(){
     const rmc = document.getElementById('csReplyMaxCount');
   if(rmc){ const rmv = parseInt(rmc.value,10); chatSettings.replyMaxCount = Number.isFinite(rmv) ? Math.max(1, Math.min(20, rmv)) : 1; }
   chatSettings.transferEnabled = document.getElementById('csTransferEnabled').classList.contains('on');
+  const fmp = document.getElementById('csFavMsgProb');
+  if(fmp){ const fv = parseInt(fmp.value,10); chatSettings.favMsgProb = Number.isFinite(fv) ? Math.max(0, Math.min(100, fv)) : 10; }
+  const thp = document.getElementById('csTaHangupProb');
+  if(thp){ const tv = parseInt(thp.value,10); chatSettings.taHangupProb = Number.isFinite(tv) ? Math.max(0, Math.min(100, tv)) : 15; }
   await sSet('chat-settings', chatSettings);
   const _oldPro = { e: proactiveMsgSettings.enabled !== false, a: proactiveMsgSettings.minSeconds, b: proactiveMsgSettings.intervalMinutes };
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -5619,8 +5695,6 @@ async function saveChatSettings(){
     const freeEnabled = fe ? fe.classList.contains('on') : true;
     spliceCardSettings = { min:smin, max:smax, freeEnabled, freeProb:fp };
     await sSet('splice-card-settings', spliceCardSettings);
-    if(data.gardenData && typeof data.gardenData==='object'){ gardenData = data.gardenData; await sSet('garden-data', gardenData); }
-
   }
   const wasEnabled = moyuState.enabled;
   moyuState.enabled = document.getElementById('csMoyuEnabled').classList.contains('on');
@@ -5701,6 +5775,7 @@ async function sendCardText(text){
   await recPut('chatMessages', msg);
   renderChat();
   handleIncomingForBot(text);
+  try{ maybeBotFavoriteMessage(msg); }catch(e){}
 }
 
 /* ---- sticker picker (user sends a sticker) ---- */
@@ -7016,7 +7091,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','garden-data','companion-favorites','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -7054,8 +7129,8 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, gardenData,
-    companionTodos, companionHabits, companionAnnivs, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
+    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, gardenData, mallState,
+    companionTodos, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -7099,6 +7174,18 @@ function onImportBackupFile(e){
     momentInteractSettings = data.momentInteractSettings || momentInteractSettings;
     if(typeof data.spliceCardsEnabled === 'boolean') spliceCardsEnabled = data.spliceCardsEnabled;
     if(data.spliceCardSettings && typeof data.spliceCardSettings==='object') spliceCardSettings = data.spliceCardSettings;
+    if(data.mallState && typeof data.mallState==='object'){
+      const ms = data.mallState;
+      mallState.gifts = Array.isArray(ms.gifts) ? ms.gifts : [];
+      mallState.ledger = Array.isArray(ms.ledger) ? ms.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : [];
+      mallState.customItems = Array.isArray(ms.customItems) ? ms.customItems : [];
+      if(typeof ms.buyProb === 'number') mallState.buyProb = Math.max(0, Math.min(100, ms.buyProb));
+      if(typeof ms.autoBuy === 'boolean') mallState.autoBuy = ms.autoBuy;
+      if(typeof ms.autoBuyMinMin === 'number') mallState.autoBuyMinMin = ms.autoBuyMinMin;
+      if(typeof ms.autoBuyMaxMin === 'number') mallState.autoBuyMaxMin = ms.autoBuyMaxMin;
+      mallState.nextAutoBuyAt = ms.nextAutoBuyAt || null;
+      await sSet('mall-state', mallState);
+    }
 
     normalizeLoadedSettings();
     await sSet('profile', profile);
@@ -7127,6 +7214,8 @@ function onImportBackupFile(e){
     if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
     if(Array.isArray(data.companionAnnivs)){ companionAnnivs = data.companionAnnivs; await sSet('companion-annivs', companionAnnivs); }
+    if(Array.isArray(data.companionFavorites)){ companionFavorites = data.companionFavorites; await sSet('companion-favorites', companionFavorites); }
+    if(data.gardenData && typeof data.gardenData==='object'){ gardenData = data.gardenData; await sSet('garden-data', gardenData); }
     if(Array.isArray(data.momentEvents)){ momentEvents = data.momentEvents; await sSet('moment-events', momentEvents); }
     if(data.bgSettings && typeof data.bgSettings === 'object'){
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
@@ -7952,7 +8041,7 @@ function renderCompanionBody(){
   } else if(_compTab === 'fav'){
     body.innerHTML = `
       <div class="box">
-        <div class="box-title">TA悄悄收藏的歌曲</div>
+        <div class="box-title">TA悄悄收藏的</div>
         <div id="compFavList"></div>
       </div>`;
     renderCompanionFavList();
@@ -7962,9 +8051,9 @@ function renderCompanionFavList(){
   ['compFavList','favsViewList'].forEach(function(id){ const e=document.getElementById(id); if(e) _renderFavInto(e); });
 }
 function _renderFavInto(el){
-  const list = companionFavorites.filter(function(f){ return f.type === 'song'; });
+  const list = companionFavorites;
   if(!list.length){
-    el.innerHTML = '<div class="empty-note">TA还没有收藏歌曲</div>';
+    el.innerHTML = '<div class="empty-note">TA还没有收藏任何东西</div>';
     return;
   }
   el.innerHTML = list.map(function(f){
@@ -7998,9 +8087,10 @@ function showFavPopup(kind, item){
       el.className = 'fav-pop';
       document.body.appendChild(el);
     }
-    const title = name + ' 收藏了这首歌';
-    const sub = (item && item.name) ? ('《' + item.name + '》' + (item.artist ? ' · ' + item.artist : '')) : '';
-    el.innerHTML = '<div class="fav-pop-ico">🎵</div>' +
+    const isMsg = kind === 'message';
+    const title = name + (isMsg ? ' 收藏了你的一条消息' : ' 收藏了这首歌');
+    const sub = isMsg ? String((item && item.content) || '').slice(0, 30) : ((item && item.name) ? ('《' + item.name + '》' + (item.artist ? ' · ' + item.artist : '')) : '');
+    el.innerHTML = '<div class="fav-pop-ico">' + (isMsg ? '⭐' : '🎵') + '</div>' +
       '<div class="fav-pop-txt"><div class="fav-pop-title">' + escapeHtml(title) + '</div>' +
       (sub ? '<div class="fav-pop-sub">' + escapeHtml(sub) + '</div>' : '') + '</div>';
     clearTimeout(_favPopTimer);
@@ -8009,8 +8099,8 @@ function showFavPopup(kind, item){
   }catch(e){}
   try{
     if(document.visibilityState !== 'visible'){
-      const _t = name + ' 收藏了一首歌';
-      const _b = (item && item.name) ? ('《' + item.name + '》') : '';
+      const _t = name + (kind === 'message' ? ' 收藏了你的一条消息' : ' 收藏了一首歌');
+      const _b = kind === 'message' ? String((item && item.content) || '').slice(0, 30) : ((item && item.name) ? ('《' + item.name + '》') : '');
       tryBgNotify(_t, _b);
     }
   }catch(e){}
@@ -8035,6 +8125,20 @@ function maybeBotFavoriteSong(song){
   if(Math.random() > 0.15) return;
   if(companionFavorites.some(function(f){ return f.type === 'song' && String(f.songId || f.name) === key; })) return;
   addCompanionFavorite({ type:'song', songId:String(song.id || ''), name:song.name, artist:song.artist || '', pic:song.pic || '', note: FAV_SONG_NOTES[Math.floor(Math.random()*FAV_SONG_NOTES.length)], at: Date.now() });
+}
+const FAV_MSG_NOTES = ['这句我要留着。','偷偷存下来了。','想以后再看一遍。','嗯，这句收藏了。'];
+function maybeBotFavoriteMessage(msg){
+  if(!msg || msg.from !== 'user') return;
+  if(msg.type !== 'text' && msg.type !== 'combo') return;
+  const txt = String(msg.content || '').trim();
+  if(txt.length < 2 || txt.charAt(0) === '§') return;
+  const fp = (typeof chatSettings.favMsgProb === 'number') ? chatSettings.favMsgProb : 10;
+  if(Math.random()*100 >= fp) return;
+  setTimeout(function(){
+    if(companionFavorites.some(function(f){ return f.msgId === msg.id; })) return;
+    if(!chatMessages.some(function(m){ return m.id === msg.id && m.type !== 'recalled'; })) return;
+    addCompanionFavorite({ type:'message', msgId:msg.id, from:'me', content:txt, note: FAV_MSG_NOTES[Math.floor(Math.random()*FAV_MSG_NOTES.length)], at: Date.now() });
+  }, 5000 + Math.random()*85000);
 }
 async function addCompanionTodo(){
   const inp = document.getElementById('compTodoInput');
@@ -10987,6 +11091,8 @@ async function loadGarden(){
 }
 async function saveGarden(){ try{ await sSet('garden-data', gardenData); }catch(e){} }
 
+const GARDEN_XP_RATE = 0.4;
+function gXp(base){ return Math.max(1, Math.round(base * GARDEN_XP_RATE)); }
 function gLv(){ return Math.floor(Math.sqrt((gardenData.exp||0)/10)) + 1; }
 function gPlotEntitled(){
   const lv = gLv();
@@ -11118,7 +11224,7 @@ async function gHarvest(idx){
   }
   const tp = GARDEN_FLOWERS[plot.type];
   const q = gRollQuality();
-  const xp = Math.round(((tp&&tp.xp)||20) * gQualMul(q));
+  const xp = gXp(((tp&&tp.xp)||20) * gQualMul(q));
   gardenData.exp = (gardenData.exp||0) + xp;
   gardenData.p[idx] = null;
   gardenData.st.harvest = (gardenData.st.harvest||0)+1;
@@ -11147,7 +11253,7 @@ async function gHarvestAll(){
     if(!si || !si.bloomed || si.wilted) continue;
     const tp = GARDEN_FLOWERS[pl.type];
     const q = gRollQuality();
-    const xp = Math.round(((tp&&tp.xp)||20)*gQualMul(q));
+    const xp = gXp(((tp&&tp.xp)||20)*gQualMul(q));
     gardenData.exp = (gardenData.exp||0)+xp;
     gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
     gardenData.p[i] = null;
@@ -11178,6 +11284,24 @@ async function gWaterAll(){
   await saveGarden();
   renderGarden();
   gToast('💧 一键浇水 '+cnt+' 株');
+}
+
+async function gFertilizeAll(){
+  let cnt = 0;
+  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
+    const pl = gardenData.p[i];
+    if(!pl) continue;
+    const si = gStageInfo(pl);
+    if(!si || si.bloomed) continue;
+    pl.planted = Math.max(0, pl.planted - 43200);
+    cnt++;
+  }
+  if(!cnt){ gToast('没有需要施肥的'); return; }
+  gardenData.st.fert = (gardenData.st.fert||0)+cnt;
+  gAddLog('我', '一键施肥 '+cnt+' 株');
+  await saveGarden();
+  renderGarden();
+  gToast('✨ 一键施肥 '+cnt+' 株');
 }
 
 async function gReplantAll(){
@@ -11356,7 +11480,7 @@ async function gPartnerAct(silent){
     const pl = gardenData.p[idx];
     const si = gStageInfo(pl);
     const tp = GARDEN_FLOWERS[pl.type];
-    const xp = Math.round(((tp&&tp.xp)||20)*0.8);
+    const xp = gXp(((tp&&tp.xp)||20)*0.8);
     gardenData.exp = (gardenData.exp||0)+xp;
     gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
     gardenData.p[idx] = null;
@@ -11367,7 +11491,7 @@ async function gPartnerAct(silent){
     bloomed.forEach(i=>{
       const pl=gardenData.p[i]; if(!pl) return;
       const tp=GARDEN_FLOWERS[pl.type];
-      gardenData.exp = (gardenData.exp||0)+Math.round(((tp&&tp.xp)||20)*0.7);
+      gardenData.exp = (gardenData.exp||0)+gXp(((tp&&tp.xp)||20)*0.7);
       gardenData.inv[pl.type]=(gardenData.inv[pl.type]||0)+1;
       gardenData.p[i]=null; c++;
     });
@@ -11390,8 +11514,7 @@ async function gPartnerAct(silent){
   }
 }
 
-/* ===== TA 送花：每 1~12 小时抽一次，25% 概率送来一束花 ===== */
-function gTaGiftGapMs(){ return (1 + Math.random()*11) * 3600 * 1000; }
+function gTaGiftGapMs(){ return (1 + Math.random()*7) * 3600 * 1000; }
 function gPickTaGiftFlower(){
   const keys = Object.keys(GARDEN_FLOWERS).filter(k=>!GARDEN_FLOWERS[k].rare);
   const seen = keys.filter(k=>(gardenData.dex && gardenData.dex[k]) || (gardenData.inv && gardenData.inv[k]));
@@ -11505,6 +11628,7 @@ function renderGarden(){
   if(gardenTab==='field'){
     h += '<div class="gd-quick">';
     h += '<div class="btn outline sm" onclick="gWaterAll()">一键浇水</div>';
+    h += '<div class="btn outline sm" onclick="gFertilizeAll()">一键施肥</div>';
     h += '<div class="btn outline sm" onclick="gHarvestAll()">一键收获</div>';
     h += '<div class="btn outline sm" onclick="gReplantAll()">一键补种</div>';
     if(plotN < entitled) h += '<div class="btn outline sm" onclick="gExpand()">开垦</div>';
@@ -11653,6 +11777,440 @@ setInterval(()=>{ try{ gCheckTaGift().catch(()=>{}); }catch(e){} }, 5*60*1000);
 
 
 
+
+
+let mallState = {
+  gifts: [],
+  ledger: [],
+  customItems: [],
+  buyProb: 25,
+  autoBuy: true,
+  autoBuyMinMin: 30,
+  autoBuyMaxMin: 180,
+  nextAutoBuyAt: null,
+  lastBuyCheck: 0
+};
+const MALL_ITEMS = {
+  daily: [
+    {id:'d1', name:'洗衣液', emoji:'🧴', price:28},
+    {id:'d2', name:'纸巾', emoji:'🧻', price:12},
+    {id:'d3', name:'牙膏', emoji:'🪥', price:15},
+    {id:'d4', name:'洗发水', emoji:'🧴', price:45},
+    {id:'d5', name:'毛巾', emoji:'🧺', price:22},
+    {id:'d6', name:'充电器', emoji:'🔌', price:39},
+    {id:'d7', name:'沐浴露', emoji:'🧼', price:36},
+    {id:'d8', name:'护手霜', emoji:'💅', price:29},
+    {id:'d9', name:'垃圾袋', emoji:'🗑️', price:9},
+    {id:'d10', name:'收纳盒', emoji:'📦', price:25},
+    {id:'d11', name:'拖鞋', emoji:'🩴', price:35},
+    {id:'d12', name:'雨伞', emoji:'☂️', price:42},
+    {id:'d13', name:'水杯', emoji:'🥤', price:28},
+    {id:'d14', name:'充电宝', emoji:'🔋', price:89},
+    {id:'d15', name:'耳机', emoji:'🎧', price:129},
+    {id:'d16', name:'口罩', emoji:'😷', price:15},
+    {id:'d17', name:'创可贴', emoji:'🩹', price:8},
+    {id:'d18', name:'维生素', emoji:'💊', price:48},
+    {id:'d19', name:'洗衣液补充装', emoji:'🧴', price:18},
+    {id:'d20', name:'衣架', emoji:'🪝', price:16}
+  ],
+  couple: [
+    {id:'c1', name:'情侣手链', emoji:'📿', price:88},
+    {id:'c2', name:'情侣马克杯', emoji:'☕', price:56},
+    {id:'c3', name:'情侣睡衣', emoji:'🛏️', price:128},
+    {id:'c4', name:'情侣钥匙扣', emoji:'🔑', price:35},
+    {id:'c5', name:'情侣手机壳', emoji:'📱', price:49},
+    {id:'c6', name:'情侣项链', emoji:'💎', price:199},
+    {id:'c7', name:'情侣戒指', emoji:'💍', price:299},
+    {id:'c8', name:'情侣围巾', emoji:'🧣', price:78},
+    {id:'c9', name:'情侣帽子', emoji:'🧢', price:55},
+    {id:'c10', name:'情侣拖鞋', emoji:'🩴', price:68},
+    {id:'c11', name:'情侣抱枕', emoji:'🧸', price:89},
+    {id:'c12', name:'情侣T恤', emoji:'👕', price:98},
+    {id:'c13', name:'情侣手表', emoji:'⌚', price:258},
+    {id:'c14', name:'情侣耳环', emoji:'✨', price:118},
+    {id:'c15', name:'情侣香薰', emoji:'🕯️', price:66},
+    {id:'c16', name:'情侣盲盒', emoji:'🎁', price:59},
+    {id:'c17', name:'情侣明信片套装', emoji:'📮', price:28},
+    {id:'c18', name:'情侣伞', emoji:'☂️', price:72}
+  ],
+  food: [
+    {id:'f1', name:'奶茶', emoji:'🧋', price:18},
+    {id:'f2', name:'蛋糕', emoji:'🍰', price:48},
+    {id:'f3', name:'巧克力', emoji:'🍫', price:25},
+    {id:'f4', name:'草莓', emoji:'🍓', price:32},
+    {id:'f5', name:'寿司套餐', emoji:'🍣', price:68},
+    {id:'f6', name:'火锅食材', emoji:'🍲', price:98},
+    {id:'f7', name:'冰淇淋', emoji:'🍦', price:15},
+    {id:'f8', name:'咖啡', emoji:'☕', price:22},
+    {id:'f9', name:'炸鸡', emoji:'🍗', price:38},
+    {id:'f10', name:'披萨', emoji:'🍕', price:55},
+    {id:'f11', name:'饺子', emoji:'🥟', price:28},
+    {id:'f12', name:'水果拼盘', emoji:'🍎', price:45},
+    {id:'f13', name:'小笼包', emoji:'🥟', price:26},
+    {id:'f14', name:'烧烤拼盘', emoji:'🍖', price:88},
+    {id:'f15', name:'甜甜圈', emoji:'🍩', price:16},
+    {id:'f16', name:'马卡龙', emoji:'🍪', price:42},
+    {id:'f17', name:'酸奶', emoji:'🥛', price:12},
+    {id:'f18', name:'薯片', emoji:'🥔', price:10},
+    {id:'f19', name:'泡面', emoji:'🍜', price:8},
+    {id:'f20', name:'红酒', emoji:'🍷', price:128}
+  ],
+  memorial: [
+    {id:'m1', name:'合照相框', emoji:'🖼️', price:66},
+    {id:'m2', name:'纪念相册', emoji:'📔', price:88},
+    {id:'m3', name:'定制星空灯', emoji:'✨', price:158},
+    {id:'m4', name:'手写情书本', emoji:'💌', price:45},
+    {id:'m5', name:'纪念银币', emoji:'🪙', price:120},
+    {id:'m6', name:'时间胶囊', emoji:'⏳', price:99},
+    {id:'m7', name:'定制星座图', emoji:'🌟', price:78},
+    {id:'m8', name:'恋爱日记本', emoji:'📓', price:38},
+    {id:'m9', name:'干花书签', emoji:'🌸', price:22},
+    {id:'m10', name:'定制音乐盒', emoji:'🎵', price:168},
+    {id:'m11', name:'纪念日蜡烛', emoji:'🕯️', price:48},
+    {id:'m12', name:'合影拍立得相纸', emoji:'📷', price:55},
+    {id:'m13', name:'定制抱枕印照', emoji:'🛏️', price:98},
+    {id:'m14', name:'恋爱纪念章', emoji:'🏅', price:66},
+    {id:'m15', name:'手绘肖像', emoji:'🎨', price:188},
+    {id:'m16', name:'定制钥匙牌', emoji:'🔑', price:35}
+  ]
+};
+const MALL_CAT_LABEL = { daily:'日常用品', couple:'情侣用品', food:'食物', memorial:'纪念品' };
+
+function mallGetItems(cat){
+  const base = (MALL_ITEMS[cat] || []).slice();
+  const custom = (mallState.customItems || []).filter(x => x.cat === cat);
+  return base.concat(custom);
+}
+function mallFindItem(itemId, cat){
+  if(cat){
+    return mallGetItems(cat).find(x => x.id === itemId) || null;
+  }
+  for(const k of Object.keys(MALL_ITEMS)){
+    const hit = mallGetItems(k).find(x => x.id === itemId);
+    if(hit) return hit;
+  }
+  return (mallState.customItems || []).find(x => x.id === itemId) || null;
+}
+function mallPushLedger(who, type, amount, note){
+  if(!Array.isArray(mallState.ledger)) mallState.ledger = [];
+  mallState.ledger.unshift({
+    id: uid(), time: Date.now(), who, type, amount, note: note || ''
+  });
+  if(mallState.ledger.length > 200) mallState.ledger = mallState.ledger.slice(0, 200);
+}
+async function loadMallState(){
+  try{
+    const s = await sGet('mall-state', null);
+    if(s && typeof s==='object'){
+      mallState.gifts = Array.isArray(s.gifts) ? s.gifts : [];
+      mallState.ledger = Array.isArray(s.ledger) ? s.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : [];
+      mallState.customItems = Array.isArray(s.customItems) ? s.customItems : [];
+      mallState.buyProb = typeof s.buyProb==='number' ? Math.max(0,Math.min(100,s.buyProb)) : 25;
+      mallState.autoBuy = s.autoBuy !== false;
+      mallState.autoBuyMinMin = typeof s.autoBuyMinMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMinMin)) : 30;
+      mallState.autoBuyMaxMin = typeof s.autoBuyMaxMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMaxMin)) : 180;
+      if(mallState.autoBuyMinMin > mallState.autoBuyMaxMin){
+        const t = mallState.autoBuyMinMin; mallState.autoBuyMinMin = mallState.autoBuyMaxMin; mallState.autoBuyMaxMin = t;
+      }
+      mallState.nextAutoBuyAt = s.nextAutoBuyAt || null;
+      mallState.lastBuyCheck = s.lastBuyCheck || 0;
+    }
+  }catch(e){}
+}
+async function saveMallState(){
+  try{ await sSet('mall-state', mallState); }catch(e){}
+}
+function mallScheduleNextAutoBuy(){
+  const a = Math.max(1, Number(mallState.autoBuyMinMin)||30) * 60 * 1000;
+  const b = Math.max(1, Number(mallState.autoBuyMaxMin)||180) * 60 * 1000;
+  const wait = Math.min(a,b) + Math.random() * (Math.abs(b-a) + 1);
+  mallState.nextAutoBuyAt = Date.now() + wait;
+}
+async function checkMallAutoBuy(){
+  try{
+    if(mallState.autoBuy === false) return;
+    if(!mallState.nextAutoBuyAt){
+      mallScheduleNextAutoBuy();
+      await saveMallState();
+      return;
+    }
+    if(Date.now() < mallState.nextAutoBuyAt) return;
+    mallScheduleNextAutoBuy();
+    const prob = (typeof mallState.buyProb==='number' ? mallState.buyProb : 25) / 100;
+    if(Math.random() > prob){
+      await saveMallState();
+      return;
+    }
+    const cats = Object.keys(MALL_ITEMS);
+    const all = [];
+    cats.forEach(cat => mallGetItems(cat).forEach(it => all.push({...it, _cat: cat})));
+    if(!all.length){ await saveMallState(); return; }
+    const it = all[Math.floor(Math.random()*all.length)];
+    const giftId = it.id + '-' + Date.now();
+    mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
+    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
+    await saveMallState();
+    await pushGiftChatMsg(it, 'bot');
+    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
+    if(currentView === 'mall') try{ renderMall(); }catch(e){}
+  }catch(e){ console.warn('checkMallAutoBuy', e); }
+}
+function renderMall(initialCat){
+  loadMallState().then(()=>{
+    const body = document.getElementById('mallBody');
+    if(!body) return;
+    let html = `
+    <div class="mb-tabs" style="margin-bottom:10px;">
+      <div class="mb-tab on" data-cat="daily" onclick="mallShowCat('daily',this)">日常用品</div>
+      <div class="mb-tab" data-cat="couple" onclick="mallShowCat('couple',this)">情侣用品</div>
+      <div class="mb-tab" data-cat="food" onclick="mallShowCat('food',this)">食物</div>
+      <div class="mb-tab" data-cat="memorial" onclick="mallShowCat('memorial',this)">纪念品</div>
+      <div class="mb-tab" data-cat="gifts" onclick="mallShowCat('gifts',this)">礼物柜</div>
+      <div class="mb-tab" data-cat="ledger" onclick="mallShowCat('ledger',this)">流水</div>
+      <div class="mb-tab" data-cat="custom" onclick="mallShowCat('custom',this)">自定义</div>
+      <div class="mb-tab" data-cat="settings" onclick="mallShowCat('settings',this)">设置</div>
+    </div>
+    <div id="mallItems"></div>`;
+    body.innerHTML = html;
+    const tab = (initialCat && ['daily','couple','food','memorial','gifts','ledger','custom','settings'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
+    mallShowCat(tab);
+  });
+}
+function mallShowCat(cat, el){
+  mallState._lastCat = cat;
+  document.querySelectorAll('#mallBody .mb-tab').forEach(t=>t.classList.remove('on'));
+  if(el) el.classList.add('on');
+  else {
+    const t = document.querySelector(`#mallBody .mb-tab[data-cat="${cat}"]`);
+    if(t) t.classList.add('on');
+  }
+  const box = document.getElementById('mallItems');
+  if(!box) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  const safeName = (typeof escapeHtml==='function') ? escapeHtml(name) : String(name||'');
+
+  if(cat==='settings'){
+    box.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:14px 16px;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.04);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <span style="font-size:13px;font-weight:700;">${safeName} 自动买礼物</span>
+          <span class="switch ${mallState.autoBuy!==false?'on':''}" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))"><div class="dot"></div></span>
+        </div>
+        <label class="field" style="margin-top:12px;">自动检查间隔（分钟，最短 ～ 最长）</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="mallAutoMin" min="1" max="10080" value="${mallState.autoBuyMinMin||30}" style="width:100%;text-align:center;" onchange="mallSetAutoInterval()">
+          <span>～</span>
+          <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:100%;text-align:center;" onchange="mallSetAutoInterval()">
+        </div>
+        <label class="field" style="margin-top:12px;">买到概率（自动购买 / 让${safeName}买给我）</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="mallBuyProb" min="0" max="100" step="1" value="${mallState.buyProb}" style="width:100%;text-align:center;" onchange="mallSetBuyProb(this.value)">
+          <span>%</span>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if(cat==='gifts'){
+    if(!mallState.gifts.length){
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">礼物柜还是空的～去买点礼物吧</div>';
+      return;
+    }
+    const sorted = mallState.gifts.slice().sort((a,b)=> (b.time||0)-(a.time||0));
+    box.innerHTML = sorted.map(g=>{
+      const who = g.from==='me' ? `我 → ${safeName}` : `${safeName} → 我`;
+      const d = g.time ? new Date(g.time).toLocaleString() : '';
+      const gid = String(g.id||'').replace(/'/g,'');
+      return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
+        <div style="font-size:28px;">${g.emoji||'🎁'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(g.name):g.name}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${who} · ¥${g.price} · ${d}</div>
+        </div>
+        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);border-color:rgba(139,58,86,.35);" onclick="mallDeleteGift('${gid}')">删除</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  if(cat==='ledger'){
+    if(!mallState.ledger || !mallState.ledger.length){
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">还没有流水记录</div>';
+      return;
+    }
+    box.innerHTML = mallState.ledger.map(r=>{
+      const whoLabel = r.who==='me' ? '我' : safeName;
+      const sign = r.amount >= 0 ? '+' : '';
+      const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
+      const d = r.time ? new Date(r.time).toLocaleString() : '';
+      return `<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <div style="font-weight:700;font-size:13px;">${whoLabel} · ${(typeof escapeHtml==='function')?escapeHtml(r.note||r.type): (r.note||r.type)}</div>
+          <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  if(cat==='custom'){
+    const list = mallState.customItems || [];
+    box.innerHTML = `
+      <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(0,0,0,.08);">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">添加自定义商品</div>
+        <label class="field">分类</label>
+        <select id="mallCustomCat" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px;">
+          <option value="daily">日常用品</option>
+          <option value="couple">情侣用品</option>
+          <option value="food">食物</option>
+          <option value="memorial">纪念品</option>
+        </select>
+        <label class="field">名称</label>
+        <input type="text" id="mallCustomName" placeholder="例如：限定周边" style="width:100%;margin-bottom:8px;">
+        <label class="field">Emoji</label>
+        <input type="text" id="mallCustomEmoji" placeholder="🎁" style="width:100%;margin-bottom:8px;">
+        <label class="field">价格（元）</label>
+        <input type="number" id="mallCustomPrice" min="1" value="50" style="width:100%;margin-bottom:10px;">
+        <div class="btn" style="width:100%;text-align:center;" onclick="mallAddCustomItem()">添加商品</div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">已添加 ${list.length} 件自定义商品</div>
+      ${list.length ? list.map(it=>{
+        const cid = String(it.id||'').replace(/'/g,'');
+        return `<div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
+          <div style="font-size:26px;">${it.emoji||'🎁'}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(it.name):it.name}</div>
+            <div style="font-size:11px;color:var(--ink-soft);">${MALL_CAT_LABEL[it.cat]||it.cat} · ¥${it.price}</div>
+          </div>
+          <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallDeleteCustomItem('${cid}')">删除</div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;color:var(--ink-soft);padding:16px;font-size:13px;">还没有自定义商品</div>'}
+    `;
+    return;
+  }
+
+  const items = mallGetItems(cat);
+  box.innerHTML = items.map(it=>{
+    const isCustom = String(it.id||'').startsWith('custom-');
+    return `
+    <div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
+      <div style="font-size:28px;">${it.emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;">${it.name}${isCustom?' <span style="font-size:10px;color:var(--ink-soft);font-weight:400;">自定义</span>':''}</div>
+        <div style="font-size:13px;color:var(--rouge);margin-top:2px;">¥${it.price}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="btn" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','me')">我买给${safeName}</div>
+        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','ta')">让${safeName}买给我</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function mallSetBuyProb(v){
+  const n = parseInt(v,10);
+  mallState.buyProb = Math.max(0, Math.min(100, Number.isFinite(n) ? n : 25));
+  const el = document.getElementById('mallBuyProb'); if(el) el.value = mallState.buyProb;
+  await saveMallState();
+}
+async function mallSetAutoBuy(on){
+  mallState.autoBuy = !!on;
+  if(on && !mallState.nextAutoBuyAt) mallScheduleNextAutoBuy();
+  await saveMallState();
+}
+async function mallSetAutoInterval(){
+  let a = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMin').value,10)||30));
+  let b = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallAutoMax').value,10)||180));
+  if(a > b){ const t=a; a=b; b=t; }
+  mallState.autoBuyMinMin = a;
+  mallState.autoBuyMaxMin = b;
+  mallScheduleNextAutoBuy();
+  await saveMallState();
+  _flashToast('自动买礼物间隔已更新，已重新计时', false);
+}
+async function mallDeleteGift(gid){
+  if(!confirm('确定从礼物柜删除这件礼物吗？')) return;
+  mallState.gifts = (mallState.gifts||[]).filter(g => String(g.id) !== String(gid));
+  await saveMallState();
+  _flashToast('已删除', false);
+  mallShowCat('gifts');
+}
+async function mallAddCustomItem(){
+  const cat = (document.getElementById('mallCustomCat')||{}).value || 'daily';
+  const name = ((document.getElementById('mallCustomName')||{}).value || '').trim();
+  let emoji = ((document.getElementById('mallCustomEmoji')||{}).value || '').trim() || '🎁';
+  const price = Math.max(1, parseInt((document.getElementById('mallCustomPrice')||{}).value,10) || 50);
+  if(!name){ _flashToast('请填写商品名称', true); return; }
+  if(!Array.isArray(mallState.customItems)) mallState.customItems = [];
+  mallState.customItems.push({ id:'custom-'+uid(), cat, name, emoji, price });
+  await saveMallState();
+  _flashToast('已添加「'+name+'」', false);
+  mallShowCat('custom');
+}
+async function mallDeleteCustomItem(cid){
+  if(!confirm('确定删除这个自定义商品吗？')) return;
+  mallState.customItems = (mallState.customItems||[]).filter(x => String(x.id) !== String(cid));
+  await saveMallState();
+  _flashToast('已删除', false);
+  mallShowCat('custom');
+}
+async function pushGiftChatMsg(it, from){
+  const msg = {
+    id: uid(),
+    from: from,
+    type: 'gift',
+    itemName: it.name,
+    emoji: it.emoji || '🎁',
+    price: it.price,
+    content: it.name,
+    time: Date.now(),
+    read: from === 'bot' ? true : false
+  };
+  chatMessages.push(msg);
+  try{ await recPut('chatMessages', msg); }catch(e){ console.warn('gift chat put fail', e); }
+  if(from === 'bot'){
+    if(currentView !== 'chat'){
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); }catch(e){}
+      try{ renderUnreadDots(); }catch(e){}
+    }
+  }
+  if(currentView === 'chat'){
+    try{ renderChat(); scrollChatBottom(); }catch(e){}
+  }
+}
+async function mallBuy(itemId, cat, who){
+  const it = mallFindItem(itemId, cat);
+  if(!it) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  if(who==='me'){
+    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
+    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name);
+    await saveMallState();
+    await pushGiftChatMsg(it, 'user');
+    _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
+  } else {
+    const prob = (typeof mallState.buyProb==='number' ? mallState.buyProb : 25) / 100;
+    if(Math.random() > prob){
+      await saveMallState();
+      _flashToast(`${name} 这次没买成（概率 ${mallState.buyProb}%），再试试～`, true);
+      renderMall(cat || mallState._lastCat || 'daily');
+      return;
+    }
+    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
+    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你');
+    await saveMallState();
+    await pushGiftChatMsg(it, 'bot');
+    _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
+  }
+  renderMall(cat || mallState._lastCat || 'daily');
+}
+loadMallState().then(()=>{
+  if(mallState.autoBuy !== false && !mallState.nextAutoBuyAt){
+    mallScheduleNextAutoBuy();
+    saveMallState();
+  }
+}).catch(()=>{});
 
 </script>
 <style>
@@ -11885,7 +12443,8 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 #view-garden .gd-log-row .t{color:var(--ink-soft);margin-right:6px;font-size:11px;}
 @media (min-width:420px){#view-garden .gd-grid{grid-template-columns:repeat(4,1fr);}}
 
-#view-garden .gd-quick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+#view-garden .gd-quick{display:flex;flex-wrap:nowrap;gap:5px;margin-bottom:10px;}
+#view-garden .gd-quick .btn.sm{flex:1 1 0;min-width:0;padding:6px 2px;font-size:11px;text-align:center;white-space:nowrap;}
 #view-garden .btn.sm{padding:6px 10px;font-size:11px;}
 #view-garden .gd-emoji.empty-ico{opacity:.35;font-size:18px;}
 #view-garden .gd-hybrid-list{display:flex;flex-direction:column;gap:6px;}
