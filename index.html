@@ -403,7 +403,7 @@
   .msg.transfer.accepted, .msg.transfer.returned{ background:#F9D3A8; box-shadow:none; }
   .msg.transfer.bot.pending{ cursor:pointer; }
   .msg.gift-card{
-    width:148px; max-width:58%; aspect-ratio:1/1; padding:0; overflow:hidden;
+    width:168px; max-width:68%; aspect-ratio:auto; height:auto; min-height:0; padding:0; overflow:hidden;
     background:#ffffff; border:1px solid rgba(0,0,0,.08);
     border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05);
     display:flex; flex-direction:column;
@@ -411,16 +411,19 @@
   .msg.gift-card.bouquet,
   .msg.gift-card.user.bouquet,
   .msg.gift-card.ta.bouquet{
-    width:212px !important; max-width:82% !important;
+    width:168px !important; max-width:68% !important;
     aspect-ratio:auto !important; height:auto !important;
     min-height:0 !important;
   }
+  .msg.gift-card .gift-emoji{ font-size:28px; line-height:1; flex-shrink:0; }
   .msg.gift-card.bouquet .gift-emoji{ font-size:28px !important; }
-  .msg.gift-card.bouquet .gift-name{ white-space:normal !important; margin-top:1px !important; }
-  .msg.gift-card.bouquet .gift-body{ text-align:left !important; }
+  .msg.gift-card .gift-name,
+  .msg.gift-card.bouquet .gift-name{ white-space:normal; margin-top:1px; overflow:visible; text-overflow:unset; word-break:break-word; line-height:1.35; }
+  .msg.gift-card .gift-body,
+  .msg.gift-card.bouquet .gift-body{ text-align:left; min-width:0; width:100%; }
   .msg.gift-card .gift-inner{
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:6px; padding:14px 12px 6px; text-align:center;
+    flex:1; display:flex; flex-direction:row; align-items:center; justify-content:flex-start;
+    gap:9px; padding:9px 12px; text-align:left;
   }
   .msg.gift-card.bouquet .gift-inner{
     flex-direction:row !important; align-items:center !important;
@@ -428,20 +431,12 @@
     background:linear-gradient(120deg,rgba(255,240,248,.95),rgba(255,255,255,.9));
     padding:9px 12px !important; gap:9px !important;
   }
-  .msg.gift-card.bouquet .gift-note{ font-size:10.5px !important; margin-top:2px !important; }
-  .msg.gift-card .gift-emoji{ font-size:40px; line-height:1; flex-shrink:0; }
-  .msg.gift-card .gift-body{ min-width:0; width:100%; }
+  .msg.gift-card .gift-note,
+  .msg.gift-card.bouquet .gift-note{ font-size:10.5px; margin-top:2px; line-height:1.45; white-space:normal; word-break:break-word; }
   .msg.gift-card .gift-label{ font-size:10.5px; color:var(--ink-soft); letter-spacing:.5px; }
-  .msg.gift-card .gift-name{
-    font-size:13.5px; font-weight:700; color:var(--ink); margin-top:3px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .msg.gift-card .gift-price{ font-size:13px; color:var(--rouge); margin-top:4px; font-weight:700; }
-  .msg.gift-card .gift-note{
-    font-size:11px; color:var(--ink-soft); margin-top:4px; line-height:1.45;
-    white-space:normal; word-break:break-word;
-  }
-  .msg.gift-card .t{ padding:4px 10px 10px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
+  .msg.gift-card .gift-name{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .msg.gift-card .gift-price{ font-size:13px; color:var(--rouge); margin-top:2px; font-weight:700; }
+  .msg.gift-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
 .msg.questionnaire{
   background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
 }
@@ -1812,13 +1807,12 @@
     </div>
     <div class="box">
       <div class="box-title">花园 · TA 来访</div>
-      <p style="font-size:12px;color:var(--ink-soft);">设置 TA 多久来一次花园（帮浇水 / 种一朵 / 说句话）。范围 1 小时～7 天（168 小时）。</p>
-      <label class="field">间隔（小时）</label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-        <input type="number" id="gardenTaVisitHours" min="1" max="168" step="1" value="24" style="width:80px;text-align:center;">
+        <input type="number" id="gardenTaVisitMinMin" min="30" max="10080" step="1" value="30" placeholder="分钟" style="width:70px;text-align:center;">
+        <span>～</span>
+        <input type="number" id="gardenTaVisitMaxHours" min="1" max="168" step="1" value="36" placeholder="小时" style="width:70px;text-align:center;">
         <div class="btn outline" onclick="gardenSaveTaVisitFromSettings()">保存</div>
       </div>
-      <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">常用：6=半天 · 12=半天多 · 24=一天 · 48=两天 · 72=三天 · 168=一周</p>
     </div>
     <div class="box">
       <div class="box-title">自定义背景</div>
@@ -3253,7 +3247,7 @@ document.addEventListener('visibilitychange', ()=>{
 // 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
 window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
 setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
-setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
+setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallCartPick==='function') checkMallCartPick(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
 
 
 function normalizeCardsJson(raw){
@@ -3969,6 +3963,16 @@ function renderChat(preserveScroll, scrollToId){
         </div>
         <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
       </div>`;
+    } else if(m.type==='cart'){
+      const fromMe = m.from==='user';
+      const items = (m.items||[]);
+      const rows = items.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span style="color:var(--rouge);">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('');
+      bubbleHtml = `<div class="msg cart-card ${m.from}">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">🛒 购物清单</div>
+        <div>${rows}</div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">共 ${items.length} 件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
+      </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
@@ -4101,6 +4105,7 @@ function buildQuotePreview(m){
   if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
   if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
   if(m.type==='gift') return (m.bouquet?'[花束] ':'[礼物] ') + (m.itemName||m.content||'');
+  if(m.type==='cart') return '[购物清单] ' + (m.items||[]).map(x=>x.name||'').join('、');
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
@@ -4355,7 +4360,7 @@ function runReplyBatch(userText, total, startFrom){
     if(currentView !== 'chat' && !roomIsOpen()){
       chatUnread = true;
       try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
-      try{ tryBgNotify((chatSettings&&chatSettings.companionName)||'TA', reply.content||'[消息]'); }catch(e){}
+      try{ tryBgNotify(notifyNameForMsg(newMsg), reply.content||'[消息]'); }catch(e){}
     }
     // 还有下一条：显示「正在输入…」，隔 4 秒~1 分钟再发（状态落盘，刷新也能接着发）
     if(i+1 < _totalCount){
@@ -4721,7 +4726,7 @@ function runProBurst(total, startFrom){
     }
     // 页面在后台（后台保活时）：就算停在聊天页也要提示音 + 系统通知，前台在聊天页则不打扰
     if(!_inChat || document.visibilityState!=='visible'){
-      try{ tryBgNotify(chatSettings.companionName+' 发来消息', reply.content||'[消息]'); }catch(e){}
+      try{ tryBgNotify(notifyNameForMsg(newMsg)+' 发来消息', reply.content||'[消息]'); }catch(e){}
     }
     if(i+1 < _total){
       const _gap = 4000 + Math.random()*56000;
@@ -4898,7 +4903,7 @@ async function resumeCall(){
   const stale = (now - (saved.savedAt || 0)) > 2*3600*1000;
   if(saved.status === 'connected'){
     if(stale && (!saved.startTime || (now - saved.startTime) > 2*3600*1000)){ clearCallSession(); return; }
-    activeCall = { direction:saved.direction, status:'connected', muted:!!saved.muted, camOn:saved.camOn!==false, startTime:saved.startTime || now, minimized:!!saved.minimized, taHangAt:saved.taHangAt || null };
+    activeCall = { direction:saved.direction, status:'connected', muted:!!saved.muted, camOn:saved.camOn!==false, startTime:saved.startTime || now, minimized:!!saved.minimized, taHangAt:null };
     showCallOverlay();
     document.getElementById('callStatusLabel').textContent = '视频通话中';
     document.getElementById('callTimerLabel').classList.remove('hidden');
@@ -4910,7 +4915,6 @@ async function resumeCall(){
     try{ const cb=document.getElementById('camBtn'); if(cb) cb.classList.toggle('on', !activeCall.camOn); const pip=document.getElementById('callSelfPip'); if(pip) pip.classList.toggle('cam-off', !activeCall.camOn); }catch(e){}
     activeCall.timerInterval = setInterval(updateCallTimer, 1000);
     updateCallTimer();
-    armTaHangup();
     if(activeCall.minimized) minimizeCall();
   } else if(saved.status === 'ringing'){
     if(stale){ clearCallSession(); return; }
@@ -4987,8 +4991,6 @@ function connectCall(){
   activeCall.status = 'connected';
   activeCall.startTime = Date.now();
   activeCall.minimized = false;
-  const hangProb = (typeof chatSettings.taHangupProb === 'number') ? chatSettings.taHangupProb : 15;
-  if(Math.random()*100 < hangProb) activeCall.taHangAt = Date.now() + 10000 + Math.random()*110000;
   saveCallSession();
   document.getElementById('callStatusLabel').textContent = '视频通话中';
   document.getElementById('callTimerLabel').classList.remove('hidden');
@@ -4998,14 +5000,10 @@ function connectCall(){
     <div class="call-btn-sm" id="camBtn" onclick="toggleCamera()">📷</div>`;
   activeCall.timerInterval = setInterval(updateCallTimer, 1000);
   updateCallTimer();
-  armTaHangup();
 }
 function armTaHangup(){
-  if(!activeCall || !activeCall.taHangAt) return;
-  clearTimeout(activeCall.taHangTimer);
-  activeCall.taHangTimer = setTimeout(function(){
-    if(activeCall && activeCall.status === 'connected') endCall('hung_up_by_them');
-  }, Math.max(0, activeCall.taHangAt - Date.now()));
+  // 已关闭：TA 接通后不再自动挂断
+  return;
 }
 function toggleMute(){
   if(!activeCall) return;
@@ -5220,13 +5218,6 @@ function openChatSettings(){
       <input type="number" min="0" max="100" step="1" value="${(typeof chatSettings.favMsgProb==='number')?chatSettings.favMsgProb:10}" id="csFavMsgProb" style="width:100%;">
       <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span>
     </div>
-    <div class="box-title" style="margin-top:14px;">视频通话</div>
-    <label class="field">TA 挂断我的概率（接通后）</label>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <input type="number" min="0" max="100" step="1" value="${(typeof chatSettings.taHangupProb==='number')?chatSettings.taHangupProb:15}" id="csTaHangupProb" style="width:100%;">
-      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">%</span>
-    </div>
-    <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">命中时，TA 会在接通后 10～120 秒内挂断</div>
     <label class="field">最快回复</label>
     <div style="display:flex;align-items:center;gap:8px;">
       <input type="number" min="0" max="3600" step="1" value="${chatSettings.delayMin}" id="csDelayMin" style="width:100%;">
@@ -5639,8 +5630,6 @@ async function saveChatSettings(){
   chatSettings.transferEnabled = document.getElementById('csTransferEnabled').classList.contains('on');
   const fmp = document.getElementById('csFavMsgProb');
   if(fmp){ const fv = parseInt(fmp.value,10); chatSettings.favMsgProb = Number.isFinite(fv) ? Math.max(0, Math.min(100, fv)) : 10; }
-  const thp = document.getElementById('csTaHangupProb');
-  if(thp){ const tv = parseInt(thp.value,10); chatSettings.taHangupProb = Number.isFinite(tv) ? Math.max(0, Math.min(100, tv)) : 15; }
   await sSet('chat-settings', chatSettings);
   const _oldPro = { e: proactiveMsgSettings.enabled !== false, a: proactiveMsgSettings.minSeconds, b: proactiveMsgSettings.intervalMinutes };
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -5949,6 +5938,7 @@ async function sendQuestionnaire(){
 async function checkQuestionnaireReplies(){
   const now = Date.now();
   let changed = false;
+  let lastReplyMsg = null;
   for(const m of chatMessages){
     if(m.type !== 'questionnaire' || m.answered || !m.scheduledReplyAt) continue;
     if(m.scheduledReplyAt > now) continue;
@@ -5973,11 +5963,12 @@ async function checkQuestionnaireReplies(){
     try{ assignGroupSender(replyMsg); }catch(e){}
     chatMessages.push(replyMsg);
     await recPut('chatMessages', replyMsg);
+    lastReplyMsg = replyMsg;
     changed = true;
   }
   if(changed){
     if(currentView === 'chat'){ renderChat(); }
-    else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(chatSettings.companionName+' 发来消息', '[消息]'); }
+    else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(notifyNameForMsg(lastReplyMsg)+' 发来消息', '[消息]'); }
   }
 }
 
@@ -8617,6 +8608,13 @@ function tryBgNotify(title, body){
     console.warn('notify fail', e);
   });
 }
+/* 后台通知里显示谁发的：群聊模式下用消息真正的发送者，否则用默认梦角名。
+   跟随「群聊-显示名字」开关；关掉就不带发送者名，只显示梦角名。 */
+function notifyNameForMsg(msg){
+  const g = chatSettings && chatSettings.group;
+  if(g && g.enabled && msg && msg.sender && g.showName !== false) return msg.sender;
+  return (chatSettings && chatSettings.companionName) || 'TA';
+}
 
 
 
@@ -11058,7 +11056,9 @@ function gardenDefault(){
     dex: {},
     log: [],
     lastTaVisit: 0,
-    taVisitHours: 24,
+    taVisitMinMin: 720,
+    taVisitMaxMin: 2160,
+    nextTaVisitAt: 0,
     nextTaGiftAt: 0,
     lastSeed: 'daisy',
     bouquetCnt: 0,
@@ -11079,7 +11079,9 @@ async function loadGarden(){
       if(!gardenData.dex) gardenData.dex = {};
       if(!gardenData.log) gardenData.log = [];
       if(typeof gardenData.exp !== 'number') gardenData.exp = 0;
-      if(typeof gardenData.taVisitHours !== 'number') gardenData.taVisitHours = 24;
+      if(typeof gardenData.taVisitMinMin !== 'number') gardenData.taVisitMinMin = (typeof gardenData.taVisitMinHours === 'number' ? Math.round(gardenData.taVisitMinHours*60) : 720);
+      if(typeof gardenData.taVisitMaxMin !== 'number') gardenData.taVisitMaxMin = (typeof gardenData.taVisitMaxHours === 'number' ? Math.round(gardenData.taVisitMaxHours*60) : 2160);
+      if(typeof gardenData.nextTaVisitAt !== 'number') gardenData.nextTaVisitAt = 0;
       if(typeof gardenData.nextTaGiftAt !== 'number') gardenData.nextTaGiftAt = 0;
       if(!gardenData.st) gardenData.st = { plant:0, water:0, harvest:0, fert:0, hybrid:0 };
     } else {
@@ -11569,23 +11571,36 @@ async function gCheckTaGift(){
   }catch(e){ console.warn('ta gift fail', e); }
   finally{ _taGiftBusy = false; }
 }
+function gTaVisitGapMs(){
+  let lo = Number(gardenData.taVisitMinMin); if(isNaN(lo)) lo = 720;
+  let hi = Number(gardenData.taVisitMaxMin); if(isNaN(hi)) hi = 2160;
+  lo = Math.max(30, Math.min(10080, lo));
+  hi = Math.max(30, Math.min(10080, hi));
+  const minM = Math.min(lo, hi), maxM = Math.max(lo, hi);
+  const mins = minM + Math.random()*(maxM-minM);
+  return mins * 60 * 1000;
+}
+let _taVisitBusy = false;
 async function gCheckTaVisit(){
-  if(!gardenData) await loadGarden();
-  const hours = Math.max(1, Math.min(168, gardenData.taVisitHours||24));
-  const intervalMs = hours * 3600 * 1000;
-  const now = Date.now();
-  if(!gardenData.lastTaVisit) gardenData.lastTaVisit = now;
-  if(now - gardenData.lastTaVisit < intervalMs) return;
-  gardenData.lastTaVisit = now;
-  await gPartnerAct(false);
-  // 偶尔访客
-  if(Math.random()<0.35){
-    const vi = GARDEN_VISITORS[Math.floor(Math.random()*GARDEN_VISITORS.length)];
-    const dur = 3600 + Math.floor(Math.random()*10800);
-    gardenData.visitor = { type:vi.type, e:vi.e, n:vi.n, start:Math.floor(Date.now()/1000), dur };
-    gAddLog(vi.n, vi.e+' 来访了花园');
+  if(_taVisitBusy) return;
+  _taVisitBusy = true;
+  try{
+    if(!gardenData) await loadGarden();
+    const now = Date.now();
+    if(!gardenData.nextTaVisitAt){ gardenData.nextTaVisitAt = now + gTaVisitGapMs(); await saveGarden(); return; }
+    if(now < gardenData.nextTaVisitAt) return;
+    gardenData.nextTaVisitAt = now + gTaVisitGapMs();
+    gardenData.lastTaVisit = now;
+    await gPartnerAct(false);
+    // 偶尔访客
+    if(Math.random()<0.35){
+      const vi = GARDEN_VISITORS[Math.floor(Math.random()*GARDEN_VISITORS.length)];
+      const dur = 3600 + Math.floor(Math.random()*10800);
+      gardenData.visitor = { type:vi.type, e:vi.e, n:vi.n, start:Math.floor(Date.now()/1000), dur };
+      gAddLog(vi.n, vi.e+' 来访了花园');
+    }
     await saveGarden();
-  }
+  } finally { _taVisitBusy = false; }
 }
 
 
@@ -11751,24 +11766,33 @@ function gOnPlotClick(i){
   renderGarden();
 }
 
-async function gardenSetTaVisitHours(v){
+async function gardenSetTaVisitRange(minV, maxV){
   if(!gardenData) await loadGarden();
-  let h = parseFloat(v); if(isNaN(h)) h=24;
-  h = Math.max(1, Math.min(168, h));
-  gardenData.taVisitHours = h;
+  let lo = Math.round(parseFloat(minV)); if(isNaN(lo)) lo=30;                // 最短（分钟）
+  let hiH = parseFloat(maxV); if(isNaN(hiH)) hiH=36;                          // 最长（小时）
+  lo = Math.max(30, Math.min(10080, lo));
+  let hi = Math.round(hiH*60);                                               // 换算成分钟内存
+  hi = Math.max(30, Math.min(10080, hi));
+  if(hi < lo){ const t=lo; lo=hi; hi=t; }
+  gardenData.taVisitMinMin = lo;
+  gardenData.taVisitMaxMin = hi;
+  gardenData.nextTaVisitAt = 0; // 重排下一次
   await saveGarden();
-  gToast('TA 来访间隔已设为 '+h+' 小时');
+  const f = m => (m%60===0 ? (m/60)+'小时' : m+'分钟');
+  gToast('TA 来访间隔已设为 '+f(lo)+'～'+f(hi)+'（随机）');
 }
 async function gardenSaveTaVisitFromSettings(){
-  const el = document.getElementById('gardenTaVisitHours');
-  if(!el) return;
-  await gardenSetTaVisitHours(el.value);
+  const a = document.getElementById('gardenTaVisitMinMin');
+  const b = document.getElementById('gardenTaVisitMaxHours');
+  await gardenSetTaVisitRange(a?a.value:30, b?b.value:36);
 }
 async function gardenFillSettings(){
   try{
     if(!gardenData) await loadGarden();
-    const el = document.getElementById('gardenTaVisitHours');
-    if(el) el.value = gardenData.taVisitHours || 24;
+    const a = document.getElementById('gardenTaVisitMinMin');
+    const b = document.getElementById('gardenTaVisitMaxHours');
+    if(a) a.value = (typeof gardenData.taVisitMinMin==='number') ? gardenData.taVisitMinMin : 30;
+    if(b) b.value = (typeof gardenData.taVisitMaxMin==='number') ? (Math.round(gardenData.taVisitMaxMin/6)/10) : 36;
   }catch(e){}
 }
 
@@ -11783,12 +11807,15 @@ let mallState = {
   gifts: [],
   ledger: [],
   customItems: [],
+  cart: [],
   buyProb: 25,
   autoBuy: true,
   autoBuyMinMin: 30,
   autoBuyMaxMin: 180,
   nextAutoBuyAt: null,
-  lastBuyCheck: 0
+  lastBuyCheck: 0,
+  pendingCart: null,
+  nextCartPickAt: null
 };
 const MALL_ITEMS = {
   daily: [
@@ -11905,6 +11932,7 @@ async function loadMallState(){
       mallState.gifts = Array.isArray(s.gifts) ? s.gifts : [];
       mallState.ledger = Array.isArray(s.ledger) ? s.ledger.filter(r => r && (r.type==='buy' || r.type==='auto')) : [];
       mallState.customItems = Array.isArray(s.customItems) ? s.customItems : [];
+      mallState.cart = Array.isArray(s.cart) ? s.cart : [];
       mallState.buyProb = typeof s.buyProb==='number' ? Math.max(0,Math.min(100,s.buyProb)) : 25;
       mallState.autoBuy = s.autoBuy !== false;
       mallState.autoBuyMinMin = typeof s.autoBuyMinMin==='number' ? Math.max(1, Math.min(10080, s.autoBuyMinMin)) : 30;
@@ -11914,6 +11942,8 @@ async function loadMallState(){
       }
       mallState.nextAutoBuyAt = s.nextAutoBuyAt || null;
       mallState.lastBuyCheck = s.lastBuyCheck || 0;
+      mallState.pendingCart = Array.isArray(s.pendingCart) ? s.pendingCart : null;
+      mallState.nextCartPickAt = s.nextCartPickAt || null;
     }
   }catch(e){}
 }
@@ -11947,6 +11977,27 @@ async function checkMallAutoBuy(){
     if(!all.length){ await saveMallState(); return; }
     const it = all[Math.floor(Math.random()*all.length)];
     const giftId = it.id + '-' + Date.now();
+    if(Math.random() < 0.35){
+      mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'ta', time:Date.now()});
+      mallPushLedger('ta', 'auto', -it.price, '给自己买了「'+it.name+'」');
+      await saveMallState();
+      const _selfName = (chatSettings && chatSettings.companionName) || 'TA';
+      const _selfText = '我今天给自己买了个「' + it.name + '」' + (it.emoji||'');
+      const _sm = {id:uid(), from:'bot', type:'text', content:_selfText, time:Date.now(), read:true};
+      try{ assignGroupSender(_sm); }catch(e){}
+      if(!Array.isArray(chatMessages)) chatMessages = [];
+      chatMessages.push(_sm);
+      try{ renderChat(); }catch(e){}
+      try{ await recPut('chatMessages', _sm); }catch(e){}
+      if(currentView!=='chat' && !(typeof roomIsOpen==='function' && roomIsOpen())){
+        chatUnread = true;
+        try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+        try{ tryBgNotify(notifyNameForMsg(_sm), _selfText); }catch(e){}
+      }
+      try{ _flashToast(_selfName + '给自己买了「' + it.name + '」', false); }catch(e){}
+      if(currentView === 'mall') try{ renderMall(); }catch(e){}
+      return;
+    }
     mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
     mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
     await saveMallState();
@@ -11965,6 +12016,7 @@ function renderMall(initialCat){
       <div class="mb-tab" data-cat="couple" onclick="mallShowCat('couple',this)">情侣用品</div>
       <div class="mb-tab" data-cat="food" onclick="mallShowCat('food',this)">食物</div>
       <div class="mb-tab" data-cat="memorial" onclick="mallShowCat('memorial',this)">纪念品</div>
+      <div class="mb-tab" data-cat="cart" onclick="mallShowCat('cart',this)">购物车</div>
       <div class="mb-tab" data-cat="gifts" onclick="mallShowCat('gifts',this)">礼物柜</div>
       <div class="mb-tab" data-cat="ledger" onclick="mallShowCat('ledger',this)">流水</div>
       <div class="mb-tab" data-cat="custom" onclick="mallShowCat('custom',this)">自定义</div>
@@ -11972,7 +12024,7 @@ function renderMall(initialCat){
     </div>
     <div id="mallItems"></div>`;
     body.innerHTML = html;
-    const tab = (initialCat && ['daily','couple','food','memorial','gifts','ledger','custom','settings'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
+    const tab = (initialCat && ['daily','couple','food','memorial','cart','gifts','ledger','custom','settings'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
     mallShowCat(tab);
   });
 }
@@ -12002,7 +12054,7 @@ function mallShowCat(cat, el){
           <span>～</span>
           <input type="number" id="mallAutoMax" min="1" max="10080" value="${mallState.autoBuyMaxMin||180}" style="width:100%;text-align:center;" onchange="mallSetAutoInterval()">
         </div>
-        <label class="field" style="margin-top:12px;">买到概率（自动购买 / 让${safeName}买给我）</label>
+        <label class="field" style="margin-top:12px;">买到概率（自动购买）</label>
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="number" id="mallBuyProb" min="0" max="100" step="1" value="${mallState.buyProb}" style="width:100%;text-align:center;" onchange="mallSetBuyProb(this.value)">
           <span>%</span>
@@ -12011,6 +12063,28 @@ function mallShowCat(cat, el){
     return;
   }
 
+  if(cat==='cart'){
+    const cart = Array.isArray(mallState.cart) ? mallState.cart : [];
+    if(!cart.length){
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">购物车是空的～去挑几件加进来吧</div>';
+      return;
+    }
+    const total = cart.reduce((s,x)=>s+(Number(x.price)||0), 0);
+    box.innerHTML = `
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">共 ${cart.length} 件 · 合计 ¥${total}</div>
+      ${cart.map((x,i)=>`<div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
+        <div style="font-size:26px;">${x.emoji||'🎁'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(x.name):x.name}</div>
+          <div style="font-size:12px;color:var(--rouge);">¥${x.price}</div>
+        </div>
+        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallRemoveCart(${i})">移除</div>
+      </div>`).join('')}
+      <div class="btn" style="width:100%;text-align:center;margin-top:10px;" onclick="mallSendCartToTa()">把清单发给${safeName}</div>
+      <div class="btn outline" style="width:100%;text-align:center;margin-top:8px;color:var(--rouge);" onclick="mallClearCart()">清空购物车</div>
+    `;
+    return;
+  }
   if(cat==='gifts'){
     if(!mallState.gifts.length){
       box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">礼物柜还是空的～去买点礼物吧</div>';
@@ -12018,7 +12092,7 @@ function mallShowCat(cat, el){
     }
     const sorted = mallState.gifts.slice().sort((a,b)=> (b.time||0)-(a.time||0));
     box.innerHTML = sorted.map(g=>{
-      const who = g.from==='me' ? `我 → ${safeName}` : `${safeName} → 我`;
+      const who = g.from==='me' ? `我 → ${safeName}` : (g.to==='ta' ? `${safeName}给自己` : `${safeName} →我`);
       const d = g.time ? new Date(g.time).toLocaleString() : '';
       const gid = String(g.id||'').replace(/'/g,'');
       return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
@@ -12102,7 +12176,7 @@ function mallShowCat(cat, el){
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
         <div class="btn" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','me')">我买给${safeName}</div>
-        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','ta')">让${safeName}买给我</div>
+        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallAddToCart('${it.id}','${cat}')">加入购物车</div>
       </div>
     </div>`;
   }).join('');
@@ -12179,30 +12253,103 @@ async function pushGiftChatMsg(it, from){
     try{ renderChat(); scrollChatBottom(); }catch(e){}
   }
 }
+async function mallAddToCart(itemId, cat){
+  const it = mallFindItem(itemId, cat);
+  if(!it) return;
+  if(!Array.isArray(mallState.cart)) mallState.cart = [];
+  if(mallState.cart.some(x => x.name===it.name)){
+    _flashToast('购物车里已经有「'+it.name+'」了', false);
+    return;
+  }
+  mallState.cart.push({name:it.name, emoji:it.emoji, price:it.price});
+  await saveMallState();
+  _flashToast('已加入购物车：'+it.name+'（共 '+mallState.cart.length+' 件）', false);
+  /* 不再自动跳转购物车：加完留在当前分类，可继续加，之后手动点「购物车」查看 */
+}
+async function mallRemoveCart(idx){
+  if(!Array.isArray(mallState.cart)) return;
+  mallState.cart.splice(Number(idx)||0,1);
+  await saveMallState();
+  mallShowCat('cart');
+}
+async function mallClearCart(){
+  mallState.cart = [];
+  await saveMallState();
+  _flashToast('购物车已清空', false);
+  mallShowCat('cart');
+}
+async function mallSendCartToTa(){
+  const cart = Array.isArray(mallState.cart) ? mallState.cart.slice() : [];
+  if(!cart.length){ _flashToast('购物车是空的，先加几件吧', true); return; }
+  const total = cart.reduce((s,x)=>s+(Number(x.price)||0), 0);
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  const cmsg = {id:uid(), from:'user', type:'cart', items:cart.map(x=>({name:x.name,emoji:x.emoji,price:x.price})), total, content:'购物清单', time:Date.now(), read:false};
+  if(!Array.isArray(chatMessages)) chatMessages = [];
+  chatMessages.push(cmsg);
+  try{ renderChat(); scrollChatBottom(); }catch(e){}
+  try{ await recPut('chatMessages', cmsg); }catch(e){}
+  mallState.cart = [];
+  mallState.pendingCart = cart;
+  mallState.nextCartPickAt = Date.now() + Math.random()*5*3600*1000; // 0~5 小时内随机挑
+  await saveMallState();
+  _flashToast('清单已发给 '+name+'，TA 会在 0~5 小时内挑～', false);
+  if(currentView==='mall'){ try{ mallShowCat('cart'); }catch(e){} }
+}
+async function mallDoCartPick(cart){
+  const bought = [], skipped = [];
+  for(const x of cart){ if(Math.random() < 0.8) bought.push(x); else skipped.push(x); }
+  if(!bought.length && cart.length){
+    const pick = cart[Math.floor(Math.random()*cart.length)];
+    bought.push(pick);
+    const si = skipped.findIndex(z=>z.name===pick.name);
+    if(si>=0) skipped.splice(si,1);
+  }
+  for(const x of bought){
+    const gid = 'cart-'+Date.now()+'-'+Math.floor(Math.random()*1000);
+    mallState.gifts.push({id:gid, name:x.name, emoji:x.emoji, price:x.price, from:'ta', to:'me', time:Date.now()});
+    mallPushLedger('ta', 'buy', -Number(x.price||0), '买了「'+x.name+'」给你');
+  }
+  await saveMallState();
+  const boughtNames = bought.map(x => x.name).join('、');
+  let replyText = '看到你的清单啦～我给你买了：' + boughtNames + '。';
+  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 就先不买啦～';
+  else replyText += '都给你安排上啦～';
+  const bmsg = {id:uid(), from:'bot', type:'text', content:replyText, time:Date.now(), read:true};
+  try{ assignGroupSender(bmsg); }catch(e){}
+  chatMessages.push(bmsg);
+  try{ renderChat(); }catch(e){}
+  try{ await recPut('chatMessages', bmsg); }catch(e){}
+  if(currentView!=='chat' && !(typeof roomIsOpen==='function' && roomIsOpen())){
+    chatUnread = true;
+    try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+    try{ tryBgNotify(notifyNameForMsg(bmsg), replyText); }catch(e){}
+  }
+}
+let _cartPickBusy = false;
+async function checkMallCartPick(){
+  if(_cartPickBusy) return;
+  if(!mallState.pendingCart || !mallState.pendingCart.length) return;
+  if(!mallState.nextCartPickAt) return;
+  if(Date.now() < mallState.nextCartPickAt) return;
+  _cartPickBusy = true;
+  try{
+    const cart = mallState.pendingCart;
+    mallState.pendingCart = null;
+    mallState.nextCartPickAt = null;
+    await saveMallState();
+    await mallDoCartPick(cart);
+  }catch(e){ console.warn('checkMallCartPick', e); }
+  finally{ _cartPickBusy = false; }
+}
 async function mallBuy(itemId, cat, who){
   const it = mallFindItem(itemId, cat);
   if(!it) return;
   const name = (chatSettings && chatSettings.companionName) || 'TA';
-  if(who==='me'){
-    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
-    mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name);
-    await saveMallState();
-    await pushGiftChatMsg(it, 'user');
-    _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
-  } else {
-    const prob = (typeof mallState.buyProb==='number' ? mallState.buyProb : 25) / 100;
-    if(Math.random() > prob){
-      await saveMallState();
-      _flashToast(`${name} 这次没买成（概率 ${mallState.buyProb}%），再试试～`, true);
-      renderMall(cat || mallState._lastCat || 'daily');
-      return;
-    }
-    mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'buy', -it.price, '买了「'+it.name+'」给你');
-    await saveMallState();
-    await pushGiftChatMsg(it, 'bot');
-    _flashToast(`${name} 给你买了「${it.name}」🎁`, false);
-  }
+  mallState.gifts.push({id:it.id+'-'+Date.now(), name:it.name, emoji:it.emoji, price:it.price, from:'me', to:'ta', time:Date.now()});
+  mallPushLedger('me', 'buy', -it.price, '买了「'+it.name+'」送给'+name);
+  await saveMallState();
+  await pushGiftChatMsg(it, 'user');
+  _flashToast(`已买「${it.name}」送给 ${name} 💕`, false);
   renderMall(cat || mallState._lastCat || 'daily');
 }
 loadMallState().then(()=>{
