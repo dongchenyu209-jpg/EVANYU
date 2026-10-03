@@ -2498,6 +2498,7 @@ async function init(){
   delete chatSettings.redPacketEnabled;
   if(typeof chatSettings.comboReplyProb !== 'number') chatSettings.comboReplyProb = 35;
   chatSettings.comboReplyProb = Math.max(0, Math.min(100, Math.round(chatSettings.comboReplyProb)));
+  applyChatBackground(); // 修复：chatSettings 在阶段2才加载，这里重新应用一次已保存的聊天背景，避免刷新背景丢失
 
   await migrateToRecordStores();
 
