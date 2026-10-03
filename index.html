@@ -7850,7 +7850,7 @@ function renderMoyuManageBody(){
   body.innerHTML = `
     <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">当前「${label}」共 ${list.length} 条。</div>
     <label class="field">批量添加（每行一条）</label>
-    <textarea id="moyuBulkInput" placeholder="${isAct ? '超市扫荡&#10;陪你&#10;边工作边想你' : '天行&#10;花店&#10;咖啡馆'}" style="min-height:80px;"></textarea>
+    <textarea id="moyuBulkInput" placeholder="${isAct ? '超市扫荡&#10;陪你&#10;边工作边想你' : '花店&#10;咖啡馆'}" style="min-height:80px;"></textarea>
     <div class="btn-row">
       <div class="btn" onclick="addMoyuBulk()">添加</div>
       <div class="btn outline" onclick="document.getElementById('moyuFileInput').click()">📁 导入文件</div>
@@ -12311,7 +12311,7 @@ async function mallSendCartToTa(){
   mallState.pendingCart = cart;
   mallState.nextCartPickAt = Date.now() + Math.random()*5*3600*1000; // 0~5 小时内随机挑
   await saveMallState();
-  _flashToast('清单已发给 '+name+'，TA 会在 0~5 小时内挑～', false);
+  _flashToast('清单已发给 '+name+'，等待'+name+'的挑选～', false);
   if(currentView==='mall'){ try{ mallShowCat('cart'); }catch(e){} }
 }
 async function mallDoCartPick(cart){
