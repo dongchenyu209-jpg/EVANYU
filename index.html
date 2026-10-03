@@ -3121,7 +3121,7 @@ function pickRandomStatusText(){
   return statusPool[Math.floor(Math.random()*statusPool.length)];
 }
 function nextStatusChangeDelay(){
-  const minH = 1, maxH = 6; // 1~6小时之间随机一个间隔
+  const minH = 0, maxH = 5; // 0~5小时之间随机一个间隔
   return (minH + Math.random()*(maxH-minH)) * 3600 * 1000;
 }
 function pruneStatusHistoryToToday(){
