@@ -1540,7 +1540,7 @@
       <div class="fn-item" onclick="go('mailbox')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">信箱</div></div>
       <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
       <div class="fn-item" onclick="go('mall')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/><path d="M10 21V13h4v8"/></svg></div><div class="fn-label">商场</div></div>
-      <div class="fn-item" onclick="go('garden')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c-4 0-7-2.5-7-6 0-2.5 1.5-4.5 3.5-5.5C7 7 9 4 12 3c3 1 5 4 3.5 7.5 2 1 3.5 3 3.5 5.5 0 3.5-3 6-7 6z"/><path d="M12 13v9"/><path d="M9 16c1.5 1 4.5 1 6 0"/></svg></div><div class="fn-label">花园</div></div>
+      <div class="fn-item" onclick="go('pet')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="10" r="1.8"/><circle cx="12" cy="7.5" r="1.8"/><circle cx="16.5" cy="10" r="1.8"/><path d="M12 12.5c-3 0-5 2.4-5 4.6 0 1.5 1.2 2.4 2.7 2.4 1 0 1.6-.4 2.3-.4s1.3.4 2.3.4c1.5 0 2.7-.9 2.7-2.4 0-2.2-2-4.6-5-4.6Z"/></svg></div><div class="fn-label">宠物</div></div>
     </div>
     </div><!-- /homePage1 -->
 
@@ -1654,10 +1654,10 @@
         <div class="mini-btn" onclick="go('home')" title="返回">
           <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
         </div>
-        <div class="avatar" id="chatAvatarBox" style="width:34px;height:34px;font-size:16px;">🌙</div>
+        <div class="avatar" id="chatAvatarBox" onclick="openStatusCard()" style="width:34px;height:34px;font-size:16px;cursor:pointer;">🌙</div>
         <div class="info">
           <div class="cname" id="chatCName">陆沉</div>
-          <div class="cstat" id="chatCStat" onclick="openTodayStatusPanel()" style="cursor:pointer;">在线</div>
+          <div class="cstat" id="chatCStat" onclick="openStatusCard()" style="cursor:pointer;">在线</div>
         </div>
         <div class="mini-btn" onclick="triggerProactiveMessage()" title="让TA主动找我">
           <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/><path d="M12 13v5" opacity=".4"/></svg>
@@ -1808,13 +1808,14 @@
       <div class="btn-row"><div class="btn outline" onclick="tzRefreshNow()">↻ 立即刷新天气</div></div>
     </div>
     <div class="box">
-      <div class="box-title">花园 · TA 来访</div>
+      <div class="box-title">宠物 · TA 探宠间隔</div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-        <input type="number" id="gardenTaVisitMinMin" min="30" max="10080" step="1" value="30" placeholder="分钟" style="width:70px;text-align:center;">
+        <input type="number" id="petTaMinMin" min="10" max="10080" step="1" value="60" placeholder="分钟" style="width:70px;text-align:center;">
         <span>～</span>
-        <input type="number" id="gardenTaVisitMaxHours" min="1" max="168" step="1" value="36" placeholder="小时" style="width:70px;text-align:center;">
-        <div class="btn outline" onclick="gardenSaveTaVisitFromSettings()">保存</div>
+        <input type="number" id="petTaMaxHours" min="1" max="168" step="0.5" value="6" placeholder="小时" style="width:70px;text-align:center;">
+        <div class="btn outline" onclick="petSaveTaFromSettings()">保存</div>
       </div>
+      <p style="font-size:12px;color:var(--ink-soft);">最短（分钟）～最长（小时）之间随机，TA 会来探望宠物，喂食、陪玩、摸摸或哄睡。</p>
     </div>
     <div class="box">
       <div class="box-title">自定义背景</div>
@@ -2005,10 +2006,21 @@
     <div id="mallBody" style="padding:12px 14px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
   </section>
 
-  <!-- ============ GARDEN 花园 ============ -->
-  <section id="view-garden" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>花园</h2></div>
-    <div id="gardenBody" style="padding:10px 12px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
+  <!-- ============ MOYU 摸鱼小记 ============ -->
+  <section id="view-moyu" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go(_moyuBack)">←</div><h2>摸鱼小记</h2></div>
+    <div class="btn-row" style="margin-bottom:10px;">
+      <div class="btn" id="moyuTabCurrent" onclick="switchMoyuNoteTab('today')">今天</div>
+      <div class="btn outline" id="moyuTabHistory" onclick="switchMoyuNoteTab('history')">记录</div>
+      <div class="btn outline" onclick="openMoyuManagePanel()">管理字卡</div>
+    </div>
+    <div id="moyuNoteBody" style="padding-bottom:90px;"></div>
+  </section>
+
+  <!-- ============ PET 宠物 ============ -->
+  <section id="view-pet" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>我们的宠物</h2><div class="icon-btn" style="margin-left:auto;" onclick="openPetSettings()">⚙︎</div></div>
+    <div id="petBody" style="padding:4px 12px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
   </section>
 
   <div class="bottom-nav">
@@ -2707,7 +2719,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', garden:'花园', mall:'商场' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', pet:'宠物', moyu:'摸鱼小记', mall:'商场' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2755,7 +2767,7 @@ function go(name){
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
-  if(name==='garden'){ renderGarden(); }
+  if(name==='pet'){ renderPet(); }
   if(name==='mall'){ renderMall(); }
   if(name==='moments'){
     renderMoments();
@@ -2763,7 +2775,7 @@ function go(name){
   }
   if(name==='ledger'){ renderLedger(); }
   if(name==='diary'){ renderDiary(); }
-  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); if(typeof gardenFillSettings==='function') gardenFillSettings(); }
+  if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); if(typeof petFillSettings==='function') petFillSettings(); }
 }
 function renderUnreadDots(){
   const cd = document.getElementById('chatDot'); if(cd) cd.classList.toggle('hidden', !chatUnread);
@@ -3253,7 +3265,7 @@ function refreshTodayStatusIfDue(){
   ensureTodayStatus();
   renderTodayStatusHome();
   const chatStatEl = document.getElementById('chatCStat');
-  if(chatStatEl && currentView==='chat') chatStatEl.textContent = todayStatus ? todayStatus.text : '暂无状态';
+  if(chatStatEl && currentView==='chat') chatStatEl.textContent = scStatusLabel();
 }
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible'){
@@ -3907,7 +3919,7 @@ function renderChat(preserveScroll, scrollToId){
   const wrap = document.getElementById('chatMsgs');
   document.getElementById('chatCName').textContent = chatSettings.companionName;
   ensureTodayStatus();
-  document.getElementById('chatCStat').textContent = todayStatus ? todayStatus.text : '暂无状态';
+  document.getElementById('chatCStat').textContent = scStatusLabel();
   if(chatMessages.length===0){
     wrap.innerHTML = '<div class="empty-note">还没有聊天记录，说点什么吧～</div>';
     return;
@@ -4544,7 +4556,7 @@ function getSplicedCardText(){
   const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
-const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
+const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦啦'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
   const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发转账、拍一拍
@@ -7101,7 +7113,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','garden-data','companion-favorites','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -7139,7 +7151,7 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, gardenData, mallState,
+    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState,
     companionTodos, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
@@ -7225,7 +7237,8 @@ function onImportBackupFile(e){
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
     if(Array.isArray(data.companionAnnivs)){ companionAnnivs = data.companionAnnivs; await sSet('companion-annivs', companionAnnivs); }
     if(Array.isArray(data.companionFavorites)){ companionFavorites = data.companionFavorites; await sSet('companion-favorites', companionFavorites); }
-    if(data.gardenData && typeof data.gardenData==='object'){ gardenData = data.gardenData; await sSet('garden-data', gardenData); }
+    if(data.petData && typeof data.petData==='object'){ petData = Object.assign(petDefault(), data.petData); await sSet('pet-data', petData); }
+    if(data.statusCardData && typeof data.statusCardData==='object'){ statusCardData = Object.assign(statusCardData, data.statusCardData); await sSet('status-card', statusCardData); }
     if(Array.isArray(data.momentEvents)){ momentEvents = data.momentEvents; await sSet('moment-events', momentEvents); }
     if(data.bgSettings && typeof data.bgSettings === 'object'){
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
@@ -7706,22 +7719,19 @@ async function checkMoyuTick(){
   }
 }
 
+let _moyuBack = 'home';
 function openMoyuNotePanel(){
-  openOverlay(`
-    <div class="drawer-head"><h3>🐟 摸鱼小记</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div class="btn-row" style="margin-bottom:10px;">
-      <div class="btn" id="moyuTabCurrent" onclick="switchMoyuNoteTab('current')">🕐 当前</div>
-      <div class="btn outline" id="moyuTabHistory" onclick="switchMoyuNoteTab('history')">☰ 记录</div>
-      <div class="btn outline" onclick="closeOverlay(); openMoyuManagePanel();">管理字卡</div>
-    </div>
-    <div id="moyuNoteBody"></div>
-  `);
-  switchMoyuNoteTab('current');
+  if(typeof closeStatusCard==='function') closeStatusCard();
+  _moyuBack = (currentView && currentView!=='moyu') ? currentView : 'home';
+  go('moyu');
+  switchMoyuNoteTab('today');
 }
+let _moyuTabNow = 'today';
 function switchMoyuNoteTab(tab){
+  _moyuTabNow = tab;
   const curBtn = document.getElementById('moyuTabCurrent');
   const hisBtn = document.getElementById('moyuTabHistory');
-  if(curBtn){ curBtn.className = 'btn' + (tab==='current'?'':' outline'); }
+  if(curBtn){ curBtn.className = 'btn' + (tab==='today'?'':' outline'); }
   if(hisBtn){ hisBtn.className = 'btn' + (tab==='history'?'':' outline'); }
   renderMoyuNotePanelBody(tab);
 }
@@ -7764,7 +7774,7 @@ function renderSessionCard(sess, isCurrent, histIndex){
 function renderMoyuNotePanelBody(tab){
   const body = document.getElementById('moyuNoteBody');
   if(!body) return;
-  if(tab===undefined) tab = 'current';
+  if(tab===undefined) tab = 'today';
   if(!moyuState.enabled){
     body.innerHTML = `<div class="empty-note">摸鱼记录尚未开启<br><span style="font-size:11.5px;">请在「传讯 → 设置」里打开「主动向我汇报工作」</span></div>
       <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay(); openChatSettings();">去传讯设置</div></div>`;
@@ -7776,15 +7786,17 @@ function renderMoyuNotePanelBody(tab){
       <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay(); openMoyuManagePanel();">去添加字卡</div></div>`;
     return;
   }
-  if(tab==='current'){
-    if(!moyuState.currentSession){
-      body.innerHTML = `<div class="empty-note">暂无当前摸鱼记录</div>
-        <div class="btn-row"><div class="btn outline" onclick="startMoyuSession().then(()=>renderMoyuNotePanelBody('current'))">开始一班</div></div>`;
-    } else {
-      body.innerHTML = `<div style="text-align:center;margin-bottom:8px;"><span class="stamp-tag">当前摸鱼记录</span></div>
-        ${renderSessionCard(moyuState.currentSession, true)}
-        <div class="btn-row"><div class="btn outline" onclick="generateMoyuRecord()">立即摸一条</div></div>`;
-    }
+  if(tab==='today'){
+    const todayStr = localDateStr();
+    const isTodaySess = (x)=> x && typeof x.startTime==='number' && localDateStr(new Date(x.startTime))===todayStr;
+    const cur = moyuState.currentSession;
+    const list = [];
+    if(cur && isTodaySess(cur)) list.push(renderSessionCard(cur, true));
+    (moyuState.history||[]).forEach((x,hi)=>{ if(isTodaySess(x)) list.push(renderSessionCard(x, false, hi)); });
+    let foot = '';
+    if(cur) foot = `<div class="btn-row"><div class="btn outline" onclick="generateMoyuRecord()">立即摸一条</div></div>`;
+    else foot = `<div class="btn-row"><div class="btn outline" onclick="startMoyuSession().then(()=>renderMoyuNotePanelBody('today'))">开始一班</div></div>`;
+    body.innerHTML = (list.length ? list.join('') : '<div class="empty-note">今天还没有日程</div>') + foot;
   } else {
     const hist = moyuState.history || [];
     if(!hist.length){
@@ -7803,7 +7815,7 @@ async function deleteMoyuCurrent(){
   scheduleNextSession();
   await sSet('moyu-state', moyuState);
   renderMoyuHome();
-  renderMoyuNotePanelBody('current');
+  renderMoyuNotePanelBody('today');
 }
 async function deleteMoyuHistoryItem(i){
   if(!Array.isArray(moyuState.history)) return;
@@ -7811,7 +7823,7 @@ async function deleteMoyuHistoryItem(i){
   if(!confirm('确定删除这条历史记录吗？')) return;
   moyuState.history.splice(i, 1);
   await sSet('moyu-state', moyuState);
-  renderMoyuNotePanelBody('history');
+  renderMoyuNotePanelBody(_moyuTabNow);
 }
 async function clearMoyuHistory(){
   if(!confirm('确定清空全部历史摸鱼记录吗？')) return;
@@ -10992,834 +11004,578 @@ function goHomePage(k){
 
 
 /* ============================================================
-   花园 GARDEN —— 移植自 Mochi（无装饰 / 无成就 / 无年报 / 无排行榜）
-   含：全花种、杂交、花束、施肥、品质、一键操作、访客、TA代管
+   宠物 PET —— 和 TA 一起养 / 状态卡片
    ============================================================ */
-const GARDEN_PLOTS_BASE = 12;
-const GARDEN_WILT_SEC = 345600;
-const GARDEN_WATER_SEC = 172800;
-const GARDEN_FLOWERS = {
-  rose:      { n:'玫瑰',     e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[172800,432000], xp:30, lv:1, ss:3, m:'热烈的爱' },
-  sunflower: { n:'向日葵',   e:['🌱','🌿','🌻'], sn:['种子','发芽','开花'], g:[172800,518400], xp:40, lv:2, ss:1, m:'沉默的爱' },
-  tulip:     { n:'郁金香',   e:['🌱','🌿','🌷'], sn:['种子','发芽','开花'], g:[172800,432000], xp:30, lv:1, ss:0, m:'永恒的祝福' },
-  cactus:    { n:'仙人掌',   e:['🌱','🌵'],     sn:['小芽','成型'],         g:[432000],         xp:50, lv:4, ss:1, m:'坚韧，外刚内柔' },
-  lavender:  { n:'薰衣草',   e:['🌱','🌿','💐'], sn:['种子','发芽','开花'], g:[86400,345600],  xp:25, lv:3, ss:2, m:'等待爱情' },
-  daisy:     { n:'雏菊',     e:['🌱','🌿','🌼'], sn:['种子','发芽','开花'], g:[86400,259200],  xp:20, lv:1, ss:0, m:'纯真' },
-  sakura:    { n:'樱花',     e:['🌱','🌿','🌸'], sn:['种子','发芽','开花'], g:[86400,259200],  xp:25, lv:1, ss:0, m:'一生幸福' },
-  hibiscus:  { n:'芙蓉',     e:['🌱','🌿','🌺'], sn:['种子','发芽','开花'], g:[172800,345600], xp:35, lv:1, ss:1, m:'纤细之美' },
-  lotus:     { n:'荷花',     e:['🌱','🌿','🪷'], sn:['种子','发芽','开花'], g:[259200,432000], xp:45, lv:1, ss:1, m:'清雅坚贞' },
-  clover:    { n:'幸运草',   e:['🌱','🌿','🍀'], sn:['种子','发芽','成型'], g:[43200,129600],  xp:15, lv:1, ss:2, m:'幸运与希望' },
-  camellia:  { n:'山茶花',   e:['🌱','🌿','💮'], sn:['种子','发芽','开花'], g:[172800,259200], xp:30, lv:1, ss:3, m:'理想的爱' },
-  lily:      { n:'百合',     e:['🌱','🌿','💮'], sn:['种子','发芽','开花'], g:[172800,432000], xp:35, lv:2, ss:0, m:'纯洁的爱' },
-  peony:     { n:'牡丹',     e:['🌱','🌿','🌺'], sn:['种子','发芽','开花'], g:[259200,518400], xp:45, lv:3, ss:1, m:'富贵吉祥' },
-  orchid:    { n:'兰花',     e:['🌱','🌿','orchid'], sn:['种子','发芽','开花'], g:[345600,691200], xp:55, lv:4, ss:2, m:'高洁典雅' },
-  maple:     { n:'枫叶',     e:['🌱','🌿','🍁'], sn:['种子','发芽','成型'], g:[86400,259200],  xp:25, lv:2, ss:2, m:'美好的回忆' },
-  wheat:     { n:'麦穗',     e:['🌱','🌿','🌾'], sn:['种子','发芽','成熟'], g:[172800,345600], xp:35, lv:3, ss:2, m:'丰收与希望' },
-  jasmine:   { n:'茉莉',     e:['🌱','🌿','🌼'], sn:['种子','发芽','开花'], g:[86400,172800],  xp:20, lv:2, ss:1, m:'清新淡雅' },
-  iris:      { n:'凤尾',     e:['🌱','🌿','💜'], sn:['种子','发芽','开花'], g:[172800,345600], xp:30, lv:3, ss:0, m:'爱的使者' },
-  bamboo:    { n:'竹',       e:['🌱','🌿','🎋'], sn:['笋','发芽','成竹'],   g:[432000,864000], xp:60, lv:4, ss:3, m:'坚韧不拔' },
-  flameRose: { n:'炽樱玫瑰', e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[432000,864000], xp:120, lv:5, ss:0, rare:true, m:'炽热永恒的爱' },
-  blueRose:  { n:'蓝玫瑰',   e:['🌱','🌿','🌹'], sn:['种子','发芽','开花'], g:[432000,864000], xp:150, lv:6, ss:1, rare:true, m:'奇迹与不可能的爱' },
-  goldSun:   { n:'金向日葵', e:['🌱','🌿','🌻'], sn:['种子','发芽','开花'], g:[432000,777600], xp:130, lv:5, ss:1, rare:true, m:'忠诚的信仰' },
-  nightLotus:{ n:'夜莲',     e:['🌱','🌿','🪷'], sn:['种子','发芽','开花'], g:[604800,1036800],xp:180, lv:7, ss:2, rare:true, m:'暗夜里的坚守' },
-  rainbowClover:{ n:'彩虹草', e:['🌱','🌿','🍀'], sn:['种子','发芽','成型'], g:[259200,518400], xp:100, lv:5, ss:3, rare:true, m:'幸运降临' },
-  iceRose:   { n:'冰玫瑰',   e:['🌱','🌿','❄️'], sn:['种子','发芽','开花'], g:[518400,950400], xp:140, lv:6, ss:3, rare:true, m:'冷静而深沉的爱' },
-  crystalOrchid:{ n:'水晶兰', e:['🌱','🌿','✨'], sn:['种子','发芽','开花'], g:[604800,1209600],xp:200, lv:8, ss:2, rare:true, m:'珍贵而透明' },
-  starLily:  { n:'星百合',   e:['🌱','🌿','🌟'], sn:['种子','发芽','开花'], g:[518400,864000], xp:160, lv:7, ss:0, rare:true, m:'星光下的约定' },
-  phoenix:   { n:'凤凰花',   e:['🌱','🌿','🔥'], sn:['种子','发芽','开花'], g:[691200,1209600],xp:220, lv:8, ss:1, rare:true, m:'浴火重生' },
-  moonFlower:{ n:'月见草',   e:['🌱','🌿','🌙'], sn:['种子','发芽','开花'], g:[432000,777600], xp:150, lv:6, ss:2, rare:true, m:'只为你在夜里绽放' }
+const PET_SPECIES = ['🐱','🐶','🐰','🐹','🦊','🐻','🐼','🐤'];
+const PET_THEMES = [
+  { id:'dusk',  n:'黄昏', g:'linear-gradient(180deg,#7b7399 0%,#c9a9a6 58%,#ecd6c6 100%)' },
+  { id:'dawn',  n:'晨光', g:'linear-gradient(180deg,#f6d9c4 0%,#f3e3d3 60%,#efe4d6 100%)' },
+  { id:'mint',  n:'薄荷', g:'linear-gradient(180deg,#a9c9bd 0%,#cfe0d5 60%,#e6eadd 100%)' },
+  { id:'night', n:'星夜', g:'linear-gradient(180deg,#2f3157 0%,#55527f 60%,#8b7c9a 100%)' }
+];
+const PET_DECOR = [
+  { id:'plant', e:'🪴', n:'绿植',   lv:1, pos:'left:6%;bottom:9%;font-size:34px' },
+  { id:'lamp',  e:'🕯️', n:'小灯',   lv:2, pos:'right:6%;bottom:11%;font-size:30px' },
+  { id:'ball',  e:'🧶', n:'毛线球', lv:3, pos:'right:25%;bottom:6%;font-size:24px' },
+  { id:'toy',   e:'🧸', n:'玩偶',   lv:4, pos:'left:25%;bottom:6%;font-size:26px' },
+  { id:'frame', e:'🖼️', n:'相框',   lv:6, pos:'right:8%;top:24%;font-size:28px' },
+  { id:'star',  e:'✨', n:'星星灯', lv:8, pos:'left:8%;top:22%;font-size:24px' }
+];
+const PET_TA_SAY = {
+  feed:  ['看起来它很开心。','慢点吃，没人跟它抢。','吃饱了才有力气撒娇。'],
+  play:  ['它今天精神真好。','再玩一会儿也没关系。','你们俩玩得挺投入的。'],
+  pat:   ['它在偷偷蹭你的手。','看，它舒服得眯起眼睛了。','它好像更黏你了。'],
+  sleep: ['嘘，让它睡吧。','睡着的样子真乖。','晚安，小家伙。']
 };
-// fix orchid emoji
-GARDEN_FLOWERS.orchid.e = ['🌱','🌿','🏵️'];
+const PET_FX = { feed:'🍖', play:'🧶', pat:'💗', sleep:'💤' };
 
-const GARDEN_HYBRIDS = [
-  { a:'rose', b:'sakura', r:'flameRose' },
-  { a:'rose', b:'clover', r:'blueRose' },
-  { a:'sunflower', b:'daisy', r:'goldSun' },
-  { a:'lotus', b:'lavender', r:'nightLotus' },
-  { a:'clover', b:'camellia', r:'rainbowClover' },
-  { a:'lily', b:'orchid', r:'crystalOrchid' },
-  { a:'peony', b:'jasmine', r:'starLily' },
-  { a:'maple', b:'wheat', r:'phoenix' },
-  { a:'iris', b:'lavender', r:'moonFlower' },
-  { a:'lily', b:'clover', r:'iceRose' }
-];
-const GARDEN_WX = [{i:'☀️',t:'晴朗'},{i:'⛅',t:'多云'},{i:'🌧️',t:'小雨'},{i:'🌈',t:'放晴'}];
-const GARDEN_SEA = ['🌸 春季','☀️ 夏季','🍂 秋季','❄️ 冬季'];
-const GARDEN_VISITORS = [
-  { type:'butterfly', e:'🦋', n:'蝴蝶' },
-  { type:'bee', e:'🐝', n:'蜜蜂' },
-  { type:'bird', e:'🐦', n:'小鸟' },
-  { type:'ladybug', e:'🐞', n:'瓢虫' }
-];
+let petData = null;
+let petShowAll = false;
+let _petTaBusy = false;
 
-let gardenData = null;
-let gardenSel = -1;
-let gardenTab = 'field'; // field | bag | hybrid | bouquet | dex | log
-let gardenTool = 'none'; // none | hybrid | fert
-
-function gPn(){
+function pClamp(v){ return Math.max(0, Math.min(100, v)); }
+function pRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pPn(){
   try{
     if(typeof profile!=='undefined' && profile && profile.name) return profile.name;
     if(typeof mbName==='function') return mbName();
   }catch(e){}
   return 'TA';
 }
-
-function gardenDefault(){
-  return {
-    p: new Array(GARDEN_PLOTS_BASE).fill(null),
-    plotN: GARDEN_PLOTS_BASE,
-    exp: 0,
-    inv: { daisy:3, sakura:2, clover:2, rose:2, tulip:1 },
-    dex: {},
-    log: [],
-    lastTaVisit: 0,
-    taVisitMinMin: 720,
-    taVisitMaxMin: 2160,
-    nextTaVisitAt: 0,
-    nextTaGiftAt: 0,
-    lastSeed: 'daisy',
-    bouquetCnt: 0,
-    visitor: null,
-    st: { plant:0, water:0, harvest:0, fert:0, hybrid:0 }
-  };
-}
-
-async function loadGarden(){
-  try{
-    const raw = await sGet('garden-data', null);
-    if(raw && typeof raw==='object'){
-      gardenData = raw;
-      if(!Array.isArray(gardenData.p)) gardenData.p = [];
-      while(gardenData.p.length < GARDEN_PLOTS_BASE) gardenData.p.push(null);
-      if(!gardenData.plotN) gardenData.plotN = GARDEN_PLOTS_BASE;
-      if(!gardenData.inv) gardenData.inv = {};
-      if(!gardenData.dex) gardenData.dex = {};
-      if(!gardenData.log) gardenData.log = [];
-      if(typeof gardenData.exp !== 'number') gardenData.exp = 0;
-      if(typeof gardenData.taVisitMinMin !== 'number') gardenData.taVisitMinMin = (typeof gardenData.taVisitMinHours === 'number' ? Math.round(gardenData.taVisitMinHours*60) : 720);
-      if(typeof gardenData.taVisitMaxMin !== 'number') gardenData.taVisitMaxMin = (typeof gardenData.taVisitMaxHours === 'number' ? Math.round(gardenData.taVisitMaxHours*60) : 2160);
-      if(typeof gardenData.nextTaVisitAt !== 'number') gardenData.nextTaVisitAt = 0;
-      if(typeof gardenData.nextTaGiftAt !== 'number') gardenData.nextTaGiftAt = 0;
-      if(!gardenData.st) gardenData.st = { plant:0, water:0, harvest:0, fert:0, hybrid:0 };
-    } else {
-      gardenData = gardenDefault();
-      await saveGarden();
-    }
-  }catch(e){ gardenData = gardenDefault(); }
-  return gardenData;
-}
-async function saveGarden(){ try{ await sSet('garden-data', gardenData); }catch(e){} }
-
-const GARDEN_XP_RATE = 0.4;
-function gXp(base){ return Math.max(1, Math.round(base * GARDEN_XP_RATE)); }
-function gLv(){ return Math.floor(Math.sqrt((gardenData.exp||0)/10)) + 1; }
-function gPlotEntitled(){
-  const lv = gLv();
-  return GARDEN_PLOTS_BASE + (lv>=3?2:0) + (lv>=5?2:0) + (lv>=8?2:0) + (lv>=12?4:0);
-}
-function gUnlocked(type){
-  const tp = GARDEN_FLOWERS[type];
-  if(!tp) return false;
-  return gLv() >= (tp.lv||1);
-}
-function gWx(){ const d=new Date(); return GARDEN_WX[(d.getDate()+d.getMonth()+d.getHours())%4]; }
-function gSea(){ return Math.floor(new Date().getMonth()/3)%4; }
-
-function gStageInfo(plot){
-  if(!plot) return null;
-  const tp = GARDEN_FLOWERS[plot.type]; if(!tp) return null;
-  const now = Math.floor(Date.now()/1000);
-  const elapsed = now - plot.planted;
-  const seaIdx = gSea();
-  const seaBoost = (tp.ss === seaIdx) ? 1.3 : 0.85;
-  const w = gWx();
-  const wBoost = (w.t==='晴朗') ? 1.1 : (w.t==='小雨') ? 0.9 : 1.0;
-  const boost = seaBoost * wBoost;
-  const eff = Math.floor(elapsed * boost);
-  let stage = 0;
-  for(let i=0;i<tp.g.length;i++){ if(eff >= tp.g[i]) stage = i+1; else break; }
-  const stageMax = tp.g.length;
-  const bloomed = stage >= stageMax;
-  const wilted = bloomed && plot.bloomedAt && (now - plot.bloomedAt > GARDEN_WILT_SEC);
-  let nextSec = 0;
-  if(!bloomed){
-    const need = tp.g.slice(0, stage+1).reduce((a,b)=>a+b,0);
-    nextSec = Math.ceil((need - eff) / boost);
-  }
-  return {
-    key: plot.type, name: tp.n, stage, stageMax,
-    stageName: tp.sn[Math.min(stage, tp.sn.length-1)],
-    emoji: tp.e[Math.min(stage, tp.e.length-1)],
-    bloomed, wilted: !!wilted, nextSec,
-    plantedBy: plot.by || '我', rare: !!tp.rare, m: tp.m || ''
-  };
-}
-function gWaterLvl(plot){
-  if(!plot || !plot.watered) return 0;
-  return Math.max(0, 1 - (Math.floor(Date.now()/1000) - plot.watered) / GARDEN_WATER_SEC);
-}
-function gFmtTime(sec){
-  if(sec<=0) return '就绪';
-  if(sec<3600) return Math.ceil(sec/60)+'分';
-  if(sec<86400) return Math.floor(sec/3600)+'时'+Math.ceil((sec%3600)/60)+'分';
-  return Math.floor(sec/86400)+'天'+Math.floor((sec%86400)/3600)+'时';
-}
-function gAddLog(who, act){
-  if(!gardenData.log) gardenData.log = [];
-  gardenData.log.unshift({ t: Date.now(), who, act });
-  if(gardenData.log.length > 100) gardenData.log = gardenData.log.slice(0,100);
-}
-function gToast(msg){
+function pToast(msg){
   if(typeof _flashToast === 'function') _flashToast(msg, false);
   else try{ alert(msg); }catch(e){}
 }
-function gRollQuality(){
-  const r = Math.random();
-  if(r < 0.05) return 'p';
-  if(r < 0.30) return 'f';
-  return 'n';
-}
-function gQualLabel(q){ return q==='p'?'【完美】': q==='f'?'【优质】':''; }
-function gQualMul(q){ return q==='p'?2: q==='f'?1.5:1; }
 
-async function gPlant(idx, type){
-  if(idx<0 || idx>=(gardenData.plotN||GARDEN_PLOTS_BASE)) return;
-  if(gardenData.p[idx]){ gToast('这里已经有花了'); return; }
-  const tp = GARDEN_FLOWERS[type];
-  if(!tp) return;
-  if(!gUnlocked(type)){ gToast('等级不够，需要 Lv.'+(tp.lv||1)); return; }
-  // 种植不限制数量、不消耗种子；收获后的花才进「花束」库存
-  gardenData.p[idx] = { type, planted: Math.floor(Date.now()/1000), by:'我', watered:0 };
-  gardenData.dex[type] = (gardenData.dex[type]||0)+1;
-  gardenData.lastSeed = type;
-  gardenData.st.plant = (gardenData.st.plant||0)+1;
-  gAddLog('我', '种下了「'+tp.n+'」');
-  await saveGarden();
-  gardenTab = 'field';
-  renderGarden();
-  gToast('种下了 '+(tp.e[tp.e.length-1]||'🌱')+' '+tp.n);
-}
-
-async function gWater(idx){
-  const plot = gardenData.p[idx];
-  if(!plot){ gToast('空地不用浇'); return; }
-  const now = Math.floor(Date.now()/1000);
-  if(plot.watered && (now - plot.watered) < 3600){
-    gToast('刚浇过，再等等（1小时内只能浇一次）'); return;
-  }
-  plot.watered = now;
-  plot.planted = Math.max(0, plot.planted - 14400);
-  gardenData.st.water = (gardenData.st.water||0)+1;
-  gAddLog('我', '浇了水');
-  await saveGarden();
-  renderGarden();
-  gToast('💧 浇水完成，生长加速了');
-}
-
-async function gFertilize(idx){
-  const plot = gardenData.p[idx];
-  if(!plot){ gToast('空地不用施肥'); return; }
-  plot.planted = Math.max(0, plot.planted - 43200);
-  const si = gStageInfo(plot);
-  gardenData.st.fert = (gardenData.st.fert||0)+1;
-  gAddLog('我', '给「'+(si?si.name:'植物')+'」施了肥');
-  await saveGarden();
-  renderGarden();
-  gToast('✨ 施肥完成，大幅加速生长');
-  if(Math.random()<0.1) gPartnerAct(true);
-}
-
-async function gHarvest(idx){
-  const plot = gardenData.p[idx];
-  if(!plot) return;
-  const si = gStageInfo(plot);
-  if(!si || !si.bloomed){ gToast('还没成熟'); return; }
-  if(si.wilted){
-    gardenData.p[idx] = null;
-    gAddLog('我', '清理了凋谢的「'+si.name+'」');
-    await saveGarden(); renderGarden();
-    gToast('已清理凋谢的花');
-    return;
-  }
-  const tp = GARDEN_FLOWERS[plot.type];
-  const q = gRollQuality();
-  const xp = gXp(((tp&&tp.xp)||20) * gQualMul(q));
-  gardenData.exp = (gardenData.exp||0) + xp;
-  gardenData.p[idx] = null;
-  gardenData.st.harvest = (gardenData.st.harvest||0)+1;
-  // 返还种子（品质只影响经验）
-  gardenData.inv[plot.type] = (gardenData.inv[plot.type]||0) + 1;
-  if(Math.random() < 0.12){
-    const rares = Object.keys(GARDEN_FLOWERS).filter(k=>GARDEN_FLOWERS[k].rare && gUnlocked(k));
-    if(rares.length){
-      const r = rares[Math.floor(Math.random()*rares.length)];
-      gardenData.inv[r] = (gardenData.inv[r]||0)+1;
-      gToast('✨ 额外获得稀有种子：'+GARDEN_FLOWERS[r].n);
-    }
-  }
-  gAddLog('我', '收获了「'+si.name+'」'+gQualLabel(q)+' +'+xp+'经验');
-  await saveGarden();
-  renderGarden();
-  gToast(si.emoji+' 收获「'+si.name+'」'+gQualLabel(q)+' +'+xp+' XP（已入花束库存）');
-}
-
-async function gHarvestAll(){
-  let cnt=0, totalXp=0;
-  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
-    const pl = gardenData.p[i];
-    if(!pl) continue;
-    const si = gStageInfo(pl);
-    if(!si || !si.bloomed || si.wilted) continue;
-    const tp = GARDEN_FLOWERS[pl.type];
-    const q = gRollQuality();
-    const xp = gXp(((tp&&tp.xp)||20)*gQualMul(q));
-    gardenData.exp = (gardenData.exp||0)+xp;
-    gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
-    gardenData.p[i] = null;
-    totalXp += xp; cnt++;
-  }
-  if(!cnt){ gToast('没有可收获的花'); return; }
-  gardenData.st.harvest = (gardenData.st.harvest||0)+cnt;
-  gAddLog('我', '一键收获 '+cnt+' 朵花 (+'+totalXp+'经验)');
-  await saveGarden();
-  renderGarden();
-  gToast('一键收获 '+cnt+' 朵 +'+totalXp+' XP');
-}
-
-async function gWaterAll(){
-  const now = Math.floor(Date.now()/1000);
-  let cnt=0;
-  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
-    const pl = gardenData.p[i];
-    if(!pl) continue;
-    if(pl.watered && (now - pl.watered) < 3600) continue;
-    pl.watered = now;
-    pl.planted = Math.max(0, pl.planted - 14400);
-    cnt++;
-  }
-  if(!cnt){ gToast('没有需要浇水的'); return; }
-  gardenData.st.water = (gardenData.st.water||0)+cnt;
-  gAddLog('我', '一键浇水 '+cnt+' 株');
-  await saveGarden();
-  renderGarden();
-  gToast('💧 一键浇水 '+cnt+' 株');
-}
-
-async function gFertilizeAll(){
-  let cnt = 0;
-  for(let i=0;i<(gardenData.plotN||GARDEN_PLOTS_BASE);i++){
-    const pl = gardenData.p[i];
-    if(!pl) continue;
-    const si = gStageInfo(pl);
-    if(!si || si.bloomed) continue;
-    pl.planted = Math.max(0, pl.planted - 43200);
-    cnt++;
-  }
-  if(!cnt){ gToast('没有需要施肥的'); return; }
-  gardenData.st.fert = (gardenData.st.fert||0)+cnt;
-  gAddLog('我', '一键施肥 '+cnt+' 株');
-  await saveGarden();
-  renderGarden();
-  gToast('✨ 一键施肥 '+cnt+' 株');
-}
-
-async function gReplantAll(){
-  const empties = [];
-  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
-  for(let i=0;i<n;i++) if(!gardenData.p[i]) empties.push(i);
-  if(!empties.length){ gToast('没有空地'); return; }
-  let seed = gardenData.lastSeed;
-  if(!seed || !GARDEN_FLOWERS[seed] || GARDEN_FLOWERS[seed].rare || !gUnlocked(seed)){
-    seed = Object.keys(GARDEN_FLOWERS).find(k=>!GARDEN_FLOWERS[k].rare && gUnlocked(k));
-  }
-  if(!seed){ gToast('没有可种的普通花'); return; }
-  const now = Math.floor(Date.now()/1000);
-  empties.forEach(i=>{
-    gardenData.p[i] = { type:seed, planted:now, by:'我', watered:0 };
-  });
-  const planted = empties.length;
-  gardenData.st.plant = (gardenData.st.plant||0)+planted;
-  gAddLog('我', '一键补种 '+planted+' 株 '+GARDEN_FLOWERS[seed].n);
-  await saveGarden();
-  renderGarden();
-  gToast('一键补种 '+planted+' 株 '+GARDEN_FLOWERS[seed].n);
-  if(Math.random()<0.1) gPartnerAct(true);
-}
-
-async function gHybrid(idx){
-  const plot = gardenData.p[idx];
-  if(!plot){ gToast('空地无法杂交'); return; }
-  const si = gStageInfo(plot);
-  if(!si) return;
-  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
-  // 邻居：左右上下（按 3/4 列近似）
-  const cols = window.innerWidth>=420 ? 4 : 3;
-  const neighbors = [idx-1, idx+1, idx-cols, idx+cols];
-  let target = -1;
-  for(const ni of neighbors){
-    if(ni<0 || ni>=n) continue;
-    if(!gardenData.p[ni]) continue;
-    // 同一行左右才有效（避免跨行）
-    if((ni===idx-1 || ni===idx+1) && Math.floor(ni/cols)!==Math.floor(idx/cols)) continue;
-    const nsi = gStageInfo(gardenData.p[ni]);
-    if(nsi && nsi.stage===si.stage && gardenData.p[ni].type !== plot.type){ target=ni; break; }
-  }
-  if(target<0){ gToast('需要相邻且同阶段的不同花朵'); return; }
-  let recipe = null;
-  for(const h of GARDEN_HYBRIDS){
-    if((h.a===plot.type && h.b===gardenData.p[target].type) || (h.b===plot.type && h.a===gardenData.p[target].type)){ recipe=h; break; }
-  }
-  if(!recipe){
-    const other = gStageInfo(gardenData.p[target]);
-    gToast(si.name+' 和 '+(other?other.name:'?')+' 暂无杂交配方');
-    return;
-  }
-  const result = GARDEN_FLOWERS[recipe.r];
-  if(!result) return;
-  // 消耗两株，在当前格长出杂交结果（从种子阶段）
-  gardenData.p[idx] = { type: recipe.r, planted: Math.floor(Date.now()/1000), by:'我', watered: Math.floor(Date.now()/1000) };
-  gardenData.p[target] = null;
-  gardenData.dex[recipe.r] = (gardenData.dex[recipe.r]||0)+1;
-  gardenData.st.hybrid = (gardenData.st.hybrid||0)+1;
-  gardenData.inv[recipe.r] = (gardenData.inv[recipe.r]||0); // ensure key
-  gAddLog('我', '杂交出了「'+result.n+'」✨');
-  gardenTool = 'none';
-  await saveGarden();
-  renderGarden();
-  gToast('✨ 杂交成功：'+result.e[result.e.length-1]+' '+result.n);
-}
-
-async function gMakeBouquet(type){
-  const tp = GARDEN_FLOWERS[type];
-  if(!tp || !(gardenData.inv[type]>0)){ gToast('没有这朵花'); return; }
-  gardenData.inv[type]--;
-  gardenData.bouquetCnt = (gardenData.bouquetCnt||0)+1;
-  const emoji = tp.e[tp.e.length-1] || '💐';
-  const meaning = tp.m || '';
-  const name = gPn();
-  gAddLog('我', '制作了「'+tp.n+'」花束送给'+name);
-  await saveGarden();
-  // 发礼物卡片到传讯（与商场礼物同一套 gift 卡片样式）
-  try{
-    const msg = {
-      id: (typeof uid==='function' ? uid() : String(Date.now())),
-      from: 'user',
-      type: 'gift',
-      emoji: emoji,
-      itemName: '一束' + tp.n,
-      price: 0,
-      note: meaning ? ('花语：' + meaning) : ('送给你一束我们一起种的' + tp.n),
-      content: '[花束] 一束' + tp.n,
-      time: Date.now(),
-      read: false,
-      bouquet: true
-    };
-    if(typeof chatMessages!=='undefined' && Array.isArray(chatMessages)){
-      chatMessages.push(msg);
-    }
-    if(typeof recPut==='function'){
-      await recPut('chatMessages', msg);
-    }
-    if(typeof renderChat==='function'){
-      try{ renderChat(); }catch(e){}
-    }
-    // 切到传讯方便看到卡片
-    if(typeof go==='function'){
-      try{ go('chat'); }catch(e){}
-    }
-  }catch(e){ console.warn('bouquet chat fail', e); }
-  renderGarden();
-  gToast(emoji+' 花束卡片已送到传讯');
-}
-
-async function gExpand(){
-  const entitled = gPlotEntitled();
-  const cur = gardenData.plotN || GARDEN_PLOTS_BASE;
-  if(cur >= entitled){ gToast('当前等级最多 '+entitled+' 块地（Lv.'+gLv()+'）'); return; }
-  gardenData.plotN = cur+1;
-  while(gardenData.p.length < gardenData.plotN) gardenData.p.push(null);
-  gAddLog('我', '开垦了第 '+gardenData.plotN+' 块地');
-  await saveGarden();
-  renderGarden();
-  gToast('🌿 新开垦了一块地');
-}
-
-async function gPartnerAct(silent){
-  if(!gardenData) return;
-  const pName = gPn();
-  const r = Math.random();
-  const empty=[], planted=[], bloomed=[], dry=[];
-  const n = gardenData.plotN||GARDEN_PLOTS_BASE;
-  for(let i=0;i<n;i++){
-    if(!gardenData.p[i]) empty.push(i);
-    else {
-      planted.push(i);
-      const si = gStageInfo(gardenData.p[i]);
-      if(si && si.bloomed && !si.wilted) bloomed.push(i);
-      if(gWaterLvl(gardenData.p[i]) < 0.35) dry.push(i);
-    }
-  }
-  const pick = arr => arr.length ? arr[Math.floor(Math.random()*arr.length)] : -1;
-  let actType;
-  if(r<0.15) actType='plant';
-  else if(r<0.35) actType='water';
-  else if(r<0.50) actType='waterall';
-  else if(r<0.65) actType='harvest';
-  else if(r<0.78) actType='harvestall';
-  else if(r<0.90) actType='fertilize';
-  else actType='patrol';
-
-  let acted=false;
-  if(actType==='plant' && empty.length){
-    const keys = Object.keys(GARDEN_FLOWERS).filter(k=>gUnlocked(k) && !GARDEN_FLOWERS[k].rare);
-    if(keys.length){
-      const t = keys[Math.floor(Math.random()*keys.length)];
-      const idx = pick(empty);
-      gardenData.p[idx] = { type:t, planted:Math.floor(Date.now()/1000), by:pName, watered:Math.floor(Date.now()/1000) };
-      gardenData.dex[t]=(gardenData.dex[t]||0)+1;
-      gAddLog(pName, '种下了「'+GARDEN_FLOWERS[t].n+'」');
-      acted=true;
-    }
-  } else if(actType==='water' && dry.length){
-    const idx = pick(dry);
-    gardenData.p[idx].watered = Math.floor(Date.now()/1000);
-    gardenData.p[idx].planted = Math.max(0, gardenData.p[idx].planted-7200);
-    const si = gStageInfo(gardenData.p[idx]);
-    gAddLog(pName, '给「'+(si?si.name:'植物')+'」浇了水');
-    acted=true;
-  } else if(actType==='waterall' && dry.length){
-    dry.forEach(i=>{
-      gardenData.p[i].watered = Math.floor(Date.now()/1000);
-      gardenData.p[i].planted = Math.max(0, gardenData.p[i].planted-7200);
-    });
-    gAddLog(pName, '把花园都浇了一遍（'+dry.length+'株）');
-    acted=true;
-  } else if(actType==='harvest' && bloomed.length){
-    const idx = pick(bloomed);
-    const pl = gardenData.p[idx];
-    const si = gStageInfo(pl);
-    const tp = GARDEN_FLOWERS[pl.type];
-    const xp = gXp(((tp&&tp.xp)||20)*0.8);
-    gardenData.exp = (gardenData.exp||0)+xp;
-    gardenData.inv[pl.type] = (gardenData.inv[pl.type]||0)+1;
-    gardenData.p[idx] = null;
-    gAddLog(pName, '帮你收了「'+(si?si.name:'花')+'」');
-    acted=true;
-  } else if(actType==='harvestall' && bloomed.length){
-    let c=0;
-    bloomed.forEach(i=>{
-      const pl=gardenData.p[i]; if(!pl) return;
-      const tp=GARDEN_FLOWERS[pl.type];
-      gardenData.exp = (gardenData.exp||0)+gXp(((tp&&tp.xp)||20)*0.7);
-      gardenData.inv[pl.type]=(gardenData.inv[pl.type]||0)+1;
-      gardenData.p[i]=null; c++;
-    });
-    gAddLog(pName, '一键帮你收了 '+c+' 朵花');
-    acted=true;
-  } else if(actType==='fertilize' && planted.length){
-    const idx = pick(planted);
-    gardenData.p[idx].planted = Math.max(0, gardenData.p[idx].planted-28800);
-    const si = gStageInfo(gardenData.p[idx]);
-    gAddLog(pName, '给「'+(si?si.name:'植物')+'」施了肥');
-    acted=true;
-  } else {
-    const phrases = ['来花园转了一圈','顺手浇了点水就走了','在花园里坐了一会儿','说花开得真好看然后离开了'];
-    gAddLog(pName, phrases[Math.floor(Math.random()*phrases.length)]);
-    acted=true;
-  }
-  if(acted){
-    await saveGarden();
-    if(!silent) gToast(pName+' 来过花园了');
-  }
-}
-
-function gTaGiftGapMs(){ return (1 + Math.random()*7) * 3600 * 1000; }
-function gPickTaGiftFlower(){
-  const keys = Object.keys(GARDEN_FLOWERS).filter(k=>!GARDEN_FLOWERS[k].rare);
-  const seen = keys.filter(k=>(gardenData.dex && gardenData.dex[k]) || (gardenData.inv && gardenData.inv[k]));
-  const pool = seen.length ? seen : keys;
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-let _taGiftBusy = false;
-async function gTaSendBouquet(){
-  const type = gPickTaGiftFlower();
-  const tp = GARDEN_FLOWERS[type];
-  if(!tp) return;
-  const name = gPn();
-  const emoji = tp.e[tp.e.length-1] || '💐';
-  const msg = {
-    id: (typeof uid==='function' ? uid() : String(Date.now())+Math.random().toString(36).slice(2,6)),
-    from: 'bot',
-    type: 'gift',
-    emoji: emoji,
-    itemName: '一束' + tp.n,
-    price: 0,
-    note: tp.m ? ('花语：' + tp.m) : ('送给你一束我们一起种的' + tp.n),
-    content: '[花束]一束' + tp.n,
-    time: Date.now(),
-    read: true,
-    bouquet: true
+function petDefault(){
+  const now = Date.now();
+  return {
+    species:'🐱', name:'小团子', photo:null, theme:'dusk', decor:['plant'],
+    exp:0, bond:50, sat:80, mood:75, eng:70, at:now, lastInt:now,
+    log:[], fb:null, daily:null, dayKey:'', dayStat:{},
+    taMinMin:60, taMaxMin:360, nextTaAt:0
   };
+}
+async function loadPet(){
   try{
-    if(typeof chatMessages!=='undefined' && Array.isArray(chatMessages)) chatMessages.push(msg);
-    if(typeof recPut==='function') await recPut('chatMessages', msg);
-    const _inChat = (typeof currentView!=='undefined' && currentView==='chat');
-    if(typeof renderChat==='function' && _inChat){ try{ renderChat(); }catch(e){} }
-    if(!_inChat){
-      if(typeof chatUnread!=='undefined'){ chatUnread = true; try{ await sSet('chat-unread', true); }catch(e){} }
-      if(typeof renderUnreadDots==='function'){ try{ renderUnreadDots(); }catch(e){} }
-      if(typeof tryBgNotify==='function'){ try{ tryBgNotify(name+' 送来一束花', '💐 '+tp.n); }catch(e){} }
+    const raw = await sGet('pet-data', null);
+    if(raw && typeof raw==='object'){
+      petData = Object.assign(petDefault(), raw);
+      if(!Array.isArray(petData.log)) petData.log = [];
+      if(!Array.isArray(petData.decor)) petData.decor = ['plant'];
+      if(!petData.dayStat || typeof petData.dayStat!=='object') petData.dayStat = {};
+    } else {
+      petData = petDefault();
+      await savePet();
     }
-  }catch(e){ console.warn('ta bouquet fail', e); }
-  gAddLog(name, '送来一束「'+tp.n+'」💐');
+  }catch(e){ petData = petDefault(); }
+  petTick();
+  return petData;
 }
-async function gCheckTaGift(){
-  if(_taGiftBusy) return;
-  _taGiftBusy = true;
-  try{
-    if(!gardenData) await loadGarden();
-    const now = Date.now();
-    if(!gardenData.nextTaGiftAt){ gardenData.nextTaGiftAt = now + gTaGiftGapMs(); await saveGarden(); return; }
-    if(now < gardenData.nextTaGiftAt) return;
-    // 到点了：先重排下一次，再按 25% 概率决定是否送花
-    gardenData.nextTaGiftAt = now + gTaGiftGapMs();
-    if(Math.random() < 0.25){ await gTaSendBouquet(); }
-    await saveGarden();
-  }catch(e){ console.warn('ta gift fail', e); }
-  finally{ _taGiftBusy = false; }
+async function savePet(){ try{ await sSet('pet-data', petData); }catch(e){} }
+
+function petLv(){ return Math.floor(Math.sqrt((petData.exp||0)/12)) + 1; }
+
+function petTick(){
+  if(!petData) return;
+  const d = petData;
+  const now = Date.now();
+  const hrs = Math.max(0, Math.min(48, (now - (d.at||now)) / 3600000));
+  d.sat = pClamp(d.sat - 3*hrs);
+  d.mood = pClamp(d.mood - (1.5 + (d.sat < 30 ? 2 : 0))*hrs);
+  d.eng = pClamp(d.eng - 2*hrs);
+  const idleStart = Math.max(d.at||now, (d.lastInt||now) + 48*3600000);
+  const extraDays = Math.max(0, now - idleStart) / 86400000;
+  if(extraDays > 0) d.bond = Math.max(0, d.bond - extraDays*2);
+  d.at = now;
+  const key = localDateStr();
+  if(d.dayKey && d.dayKey !== key){
+    d.daily = petBuildDaily(d.dayKey, d.dayStat || {});
+    d.dayStat = {};
+  }
+  d.dayKey = key;
 }
-function gTaVisitGapMs(){
-  let lo = Number(gardenData.taVisitMinMin); if(isNaN(lo)) lo = 720;
-  let hi = Number(gardenData.taVisitMaxMin); if(isNaN(hi)) hi = 2160;
-  lo = Math.max(30, Math.min(10080, lo));
-  hi = Math.max(30, Math.min(10080, hi));
-  const minM = Math.min(lo, hi), maxM = Math.max(lo, hi);
-  const mins = minM + Math.random()*(maxM-minM);
-  return mins * 60 * 1000;
-}
-let _taVisitBusy = false;
-async function gCheckTaVisit(){
-  if(_taVisitBusy) return;
-  _taVisitBusy = true;
-  try{
-    if(!gardenData) await loadGarden();
-    const now = Date.now();
-    if(!gardenData.nextTaVisitAt){ gardenData.nextTaVisitAt = now + gTaVisitGapMs(); await saveGarden(); return; }
-    if(now < gardenData.nextTaVisitAt) return;
-    gardenData.nextTaVisitAt = now + gTaVisitGapMs();
-    gardenData.lastTaVisit = now;
-    await gPartnerAct(false);
-    // 偶尔访客
-    if(Math.random()<0.35){
-      const vi = GARDEN_VISITORS[Math.floor(Math.random()*GARDEN_VISITORS.length)];
-      const dur = 3600 + Math.floor(Math.random()*10800);
-      gardenData.visitor = { type:vi.type, e:vi.e, n:vi.n, start:Math.floor(Date.now()/1000), dur };
-      gAddLog(vi.n, vi.e+' 来访了花园');
-    }
-    await saveGarden();
-  } finally { _taVisitBusy = false; }
+function petBuildDaily(dateKey, s){
+  const n = petData.name, ta = pPn();
+  const lines = [];
+  if((s.feed||0) >= 3) lines.push({ i:'🍚', t:'吃得很香' });
+  else if((s.feed||0) > 0) lines.push({ i:'🍚', t:'吃了一点东西' });
+  else lines.push({ i:'🍚', t:'几乎没怎么吃东西' });
+  if((s.taPlayMin||0) > 0) lines.push({ i:'🧶', t:ta+'陪它玩了 '+s.taPlayMin+' 分钟' });
+  else if((s.play||0) > 0) lines.push({ i:'🧶', t:'玩了一会儿' });
+  lines.push((s.sleep||0) > 0 ? { i:'🌙', t:'睡得很香' } : { i:'🌙', t:'昨晚没怎么睡好' });
+  if((s.moodGain||0) > 0) lines.push({ i:'💗', t:'心情 +'+Math.round(s.moodGain) });
+  if((s.me||0) > 0 && (s.ta||0) > 0) lines.push({ i:'🤝', t:'你们共同照顾了'+n });
+  return { date: dateKey, lines };
 }
 
+function petLogText(kind, who, min){
+  const subj = who==='me' ? '你' : pPn();
+  const n = petData.name;
+  if(kind==='feed') return subj+'给'+n+'喂了食物。';
+  if(kind==='play') return subj+'陪'+n+'玩了 '+min+' 分钟。';
+  if(kind==='pat') return subj+'摸了摸'+n+'。';
+  return subj+'哄'+n+'睡觉了。';
+}
+function petApply(kind, who){
+  const d = petData;
+  let moodGain = 0, bond = 0, xp = 0, min = 0, chip = '';
+  if(kind==='feed'){
+    if(d.sat >= 95) return { ok:false, msg:d.name+'吃不下了' };
+    d.sat = pClamp(d.sat + 25);
+    moodGain = 3; bond = 1; xp = 5;
+  } else if(kind==='play'){
+    if(d.eng < 15) return { ok:false, msg:d.name+'太累了，让它休息一下' };
+    d.eng = pClamp(d.eng - 10);
+    d.sat = pClamp(d.sat - 6);
+    moodGain = 12; bond = 1; xp = 8;
+    min = 8 + Math.floor(Math.random()*18);
+  } else if(kind==='pat'){
+    moodGain = 6; bond = 1; xp = 3;
+  } else {
+    if(d.eng >= 95) return { ok:false, msg:d.name+'还不困' };
+    d.eng = pClamp(d.eng + 35);
+    moodGain = 2; xp = 2;
+  }
+  d.mood = pClamp(d.mood + moodGain);
+  d.bond = Math.min(100, d.bond + bond);
+  d.exp = (d.exp||0) + xp;
+  d.lastInt = Date.now();
+  chip = bond > 0 ? '亲密度 +'+bond : (kind==='sleep' ? '精力 +35' : '心情 +'+moodGain);
+  const s = d.dayStat;
+  s[kind] = (s[kind]||0) + 1;
+  s[who] = (s[who]||0) + 1;
+  s.moodGain = (s.moodGain||0) + moodGain;
+  if(who==='ta' && kind==='play') s.taPlayMin = (s.taPlayMin||0) + min;
+  const text = petLogText(kind, who, min);
+  d.log.unshift({ t:Date.now(), who, kind, text, chip });
+  if(d.log.length > 60) d.log = d.log.slice(0, 60);
+  return { ok:true, text, chip, min };
+}
 
-function renderGarden(){
-  const body = document.getElementById('gardenBody');
+async function petDoMe(kind){
+  if(!petData) await loadPet();
+  petTick();
+  const r = petApply(kind, 'me');
+  if(!r.ok){ pToast(r.msg); await savePet(); renderPet(); return; }
+  petData.fb = { t:Date.now(), kind, text:r.text, chip:r.chip, say:pRand(PET_TA_SAY[kind]), who:pPn() };
+  await savePet();
+  renderPet();
+  petFx(kind);
+}
+function petFx(kind){
+  const box = document.getElementById('petFxBox');
+  if(!box) return;
+  for(let i=0;i<5;i++){
+    const s = document.createElement('span');
+    s.className = 'pet-fx';
+    s.textContent = PET_FX[kind] || '💗';
+    s.style.left = (30 + Math.random()*40) + '%';
+    s.style.animationDelay = (i*0.12) + 's';
+    box.appendChild(s);
+    setTimeout(()=>{ try{ s.remove(); }catch(e){} }, 1600);
+  }
+}
+
+function petTaGapMs(){
+  let lo = Number(petData.taMinMin); if(isNaN(lo)) lo = 60;
+  let hi = Number(petData.taMaxMin); if(isNaN(hi)) hi = 360;
+  lo = Math.max(10, Math.min(10080, lo));
+  hi = Math.max(10, Math.min(10080, hi));
+  const a = Math.min(lo, hi), b = Math.max(lo, hi);
+  return (a + Math.random()*(b-a)) * 60000;
+}
+function petTaPickKind(){
+  const d = petData;
+  if(d.sat < 45) return 'feed';
+  if(d.eng < 30) return 'sleep';
+  const r = Math.random();
+  if(d.mood < 60) return r < 0.6 ? 'play' : 'pat';
+  if(r < 0.3) return 'pat';
+  if(r < 0.65) return 'play';
+  return 'feed';
+}
+async function petCheckTa(){
+  if(_petTaBusy) return;
+  _petTaBusy = true;
+  try{
+    if(!petData) await loadPet();
+    const now = Date.now();
+    if(!petData.nextTaAt){ petData.nextTaAt = now + petTaGapMs(); await savePet(); return; }
+    if(now < petData.nextTaAt) return;
+    petData.nextTaAt = now + petTaGapMs();
+    petTick();
+    let r = petApply(petTaPickKind(), 'ta');
+    if(!r.ok) r = petApply('pat', 'ta');
+    await savePet();
+    if(typeof currentView!=='undefined' && currentView==='pet'){
+      renderPet();
+      pToast(pPn()+' 照顾了'+petData.name);
+    }
+  }catch(e){ console.warn('pet ta fail', e); }
+  finally{ _petTaBusy = false; }
+}
+
+function petAvatarHtml(size){
+  if(petData.photo) return '<img src="'+petData.photo+'" alt="">';
+  return '<span style="font-size:'+size+'px;line-height:1;">'+petData.species+'</span>';
+}
+function petBubbleText(){
+  const d = petData;
+  if(d.sat < 30) return '肚子饿了…';
+  if(d.eng < 25) return '好困…';
+  if(d.mood < 35) return '有点无聊…';
+  if(d.mood >= 80) return '好开心！';
+  return '和你一起长大。';
+}
+function petSceneHtml(mini){
+  const th = PET_THEMES.find(t=>t.id===petData.theme) || PET_THEMES[0];
+  const lv = petLv();
+  let h = '<div class="pet-scene'+(mini?' mini':'')+'" style="background:'+th.g+';">';
+  PET_DECOR.forEach(dc=>{
+    if(petData.decor.indexOf(dc.id) >= 0 && lv >= dc.lv){
+      h += '<span class="pet-decor" style="'+dc.pos+'">'+dc.e+'</span>';
+    }
+  });
+  if(!mini) h += '<div class="pet-bubble">'+petBubbleText()+'</div>';
+  h += '<div class="pet-cushion"></div>';
+  h += '<div class="pet-avatar'+(mini?' mini':'')+'">'+petAvatarHtml(mini?54:104)+'</div>';
+  if(!mini) h += '<div class="pet-fxbox" id="petFxBox"></div>';
+  h += '</div>';
+  return h;
+}
+function petFmtTime(ts){
+  const d = new Date(ts);
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function petBar(label, icon, v){
+  return '<div class="pet-stat"><span class="pet-stat-i">'+icon+'</span><span class="pet-stat-l">'+label+'</span><span class="pet-bar"><i style="width:'+Math.round(v)+'%"></i></span><span class="pet-stat-v">'+Math.round(v)+'%</span></div>';
+}
+const PET_KIND_ICON = { feed:'🍚', play:'🧶', pat:'💗', sleep:'🌙' };
+
+function renderPet(){
+  const body = document.getElementById('petBody');
   if(!body) return;
-  if(!gardenData){ loadGarden().then(()=>renderGarden()); return; }
-  const now = Math.floor(Date.now()/1000);
-  let changed=false;
-  for(let i=0;i<gardenData.p.length;i++){
-    const pl=gardenData.p[i];
-    if(!pl) continue;
-    const si=gStageInfo(pl);
-    if(si && si.bloomed && !pl.bloomedAt){ pl.bloomedAt=now; changed=true; }
-  }
-  // visitor expire
-  if(gardenData.visitor && (now - (gardenData.visitor.start||0) > (gardenData.visitor.dur||3600))){
-    gardenData.visitor=null; changed=true;
-  }
-  if(changed) saveGarden();
+  if(!petData){ loadPet().then(()=>renderPet()); return; }
+  petTick();
+  const d = petData;
+  const lv = petLv();
+  let h = petSceneHtml(false);
 
-  const lv=gLv(), exp=gardenData.exp||0, nextExp=(lv*lv)*10;
-  const wx=gWx(), sea=GARDEN_SEA[gSea()];
-  const plotN=gardenData.plotN||GARDEN_PLOTS_BASE, entitled=gPlotEntitled();
-  const st=gardenData.st||{};
-
-  let h='';
-  h += '<div class="gd-top">';
-  h += '<div class="gd-meta">Lv.'+lv+' · 经验 '+exp+'/'+nextExp+' · '+sea+' '+wx.i+wx.t+'</div>';
-  h += '<div class="gd-meta2">地块 '+plotN+'/'+entitled+' · 种'+ (st.plant||0)+' / 浇'+(st.water||0)+' / 收'+(st.harvest||0)+' / 肥'+(st.fert||0)+' / 杂'+(st.hybrid||0);
-  if(gardenData.visitor) h += ' · '+ (gardenData.visitor.e||'')+(gardenData.visitor.n||'')+'来访中';
+  h += '<div class="pet-card pet-info">';
+  h += '<div class="pet-name">'+escapeHtml(d.name)+' <span class="pet-edit" onclick="openPetSettings()">✎</span></div>';
+  h += '<div class="pet-sub">Lv. '+lv+' <span>♡ '+Math.round(d.bond)+'%</span></div>';
+  h += '<div class="pet-stats">'+petBar('饱腹','🍚',d.sat)+petBar('心情','🙂',d.mood)+petBar('精力','⚡',d.eng)+'</div>';
+  h += '<div class="pet-acts">';
+  [['feed','喂食'],['play','玩耍'],['pat','摸摸'],['sleep','睡觉']].forEach(([k,lab])=>{
+    h += '<div class="pet-act" onclick="petDoMe(\''+k+'\')"><span>'+PET_KIND_ICON[k]+'</span><em>'+lab+'</em></div>';
+  });
   h += '</div></div>';
 
-  h += '<div class="gd-tabs">';
-  [['field','田地'],['bag','种子袋'],['hybrid','杂交'],['bouquet','花束'],['dex','图鉴'],['log','日志']].forEach(([k,lab])=>{
-    h += '<div class="gd-tab'+(gardenTab===k?' on':'')+'" onclick="gardenTab=\''+k+'\';gardenTool=\'none\';renderGarden()">'+lab+'</div>';
+  h += '<div class="pet-card pet-room-card" onclick="openPetRoom()">';
+  h += '<div class="pet-card-t">宠物房间 <span>›</span></div>';
+  h += petSceneHtml(true);
+  h += '<div class="pet-hand">小家伙的小房间 ♡</div>';
+  h += '</div>';
+
+  h += '<div class="pet-card">';
+  h += '<div class="pet-card-t">共同记录</div>';
+  if(!d.log.length) h += '<div class="pet-empty">还没有记录，和它互动一下吧</div>';
+  else {
+    const list = petShowAll ? d.log : d.log.slice(0,3);
+    list.forEach(e=>{
+      h += '<div class="pet-log"><span class="pet-log-i">'+(PET_KIND_ICON[e.kind]||'🐾')+'</span><div class="pet-log-m"><div>'+escapeHtml(e.text)+'</div><small>'+escapeHtml(e.chip||'')+'</small></div><span class="pet-log-t">'+petFmtTime(e.t)+'</span></div>';
+    });
+    if(d.log.length > 3){
+      h += '<div class="pet-more" onclick="petShowAll='+(petShowAll?'false':'true')+';renderPet()">'+(petShowAll?'收起记录':'查看全部记录')+' ›</div>';
+    }
+  }
+  h += '</div>';
+
+  h += '<div class="pet-card">';
+  h += '<div class="pet-card-t">互动后反馈</div>';
+  if(!d.fb) h += '<div class="pet-empty">和它互动一下，这里会出现反馈</div>';
+  else {
+    h += '<div class="pet-fb"><div class="pet-fb-img">'+petAvatarHtml(46)+'</div><div class="pet-fb-m"><div>'+escapeHtml(d.fb.text)+'</div><small>'+escapeHtml(d.fb.who)+'：「'+escapeHtml(d.fb.say)+'」</small><span class="pet-chip">'+escapeHtml(d.fb.chip||'')+'</span></div></div>';
+  }
+  h += '</div>';
+
+  h += '<div class="pet-card">';
+  h += '<div class="pet-card-t">日常小结 <small>昨晚发生了什么</small></div>';
+  if(!d.daily) h += '<div class="pet-empty">每天的小结会在第二天出现</div>';
+  else d.daily.lines.forEach(l=>{
+    h += '<div class="pet-log"><span class="pet-log-i">'+l.i+'</span><div class="pet-log-m"><div>'+escapeHtml(l.t)+'</div></div></div>';
   });
   h += '</div>';
 
-  if(gardenTab==='field'){
-    h += '<div class="gd-quick">';
-    h += '<div class="btn outline sm" onclick="gWaterAll()">一键浇水</div>';
-    h += '<div class="btn outline sm" onclick="gFertilizeAll()">一键施肥</div>';
-    h += '<div class="btn outline sm" onclick="gHarvestAll()">一键收获</div>';
-    h += '<div class="btn outline sm" onclick="gReplantAll()">一键补种</div>';
-    if(plotN < entitled) h += '<div class="btn outline sm" onclick="gExpand()">开垦</div>';
-    h += '</div>';
-
-    h += '<div class="gd-grid">';
-    for(let i=0;i<plotN;i++){
-      const pl=gardenData.p[i];
-      const si=gStageInfo(pl);
-      const wl=gWaterLvl(pl);
-      let cls='gd-plot'+(si?'':' empty')+(wl>0.3?' watered':'')+(gardenSel===i?' selected':'')+(si&&si.bloomed?' bloomed':'')+(si&&si.wilted?' wilted':'')+(si&&si.rare?' rare':'');
-      h += '<div class="'+cls+'" onclick="gOnPlotClick('+i+')">';
-      if(si){
-        h += '<div class="gd-emoji">'+si.emoji+'</div>';
-        h += '<div class="gd-name">'+si.name+'</div>';
-        if(si.wilted) h += '<div class="gd-stage wilt">已凋谢</div>';
-        else if(si.bloomed) h += '<div class="gd-stage ok">成熟</div>';
-        else h += '<div class="gd-stage">'+si.stageName+' · '+gFmtTime(si.nextSec)+'</div>';
-        if(wl>0) h += '<div class="gd-water"><i style="width:'+Math.round(wl*100)+'%"></i></div>';
-      } else {
-        h += '<div class="gd-emoji empty-ico">⬜</div><div class="gd-name">空地</div>';
-      }
-      h += '</div>';
-    }
-    h += '</div>';
-
-    h += '<div class="gd-ops">';
-    if(gardenSel>=0 && gardenSel<plotN){
-      const pl=gardenData.p[gardenSel];
-      const si=gStageInfo(pl);
-      if(!pl){
-        h += '<div class="gd-hint">选中空地 · 去「种子袋」选种子种植</div>';
-        h += '<div class="btn-row" style="margin-top:6px;"><div class="btn outline" onclick="gardenTab=\'bag\';renderGarden()">去种子袋</div></div>';
-      } else {
-        h += '<div class="gd-hint">'+si.emoji+' '+si.name+(si.m?' · '+si.m:'')+'（'+(si.plantedBy||'我')+'种的）</div>';
-        h += '<div class="btn-row" style="margin-top:8px;flex-wrap:wrap;gap:6px;">';
-        h += '<div class="btn" onclick="gWater('+gardenSel+')">💧 浇水</div>';
-        h += '<div class="btn outline" onclick="gFertilize('+gardenSel+')">施肥</div>';
-        if(si.bloomed) h += '<div class="btn" onclick="gHarvest('+gardenSel+')">'+(si.wilted?'清理':'收获')+'</div>';
-        h += '<div class="btn outline" onclick="gardenTool=\'hybrid\';gHybrid('+gardenSel+')">杂交</div>';
-        h += '</div>';
-      }
-    } else {
-      h += '<div class="gd-hint">点选一块地开始操作</div>';
-    }
-    h += '</div>';
-  } else if(gardenTab==='bag'){
-    h += '<div class="gd-bag">';
-    Object.keys(GARDEN_FLOWERS).forEach(k=>{
-      const tp=GARDEN_FLOWERS[k];
-      const cnt=gardenData.inv[k]||0;
-      const locked=!gUnlocked(k);
-      h += '<div class="gd-seed'+(locked?' locked':'')+(tp.rare?' rare':'')+'" onclick="'+( !locked && gardenSel>=0 && !gardenData.p[gardenSel] ? 'gPlant('+gardenSel+',\''+k+'\')' : '' )+'">';
-      h += '<span class="e">'+(tp.e[tp.e.length-1]||'🌱')+'</span>';
-      h += '<span class="n">'+tp.n+(tp.rare?' ✦':'')+'</span>';
-      h += '<span class="c">'+(cnt>0?('花束×'+cnt):'可种')+'</span>';
-      if(locked) h += '<span class="lk">Lv.'+tp.lv+'</span>';
-      h += '</div>';
-    });
-    h += '</div>';
-    h += '<p class="gd-hint" style="margin-top:10px;">先在「田地」选中空地，再点花种即可种植（不限数量）。收获后的花会出现在「花束」库存里可赠送；杂交可得到稀有花。</p>';
-  } else if(gardenTab==='hybrid'){
-    h += '<div class="gd-hint" style="margin-bottom:10px;">把两株<strong>相邻、同阶段、不同种类</strong>的花放在一起，点其中一株的「杂交」按钮。配方如下：</div>';
-    h += '<div class="gd-hybrid-list">';
-    GARDEN_HYBRIDS.forEach(hrec=>{
-      const a=GARDEN_FLOWERS[hrec.a], b=GARDEN_FLOWERS[hrec.b], r=GARDEN_FLOWERS[hrec.r];
-      if(!a||!b||!r) return;
-      h += '<div class="gd-hy-row">'+a.e[a.e.length-1]+a.n+' + '+b.e[b.e.length-1]+b.n+' → <b>'+r.e[r.e.length-1]+' '+r.n+'</b></div>';
-    });
-    h += '</div>';
-    h += '<div class="btn-row" style="margin-top:12px;"><div class="btn outline" onclick="gardenTab=\'field\';renderGarden()">回田地操作</div></div>';
-  } else if(gardenTab==='bouquet'){
-    h += '<div class="gd-hint" style="margin-bottom:8px;">用收获后的花制作花束送给 '+gPn()+'（会写入聊天）。已送 '+(gardenData.bouquetCnt||0)+' 束。</div>';
-    h += '<div class="gd-bag">';
-    let any=false;
-    Object.keys(GARDEN_FLOWERS).forEach(k=>{
-      const cnt=gardenData.inv[k]||0;
-      if(cnt<1) return;
-      any=true;
-      const tp=GARDEN_FLOWERS[k];
-      h += '<div class="gd-seed" onclick="gMakeBouquet(\''+k+'\')">';
-      h += '<span class="e">'+(tp.e[tp.e.length-1])+'</span>';
-      h += '<span class="n">'+tp.n+'</span>';
-      h += '<span class="c">×'+cnt+'</span>';
-      h += '</div>';
-    });
-    if(!any) h += '<div class="gd-hint">还没有可送的花，先去田地收获吧</div>';
-    h += '</div>';
-  } else if(gardenTab==='dex'){
-    h += '<div class="gd-dex">';
-    Object.keys(GARDEN_FLOWERS).forEach(k=>{
-      const tp=GARDEN_FLOWERS[k];
-      const seen=gardenData.dex[k]||0;
-      h += '<div class="gd-dex-item'+(seen?'':' off')+(tp.rare?' rare':'')+'">';
-      h += '<span class="e">'+(seen?tp.e[tp.e.length-1]:'❓')+'</span>';
-      h += '<span class="n">'+(seen?tp.n:'???')+(tp.rare&&seen?' ✦':'')+'</span>';
-      if(seen) h += '<span class="c">'+seen+'次 · '+(tp.m||'')+'</span>';
-      h += '</div>';
-    });
-    h += '</div>';
-  } else if(gardenTab==='log'){
-    h += '<div class="gd-log">';
-    if(!gardenData.log||!gardenData.log.length) h += '<div class="gd-hint">还没有记录</div>';
-    else gardenData.log.slice(0,50).forEach(e=>{
-      const d=new Date(e.t);
-      const ts=(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-      h += '<div class="gd-log-row"><span class="t">'+ts+'</span> <b>'+escapeHtml(e.who||'')+'</b> '+escapeHtml(e.act||'')+'</div>';
-    });
-    h += '</div>';
-  }
-
+  h += '<div class="pet-foot">有你在，它也很幸福。</div>';
   body.innerHTML = h;
-  gCheckTaVisit().catch(()=>{});
-  gCheckTaGift().catch(()=>{});
 }
 
-function gOnPlotClick(i){
-  gardenSel = i;
-  if(gardenTool==='hybrid'){ gHybrid(i); return; }
-  renderGarden();
+function openPetSettings(){
+  if(!petData) return;
+  const d = petData;
+  let sp = '';
+  PET_SPECIES.forEach(s=>{
+    sp += '<span class="pet-sp'+(d.species===s?' on':'')+'" onclick="petSetSpecies(\''+s+'\')">'+s+'</span>';
+  });
+  openOverlay(`
+    <div class="drawer-head"><h3>宠物设置</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div class="box-title">名字</div>
+    <input type="text" id="petNameIn" maxlength="10" value="${escapeHtml(d.name)}" onchange="petSetName(this.value)" style="width:100%;margin-bottom:12px;">
+    <div class="box-title">种类</div>
+    <div class="pet-sps">${sp}</div>
+    <div class="box-title" style="margin-top:12px;">自定义图片</div>
+    <div class="btn-row">
+      <div class="btn outline" onclick="document.getElementById('petPhotoIn').click()">上传图片</div>
+      ${d.photo ? '<div class="btn outline" onclick="petClearPhoto()">移除图片</div>' : ''}
+    </div>
+    <input type="file" id="petPhotoIn" accept="image/*" class="hidden" onchange="petPickPhoto(event)">
+  `);
+}
+async function petSetName(v){
+  v = String(v||'').trim().slice(0,10);
+  if(!v) return;
+  petData.name = v;
+  await savePet();
+  renderPet();
+}
+async function petSetSpecies(s){
+  petData.species = s;
+  await savePet();
+  renderPet();
+  openPetSettings();
+}
+async function petPickPhoto(ev){
+  const f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  const url = await new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = ()=>res(null);
+    r.readAsDataURL(f);
+  });
+  if(!url) return;
+  const small = await compressImage(url, 360);
+  if(!small){ pToast('这张图片读取失败'); return; }
+  petData.photo = small;
+  await savePet();
+  renderPet();
+  openPetSettings();
+}
+async function petClearPhoto(){
+  petData.photo = null;
+  await savePet();
+  renderPet();
+  openPetSettings();
 }
 
-async function gardenSetTaVisitRange(minV, maxV){
-  if(!gardenData) await loadGarden();
-  let lo = Math.round(parseFloat(minV)); if(isNaN(lo)) lo=30;                // 最短（分钟）
-  let hiH = parseFloat(maxV); if(isNaN(hiH)) hiH=36;                          // 最长（小时）
-  lo = Math.max(30, Math.min(10080, lo));
-  let hi = Math.round(hiH*60);                                               // 换算成分钟内存
-  hi = Math.max(30, Math.min(10080, hi));
-  if(hi < lo){ const t=lo; lo=hi; hi=t; }
-  gardenData.taVisitMinMin = lo;
-  gardenData.taVisitMaxMin = hi;
-  gardenData.nextTaVisitAt = 0; // 重排下一次
-  await saveGarden();
+function openPetRoom(){
+  if(!petData) return;
+  const lv = petLv();
+  let th = '';
+  PET_THEMES.forEach(t=>{
+    th += '<span class="pet-sp pet-th'+(petData.theme===t.id?' on':'')+'" onclick="petSetTheme(\''+t.id+'\')">'+t.n+'</span>';
+  });
+  let dc = '';
+  PET_DECOR.forEach(x=>{
+    const locked = lv < x.lv;
+    const on = petData.decor.indexOf(x.id) >= 0;
+    dc += '<div class="pet-dc'+(on&&!locked?' on':'')+(locked?' lock':'')+'" onclick="'+(locked?'':'petToggleDecor(\''+x.id+'\')')+'"><span>'+x.e+'</span><em>'+x.n+'</em>'+(locked?'<small>Lv.'+x.lv+'</small>':'')+'</div>';
+  });
+  openOverlay(`
+    <div class="drawer-head"><h3>宠物房间</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    ${petSceneHtml(true)}
+    <div class="box-title" style="margin-top:12px;">氛围</div>
+    <div class="pet-sps">${th}</div>
+    <div class="box-title" style="margin-top:12px;">摆设</div>
+    <div class="pet-dcs">${dc}</div>
+  `);
+}
+async function petSetTheme(id){
+  petData.theme = id;
+  await savePet();
+  renderPet();
+  openPetRoom();
+}
+async function petToggleDecor(id){
+  const i = petData.decor.indexOf(id);
+  if(i >= 0) petData.decor.splice(i,1); else petData.decor.push(id);
+  await savePet();
+  renderPet();
+  openPetRoom();
+}
+
+async function petSaveTaFromSettings(){
+  if(!petData) await loadPet();
+  const a = document.getElementById('petTaMinMin');
+  const b = document.getElementById('petTaMaxHours');
+  let lo = Math.round(parseFloat(a ? a.value : 60)); if(isNaN(lo)) lo = 60;
+  let hiH = parseFloat(b ? b.value : 6); if(isNaN(hiH)) hiH = 6;
+  lo = Math.max(10, Math.min(10080, lo));
+  let hi = Math.max(10, Math.min(10080, Math.round(hiH*60)));
+  if(hi < lo){ const t = lo; lo = hi; hi = t; }
+  petData.taMinMin = lo;
+  petData.taMaxMin = hi;
+  petData.nextTaAt = 0;
+  await savePet();
   const f = m => (m%60===0 ? (m/60)+'小时' : m+'分钟');
-  gToast('TA 来访间隔已设为 '+f(lo)+'～'+f(hi)+'（随机）');
+  pToast('TA 探宠间隔已设为 '+f(lo)+'～'+f(hi)+'（随机）');
 }
-async function gardenSaveTaVisitFromSettings(){
-  const a = document.getElementById('gardenTaVisitMinMin');
-  const b = document.getElementById('gardenTaVisitMaxHours');
-  await gardenSetTaVisitRange(a?a.value:30, b?b.value:36);
-}
-async function gardenFillSettings(){
+async function petFillSettings(){
   try{
-    if(!gardenData) await loadGarden();
-    const a = document.getElementById('gardenTaVisitMinMin');
-    const b = document.getElementById('gardenTaVisitMaxHours');
-    if(a) a.value = (typeof gardenData.taVisitMinMin==='number') ? gardenData.taVisitMinMin : 30;
-    if(b) b.value = (typeof gardenData.taVisitMaxMin==='number') ? (Math.round(gardenData.taVisitMaxMin/6)/10) : 36;
+    if(!petData) await loadPet();
+    const a = document.getElementById('petTaMinMin');
+    const b = document.getElementById('petTaMaxHours');
+    if(a) a.value = petData.taMinMin;
+    if(b) b.value = Math.round(petData.taMaxMin/6)/10;
   }catch(e){}
 }
 
-loadGarden().then(()=>{ gCheckTaVisit().catch(()=>{}); gCheckTaGift().catch(()=>{}); }).catch(()=>{});
-setInterval(()=>{ try{ gCheckTaGift().catch(()=>{}); }catch(e){} }, 5*60*1000);
+loadPet().then(()=>{ petCheckTa().catch(()=>{}); }).catch(()=>{});
+setInterval(()=>{ try{ petCheckTa().catch(()=>{}); }catch(e){} }, 5*60*1000);
 
 
+let statusCardData = { st:null, conn:null, connAt:0 };
+let scClockTimer = null;
+const SC_STATES = {
+  online:  { label:'在线', e:'💬' },
+  busy:    { label:'在忙', e:'💼' },
+  offline: { label:'离线', e:'🌙' }
+};
+const SC_TIERS = [
+  { min:95, label:'深度连接', color:'#7fb08a' },
+  { min:80, label:'稳定连接', color:'#7fb08a' },
+  { min:50, label:'连接波动', color:'#e6a85c' },
+  { min:20, label:'微弱连接', color:'#d9737c' },
+  { min:0,  label:'暂时离线', color:'#b9b1ab' }
+];
 
+async function loadStatusCard(){
+  try{
+    const raw = await sGet('status-card', null);
+    if(raw && typeof raw==='object') Object.assign(statusCardData, raw);
+  }catch(e){}
+}
+async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
+
+function scRoll(){
+  const c = statusCardData;
+  const now = Date.now();
+  if(c.st && now < c.st.nextAt) return c.st;
+  const kinds = ['online','busy','offline'];
+  let quote = '';
+  try{
+    if(typeof getRandomCardText === 'function'){ const t = getRandomCardText(); quote = t ? String(t) : ''; }
+  }catch(e){}
+  const kind = kinds[Math.floor(Math.random()*kinds.length)];
+  const prev = c.st || {};
+  let tOff = typeof prev.tOff==='number' ? prev.tOff : 0;
+  let tDrawn = !!prev.tDrawn;
+  if(kind==='online' && (!tDrawn || Math.random() < 0.1)){
+    tOff = Math.floor(Math.random()*1440) - 720;
+    tDrawn = true;
+  }
+  c.st = { kind, quote, tOff, tDrawn, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
+  saveStatusCard();
+  return c.st;
+}
+function scClockStr(){
+  const off = (statusCardData.st && statusCardData.st.tOff) || 0;
+  const d = new Date(Date.now() + off*60000);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function scConnValue(){
+  const c = statusCardData;
+  const now = Date.now();
+  // 根据当前状态偏向：在线偏高 40~100，离线偏低 0~70，在忙 0~75
+  const st = (c.st && now < c.st.nextAt) ? c.st : scRoll();
+  const kind = (st && st.kind) || 'online';
+  if(typeof c.conn!=='number' || !c.connNextAt || now >= c.connNextAt || c.connKind !== kind){
+    let lo = 0, hi = 100;
+    if(kind === 'online'){ lo = 40; hi = 100; }
+    else if(kind === 'offline'){ lo = 0; hi = 70; }
+    else if(kind === 'busy'){ lo = 0; hi = 75; }
+    c.conn = lo + Math.floor(Math.random() * (hi - lo + 1));
+    c.connKind = kind;
+    c.connNextAt = now + Math.max(120000, Math.random()*4*3600000);
+    saveStatusCard();
+  }
+  return c.conn;
+}
+function scStatusLabel(){
+  try{
+    const st = scRoll();
+    return (SC_STATES[st.kind] || SC_STATES.online).label;
+  }catch(e){ return '在线'; }
+}
+function scTier(v){ return SC_TIERS.find(t=>v >= t.min) || SC_TIERS[SC_TIERS.length-1]; }
+
+async function openStatusCard(){
+  await loadStatusCard();
+  closeStatusCard();
+  const root = document.createElement('div');
+  root.id = 'scRoot';
+  root.className = 'sc-mask';
+  root.onclick = function(e){ if(e.target===root) closeStatusCard(); };
+  document.body.appendChild(root);
+  renderStatusCard();
+  scClockTimer = setInterval(()=>{
+    const el = document.getElementById('scClock');
+    if(el) el.textContent = scClockStr(); else closeStatusCard();
+  }, 20000);
+}
+function closeStatusCard(){
+  const r = document.getElementById('scRoot');
+  if(r) r.remove();
+  if(scClockTimer){ clearInterval(scClockTimer); scClockTimer = null; }
+}
+function renderStatusCard(){
+  const root = document.getElementById('scRoot');
+  if(!root) return;
+  const st = scRoll();
+  const kd = SC_STATES[st.kind] || SC_STATES.online;
+  const v = scConnValue();
+  const tier = scTier(v);
+  const name = (typeof chatSettings!=='undefined' && chatSettings.companionName) ? chatSettings.companionName : pPn();
+  const av = (typeof profile!=='undefined' && profile.avatar && String(profile.avatar).startsWith('data:'))
+    ? '<img src="'+profile.avatar+'" alt="">'
+    : '<span>'+escapeHtml((typeof profile!=='undefined' && profile.avatar) || '🌙')+'</span>';
+  const mood = (typeof taMoodFor==='function') ? taMoodFor(todayKey()) : null;
+  const moodBadge = (mood && mood.mood) ? '<span class="sc-mood">'+escapeHtml(mood.mood)+'</span>' : '';
+
+  root.innerHTML = `
+    <div class="sc-card">
+      <div class="sc-x" onclick="closeStatusCard()">✕</div>
+      <div class="sc-top">
+        <div class="sc-av">${av}</div>
+        <div class="sc-id">
+          <div class="sc-name">${escapeHtml(name)} <i>✦</i></div>
+          <div class="sc-en">Only for you.</div>
+          <div class="sc-conn-l">连接状态</div>
+          <div class="sc-bar"><i style="width:${v}%;background:${tier.color};"></i></div>
+          <div class="sc-num">${v} <small>/ 100</small></div>
+          <div class="sc-tier"><b style="background:${tier.color};"></b>${tier.label}</div>
+        </div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-m">
+          <small>当前状态</small>
+          <strong>${kd.label}${moodBadge}</strong>
+          ${st.quote ? '<em>“'+escapeHtml(st.quote)+'”</em>' : ''}
+        </div>
+        <div class="sc-tile">${kd.e}</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-m">
+          <small>他的时间</small>
+          <strong class="sc-clock" id="scClock">${scClockStr()}</strong>
+        </div>
+        <div class="sc-tile sc-tile-t">🕰️</div>
+      </div>
+    </div>`;
+}
+loadStatusCard();
 
 
 let mallState = {
@@ -12018,10 +11774,10 @@ async function checkMallAutoBuy(){
       return;
     }
     mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'auto', -it.price, '买了「'+it.name+'」给你');
+    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
-    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 给你买了「' + it.name + '」🎁', false); }catch(e){}
+    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
     if(currentView === 'mall') try{ renderMall(); }catch(e){}
   }catch(e){ console.warn('checkMallAutoBuy', e); }
 }
@@ -12330,9 +12086,9 @@ async function mallDoCartPick(cart){
   }
   await saveMallState();
   const boughtNames = bought.map(x => x.name).join('、');
-  let replyText = '看到你的清单了小羽～我给你买了：' + boughtNames + '。';
-  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 先不买～';
-  else replyText += '都买了～';
+  let replyText = '看到你的清单啦～我给你买了：' + boughtNames + '。';
+  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 就先不买啦～';
+  else replyText += '都给你安排上啦～';
   const bmsg = {id:uid(), from:'bot', type:'text', content:replyText, time:Date.now(), read:true};
   try{ assignGroupSender(bmsg); }catch(e){}
   chatMessages.push(bmsg);
@@ -12569,54 +12325,103 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 #view-home .hero-caption{color:var(--h-mauve)!important;font-family:var(--font-secondary, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif)!important;font-size:16px!important;letter-spacing:3px!important;line-height:1.6!important;font-weight:400!important;}
 #view-home .hero-caption::before,#view-home .hero-caption::after{color:var(--h-mauve)!important;opacity:.85;font-size:17px!important;vertical-align:5px!important;margin:0 8px!important;}
 
-/* ===== 花园 GARDEN ===== */
-#view-garden .gd-top{margin-bottom:10px;}
-#view-garden .gd-meta{font-size:13px;font-weight:600;letter-spacing:1px;}
-#view-garden .gd-meta2{font-size:11px;color:var(--ink-soft);margin-top:2px;}
-#view-garden .gd-tabs{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap;}
-#view-garden .gd-tab{padding:6px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(42,36,31,.15);background:rgba(255,255,255,.55);cursor:pointer;}
-#view-garden .gd-tab.on{background:var(--blush,#f3d6dc);border-color:var(--rouge,#c45c6a);color:var(--rouge,#c45c6a);font-weight:600;}
-#view-garden .gd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-#view-garden .gd-plot{border:1px solid rgba(42,36,31,.12);border-radius:14px;padding:10px 6px 8px;text-align:center;background:rgba(255,255,255,.6);min-height:92px;cursor:pointer;transition:transform .12s,box-shadow .12s;}
-#view-garden .gd-plot:active{transform:scale(.97);}
-#view-garden .gd-plot.selected{box-shadow:0 0 0 2px var(--rouge,#c45c6a);background:rgba(255,240,245,.85);}
-#view-garden .gd-plot.empty{opacity:.75;border-style:dashed;}
-#view-garden .gd-plot.watered{background:rgba(200,230,245,.45);}
-#view-garden .gd-plot.bloomed{background:rgba(255,235,245,.7);}
-#view-garden .gd-plot.wilted{opacity:.55;filter:grayscale(.4);}
-#view-garden .gd-plot.rare{border-color:rgba(196,92,106,.45);}
-#view-garden .gd-emoji{font-size:26px;line-height:1.2;}
-#view-garden .gd-name{font-size:12px;margin-top:2px;letter-spacing:.5px;}
-#view-garden .gd-stage{font-size:10px;color:var(--ink-soft);margin-top:2px;}
-#view-garden .gd-stage.ok{color:var(--rouge,#c45c6a);font-weight:600;}
-#view-garden .gd-stage.wilt{color:#999;}
-#view-garden .gd-water{height:3px;background:rgba(0,0,0,.06);border-radius:2px;margin-top:6px;overflow:hidden;}
-#view-garden .gd-water i{display:block;height:100%;background:#6ab0d8;border-radius:2px;}
-#view-garden .gd-ops{margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.55);border:1px solid rgba(42,36,31,.08);}
-#view-garden .gd-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;}
-#view-garden .gd-bag,#view-garden .gd-dex{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-#view-garden .gd-seed,#view-garden .gd-dex-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.6);border:1px solid rgba(42,36,31,.1);cursor:pointer;}
-#view-garden .gd-seed.empty{opacity:.45;}
-#view-garden .gd-seed.locked{opacity:.4;cursor:not-allowed;}
-#view-garden .gd-seed.rare{border-color:rgba(196,92,106,.4);}
-#view-garden .gd-seed .e,#view-garden .gd-dex-item .e{font-size:22px;}
-#view-garden .gd-seed .n,#view-garden .gd-dex-item .n{flex:1;font-size:13px;}
-#view-garden .gd-seed .c{font-size:12px;color:var(--ink-soft);}
-#view-garden .gd-seed .lk{font-size:10px;color:var(--rouge);}
-#view-garden .gd-dex-item.off{opacity:.4;}
-#view-garden .gd-log{font-size:12.5px;line-height:1.7;}
-#view-garden .gd-log-row{padding:6px 0;border-bottom:1px dashed rgba(42,36,31,.08);}
-#view-garden .gd-log-row .t{color:var(--ink-soft);margin-right:6px;font-size:11px;}
-@media (min-width:420px){#view-garden .gd-grid{grid-template-columns:repeat(4,1fr);}}
+.pet-scene{position:relative;height:250px;border-radius:22px;overflow:hidden;margin-bottom:-34px;display:flex;align-items:flex-end;justify-content:center;}
+.pet-scene.mini{height:130px;margin-bottom:0;border-radius:16px;}
+#view-pet .pet-decor,.pet-scene .pet-decor{position:absolute;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));}
+#view-pet .pet-bubble{position:absolute;top:16px;right:16px;padding:6px 12px;border-radius:14px 14px 4px 14px;background:rgba(255,255,255,.82);font-size:12px;color:#6b5a55;letter-spacing:1px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.pet-scene .pet-cushion{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);width:62%;height:54px;border-radius:50%;background:radial-gradient(ellipse at 50% 40%,#f6ebe3 0%,#e4d1c6 100%);box-shadow:0 6px 14px rgba(0,0,0,.14);}
+.pet-scene.mini .pet-cushion{bottom:14px;height:34px;width:56%;}
+.pet-scene .pet-avatar{position:relative;z-index:2;width:128px;height:128px;margin-bottom:62px;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;animation:petBob 3.2s ease-in-out infinite;}
+.pet-scene .pet-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:3px solid rgba(255,255,255,.85);}
+.pet-scene .pet-avatar.mini{width:72px;height:72px;margin-bottom:26px;}
+@keyframes petBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+#view-pet .pet-fxbox{position:absolute;inset:0;pointer-events:none;z-index:3;}
+.pet-fx{position:absolute;bottom:90px;font-size:22px;opacity:0;animation:petFloat 1.4s ease-out forwards;}
+@keyframes petFloat{0%{transform:translateY(0) scale(.7);opacity:0;}20%{opacity:1;}100%{transform:translateY(-110px) scale(1.15);opacity:0;}}
+#view-pet .pet-card{position:relative;background:rgba(255,255,255,.72);border:1px solid rgba(210,178,168,.5);border-radius:20px;padding:14px 14px 12px;margin-bottom:12px;box-shadow:0 4px 16px rgba(120,80,70,.06);}
+#view-pet .pet-info{padding-top:16px;}
+#view-pet .pet-name{font-size:18px;font-weight:700;letter-spacing:1px;}
+#view-pet .pet-edit{font-size:13px;color:var(--ink-soft);margin-left:4px;cursor:pointer;}
+#view-pet .pet-sub{font-size:12px;color:var(--ink-soft);margin:2px 0 10px;}
+#view-pet .pet-sub span{margin-left:8px;color:var(--rouge);}
+#view-pet .pet-stat{display:flex;align-items:center;gap:8px;margin:9px 0;}
+#view-pet .pet-stat-i{width:30px;height:30px;border-radius:50%;background:rgba(233,207,199,.45);display:flex;align-items:center;justify-content:center;font-size:15px;}
+#view-pet .pet-stat-l{width:34px;font-size:13px;}
+#view-pet .pet-bar{flex:1;height:6px;border-radius:3px;background:rgba(0,0,0,.07);overflow:hidden;}
+#view-pet .pet-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#d9a3a8,#c4727d);transition:width .4s;}
+#view-pet .pet-stat-v{width:38px;text-align:right;font-size:12.5px;color:var(--ink-soft);}
+#view-pet .pet-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+#view-pet .pet-act{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+#view-pet .pet-act span{width:52px;height:52px;border-radius:50%;background:#fff;border:1px solid rgba(210,178,168,.55);display:flex;align-items:center;justify-content:center;font-size:23px;box-shadow:0 3px 8px rgba(120,80,70,.08);transition:transform .12s;}
+#view-pet .pet-act:active span{transform:scale(.9);}
+#view-pet .pet-act em{font-style:normal;font-size:12px;}
+#view-pet .pet-card-t{font-size:13.5px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+#view-pet .pet-card-t small{font-size:11.5px;font-weight:400;color:var(--ink-soft);margin-left:8px;flex:1;}
+#view-pet .pet-card-t span{color:var(--ink-soft);}
+#view-pet .pet-room-card{cursor:pointer;}
+#view-pet .pet-hand{position:absolute;right:22px;bottom:22px;font-size:12px;color:rgba(255,255,255,.9);letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,.35);}
+#view-pet .pet-log{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(210,178,168,.5);}
+#view-pet .pet-log:last-of-type{border-bottom:none;}
+#view-pet .pet-log-i{width:28px;text-align:center;font-size:17px;}
+#view-pet .pet-log-m{flex:1;min-width:0;font-size:13px;line-height:1.4;}
+#view-pet .pet-log-m small{display:inline-block;margin-top:2px;padding:1px 8px;border-radius:9px;background:rgba(233,207,199,.45);color:var(--rouge);font-size:10.5px;}
+#view-pet .pet-log-t{font-size:10.5px;color:var(--ink-soft);white-space:nowrap;align-self:flex-start;margin-top:10px;}
+#view-pet .pet-more{text-align:center;font-size:12px;color:var(--ink-soft);padding-top:8px;cursor:pointer;}
+#view-pet .pet-empty{font-size:12.5px;color:var(--ink-soft);padding:6px 0;}
+#view-pet .pet-fb{display:flex;gap:12px;align-items:center;}
+#view-pet .pet-fb-img{width:64px;height:64px;border-radius:14px;background:linear-gradient(180deg,#f3e3d6,#e9d3c7);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+#view-pet .pet-fb-img img{width:100%;height:100%;object-fit:cover;}
+#view-pet .pet-fb-m{font-size:13px;line-height:1.5;min-width:0;}
+#view-pet .pet-fb-m small{display:block;color:var(--ink-soft);font-size:12px;}
+#view-pet .pet-chip{display:inline-block;margin-top:4px;padding:2px 9px;border-radius:10px;background:rgba(233,207,199,.5);color:var(--rouge);font-size:11px;}
+#view-pet .pet-foot{text-align:center;font-size:13px;color:var(--ink-soft);letter-spacing:2px;padding:6px 0 4px;}
+.pet-sps{display:flex;flex-wrap:wrap;gap:8px;}
+.pet-sp{padding:6px 12px;border-radius:999px;border:1px solid rgba(42,36,31,.15);background:rgba(255,255,255,.6);font-size:18px;cursor:pointer;}
+.pet-sp.pet-th{font-size:12.5px;}
+.pet-sp.on{background:var(--blush,#f3d6dc);border-color:var(--rouge,#c45c6a);}
+.pet-dcs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pet-dc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;border:1px solid rgba(42,36,31,.12);background:rgba(255,255,255,.6);cursor:pointer;position:relative;}
+.pet-dc span{font-size:24px;}
+.pet-dc em{font-style:normal;font-size:12px;}
+.pet-dc small{font-size:10px;color:var(--rouge);}
+.pet-dc.on{background:var(--blush,#f3d6dc);border-color:var(--rouge,#c45c6a);}
+.pet-dc.lock{opacity:.45;cursor:not-allowed;}
+.pet-scene.mini{margin-bottom:0;}
 
-#view-garden .gd-quick{display:flex;flex-wrap:nowrap;gap:5px;margin-bottom:10px;}
-#view-garden .gd-quick .btn.sm{flex:1 1 0;min-width:0;padding:6px 2px;font-size:11px;text-align:center;white-space:nowrap;}
-#view-garden .btn.sm{padding:6px 10px;font-size:11px;}
-#view-garden .gd-emoji.empty-ico{opacity:.35;font-size:18px;}
-#view-garden .gd-hybrid-list{display:flex;flex-direction:column;gap:6px;}
-#view-garden .gd-hy-row{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.55);border:1px solid rgba(42,36,31,.08);font-size:12.5px;line-height:1.4;}
-#view-garden .gd-hy-row b{color:var(--rouge,#c45c6a);}
-
+.sc-mask{position:fixed;inset:0;z-index:45;background:rgba(60,48,44,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(24px,env(safe-area-inset-top)) 16px 28px;animation:scIn .18s ease-out;}
+@keyframes scIn{from{opacity:0;}to{opacity:1;}}
+.sc-card{position:relative;width:100%;max-width:440px;background:linear-gradient(180deg,#faf5f1,#f4ece6);border-radius:26px;padding:16px;box-shadow:0 12px 40px rgba(60,40,36,.28);}
+.sc-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.8);border:1px solid rgba(210,178,168,.6);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink-soft);cursor:pointer;z-index:2;}
+.sc-top{display:flex;gap:14px;align-items:center;padding:6px 4px 14px;}
+.sc-av{width:128px;height:156px;border-radius:20px;overflow:hidden;flex-shrink:0;background:linear-gradient(180deg,#eadcd4,#d9c4ba);display:flex;align-items:center;justify-content:center;font-size:56px;box-shadow:0 4px 14px rgba(120,80,70,.18);}
+.sc-av img{width:100%;height:100%;object-fit:cover;}
+.sc-id{flex:1;min-width:0;padding-right:20px;}
+.sc-name{font-size:20px;font-weight:700;letter-spacing:2px;}
+.sc-name i{font-style:normal;color:#c9a9a6;font-size:14px;}
+.sc-en{font-size:11px;color:var(--ink-soft);font-style:italic;letter-spacing:1px;margin-bottom:14px;}
+.sc-conn-l{font-size:13px;margin-bottom:6px;}
+.sc-bar{height:6px;border-radius:3px;background:rgba(0,0,0,.08);overflow:hidden;}
+.sc-bar i{display:block;height:100%;border-radius:3px;transition:width .5s;}
+.sc-num{font-size:26px;margin-top:6px;font-weight:500;letter-spacing:1px;}
+.sc-num small{font-size:14px;color:var(--ink-soft);}
+.sc-tier{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.sc-tier b{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.sc-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.75);border:1px solid rgba(210,178,168,.45);border-radius:18px;padding:12px 14px;margin-bottom:10px;}
+.sc-tap{cursor:pointer;}
+.sc-tap:active{background:rgba(255,255,255,.95);}
+.sc-row-m{flex:1;min-width:0;}
+.sc-row-m small{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:2px;}
+.sc-row-m strong{display:block;font-size:20px;font-weight:600;letter-spacing:1px;}
+.sc-row-m strong.sc-s{font-size:15px;font-weight:500;}
+.sc-row-m strong.sc-clock{font-size:26px;font-weight:500;letter-spacing:2px;}
+.sc-row-m em{display:block;font-style:normal;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.45;}
+.sc-tile{width:84px;height:68px;border-radius:14px;background:linear-gradient(135deg,#efe1d8,#e2cdc2);display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0;}
+.sc-tile-t{background:linear-gradient(135deg,#c9d5e6,#e9d3d0);}
+.sc-arrow{font-size:20px;color:var(--ink-soft);}
+.sc-sec{font-size:13px;margin:14px 4px 8px;}
+.sc-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 2px 12px;}
+.sc-chip{padding:6px 12px;border-radius:999px;background:rgba(233,207,199,.5);font-size:12.5px;}
+.sc-mood{display:inline-block;margin-left:8px;padding:0 9px;border-radius:999px;background:rgba(233,207,199,.5);font-size:16px;font-weight:400;vertical-align:2px;}
 
 </style>
 </body>
