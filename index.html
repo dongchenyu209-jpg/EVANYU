@@ -4544,7 +4544,7 @@ function getSplicedCardText(){
   const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
-const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦啦'];
+const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
   const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发转账、拍一拍
@@ -11525,7 +11525,7 @@ async function gPartnerAct(silent){
     gAddLog(pName, '给「'+(si?si.name:'植物')+'」施了肥');
     acted=true;
   } else {
-    const phrases = ['来花园转了一圈','顺手浇了点水就走啦','在花园里坐了一会儿','说花开得真好看然后离开了'];
+    const phrases = ['来花园转了一圈','顺手浇了点水就走了','在花园里坐了一会儿','说花开得真好看然后离开了'];
     gAddLog(pName, phrases[Math.floor(Math.random()*phrases.length)]);
     acted=true;
   }
@@ -12018,10 +12018,10 @@ async function checkMallAutoBuy(){
       return;
     }
     mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
+    mallPushLedger('ta', 'auto', -it.price, '买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
-    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
+    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 给你买了「' + it.name + '」🎁', false); }catch(e){}
     if(currentView === 'mall') try{ renderMall(); }catch(e){}
   }catch(e){ console.warn('checkMallAutoBuy', e); }
 }
@@ -12330,9 +12330,9 @@ async function mallDoCartPick(cart){
   }
   await saveMallState();
   const boughtNames = bought.map(x => x.name).join('、');
-  let replyText = '看到你的清单啦～我给你买了：' + boughtNames + '。';
-  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 就先不买啦～';
-  else replyText += '都给你安排上啦～';
+  let replyText = '看到你的清单了小羽～我给你买了：' + boughtNames + '。';
+  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 先不买～';
+  else replyText += '都买了～';
   const bmsg = {id:uid(), from:'bot', type:'text', content:replyText, time:Date.now(), read:true};
   try{ assignGroupSender(bmsg); }catch(e){}
   chatMessages.push(bmsg);
