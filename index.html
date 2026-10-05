@@ -3399,11 +3399,11 @@ async function applyImport(mode){
 function loadDemoCards(){
   const demo = {
     groups:{
-      '日常可使用':['在干嘛呀','想我了吗','今天也要开心一点','早点休息','嗯，我在'],
+      '日常可使用':['在干嘛','想我了吗','今天也要开心一点','早点休息','嗯，我在'],
       '表达关心的和心情的':['你还好吗','别太累了','有点想你了','今天心情不错','有点emo…'],
       '疑问句':['你吃饭了吗','在忙什么呢','什么时候回来','要不要一起看电影'],
       '表达状态':['刚忙完','有点困','在路上','在看书'],
-      '简单回答':['是的','不是','好呀','嗯','再看看']
+      '简单回答':['是的','不是','好','嗯','再看看']
     }
   };
   showImportChoiceModal(demo);
@@ -3978,7 +3978,7 @@ function renderChat(preserveScroll, scrollToId){
       const isBouquet = !!m.bouquet || Number(m.price||0)===0 && (m.note||'').indexOf('花语')>=0;
       const label = isBouquet
         ? (fromMe ? ('花束送给 ' + (chatSettings.companionName||'TA')) : ((chatSettings.companionName||'TA') + ' 送来的花束'))
-        : (fromMe ? ('送给 ' + (chatSettings.companionName||'TA')) : ('来自 ' + (chatSettings.companionName||'TA')));
+        : (m.self ? ((chatSettings.companionName||'TA') + ' 给自己买了') : (fromMe ? ('送给 ' + (chatSettings.companionName||'TA')) : ('来自 ' + (chatSettings.companionName||'TA'))));
       const priceOrNote = m.note
         ? `<div class="gift-note">${escapeHtml(m.note)}</div>`
         : (Number(m.price||0)>0 ? `<div class="gift-price">¥${Number(m.price||0).toFixed(0)}</div>` : '');
@@ -3998,9 +3998,11 @@ function renderChat(preserveScroll, scrollToId){
       const items = (m.items||[]);
       const rows = items.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span style="color:var(--rouge);">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('');
       bubbleHtml = `<div class="msg cart-card ${m.from}">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">🛒 购物清单</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${escapeHtml(m.title || '🛒 购物清单')}</div>
+        ${m.title ? '<div style="font-size:12px;color:var(--ink-soft);margin-bottom:3px;">我给你买了</div>' : ''}
         <div>${rows}</div>
         <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">共 ${items.length} 件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
+        ${(m.skipped && m.skipped.length) ? '<div style="font-size:12px;color:var(--ink-soft);margin:8px 0 3px;">下次再买</div><div style="opacity:.6;">' + m.skipped.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span>¥${Number(x.price||0).toFixed(0)}</span></div>`).join('') + '</div>' : ''}
         <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
@@ -4135,7 +4137,7 @@ function buildQuotePreview(m){
   if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
   if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
   if(m.type==='gift') return (m.bouquet?'[花束] ':'[礼物] ') + (m.itemName||m.content||'');
-  if(m.type==='cart') return '[购物清单] ' + (m.items||[]).map(x=>x.name||'').join('、');
+  if(m.type==='cart') return (m.title ? '[购买] ' : '[购物清单] ') + (m.items||[]).map(x=>x.name||'').join('、');
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
@@ -4556,7 +4558,7 @@ function getSplicedCardText(){
   const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
-const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦啦'];
+const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
   const followup = !!opts.followup; // 连发的后续几条：只发文字/表情，不再重复发转账、拍一拍
@@ -10723,7 +10725,7 @@ function gm_gomoku_win(b,i,c){
 }
 function gm_gomoku_place(i,c){
   const s = GM.s; s.b[i] = c; s.last = i; gm_gomoku_draw();
-  if(gm_gomoku_win(s.b,i,c)){ gmOver(c===1?'🎉 你赢啦':gmName()+' 赢了'); return true; }
+  if(gm_gomoku_win(s.b,i,c)){ gmOver(c===1?'🎉 你赢了':gmName()+' 赢了'); return true; }
   if(s.b.every(v=>v)){ gmOver('平局'); return true; }
   s.turn = c===1?2:1; return false;
 }
@@ -10774,7 +10776,7 @@ function gm_guess_draw(){
 }
 function gm_guess_apply(g,who){
   const s = GM.s, name = who===1?'你':gmName();
-  if(g===s.n){ s.log.unshift(name+' 猜 '+g+' → 🎯 猜中了'); gm_guess_draw(); gmOver(who===1?'🎉 你猜中啦，答案是 '+s.n:gmName()+' 猜中了，答案是 '+s.n); return true; }
+  if(g===s.n){ s.log.unshift(name+' 猜 '+g+' → 🎯 猜中了'); gm_guess_draw(); gmOver(who===1?'🎉 你猜中了，答案是 '+s.n:gmName()+' 猜中了，答案是 '+s.n); return true; }
   if(g<s.n){ s.lo = Math.max(s.lo,g+1); s.log.unshift(name+' 猜 '+g+' → 小了'); } else { s.hi = Math.min(s.hi,g-1); s.log.unshift(name+' 猜 '+g+' → 大了'); }
   s.turn = who===1?2:1; gm_guess_draw(); return false;
 }
@@ -10808,7 +10810,7 @@ function gm_ludo_move(who,d){
   else { pos += d; if(pos>30) pos = 30-(pos-30); }
   s[k] = pos;
   if(pos>0 && pos<30 && s[o]===pos){ s[o] = 0; note += ' 撞飞了对方，对方回机库！'; }
-  if(pos===30){ gm_ludo_draw(); gmOver(who===1?'🎉 你先到终点啦':gmName()+' 先到终点了'); return true; }
+  if(pos===30){ gm_ludo_draw(); gmOver(who===1?'🎉 你先到终点了':gmName()+' 先到终点了'); return true; }
   const again = d===6;
   gm_ludo_draw();
   gmMsg(name+' 掷出 <b>'+d+'</b> '+note+(again?'（6 点，再掷一次）':''));
@@ -10855,7 +10857,7 @@ function m3_valid(b){
 }
 function gm_match3_over(){
   const s = GM.s; gm_match3_draw();
-  gmOver(s.sc[1]>s.sc[2]?'🎉 你赢啦 '+s.sc[1]+' : '+s.sc[2]:s.sc[1]<s.sc[2]?gmName()+' 赢了 '+s.sc[2]+' : '+s.sc[1]:'平局 '+s.sc[1]+' : '+s.sc[2]);
+  gmOver(s.sc[1]>s.sc[2]?'🎉 你赢了 '+s.sc[1]+' : '+s.sc[2]:s.sc[1]<s.sc[2]?gmName()+' 赢了 '+s.sc[2]+' : '+s.sc[1]:'平局 '+s.sc[1]+' : '+s.sc[2]);
 }
 function gm_match3_init(me){ GM.s = { b:m3_fresh(), turn:me?1:2, sc:[0,0,0], round:1, steps:[0,0,0], sel:-1 }; gm_match3_draw(); }
 function gm_match3_draw(){
@@ -11459,10 +11461,20 @@ async function loadStatusCard(){
 }
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
+const SC_PERIODS = [['凌晨',0,5],['早上',6,10],['中午',11,13],['下午',14,16],['傍晚',17,18],['晚上',19,23]];
+function scSettleTime(){
+  const st = statusCardData.st;
+  if(!st || !st.tAt || Date.now() < st.tAt) return;
+  const p = SC_PERIODS[Math.floor(Math.random()*SC_PERIODS.length)];
+  st.tPeriod = p[0];
+  st.tHour = p[1] + Math.floor(Math.random()*(p[2]-p[1]+1));
+  delete st.tAt;
+  saveStatusCard();
+}
 function scRoll(){
   const c = statusCardData;
   const now = Date.now();
-  if(c.st && now < c.st.nextAt) return c.st;
+  if(c.st && now < c.st.nextAt){ scSettleTime(); return c.st; }
   const kinds = ['online','busy','offline'];
   let quote = '';
   try{
@@ -11470,35 +11482,39 @@ function scRoll(){
   }catch(e){}
   const kind = kinds[Math.floor(Math.random()*kinds.length)];
   const prev = c.st || {};
-  let tOff = typeof prev.tOff==='number' ? prev.tOff : 0;
-  let tDrawn = !!prev.tDrawn;
-  if(kind==='online' && (!tDrawn || Math.random() < 0.1)){
-    tOff = Math.floor(Math.random()*1440) - 720;
-    tDrawn = true;
+  const tHour = typeof prev.tHour==='number' ? prev.tHour : null;
+  const tPeriod = prev.tPeriod || '';
+  if(prev.kind && prev.kind !== kind){
+    c.connNextAt = now + Math.random()*120000;
   }
-  c.st = { kind, quote, tOff, tDrawn, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
+  let tAt = prev.tAt || 0;
+  if(!tAt && kind==='online' && (tHour===null || Math.random() < 0.05)){
+    tAt = now + Math.random()*120000;
+  }
+  c.st = { kind, quote, tHour, tPeriod, tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
   saveStatusCard();
   return c.st;
 }
-function scClockStr(){
-  const off = (statusCardData.st && statusCardData.st.tOff) || 0;
-  const d = new Date(Date.now() + off*60000);
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+function scClockFull(){
+  scSettleTime();
+  const st = statusCardData.st;
+  if(st && typeof st.tHour==='number' && st.tPeriod) return st.tPeriod + ' ' + st.tHour + '点';
+  const h = new Date().getHours();
+  const p = SC_PERIODS.find(x => h >= x[1] && h <= x[2]);
+  return (p ? p[0] : '') + ' ' + h + '点';
+}
+const SC_CONN_RANGES = { online:[50,100], busy:[0,70], offline:[0,70] };
+function scConnDraw(kind){
+  const r = SC_CONN_RANGES[kind] || [0,100];
+  return r[0] + Math.floor(Math.random()*(r[1]-r[0]+1));
 }
 function scConnValue(){
   const c = statusCardData;
   const now = Date.now();
-  // 根据当前状态偏向：在线偏高 40~100，离线偏低 0~70，在忙 0~75
-  const st = (c.st && now < c.st.nextAt) ? c.st : scRoll();
-  const kind = (st && st.kind) || 'online';
-  if(typeof c.conn!=='number' || !c.connNextAt || now >= c.connNextAt || c.connKind !== kind){
-    let lo = 0, hi = 100;
-    if(kind === 'online'){ lo = 40; hi = 100; }
-    else if(kind === 'offline'){ lo = 0; hi = 70; }
-    else if(kind === 'busy'){ lo = 0; hi = 75; }
-    c.conn = lo + Math.floor(Math.random() * (hi - lo + 1));
-    c.connKind = kind;
-    c.connNextAt = now + Math.max(120000, Math.random()*4*3600000);
+  const kind = c.st && c.st.kind;
+  if(typeof c.conn !== 'number' || !c.connNextAt || now >= c.connNextAt){
+    c.conn = scConnDraw(kind);
+    c.connNextAt = now + Math.random()*3600000;
     saveStatusCard();
   }
   return c.conn;
@@ -11522,7 +11538,7 @@ async function openStatusCard(){
   renderStatusCard();
   scClockTimer = setInterval(()=>{
     const el = document.getElementById('scClock');
-    if(el) el.textContent = scClockStr(); else closeStatusCard();
+    if(el) el.textContent = scClockFull(); else closeStatusCard();
   }, 20000);
 }
 function closeStatusCard(){
@@ -11569,7 +11585,7 @@ function renderStatusCard(){
       <div class="sc-row">
         <div class="sc-row-m">
           <small>他的时间</small>
-          <strong class="sc-clock" id="scClock">${scClockStr()}</strong>
+          <strong class="sc-clock" id="scClock">${scClockFull()}</strong>
         </div>
         <div class="sc-tile sc-tile-t">🕰️</div>
       </div>
@@ -11758,7 +11774,7 @@ async function checkMallAutoBuy(){
       await saveMallState();
       const _selfName = (chatSettings && chatSettings.companionName) || 'TA';
       const _selfText = '我今天给自己买了个「' + it.name + '」' + (it.emoji||'');
-      const _sm = {id:uid(), from:'bot', type:'text', content:_selfText, time:Date.now(), read:true};
+      const _sm = {id:uid(), from:'bot', type:'gift', self:true, itemName:it.name, emoji:it.emoji||'🎁', price:it.price, note:_selfText, content:_selfText, time:Date.now(), read:true};
       try{ assignGroupSender(_sm); }catch(e){}
       if(!Array.isArray(chatMessages)) chatMessages = [];
       chatMessages.push(_sm);
@@ -11769,7 +11785,7 @@ async function checkMallAutoBuy(){
         try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
         try{ tryBgNotify(notifyNameForMsg(_sm), _selfText); }catch(e){}
       }
-      try{ _flashToast(_selfName + '给自己买了「' + it.name + '」', false); }catch(e){}
+      try{ mallShowBuyCard('self', [it]); }catch(e){}
       if(currentView === 'mall') try{ renderMall(); }catch(e){}
       return;
     }
@@ -11777,9 +11793,29 @@ async function checkMallAutoBuy(){
     mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
-    try{ _flashToast(((chatSettings&&chatSettings.companionName)||'TA') + ' 自动给你买了「' + it.name + '」🎁', false); }catch(e){}
+    try{ mallShowBuyCard('me', [it]); }catch(e){}
     if(currentView === 'mall') try{ renderMall(); }catch(e){}
   }catch(e){ console.warn('checkMallAutoBuy', e); }
+}
+function mallShowBuyCard(who, items, skipped){
+  const old = document.getElementById('mallBuyRoot');
+  if(old) old.remove();
+  if(!items || !items.length) return;
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  const title = who === 'self' ? escapeHtml(name) + ' 给自己买了' : escapeHtml(name) + ' 给你买了';
+  const icon = who === 'self' ? '🛍️' : '🎁';
+  let total = 0;
+  const rows = items.map(x=>{
+    total += Number(x.price||0);
+    return '<div class="mbc-row"><span class="mbc-e">'+escapeHtml(x.emoji||'🎁')+'</span><span class="mbc-n">'+escapeHtml(x.name||'')+'</span><span class="mbc-p">¥'+Number(x.price||0).toFixed(0)+'</span></div>';
+  }).join('');
+  const skipLine = (skipped && skipped.length) ? '<div class="mbc-sub">下次再买：'+skipped.map(x=>escapeHtml(x.name||'')).join('、')+'</div>' : '';
+  const root = document.createElement('div');
+  root.id = 'mallBuyRoot';
+  root.className = 'mbc-mask';
+  root.onclick = function(e){ if(e.target===root) root.remove(); };
+  root.innerHTML = '<div class="mbc-card"><div class="mbc-ico">'+icon+'</div><div class="mbc-title">'+title+'</div><div class="mbc-list">'+rows+'</div><div class="mbc-sub">共 '+items.length+' 件 · 合计 ¥'+total.toFixed(0)+'</div>'+skipLine+'<div class="mbc-btn" onclick="document.getElementById(\'mallBuyRoot\').remove()">知道了</div></div>';
+  document.body.appendChild(root);
 }
 function renderMall(initialCat){
   loadMallState().then(()=>{
@@ -12086,10 +12122,10 @@ async function mallDoCartPick(cart){
   }
   await saveMallState();
   const boughtNames = bought.map(x => x.name).join('、');
-  let replyText = '看到你的清单啦～我给你买了：' + boughtNames + '。';
-  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 就先不买啦～';
-  else replyText += '都给你安排上啦～';
-  const bmsg = {id:uid(), from:'bot', type:'text', content:replyText, time:Date.now(), read:true};
+  let replyText = '看到你的清单了～我给你买了：' + boughtNames + '。';
+  if(skipped.length) replyText += skipped.map(x=>x.name).join('、') + ' 下次再买～';
+  else replyText += '都给你安排上了～';
+  const bmsg = {id:uid(), from:'bot', type:'cart', title:'🛒 看到你的清单了～', items:bought.map(x=>({name:x.name,emoji:x.emoji,price:x.price})), skipped:skipped.map(x=>({name:x.name,emoji:x.emoji,price:x.price})), total:bought.reduce((a,x)=>a+Number(x.price||0),0), content:replyText, time:Date.now(), read:true};
   try{ assignGroupSender(bmsg); }catch(e){}
   chatMessages.push(bmsg);
   try{ renderChat(); }catch(e){}
@@ -12099,6 +12135,7 @@ async function mallDoCartPick(cart){
     try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
     try{ tryBgNotify(notifyNameForMsg(bmsg), replyText); }catch(e){}
   }
+  try{ mallShowBuyCard('me', bought, skipped); }catch(e){}
 }
 let _cartPickBusy = false;
 async function checkMallCartPick(){
@@ -12390,6 +12427,18 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 
 .sc-mask{position:fixed;inset:0;z-index:45;background:rgba(60,48,44,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(24px,env(safe-area-inset-top)) 16px 28px;animation:scIn .18s ease-out;}
 @keyframes scIn{from{opacity:0;}to{opacity:1;}}
+.mbc-mask{position:fixed;inset:0;z-index:70;background:rgba(60,48,44,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px 16px;animation:scIn .18s ease-out;}
+.mbc-card{width:100%;max-width:340px;max-height:80vh;overflow-y:auto;background:linear-gradient(180deg,#faf5f1,#f4ece6);border-radius:26px;padding:22px 16px 16px;box-shadow:0 12px 40px rgba(60,40,36,.28);text-align:center;}
+.mbc-ico{font-size:34px;line-height:1;margin-bottom:6px;}
+.mbc-title{font-size:16px;font-weight:700;letter-spacing:1.5px;margin-bottom:12px;}
+.mbc-list{background:rgba(255,255,255,.75);border:1px solid rgba(210,178,168,.45);border-radius:18px;padding:4px 12px;margin-bottom:10px;}
+.mbc-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed rgba(210,178,168,.5);text-align:left;}
+.mbc-row:last-child{border-bottom:0;}
+.mbc-e{font-size:20px;}
+.mbc-n{flex:1;min-width:0;font-size:14px;}
+.mbc-p{font-size:13px;color:var(--ink-soft);}
+.mbc-sub{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5;}
+.mbc-btn{display:inline-block;padding:9px 28px;border-radius:999px;background:var(--rouge);color:#fff;font-size:13px;letter-spacing:1px;cursor:pointer;}
 .sc-card{position:relative;width:100%;max-width:440px;background:linear-gradient(180deg,#faf5f1,#f4ece6);border-radius:26px;padding:16px;box-shadow:0 12px 40px rgba(60,40,36,.28);}
 .sc-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.8);border:1px solid rgba(210,178,168,.6);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink-soft);cursor:pointer;z-index:2;}
 .sc-top{display:flex;gap:14px;align-items:center;padding:6px 4px 14px;}
