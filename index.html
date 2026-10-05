@@ -8741,7 +8741,8 @@ function inviteKindMeta(kind){
     music: { icon:'🎵', name:'一起听歌' },
     study: { icon:'📚', name:'一起学习' },
     sleep: { icon:'🌙', name:'一起睡觉' },
-    watch: { icon:'📺', name:'一起看视频' }
+    watch: { icon:'📺', name:'一起看视频' },
+    outing: { icon:'🐾', name:'一起带宠物出门' }
   };
   return map[kind] || { icon:'💌', name:'邀请' };
 }
@@ -11754,51 +11755,25 @@ async function petCheckTa(){
     if(!petData.nextTaAt){ petData.nextTaAt = now + petTaGapMs(); await savePet(); return; }
     if(now < petData.nextTaAt) return;
     petData.nextTaAt = now + petTaGapMs();
-    // 随机选一只宠物照顾
-    const p = pRand(petData.pets);
+    const avail = petData.pets.filter(x=>!petOutingBusy(x) && !x.outingInvite);
+    if(!avail.length){ await savePet(); return; }
+    const p = pRand(avail);
     petTick(p);
     let kind = petTaPickKind(p);
     let r = petApply(p, kind, 'ta');
     if(!r.ok){ kind = 'pat'; r = petApply(p, 'pat', 'ta'); }
     if(r.ok) p.fb = petFbMake(p, kind, r, pPn());
-    // 小概率带宠物出门
-    if(Math.random() < 0.18 && p.eng > 30){
+    let went = false;
+    if(Math.random() < 0.10 && p.eng > 30){
       const loc = pRand(PET_LOCATIONS);
       const dur = 20 + Math.floor(Math.random()*40);
-      const taPool = petOutEvents(p, loc);
-      const evs = [pRand(taPool)];
-      if(Math.random()<0.5) evs.push(pRand(taPool.filter(e=>e!==evs[0])));
-      const gains = {
-      mood: 3 + Math.floor(Math.random()*5),
-      bond: 1 + Math.floor(Math.random()*3),
-      exp: 4,
-      items: Math.random()<0.4 ? [pRand(PET_ITEMS)] : [],
-      card: Math.random()<0.3 ? pRand(PET_CARDS) : null
-    };
-    p.mood = pClamp(p.mood + gains.mood);
-    p.bond = pClamp(p.bond + gains.bond);
-    p.exp = Math.max(0, (typeof p.exp==='number' ? p.exp : 0) + gains.exp);
-    p.stage = petStageOf(p.exp).n;
-      if(gains.items.length) p.items.push(...gains.items);
-      if(gains.card) p.memories.push({t:now, text:gains.card, from:'out'});
-      petData.outings.unshift({
-        id: pId(),
-        petIds: [p.id],
-        companion: 'ta',
-        location: loc.n,
-        durationMin: dur,
-        events: evs,
-        gains,
-        time: now,
-        say: pRand(PET_BACK_SAY),
-        text: pPn()+'带着'+p.name+'去了'+loc.n
-      });
-      if(petData.outings.length > 60) petData.outings.length = 60;
+      petBeginOuting(p, loc, dur, 'ta');
+      went = true;
     }
     await savePet();
     if(typeof currentView!=='undefined' && currentView==='pet'){
       renderPet();
-      pToast(pPn()+' 照顾了'+p.name);
+      pToast(went ? pPn()+' 带着'+p.name+'出门了' : pPn()+' 照顾了'+p.name);
     }
   }catch(e){ console.warn('pet ta fail', e); }
   finally{ _petTaBusy = false; }
@@ -11810,6 +11785,7 @@ function petStartOuting(){
   if(!p){ pToast('请先选择一只宠物'); return; }
   if(p.eng < 20){ pToast(p.name+'太累了，先让它休息吧'); return; }
   if(petOutingBusy(p)){ pToast(p.name+'还在外面玩呢，等它回来吧～'); return; }
+  if(p.outingInvite){ petUI.page = 'outing-wait'; renderPet(); return; }
   petUI.outing = {
     petId: p.id,
     duration: null,
@@ -11838,27 +11814,102 @@ function petSelectCompanion(c){
   // stay on companion page
   renderPet();
 }
+function petBeginOuting(p, loc, durMin, companion){
+  const now = Date.now();
+  p.outing = {
+    startAt: now,
+    endsAt: now + durMin*60000,
+    durMin: durMin,
+    location: { id: loc.id, n: loc.n },
+    companion: companion || 'me'
+  };
+  p.lastInteract = now;
+}
 async function petConfirmOuting(){
   const o = petUI.outing;
   if(!o || !o.duration || !o.location) return;
   const p = petGet(o.petId);
   if(!p) return;
   if(petOutingBusy(p)){ pToast(p.name+'还在外面玩呢～'); return; }
+  if(p.outingInvite){ pToast('邀请还在等待回应呢'); return; }
   const durMin = o.duration.min + Math.floor(Math.random()*(o.duration.max - o.duration.min + 1));
-  const now = Date.now();
-  p.outing = {
-    startAt: now,
-    endsAt: now + durMin*60000,
+  const companion = o.companion || 'me';
+  if(companion === 'me'){
+    petBeginOuting(p, o.location, durMin, 'me');
+    await savePet();
+    petUI.outing = null;
+    petUI.page = 'outing-progress';
+    renderPet();
+    pToast(p.name+'出发啦～大约 '+durMin+' 分钟后回来');
+    return;
+  }
+  const label = companion === 'ta' ? pPn()+'单独陪'+p.name : '我们一起陪'+p.name;
+  const card = await postTogetherSystemMsg(
+    label+'去'+o.location.n+' · 约 '+durMin+' 分钟',
+    { kind:'outing', status:'pending', inviter:'user', from:'user' }
+  );
+  const delay = 5000 + Math.random()*55000;
+  p.outingInvite = {
+    cardId: card.id,
+    companion: companion,
     durMin: durMin,
     location: { id: o.location.id, n: o.location.n },
-    companion: o.companion || 'me'
+    replyAt: Date.now() + delay
   };
-  p.lastInteract = now;
   await savePet();
-  petUI.outing = null;
-  petUI.page = 'outing-progress';
+  petUI.page = 'outing-wait';
   renderPet();
-  pToast(p.name+'出发啦～大约 '+durMin+' 分钟后回来');
+  setTimeout(()=>{ petCheckInvites().catch(()=>{}); }, delay + 300);
+}
+let _petInvBusy = false;
+async function petCheckInvites(){
+  if(_petInvBusy || !petData || !Array.isArray(petData.pets)) return;
+  _petInvBusy = true;
+  try{
+    for(const p of petData.pets){
+      const inv = p.outingInvite;
+      if(!inv || Date.now() < inv.replyAt) continue;
+      delete p.outingInvite;
+      const accept = Math.random() < 0.75;
+      const name = pPn();
+      const together = inv.companion === 'together';
+      try{ await updateInviteCardStatus(inv.cardId, accept ? 'accepted' : 'declined'); }catch(e){}
+      if(accept){
+        petBeginOuting(p, inv.location, inv.durMin, inv.companion);
+        await savePet();
+        try{ await postTogetherSystemMsg(name+'接受了'+(together?'一起':'')+'带'+p.name+'出门', { kind:'outing', status:'accepted', inviter:'user', from:'bot' }); }catch(e){}
+        if(petViewVisible()){
+          petUI.outing = null;
+          petUI.page = 'outing-progress';
+          renderPet();
+          pToast(name+'答应了，'+p.name+'出发啦～');
+        } else {
+          try{ if(typeof _flashToast==='function') _flashToast('🐾 '+name+'接受了出门邀请'); }catch(e){}
+        }
+      } else {
+        await savePet();
+        try{ await postTogetherSystemMsg(name+'现在没空，下次再一起带'+p.name+'出门吧', { kind:'outing', status:'declined', inviter:'user', from:'bot' }); }catch(e){}
+        if(petViewVisible()){
+          petUI.page = petUI.outing ? 'outing-companion' : 'detail';
+          renderPet();
+          pToast(name+'现在没空，换个同行人或下次再去吧');
+        } else {
+          try{ if(typeof _flashToast==='function') _flashToast('🐾 '+name+'婉拒了出门邀请'); }catch(e){}
+        }
+      }
+    }
+  }catch(e){ console.warn('pet invite fail', e); }
+  finally{ _petInvBusy = false; }
+}
+async function petCancelInvite(){
+  const p = petActive();
+  if(!p || !p.outingInvite) return;
+  const inv = p.outingInvite;
+  delete p.outingInvite;
+  try{ await updateInviteCardStatus(inv.cardId, 'ended'); }catch(e){}
+  await savePet();
+  petUI.page = petUI.outing ? 'outing-companion' : 'detail';
+  renderPet();
 }
 
 /* ---------- 增删改 ---------- */
@@ -11926,6 +11977,7 @@ function renderPet(){
     else if(page === 'outing-companion') h = renderOutingCompanion();
     else if(page === 'outing-confirm') h = renderOutingConfirm();
     else if(page === 'outing-progress') h = renderOutingProgress();
+    else if(page === 'outing-wait') h = renderOutingWait();
     else if(page === 'outing-result') h = renderOutingResult();
     else if(page === 'records') h = renderPetRecords();
     else if(page === 'record') h = renderPetRecordDetail();
@@ -12160,6 +12212,31 @@ function renderOutingCompanion(){
 
 function renderOutingConfirm(){ return renderOutingCompanion(); }
 
+function renderOutingWait(){
+  const p = petActive();
+  if(!p || !p.outingInvite){
+    if(p && petOutingBusy(p)){ petUI.page='outing-progress'; return renderOutingProgress(); }
+    petUI.page = p ? 'detail' : 'list';
+    return p ? renderPetDetail() : renderPetList();
+  }
+  const inv = p.outingInvite;
+  const who = inv.companion === 'together' ? '一起' : '单独';
+  let h = '<div class="pet-detail-top">';
+  h += '<div class="pet-back" onclick="petUI.page=\'detail\';renderPet()">←</div>';
+  h += '<div class="pet-detail-title">等待回应</div>';
+  h += '</div>';
+  h += '<div class="pet-out-hero">';
+  h += '<div class="av">'+petAvatarHtml(p,120)+'</div>';
+  h += '<div class="nm">已给'+escapeHtml(pPn())+'发出邀请</div>';
+  h += '<div class="st">'+escapeHtml(inv.location.n)+' · 约 '+inv.durMin+' 分钟 · '+who+'</div>';
+  h += '</div>';
+  h += '<div class="pet-out-banner">';
+  h += '<div class="t">💌 邀请卡片已发到聊天里</div>';
+  h += '<div class="s">等'+escapeHtml(pPn())+'回应后，'+escapeHtml(p.name)+'才会出发～</div>';
+  h += '</div>';
+  h += '<div class="pet-btn-secondary full" style="margin-top:20px" onclick="petCancelInvite()">取消邀请</div>';
+  return h;
+}
 function renderOutingProgress(){
   const p = petActive();
   if(!p){ petUI.page='list'; return renderPetList(); }
@@ -12191,6 +12268,7 @@ setInterval(function(){
   try{
     if(!petData) return;
     const done = petCheckOutings();
+    petCheckInvites().catch(()=>{});
     if(!petViewVisible()) return;
     if(done.length){ renderPet(); return; }
     if(petUI.page==='outing-progress' || petUI.page==='detail'){
@@ -12501,7 +12579,7 @@ async function petFillSettings(){
 }
 
 
-loadPet().then(()=>{ petCheckTa().catch(()=>{}); }).catch(()=>{});
+loadPet().then(()=>{ petCheckInvites().catch(()=>{}); petCheckTa().catch(()=>{}); }).catch(()=>{});
 setInterval(()=>{ try{ petCheckTa().catch(()=>{}); }catch(e){} }, 5*60*1000);
 
 let statusCardData = { st:null, conn:null, connAt:0 };
