@@ -8884,12 +8884,15 @@ async function respondInviteCard(msgId, action){
 function openGameMenu(){
   openOverlay(
     '<div class="drawer-head"><h3>🎲 娱乐</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">挑一个和 TA 一起玩——抽签决定谁先手，TA 会想几秒再出手。</p>'+
-    '<div class="fn-panel-grid">'+
-      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'ludo\')"><div class="fn-panel-icon">🎲</div><div class="fn-panel-label">飞行棋</div></div>'+
-      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'gomoku\')"><div class="fn-panel-icon">⚫</div><div class="fn-panel-label">五子棋</div></div>'+
-      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'guess\')"><div class="fn-panel-icon">🔢</div><div class="fn-panel-label">猜数字</div></div>'+
-      '<div class="fn-panel-item" onclick="closeOverlay(); openGame(\'match3\')"><div class="fn-panel-icon">🍓</div><div class="fn-panel-label">消消乐</div></div>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">挑一个和 TA 一起玩——抽签决定谁先手，TA 会想几秒再出手。</p>'+
+    '<div class="gm-menu">'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'ludo\')"><i>🎲</i><b>飞行棋</b><small>掷骰起飞</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'gomoku\')"><i>⚫</i><b>五子棋</b><small>落子连线</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'guess\')"><i>🔢</i><b>猜数字</b><small>轮流竞猜</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'match3\')"><i>🍓</i><b>消消乐</b><small>水果连消</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'c4\')"><i>🔴</i><b>四子棋</b><small>竖着落子</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'ttt\')"><i>⭕</i><b>井字棋</b><small>三连即胜</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'mem\')"><i>🃏</i><b>翻牌配对</b><small>记忆对碰</small></div>'+
     '</div>'
   );
 }
@@ -10721,7 +10724,7 @@ loadBgSettings();
 
 /* ---------------- 娱乐 v61：抽签定先手，TA 想 0~10 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
-const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐' };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', c4:'四子棋', ttt:'井字棋', mem:'翻牌配对' };
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
 function closeGame(){ clearTimeout(GM.t); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
 function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
@@ -10749,7 +10752,7 @@ function gmThinking(){ gmMsg(gmName()+' 思考中…'); }
 function gm_gomoku_init(me){ GM.s = { b:new Array(225).fill(0), turn: me?1:2, last:-1 }; gm_gomoku_draw(); }
 function gm_gomoku_draw(){
   const s = GM.s; let h = '<div class="gm-go">';
-  for(let i=0;i<225;i++) h += '<div onclick="gm_gomoku_click('+i+')" class="'+(i===s.last?'last':'')+'">'+(s.b[i]===1?'⚫':s.b[i]===2?'⚪':'')+'</div>';
+  for(let i=0;i<225;i++) h += '<div onclick="gm_gomoku_click('+i+')" class="'+(i===s.last?'last':'')+'">'+(s.b[i]?'<i class="st '+(s.b[i]===1?'b':'w')+'"></i>':'')+'</div>';
   gmBody(h+'</div><div class="gm-log">你 ⚫　'+gmName()+' ⚪</div>');
 }
 function gm_gomoku_win(b,i,c){
@@ -10803,6 +10806,131 @@ function gm_gomoku_ta(){
   }
   if(gm_gomoku_place(cands[Math.floor(Math.random()*cands.length)],2)) return;
   gmMsg('轮到你了');
+}
+
+
+function gm_c4_init(me){ GM.s = { b:new Array(42).fill(0), turn: me?1:2, last:-1 }; gm_c4_draw(); }
+function gm_c4_draw(){
+  const s = GM.s; let h = '<div class="gm-c4">';
+  for(let c=0;c<7;c++){
+    h += '<div class="gm-c4col" onclick="gm_c4_click('+c+')">';
+    for(let r=0;r<6;r++){ const i=r*7+c; h += '<div class="gm-c4cell"><i class="st '+(s.b[i]===1?'r':s.b[i]===2?'y':'')+(i===s.last?' pop':'')+'"></i></div>'; }
+    h += '</div>';
+  }
+  gmBody(h+'</div><div class="gm-log">你 🔴　'+gmName()+' 🟡</div>');
+}
+function gm_c4_drop(c,who){
+  const s = GM.s;
+  for(let r=5;r>=0;r--){ const i=r*7+c; if(!s.b[i]){ s.b[i]=who; s.last=i; return i; } }
+  return -1;
+}
+function gm_c4_win(b,i,c){
+  const x = i%7, y = Math.floor(i/7);
+  return [[1,0],[0,1],[1,1],[1,-1]].some(([dx,dy])=>{
+    let n = 1;
+    for(const sg of [1,-1]){ let k = 1; while(true){ const nx = x+dx*k*sg, ny = y+dy*k*sg; if(nx<0||ny<0||nx>6||ny>5||b[ny*7+nx]!==c) break; n++; k++; } }
+    return n>=4;
+  });
+}
+function gm_c4_end(i,who){
+  const s = GM.s;
+  if(gm_c4_win(s.b,i,who)){ gm_c4_draw(); gmOver(who===1?'🎉 你赢了':gmName()+' 赢了'); return true; }
+  if(s.b.every(v=>v)){ gm_c4_draw(); gmOver('平局'); return true; }
+  return false;
+}
+function gm_c4_click(c){
+  const s = GM.s; if(!s || GM.over || s.turn!==1 || GM.thinking) return;
+  const i = gm_c4_drop(c,1); if(i<0) return;
+  s.turn = 2; gm_c4_draw();
+  if(gm_c4_end(i,1)) return;
+  gmThinking(); taThink(gm_c4_ta);
+}
+function gm_c4_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  const cols = [0,1,2,3,4,5,6].filter(c=>!s.b[c]);
+  const i = gm_c4_drop(pRand(cols),2);
+  s.turn = 1; gm_c4_draw();
+  if(gm_c4_end(i,2)) return;
+  gmMsg('轮到你了');
+}
+
+function gm_ttt_init(me){ GM.s = { b:new Array(9).fill(0), turn: me?1:2 }; gm_ttt_draw(); }
+function gm_ttt_draw(){
+  const s = GM.s; let h = '<div class="gm-ttt">';
+  for(let i=0;i<9;i++) h += '<div onclick="gm_ttt_click('+i+')">'+(s.b[i]===1?'<b class="x">✕</b>':s.b[i]===2?'<b class="o">◯</b>':'')+'</div>';
+  gmBody(h+'</div><div class="gm-log">你 ✕　'+gmName()+' ◯</div>');
+}
+function gm_ttt_end(who){
+  const b = GM.s.b;
+  const L = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  if(L.some(l=>l.every(i=>b[i]===who))){ gm_ttt_draw(); gmOver(who===1?'🎉 你赢了':gmName()+' 赢了'); return true; }
+  if(b.every(v=>v)){ gm_ttt_draw(); gmOver('平局'); return true; }
+  return false;
+}
+function gm_ttt_click(i){
+  const s = GM.s; if(!s || GM.over || s.turn!==1 || GM.thinking || s.b[i]) return;
+  s.b[i]=1; s.turn=2; gm_ttt_draw();
+  if(gm_ttt_end(1)) return;
+  gmThinking(); taThink(gm_ttt_ta);
+}
+function gm_ttt_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  const e = []; s.b.forEach((v,i)=>{ if(!v) e.push(i); });
+  s.b[pRand(e)] = 2; s.turn = 1; gm_ttt_draw();
+  if(gm_ttt_end(2)) return;
+  gmMsg('轮到你了');
+}
+
+function gm_mem_init(me){
+  const e = ['🍓','🍋','🍇','🍑','🌸','🐱','🐰','🍀'];
+  const c = e.concat(e).sort(()=>Math.random()-.5);
+  GM.s = { c, open:[], done:[], turn: me?1:2, lock:false, sc:[0,0] };
+  gm_mem_draw();
+}
+function gm_mem_draw(){
+  const s = GM.s; let h = '<div class="gm-mem">';
+  s.c.forEach((v,i)=>{
+    const up = s.open.includes(i) || s.done.includes(i);
+    h += '<div class="'+(up?'up':'')+(s.done.includes(i)?' ok':'')+'" onclick="gm_mem_click('+i+')"><span>'+(up?v:'✦')+'</span></div>';
+  });
+  gmBody(h+'</div><div class="gm-log">你 '+s.sc[0]+' 对　'+gmName()+' '+s.sc[1]+' 对</div>');
+}
+function gm_mem_flip(i,who){
+  const s = GM.s;
+  s.open.push(i); gm_mem_draw();
+  if(s.open.length<2) return;
+  s.lock = true;
+  const hit = s.c[s.open[0]]===s.c[s.open[1]];
+  setTimeout(()=>{
+    if(GM.name!=='mem' || GM.s!==s) return;
+    if(hit){
+      s.done.push(...s.open); s.sc[who-1]++;
+      s.open = []; s.lock = false; gm_mem_draw();
+      if(s.done.length===16){
+        gmOver(s.sc[0]>s.sc[1]?'🎉 你赢了':s.sc[0]<s.sc[1]?gmName()+' 赢了':'平局');
+        return;
+      }
+      if(who===2){ gmThinking(); taThink(gm_mem_ta); } else gmMsg('配对成功，继续翻');
+    } else {
+      s.open = []; s.lock = false; s.turn = who===1?2:1; gm_mem_draw();
+      if(s.turn===2){ gmThinking(); taThink(gm_mem_ta); } else gmMsg('轮到你了');
+    }
+  }, hit?500:900);
+}
+function gm_mem_click(i){
+  const s = GM.s;
+  if(!s || GM.over || s.turn!==1 || s.lock || GM.thinking || s.open.includes(i) || s.done.includes(i)) return;
+  gm_mem_flip(i,1);
+}
+function gm_mem_ta(){
+  const s = GM.s; if(!s || GM.over) return;
+  const pool = s.c.map((v,i)=>i).filter(i=>!s.done.includes(i));
+  const a = pRand(pool);
+  s.open = [a]; gm_mem_draw();
+  GM.t = setTimeout(()=>{
+    if(GM.name!=='mem' || GM.s!==s) return;
+    gm_mem_flip(pRand(pool.filter(i=>i!==a)),2);
+  }, 700);
 }
 
 /* ---- 猜数字：共用一个 1~100 的数，轮流猜，先猜中的赢 ---- */
@@ -11236,6 +11364,7 @@ const PET_CARDS = [
   '慢一点也没关系。','世界很大，我们慢慢看。','和你一起的每一天都很特别。',
   '小团子说：今天玩得很开心。','记得带我回家。','风吹过来的时候，我想起你。'
 ];
+const PET_BACK_SAY = ['我回来啦，给你们讲讲路上的事～','外面好好玩，不过还是家里最舒服。','我有好好记住路上看到的东西哦。','想你们了，所以早早就回来了。','今天走了好远，要抱抱。','带了点小礼物回来，快看看。'];
 const PET_KIND_ICON = { feed:'🍚', play:'🧶', pat:'💗', out:'🐾' };
 // TA（陸沉）照顾宠物后的反馈台词池：按它做的事随机抽一句
 const PET_TA_SAY = {
@@ -11515,6 +11644,7 @@ function petResolveOuting(p){
     events: evs,
     gains,
     time: Date.now(),
+    say: pRand(PET_BACK_SAY),
     text: companionText + '和' + p.name + '一起去了' + loc.n
   };
   if(!Array.isArray(petData.outings)) petData.outings = [];
@@ -11662,6 +11792,7 @@ async function petCheckTa(){
         events: evs,
         gains,
         time: now,
+        say: pRand(PET_BACK_SAY),
         text: pPn()+'带着'+p.name+'去了'+loc.n
       });
       if(petData.outings.length > 60) petData.outings.length = 60;
@@ -11799,6 +11930,7 @@ function renderPet(){
     else if(page === 'outing-progress') h = renderOutingProgress();
     else if(page === 'outing-result') h = renderOutingResult();
     else if(page === 'records') h = renderPetRecords();
+    else if(page === 'record') h = renderPetRecordDetail();
     else if(page === 'add') h = renderPetAdd();
     else if(page === 'manage') h = renderPetManage();
     else if(page === 'events') h = renderPetEvents();
@@ -12129,15 +12261,53 @@ function renderPetRecords(){
         const pp = petGet(id);
         return pp ? pp.name : '宠物';
       }).join('、');
-      h += '<div class="pet-record-card">';
+      h += '<div class="pet-record-card" onclick="petUI.recordId=\''+o.id+'\';petUI.page=\'record\';renderPet()">';
       h += '<div class="pet-record-date">'+petFmtTime(o.time)+'</div>';
       h += '<div class="pet-record-main">'+escapeHtml(o.text|| (pets+'去了'+o.location))+'</div>';
       h += '<div class="pet-record-sub">'+o.durationMin+' 分钟 · '+escapeHtml(o.location)+'</div>';
       if(o.gains){
         h += '<div class="pet-record-gains">心情 +'+o.gains.mood+' · 亲密度 +'+o.gains.bond+'</div>';
       }
+      h += '<div class="pet-record-more">查看详情 ›</div>';
       h += '</div>';
     });
+  }
+  return h;
+}
+
+function renderPetRecordDetail(){
+  const o = (petData.outings || []).find(x=>x.id===petUI.recordId);
+  let h = '<div class="pet-detail-top">';
+  h += '<div class="pet-back" onclick="petUI.page=\'records\';renderPet()">←</div>';
+  h += '<div class="pet-detail-title">记录详情</div>';
+  h += '</div>';
+  if(!o){ return h + '<div class="pet-empty-big">这条记录不见了</div>'; }
+  const g = o.gains || {};
+  const exp = typeof g.exp==='number' ? g.exp : Math.round((o.durationMin||0)/10)+2;
+  const petNames = (o.petIds||[]).map(id=>{ const pp = petGet(id); return pp ? pp.name : '宠物'; }).join('、');
+  h += '<div class="pet-rd-hero"><div class="pet-rd-date">'+petFmtTime(o.time)+'</div>';
+  h += '<div class="pet-rd-title">'+escapeHtml(o.text || (petNames+'去了'+o.location))+'</div>';
+  h += '<div class="pet-rd-sub">'+escapeHtml(o.location)+' · '+o.durationMin+' 分钟</div></div>';
+  h += '<div class="pet-rd-stats">';
+  h += '<div><b>+'+(g.bond||0)+'</b><span>亲密度</span></div>';
+  h += '<div><b>+'+(g.mood||0)+'</b><span>心情</span></div>';
+  h += '<div><b>+'+exp+'</b><span>成长</span></div>';
+  h += '</div>';
+  h += '<div class="pet-rd-sec"><div class="pet-rd-t">💬 带回来的话</div>';
+  h += '<div class="pet-rd-say">“'+escapeHtml(o.say || '我回来啦～')+'”</div>';
+  if(g.card) h += '<div class="pet-rd-card">📝 字卡 · '+escapeHtml(g.card)+'</div>';
+  h += '</div>';
+  h += '<div class="pet-rd-sec"><div class="pet-rd-t">🎁 带回来的东西</div>';
+  if(g.items && g.items.length){
+    h += '<div class="pet-rd-items">'+g.items.map(it=>'<span>'+escapeHtml(it)+'</span>').join('')+'</div>';
+  } else {
+    h += '<div class="pet-rd-none">这次没有带回物品</div>';
+  }
+  h += '</div>';
+  if(o.events && o.events.length){
+    h += '<div class="pet-rd-sec"><div class="pet-rd-t">🐾 路上发生的事</div>';
+    o.events.forEach(e=>{ h += '<div class="pet-rd-ev">'+escapeHtml(e)+'</div>'; });
+    h += '</div>';
   }
   return h;
 }
@@ -12360,12 +12530,25 @@ async function loadStatusCard(){
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
 const SC_PERIODS = [['凌晨',0,5],['早上',6,10],['中午',11,13],['下午',14,16],['傍晚',17,18],['晚上',19,23]];
+function scDrawHour(st, h){
+  st.tBase = h;
+  st.tBaseAt = Date.now();
+}
 function scSettleTime(){
   const st = statusCardData.st;
-  if(!st || !st.tAt || Date.now() < st.tAt) return;
-  const p = SC_PERIODS[Math.floor(Math.random()*SC_PERIODS.length)];
-  st.tPeriod = p[0];
-  st.tHour = p[1] + Math.floor(Math.random()*(p[2]-p[1]+1));
+  if(!st) return;
+  if(typeof st.tBase!=='number'){
+    let h = null;
+    if(typeof st.tOff==='number') h = new Date(Date.now()+st.tOff).getHours();
+    else if(typeof st.tHour==='number') h = st.tHour;
+    if(h!==null){
+      scDrawHour(st, h);
+      delete st.tOff; delete st.tHour; delete st.tPeriod;
+      saveStatusCard();
+    }
+  }
+  if(!st.tAt || Date.now() < st.tAt) return;
+  scDrawHour(st, Math.floor(Math.random()*24));
   delete st.tAt;
   saveStatusCard();
 }
@@ -12380,26 +12563,28 @@ function scRoll(){
   }catch(e){}
   const kind = kinds[Math.floor(Math.random()*kinds.length)];
   const prev = c.st || {};
-  const tHour = typeof prev.tHour==='number' ? prev.tHour : null;
-  const tPeriod = prev.tPeriod || '';
+  const tBase = typeof prev.tBase==='number' ? prev.tBase : null;
+  const tBaseAt = prev.tBaseAt || 0;
+  const tOff = prev.tOff, tHour = prev.tHour;
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
   let tAt = prev.tAt || 0;
-  if(!tAt && kind==='online' && (tHour===null || Math.random() < 0.05)){
+  if(!tAt && kind==='online' && (tBase===null || Math.random() < 0.05)){
     tAt = now + Math.random()*120000;
   }
-  c.st = { kind, quote, tHour, tPeriod, tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
+  c.st = { kind, quote, tBase, tBaseAt, tOff, tHour, tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
   saveStatusCard();
   return c.st;
 }
 function scClockFull(){
   scSettleTime();
   const st = statusCardData.st;
-  if(st && typeof st.tHour==='number' && st.tPeriod) return st.tPeriod + ' ' + st.tHour + '点';
-  const h = new Date().getHours();
-  const p = SC_PERIODS.find(x => h >= x[1] && h <= x[2]);
-  return (p ? p[0] : '') + ' ' + h + '点';
+  let h;
+  if(st && typeof st.tBase==='number') h = (st.tBase + Math.floor((Date.now()-st.tBaseAt)/3600000)) % 24;
+  else h = new Date().getHours();
+  const pr = SC_PERIODS.find(x => h >= x[1] && h <= x[2]);
+  return (pr ? pr[0] : '') + ' ' + h + '点';
 }
 const SC_CONN_RANGES = { online:[50,100], busy:[0,70], offline:[0,70] };
 function scConnDraw(kind){
@@ -13608,6 +13793,64 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .sc-tile-t{background:linear-gradient(135deg,#c9d5e6,#e9d3d0);}
 .sc-mood{display:inline-block;margin-left:8px;padding:0 9px;border-radius:999px;background:rgba(233,207,199,.5);font-size:16px;font-weight:400;vertical-align:2px;}
 
+
+.gm{background:radial-gradient(120% 70% at 50% 0%,#fff3ef 0%,var(--paper) 55%,#f6e9e4 100%);padding:14px 14px 28px;}
+.gm-top{background:rgba(255,255,255,.7);border:1px solid rgba(210,178,168,.45);border-radius:18px;padding:6px 8px;box-shadow:0 6px 18px rgba(156,47,59,.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);margin-bottom:12px;}
+.gm-top b{font-size:15px;letter-spacing:2px;}
+.gm-msg{background:rgba(255,255,255,.55);border-radius:14px;padding:8px 12px;color:var(--ink);}
+.gm-go{background:linear-gradient(135deg,#f0d9a8,#dfb979);border:none;border-radius:16px;box-shadow:0 10px 26px rgba(120,80,20,.28),inset 0 0 0 3px rgba(255,255,255,.35);overflow:hidden;padding:6px;box-sizing:border-box;}
+.gm-go div{border:.5px solid rgba(90,60,20,.28);position:relative;}
+.gm-go div.last{background:rgba(156,47,59,.22);}
+.st{display:block;border-radius:50%;width:78%;height:78%;box-shadow:0 2px 4px rgba(0,0,0,.35);}
+.st.b{background:radial-gradient(circle at 32% 28%,#6a6a6a,#111 70%);}
+.st.w{background:radial-gradient(circle at 32% 28%,#fff,#d6d1ca 75%);}
+.st.r{background:radial-gradient(circle at 32% 28%,#ff9aa5,#d63b4f 70%);}
+.st.y{background:radial-gradient(circle at 32% 28%,#fff1a6,#f0b92e 70%);}
+.gm-go .st{width:84%;height:84%;}
+.gm-ludo{gap:6px;}
+.gm-ludo div{border:none;border-radius:14px;background:rgba(255,255,255,.8);box-shadow:0 4px 10px rgba(156,47,59,.1);}
+.gm-m3{gap:5px;background:rgba(255,255,255,.5);padding:8px;border-radius:20px;box-sizing:border-box;box-shadow:0 10px 26px rgba(156,47,59,.12);}
+.gm-m3 div{border:none;border-radius:12px;background:#fff;box-shadow:0 2px 6px rgba(156,47,59,.12);transition:transform .15s;}
+.gm-m3 div.sel{background:var(--blush);outline:none;box-shadow:0 0 0 2px var(--rouge);transform:scale(1.08);}
+.gm-btn{border:none;border-radius:999px;background:linear-gradient(135deg,#d96b78,var(--rouge));color:#fff;box-shadow:0 8px 18px rgba(156,47,59,.3);padding:11px 30px;letter-spacing:2px;}
+.gm-c4{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:min(100%,380px);margin:0 auto;padding:10px;box-sizing:border-box;border-radius:20px;background:linear-gradient(160deg,#6c8fd8,#4a69b8);box-shadow:0 12px 28px rgba(60,80,150,.35);}
+.gm-c4col{display:flex;flex-direction:column;gap:4px;cursor:pointer;}
+.gm-c4cell{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:inset 0 3px 6px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;}
+.gm-c4cell .st{width:100%;height:100%;box-shadow:none;background:transparent;}
+.gm-c4cell .st.r,.gm-c4cell .st.y{box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
+.gm-c4cell .st.pop{animation:gmPop .3s ease;}
+@keyframes gmPop{0%{transform:translateY(-120%);opacity:.3}100%{transform:none;opacity:1}}
+.gm-ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,300px);margin:6px auto 0;}
+.gm-ttt div{aspect-ratio:1;border-radius:18px;background:rgba(255,255,255,.85);box-shadow:0 6px 14px rgba(156,47,59,.12);display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;}
+.gm-ttt b.x{color:var(--rouge);}
+.gm-ttt b.o{color:#5b86c9;}
+.gm-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(100%,340px);margin:0 auto;}
+.gm-mem div{aspect-ratio:1;border-radius:16px;background:linear-gradient(145deg,#e9a1ab,#c9525f);box-shadow:0 6px 14px rgba(156,47,59,.25);color:rgba(255,255,255,.85);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .25s;}
+.gm-mem div.up{background:#fff;color:inherit;font-size:30px;transform:rotateY(0);box-shadow:0 6px 14px rgba(156,47,59,.15);}
+.gm-mem div.ok{background:#fdf0f1;opacity:.7;}
+.gm-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.gm-mi{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px 14px;border-radius:20px;background:linear-gradient(160deg,#fff,#fbeeea);box-shadow:0 8px 20px rgba(156,47,59,.12);border:1px solid rgba(210,178,168,.4);cursor:pointer;}
+.gm-mi i{font-style:normal;font-size:30px;width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fde7e9,#f6c9d0);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);}
+.gm-mi b{font-size:14px;letter-spacing:2px;}
+.gm-mi small{font-size:11px;color:var(--ink-soft);}
+.pet-record-card{cursor:pointer;}
+.pet-record-more{font-size:11.5px;color:var(--ink-soft);text-align:right;margin-top:4px;}
+.pet-rd-hero{background:linear-gradient(145deg,#fff,#fbeeea);border-radius:20px;padding:16px;box-shadow:0 8px 20px rgba(156,47,59,.1);margin-bottom:12px;}
+.pet-rd-date{font-size:11.5px;color:var(--ink-soft);}
+.pet-rd-title{font-size:16px;font-weight:600;margin-top:4px;line-height:1.5;}
+.pet-rd-sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+.pet-rd-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.pet-rd-stats div{background:rgba(255,255,255,.78);border-radius:16px;padding:10px 4px;text-align:center;border:1px solid rgba(210,178,168,.4);}
+.pet-rd-stats b{display:block;font-size:19px;color:var(--rouge);}
+.pet-rd-stats span{font-size:11.5px;color:var(--ink-soft);}
+.pet-rd-sec{background:rgba(255,255,255,.78);border-radius:16px;padding:12px 14px;margin-bottom:10px;border:1px solid rgba(210,178,168,.4);}
+.pet-rd-t{font-size:13px;font-weight:600;margin-bottom:8px;}
+.pet-rd-say{font-size:14px;line-height:1.7;}
+.pet-rd-card{margin-top:8px;font-size:12.5px;color:var(--rouge);background:#fdf0f1;border-radius:10px;padding:6px 10px;}
+.pet-rd-items{display:flex;flex-wrap:wrap;gap:6px;}
+.pet-rd-items span{background:#fdf0f1;color:var(--rouge);border-radius:999px;padding:4px 12px;font-size:12.5px;}
+.pet-rd-none{font-size:12.5px;color:var(--ink-soft);}
+.pet-rd-ev{font-size:13px;line-height:1.7;padding:2px 0;}
 </style>
 </body>
 </html>
