@@ -11889,6 +11889,10 @@ function renderOutingLoc(){
   return h;
 }
 
+function petPersonAvatar(v, fb){
+  if(v && typeof v==='string' && v.indexOf('data:')===0){ return '<img loading="lazy" decoding="async" src="'+v+'" style="width:100%;height:100%;object-fit:cover;display:block;">'; }
+  return (v || fb || '');
+}
 function renderOutingCompanion(){
   let h = '<div class="pet-detail-top">';
   h += '<div class="pet-back" onclick="petUI.page=\'outing-loc\';renderPet()">←</div>';
@@ -11896,8 +11900,8 @@ function renderOutingCompanion(){
   h += '</div>';
 
   const opts = [
-    {id:'me', n:'我', e:'🧑'},
-    {id:'ta', n:pPn(), e:'👤'},
+    {id:'me', n:'我', e:petPersonAvatar(profile&&profile.myAvatar,'🧑')},
+    {id:'ta', n:pPn(), e:petPersonAvatar(profile&&profile.avatar,'👤')},
     {id:'together', n:'我们一起', e:'💕'}
   ];
   h += '<div class="pet-companion-row">';
@@ -13216,7 +13220,7 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .pet-companion-row{display:flex;justify-content:center;gap:20px;padding:20px 0;}
 .pet-companion{text-align:center;cursor:pointer;opacity:.7;transition:opacity .15s;}
 .pet-companion.on{opacity:1;}
-.pet-comp-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#f3e4dc,#e8d0c6);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;border:2px solid transparent;}
+.pet-comp-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#f3e4dc,#e8d0c6);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;border:2px solid transparent;overflow:hidden;}
 .pet-companion.on .pet-comp-av{border-color:var(--rouge);box-shadow:0 0 0 3px rgba(196,92,106,.2);}
 .pet-comp-n{font-size:13px;}
 
