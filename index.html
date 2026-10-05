@@ -10993,8 +10993,7 @@ function gm_ludo_ta(){
   if(s.turn===2){ gmThinking(); taThink(gm_ludo_ta); }   // TA 掷到 6 再掷一次
 }
 
-/* ---- 消消乐：8×8 棋盘 6 种水果，你一步 TA 一步轮流，各走 15 步，共 15 局；消掉后掉落补充，按连击计分，走完比总分 ---- */
-const M3 = ['🍓','🍋','🍇','🍑','🫐','🍊'], M3N = 8, M3_ROUNDS = 15;
+const M3 = ['🍓','🍋','🍇','🍑','🫐','🍊'], M3N = 8, M3_ROUNDS = 10;
 function m3_matches(b){
   const set = new Set();
   for(let y=0;y<M3N;y++) for(let x=0;x<M3N;x++){
