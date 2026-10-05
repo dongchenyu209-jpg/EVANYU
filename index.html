@@ -7190,7 +7190,7 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState,
+    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState, choiceGame: (typeof choiceGame!=='undefined' ? choiceGame : null),
     companionTodos, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
@@ -7278,6 +7278,7 @@ function onImportBackupFile(e){
     if(Array.isArray(data.companionFavorites)){ companionFavorites = data.companionFavorites; await sSet('companion-favorites', companionFavorites); }
     if(data.petData && typeof data.petData==='object'){ petData = Object.assign(petDefault(), data.petData); await sSet('pet-data', petData); }
     if(data.statusCardData && typeof data.statusCardData==='object'){ statusCardData = Object.assign(statusCardData, data.statusCardData); await sSet('status-card', statusCardData); }
+    if(data.choiceGame && typeof data.choiceGame==='object' && Array.isArray(data.choiceGame.q)){ choiceGame = data.choiceGame; await sSet('choice-game', choiceGame); }
     if(Array.isArray(data.momentEvents)){ momentEvents = data.momentEvents; await sSet('moment-events', momentEvents); }
     if(data.bgSettings && typeof data.bgSettings === 'object'){
       bgSettings = Object.assign({}, bgSettings, data.bgSettings);
@@ -8893,6 +8894,7 @@ function openGameMenu(){
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'c4\')"><i>🔴</i><b>四子棋</b><small>竖着落子</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'ttt\')"><i>⭕</i><b>井字棋</b><small>三连即胜</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'mem\')"><i>🃏</i><b>翻牌配对</b><small>记忆对碰</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'choice\')"><i>⚖️</i><b>二选一审判</b><small>默契大考验</small></div>'+
     '</div>'
   );
 }
@@ -10724,7 +10726,7 @@ loadBgSettings();
 
 /* ---------------- 娱乐 v61：抽签定先手，TA 想 0~10 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
-const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', c4:'四子棋', ttt:'井字棋', mem:'翻牌配对' };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', c4:'四子棋', ttt:'井字棋', mem:'翻牌配对', choice:'二选一审判' };
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
 function closeGame(){ clearTimeout(GM.t); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
 function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
@@ -10740,6 +10742,7 @@ function openGame(name){
   clearTimeout(GM.t);
   GM = { name:name, t:null, s:null, busy:false };
   gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
+  if(name==='choice'){ gm_choice_init(); return; }
   const meFirst = Math.random() < 0.5;
   window['gm_'+name+'_init'](meFirst);
   gmMsg('🪙 抽签结果：<b>'+(meFirst?'你先手':gmName()+' 先手')+'</b>'+(meFirst?'':'<br>'+gmName()+' 思考中…'));
@@ -10931,6 +10934,179 @@ function gm_mem_ta(){
     if(GM.name!=='mem' || GM.s!==s) return;
     gm_mem_flip(pRand(pool.filter(i=>i!==a)),2);
   }, 700);
+}
+
+const CHOICE_PRESETS = [
+  ['如果只能选一个——','一起看电影但不能说话','一起散步但不能牵手'],
+  ['周末的早晨','一起赖床到中午','一起早起去买早餐'],
+  ['约会的地点','热闹的游乐园','安静的小书店'],
+  ['吵架之后','当天就把话说开','各自冷静一天再聊'],
+  ['旅行的方式','提前做好完整攻略','走到哪玩到哪'],
+  ['雨天','一起窝在家里看剧','撑一把伞出门散步'],
+  ['如果只能保留一个习惯','每天说晚安','每天说早安'],
+  ['吃饭的时候','每道菜都分着吃','各点各的互相尝一口'],
+  ['收到的礼物','精心挑选的小礼物','亲手做的小东西'],
+  ['想你的时候','立刻打个电话','先发一条消息等回复'],
+  ['未来的家','靠海的小房子','山里的小木屋'],
+  ['纪念日','隆重地庆祝','平平淡淡地在一起'],
+  ['看电影','提前订好场次','临时起意说走就走'],
+  ['睡前','聊到睡着','各自安静看会儿书'],
+  ['出门的时候','牵着手慢慢走','肩并肩各走各的'],
+  ['突然有一天假期','一起出远门','一起在家什么也不做'],
+  ['夜宵','一碗热腾腾的面','一杯冰凉的奶茶'],
+  ['拍照','认真摆好姿势拍一张','随手抓拍自然的瞬间']
+].map((x,i)=>({ id:'p'+(i+1), q:x[0], a:x[1], b:x[2], pre:true }));
+const CHOICE_SAME = ['果然你也是这么想的。','我就知道你会选这个。','这就是默契吧。','嗯，和我想的一样。','我们好像总是想到一块去。'];
+const CHOICE_DIFF = ['诶，你居然选了另一个。','原来你是这么想的，我记下了。','没关系，我们可以互相说服对方。','和我想的不一样，不过我喜欢听你的理由。','好吧，这次让你。'];
+const CHOICE_FINAL = [
+  [80,['满分默契，我们根本不需要多说。','几乎每次都想到一起，这就是你和我。']],
+  [50,['大部分时候都在同一边，剩下的就当彼此的惊喜。','默契不错，还有一点点可以继续了解。']],
+  [20,['看来我们还有很多话要聊。','想法不太一样，但这样才不无聊。']],
+  [0,['差别这么大，反而让我更好奇你了。','完全不同的两个人，居然走到了一起。']]
+];
+let choiceGame = null;
+async function choiceLoad(){
+  if(choiceGame) return choiceGame;
+  let raw = null;
+  try{ raw = await sGet('choice-game', null); }catch(e){}
+  if(raw && Array.isArray(raw.q)) choiceGame = raw;
+  else choiceGame = { q: CHOICE_PRESETS.map(x=>Object.assign({},x)), minSec:1, maxSec:8 };
+  if(typeof choiceGame.minSec!=='number') choiceGame.minSec = 1;
+  if(typeof choiceGame.maxSec!=='number') choiceGame.maxSec = 8;
+  return choiceGame;
+}
+async function choiceSave(){ try{ await sSet('choice-game', choiceGame); }catch(e){} }
+function choiceMe(){ return escapeHtml((profile && profile.myName) || '你'); }
+function choiceDelayMs(){
+  const lo = Math.max(0, Number(choiceGame.minSec)||0), hi = Math.max(lo, Number(choiceGame.maxSec)||0);
+  return (lo + Math.random()*(hi-lo))*1000;
+}
+async function gm_choice_init(){
+  await choiceLoad();
+  GM.s = { rounds:[], cur:null, total:0 };
+  gmMsg('');
+  gm_choice_intro();
+}
+function gm_choice_intro(){
+  const n = choiceGame.q.length;
+  gmMsg('两个人各选一个，看看你们的默契有多少');
+  gmBody('<div class="gm-ch-hero"><i>⚖️</i><b>二选一审判</b><small>每局随机抽 '+Math.min(5,n)+' 题 · 题库共 '+n+' 题</small></div>'
+    + '<div class="gm-btn'+(n?'':' off')+'" onclick="gm_choice_start()">开始审判</div>'
+    + '<div class="gm-btn gm-btn-alt" onclick="gm_choice_manage()">题库与设置</div>');
+}
+function gm_choice_start(){
+  const pool = choiceGame.q.slice().sort(()=>Math.random()-.5).slice(0,5);
+  if(!pool.length) return;
+  GM.s = { rounds:[], queue:pool, idx:0, cur:null, total:pool.length };
+  GM.over = false;
+  gm_choice_question();
+}
+function gm_choice_question(){
+  const s = GM.s, q = s.queue[s.idx];
+  s.cur = { q, me:null, ta:null };
+  gmMsg('第 <b>'+(s.idx+1)+'</b> / '+s.total+' 题');
+  gmBody('<div class="gm-ch-q"><small>'+escapeHtml(q.q)+'</small></div>'
+    + '<div class="gm-ch-opts">'
+    + '<div class="gm-ch-opt" onclick="gm_choice_pick(\'A\')"><i>A</i><span>'+escapeHtml(q.a)+'</span></div>'
+    + '<div class="gm-ch-opt" onclick="gm_choice_pick(\'B\')"><i>B</i><span>'+escapeHtml(q.b)+'</span></div>'
+    + '</div>');
+}
+function gm_choice_pick(k){
+  const s = GM.s; if(!s || GM.over || !s.cur || s.cur.me || GM.thinking) return;
+  s.cur.me = k;
+  const q = s.cur.q;
+  gmMsg(gmName()+' 思考中…');
+  gmBody('<div class="gm-ch-q"><small>'+escapeHtml(q.q)+'</small></div>'
+    + '<div class="gm-ch-opts">'
+    + '<div class="gm-ch-opt'+(k==='A'?' on':' dim')+'"><i>A</i><span>'+escapeHtml(q.a)+'</span></div>'
+    + '<div class="gm-ch-opt'+(k==='B'?' on':' dim')+'"><i>B</i><span>'+escapeHtml(q.b)+'</span></div>'
+    + '</div><div class="gm-ch-wait"><span></span><span></span><span></span></div>');
+  clearTimeout(GM.t);
+  GM.thinking = true;
+  GM.t = setTimeout(()=>{ GM.thinking = false; if(GM.name==='choice') gm_choice_reveal(); }, choiceDelayMs());
+}
+function gm_choice_reveal(){
+  const s = GM.s; if(!s || !s.cur) return;
+  const c = s.cur;
+  c.ta = Math.random() < 0.5 ? 'A' : 'B';
+  c.same = c.ta === c.me;
+  c.say = pRand(c.same ? CHOICE_SAME : CHOICE_DIFF);
+  s.rounds.push(c);
+  const q = c.q, last = s.idx >= s.total-1;
+  const txt = k => k==='A' ? q.a : q.b;
+  gmMsg(c.same ? '💞 选得一样' : '🌗 选得不一样');
+  gmBody('<div class="gm-ch-q"><small>'+escapeHtml(q.q)+'</small></div>'
+    + '<div class="gm-ch-res">'
+    + '<div class="gm-ch-row"><em>'+choiceMe()+'</em><b>'+c.me+'</b><span>'+escapeHtml(txt(c.me))+'</span></div>'
+    + '<div class="gm-ch-row"><em>'+gmName()+'</em><b>'+c.ta+'</b><span>'+escapeHtml(txt(c.ta))+'</span></div>'
+    + '</div>'
+    + '<div class="gm-ch-say">“'+escapeHtml(c.say)+'”</div>'
+    + '<div class="gm-btn" onclick="gm_choice_next()">'+(last?'查看默契结果':'下一题')+'</div>');
+}
+function gm_choice_next(){
+  const s = GM.s; if(!s) return;
+  if(s.idx >= s.total-1){ gm_choice_final(); return; }
+  s.idx++; gm_choice_question();
+}
+function gm_choice_final(){
+  const s = GM.s;
+  const same = s.rounds.filter(r=>r.same).length;
+  const pct = Math.round(same / s.rounds.length * 100);
+  const tier = CHOICE_FINAL.find(t=>pct>=t[0]) || CHOICE_FINAL[CHOICE_FINAL.length-1];
+  let h = '<div class="gm-ch-score"><div class="ring" style="--p:'+pct+'"><b>'+pct+'%</b></div><small>匹配度 · '+same+' / '+s.rounds.length+' 题相同</small></div>';
+  h += '<div class="gm-ch-say">“'+escapeHtml(pRand(tier[1]))+'”</div>';
+  h += '<div class="gm-ch-list">';
+  s.rounds.forEach(r=>{
+    h += '<div class="gm-ch-li '+(r.same?'ok':'no')+'"><span>'+escapeHtml(r.q.q)+'</span><b>'+choiceMe()+' '+r.me+' · '+gmName()+' '+r.ta+'</b></div>';
+  });
+  h += '</div>';
+  gmBody(h);
+  gmOver('匹配度 '+pct+'%');
+}
+function gm_choice_manage(){
+  const g = choiceGame;
+  let h = '<div class="gm-ch-mg">';
+  h += '<div class="gm-ch-sec"><div class="t">TA 回答时间（秒）</div><div class="gm-ch-time"><input id="chMin" type="number" min="0" step="1" value="'+g.minSec+'"><span>~</span><input id="chMax" type="number" min="0" step="1" value="'+g.maxSec+'"><div class="gm-btn gm-btn-sm" onclick="gm_choice_saveTime()">保存</div></div></div>';
+  h += '<div class="gm-ch-sec"><div class="t">添加题目</div>'
+     + '<input id="chQ" type="text" placeholder="题目，例如：如果只能选一个——">'
+     + '<input id="chA" type="text" placeholder="选项 A">'
+     + '<input id="chB" type="text" placeholder="选项 B">'
+     + '<div class="gm-btn gm-btn-sm" onclick="gm_choice_add()">添加</div></div>';
+  h += '<div class="gm-ch-sec"><div class="t">题库（'+g.q.length+'）<span onclick="gm_choice_restore()">恢复预设</span></div>';
+  if(!g.q.length) h += '<div class="gm-ch-empty">题库是空的，添加几道题吧</div>';
+  g.q.forEach(x=>{
+    h += '<div class="gm-ch-item"><div><b>'+escapeHtml(x.q)+'</b><small>A. '+escapeHtml(x.a)+'<br>B. '+escapeHtml(x.b)+'</small></div><i onclick="gm_choice_del(\''+x.id+'\')">✕</i></div>';
+  });
+  h += '</div>';
+  h += '<div class="gm-btn gm-btn-alt" onclick="gm_choice_intro()">返回</div></div>';
+  gmMsg('题库与设置');
+  gmBody(h);
+}
+async function gm_choice_saveTime(){
+  let lo = parseFloat(document.getElementById('chMin').value), hi = parseFloat(document.getElementById('chMax').value);
+  if(isNaN(lo)) lo = 1; if(isNaN(hi)) hi = 8;
+  lo = Math.max(0, lo); hi = Math.max(lo, hi);
+  choiceGame.minSec = lo; choiceGame.maxSec = hi;
+  await choiceSave();
+  gmMsg('已保存：'+lo+' ~ '+hi+' 秒');
+}
+async function gm_choice_add(){
+  const q = document.getElementById('chQ').value.trim(), a = document.getElementById('chA').value.trim(), b = document.getElementById('chB').value.trim();
+  if(!q || !a || !b){ gmMsg('题目和两个选项都要填'); return; }
+  choiceGame.q.unshift({ id:'u'+Date.now().toString(36)+Math.floor(Math.random()*1000), q, a, b });
+  await choiceSave();
+  gm_choice_manage();
+}
+async function gm_choice_del(id){
+  choiceGame.q = choiceGame.q.filter(x=>x.id!==id);
+  await choiceSave();
+  gm_choice_manage();
+}
+async function gm_choice_restore(){
+  const have = new Set(choiceGame.q.map(x=>x.id));
+  CHOICE_PRESETS.forEach(x=>{ if(!have.has(x.id)) choiceGame.q.push(Object.assign({},x)); });
+  await choiceSave();
+  gm_choice_manage();
 }
 
 /* ---- 猜数字：共用一个 1~100 的数，轮流猜，先猜中的赢 ---- */
@@ -13929,6 +14105,55 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .pet-rd-items span{background:#fdf0f1;color:var(--rouge);border-radius:999px;padding:4px 12px;font-size:12.5px;}
 .pet-rd-none{font-size:12.5px;color:var(--ink-soft);}
 .pet-rd-ev{font-size:13px;line-height:1.7;padding:2px 0;}
+
+.gm-btn-alt{background:rgba(255,255,255,.85);color:var(--rouge);box-shadow:0 4px 12px rgba(156,47,59,.12);}
+.gm-btn-sm{display:inline-block;margin:0;padding:8px 18px;font-size:13px;letter-spacing:1px;}
+.gm-ch-hero{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 10px 18px;}
+.gm-ch-hero i{font-style:normal;font-size:44px;width:84px;height:84px;border-radius:28px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fde7e9,#f6c9d0);box-shadow:0 10px 24px rgba(156,47,59,.2);}
+.gm-ch-hero b{font-size:18px;letter-spacing:4px;}
+.gm-ch-hero small{font-size:12px;color:var(--ink-soft);}
+.gm-ch-q{background:linear-gradient(150deg,#fff,#fbeeea);border-radius:22px;padding:22px 16px;text-align:center;box-shadow:0 10px 26px rgba(156,47,59,.12);margin:4px auto 14px;width:min(100%,400px);box-sizing:border-box;}
+.gm-ch-q small{font-size:16px;font-weight:600;line-height:1.6;color:var(--ink);}
+.gm-ch-opts{display:flex;flex-direction:column;gap:10px;width:min(100%,400px);margin:0 auto;}
+.gm-ch-opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:rgba(255,255,255,.9);box-shadow:0 6px 16px rgba(156,47,59,.1);cursor:pointer;border:2px solid transparent;transition:transform .15s,opacity .2s;}
+.gm-ch-opt i{font-style:normal;flex:none;width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,#e9a1ab,#c9525f);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.gm-ch-opt:nth-child(2) i{background:linear-gradient(145deg,#8fb0e6,#5b86c9);}
+.gm-ch-opt span{font-size:14.5px;line-height:1.5;}
+.gm-ch-opt.on{border-color:var(--rouge);transform:scale(1.02);}
+.gm-ch-opt.dim{opacity:.45;}
+.gm-ch-wait{display:flex;gap:6px;justify-content:center;margin-top:16px;}
+.gm-ch-wait span{width:8px;height:8px;border-radius:50%;background:var(--rouge);opacity:.3;animation:chDot 1s infinite;}
+.gm-ch-wait span:nth-child(2){animation-delay:.2s;}
+.gm-ch-wait span:nth-child(3){animation-delay:.4s;}
+@keyframes chDot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+.gm-ch-res{width:min(100%,400px);margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.gm-ch-row{display:grid;grid-template-columns:auto 34px 1fr;gap:10px;align-items:center;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 6px 16px rgba(156,47,59,.1);}
+.gm-ch-row em{font-style:normal;font-size:13px;color:var(--ink-soft);min-width:44px;}
+.gm-ch-row b{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,#e9a1ab,#c9525f);color:#fff;display:flex;align-items:center;justify-content:center;}
+.gm-ch-row:nth-child(2) b{background:linear-gradient(145deg,#8fb0e6,#5b86c9);}
+.gm-ch-row span{font-size:13.5px;line-height:1.5;}
+.gm-ch-say{width:min(100%,400px);box-sizing:border-box;margin:14px auto 0;padding:12px 16px;border-radius:16px;background:#fdf0f1;color:var(--rouge);font-size:14px;line-height:1.7;text-align:center;}
+.gm-ch-score{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;}
+.gm-ch-score .ring{--p:0;width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--rouge) calc(var(--p)*1%),#f3dfe2 0);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(156,47,59,.18);}
+.gm-ch-score .ring b{width:92px;height:92px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--rouge);}
+.gm-ch-score small{font-size:12px;color:var(--ink-soft);}
+.gm-ch-list{width:min(100%,400px);margin:14px auto 0;display:flex;flex-direction:column;gap:8px;}
+.gm-ch-li{padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.88);font-size:12.5px;display:flex;flex-direction:column;gap:3px;border-left:4px solid #e0a0a8;}
+.gm-ch-li.ok{border-left-color:#7fb08a;}
+.gm-ch-li b{font-weight:500;color:var(--ink-soft);}
+.gm-ch-mg{width:min(100%,420px);margin:0 auto;}
+.gm-ch-sec{background:rgba(255,255,255,.85);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 6px 16px rgba(156,47,59,.08);}
+.gm-ch-sec .t{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.gm-ch-sec .t span{font-size:12px;color:var(--rouge);font-weight:400;cursor:pointer;}
+.gm-ch-sec input{width:100%;box-sizing:border-box;border:1px solid rgba(210,178,168,.6);border-radius:12px;padding:9px 12px;margin-bottom:8px;background:#fff;font-size:13.5px;}
+.gm-ch-time{display:flex;align-items:center;gap:8px;}
+.gm-ch-time input{margin:0;text-align:center;}
+.gm-ch-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dotted rgba(210,178,168,.6);}
+.gm-ch-item:last-child{border-bottom:none;}
+.gm-ch-item b{display:block;font-size:13px;font-weight:600;margin-bottom:3px;}
+.gm-ch-item small{font-size:12px;color:var(--ink-soft);line-height:1.6;}
+.gm-ch-item i{font-style:normal;color:var(--ink-soft);cursor:pointer;padding:2px 6px;}
+.gm-ch-empty{font-size:12.5px;color:var(--ink-soft);text-align:center;padding:10px;}
 </style>
 </body>
 </html>
