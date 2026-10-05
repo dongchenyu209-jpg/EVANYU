@@ -440,6 +440,22 @@
   .msg.gift-card .gift-name{ font-size:13.5px; font-weight:700; color:var(--ink); }
   .msg.gift-card .gift-price{ font-size:13px; color:var(--rouge); margin-top:2px; font-weight:700; }
   .msg.gift-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
+  /* v142: 礼物卡窄长方形（文字横排在上、物品在下） */
+  .msg.gift-card{ width:200px; max-width:74%; }
+  .msg.gift-card .gift-label-top{ padding:9px 12px 0; font-size:10.5px; color:var(--ink-soft); letter-spacing:.5px; text-align:left !important; }
+  .msg.gift-card .gift-inner{ flex:0 0 auto; padding:5px 12px 9px; }
+  .msg.gift-card.bouquet .gift-inner{ padding:5px 12px 9px !important; }
+  /* v142: TA求购卡片（窄长方形） */
+  .msg.wish-card{ width:210px; max-width:76%; background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05); padding:0; overflow:hidden; }
+  .msg.wish-card .wish-inner{ padding:10px 12px 6px; text-align:left; }
+  .msg.wish-card .wish-text{ font-size:12.5px; line-height:1.4; margin-bottom:6px; }
+  .msg.wish-card .wish-row{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:3px 0; }
+  .msg.wish-card .wish-p{ color:var(--rouge); }
+  .msg.wish-card .wish-total{ font-size:11px; color:var(--ink-soft); margin-top:5px; }
+  .msg.wish-card .wish-acts{ display:flex; gap:6px; margin-top:8px; }
+  .msg.wish-card .wish-acts .btn{ flex:1; padding:6px 0; font-size:12px; text-align:center; }
+  .msg.wish-card .wish-status{ font-size:11px; color:var(--ink-soft); margin-top:7px; }
+  .msg.wish-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
 .msg.questionnaire{
   background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
 }
@@ -1541,7 +1557,7 @@
       <div class="fn-item" onclick="go('mailbox')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.500" width="18" height="13" rx="2.500"/><path d="m4 7.500 8 6 8-6"/></svg><span id="inboxLetterDot" class="dot-badge hidden"></span><span id="letterDot" class="dot-badge hidden"></span></div><div class="fn-label">信箱</div></div>
       <div class="fn-item" onclick="go('moments')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="4.500" width="17" height="15" rx="2.500"/><circle cx="9" cy="9.500" r="1.500"/><path d="m4 17 5-4.500 3.500 3 2.500-2.500 5 4.500"/></svg><span id="momentsDot" class="dot-badge hidden"></span></div><div class="fn-label">朋友圈</div></div>
       <div class="fn-item" onclick="go('mall')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1.5-4.5h15L21 9"/><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 13h6"/><path d="M10 21V13h4v8"/></svg></div><div class="fn-label">商场</div></div>
-      <div class="fn-item" onclick="go('pet')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="10" r="1.8"/><circle cx="12" cy="7.5" r="1.8"/><circle cx="16.5" cy="10" r="1.8"/><path d="M12 12.5c-3 0-5 2.4-5 4.6 0 1.5 1.2 2.4 2.7 2.4 1 0 1.6-.4 2.3-.4s1.3.4 2.3.4c1.5 0 2.7-.9 2.7-2.4 0-2.2-2-4.6-5-4.6Z"/></svg></div><div class="fn-label">宠物</div></div>
+      <div class="fn-item" onclick="go('pet')"><div class="fn-icon home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="10" r="1.8"/><circle cx="12" cy="7.5" r="1.8"/><circle cx="16.5" cy="10" r="1.8"/><path d="M12 12.5c-3 0-5 2.4-5 4.6 0 1.5 1.2 2.4 2.7 2.4 1 0 1.6-.4 2.3-.4s1.3.4 2.3.4c1.5 0 2.7-.9 2.7-2.4 0-2.2-2-4.6-5-4.6Z"/></svg><span id="petDot" class="dot-badge hidden"></span></div><div class="fn-label">宠物</div></div>
     </div>
     </div><!-- /homePage1 -->
 
@@ -2768,7 +2784,7 @@ function go(name){
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
-  if(name==='pet'){ petUI.page='list'; renderPet(); }
+  if(name==='pet'){ petUI.page='list'; window.petHomeUnread=false; if(typeof renderUnreadDots==='function') renderUnreadDots(); renderPet(); }
   if(name==='mall'){ renderMall(); }
   if(name==='moments'){
     renderMoments();
@@ -2778,8 +2794,10 @@ function go(name){
   if(name==='diary'){ renderDiary(); }
   if(name==='settings'){ renderBeautify(); if(typeof fillSettingsForm==='function') fillSettingsForm(); if(typeof renderPolaSettingsPreview==='function') renderPolaSettingsPreview(); if(typeof petFillSettings==='function') petFillSettings(); }
 }
+var petHomeUnread = false;
 function renderUnreadDots(){
   const cd = document.getElementById('chatDot'); if(cd) cd.classList.toggle('hidden', !chatUnread);
+  const pd = document.getElementById('petDot'); if(pd) pd.classList.toggle('hidden', !window.petHomeUnread);
   const ld = document.getElementById('letterDot'); if(ld) ld.classList.toggle('hidden', !letterUnread);
   const ild = document.getElementById('inboxLetterDot'); if(ild) ild.classList.toggle('hidden', !inboxLetterUnread);
   const md = document.getElementById('momentsDot'); if(md) md.classList.toggle('hidden', !momentsUnread);
@@ -3278,7 +3296,7 @@ document.addEventListener('visibilitychange', ()=>{
 // 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
 window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
 setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
-setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallCartPick==='function') checkMallCartPick(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
+setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallCartPick==='function') checkMallCartPick(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallReq==='function') checkMallReq(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
 
 
 function normalizeCardsJson(raw){
@@ -3984,15 +4002,36 @@ function renderChat(preserveScroll, scrollToId){
         ? `<div class="gift-note">${escapeHtml(m.note)}</div>`
         : (Number(m.price||0)>0 ? `<div class="gift-price">¥${Number(m.price||0).toFixed(0)}</div>` : '');
       bubbleHtml = `<div class="msg gift-card ${m.from}${isBouquet?' bouquet':''}">
+        <div class="gift-label gift-label-top">${isBouquet?'💐':'🎁'} ${escapeHtml(label)}</div>
         <div class="gift-inner">
           <div class="gift-emoji">${escapeHtml(m.emoji||'🎁')}</div>
           <div class="gift-body">
-            <div class="gift-label">${isBouquet?'💐':'🎁'} ${escapeHtml(label)}</div>
             <div class="gift-name">${escapeHtml(m.itemName||m.content||'礼物')}</div>
             ${priceOrNote}
           </div>
         </div>
         <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
+      </div>`;
+    } else if(m.type==='wish'){
+      const wItems = (m.items||[]);
+      const wSt = m.status || 'pending';
+      const wRows = wItems.map(x=>`<div class="wish-row"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span class="wish-p">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('');
+      let wActs = '';
+      if(wSt==='pending' && m.from==='bot'){
+        wActs = `<div class="wish-acts"><div class="btn" onclick="wishAccept('${m.id}')">帮 TA买下</div><div class="btn outline" onclick="wishDecline('${m.id}')">先不买</div></div>`;
+      } else if(wSt==='bought'){
+        wActs = '<div class="wish-status">已帮 TA买下 ✓</div>';
+      } else if(wSt==='declined'){
+        wActs = '<div class="wish-status">这次先没买～</div>';
+      }
+      bubbleHtml = `<div class="msg wish-card ${m.from}">
+        <div class="wish-inner">
+          <div class="wish-text">${escapeHtml(m.note||'可以帮我买吗～')}</div>
+          <div class="wish-rows">${wRows}</div>
+          <div class="wish-total">共 ${wItems.length}件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
+          ${wActs}
+        </div>
+        <div class="t" style="text-align:center;">${time}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='cart'){
       const fromMe = m.from==='user';
@@ -4139,6 +4178,7 @@ function buildQuotePreview(m){
   if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
   if(m.type==='gift') return (m.bouquet?'[花束] ':'[礼物] ') + (m.itemName||m.content||'');
   if(m.type==='cart') return (m.title ? '[购买] ' : '[购物清单] ') + (m.items||[]).map(x=>x.name||'').join('、');
+  if(m.type==='wish') return '[求购] ' + (m.items||[]).map(x=>x.name||'').join('、');
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
@@ -11386,6 +11426,110 @@ function petTick(p){
 function petTickAll(){
   if(!petData) return;
   petData.pets.forEach(petTick);
+  petCheckOutings();
+}
+function petViewVisible(){
+  const v = document.getElementById('view-pet');
+  return !!(v && !v.classList.contains('hidden'));
+}
+function petOutingBusy(p){
+  return !!(p && p.outing && p.outing.endsAt && Date.now() < p.outing.endsAt);
+}
+function petOutingLeftMs(p){
+  if(!petOutingBusy(p)) return 0;
+  return Math.max(0, p.outing.endsAt - Date.now());
+}
+function petFmtLeft(ms){
+  const total = Math.ceil(ms/1000);
+  const m = Math.floor(total/60), s = total % 60;
+  if(m >= 60){ const hh = Math.floor(m/60), mm = m % 60; return hh+'小时'+(mm?mm+'分':''); }
+  if(m > 0) return m+'分'+(s?String(s).padStart(2,'0')+'秒':'');
+  return s+'秒';
+}
+// 检查出行：时间到 -> 结算；不在宠物页则弹「已回家」提示
+function petCheckOutings(){
+  if(!petData || !Array.isArray(petData.pets)) return [];
+  const done = [];
+  const now = Date.now();
+  petData.pets.forEach(p=>{
+    if(p && p.outing && p.outing.endsAt && now >= p.outing.endsAt){
+      const entry = petResolveOuting(p);
+      if(entry) done.push({entry, petId:p.id, petName:p.name});
+    }
+  });
+  if(done.length){
+    savePet();
+    const first = done[0];
+    if(petUI && petUI.activeId === first.petId && (petUI.page === 'outing-progress' || petUI.page === 'detail')){
+      petUI.outing = { result: first.entry, petName: first.petName, petId: first.petId };
+      petUI.page = 'outing-result';
+    }
+    if(!petViewVisible()){
+      window.petHomeUnread = true;
+      try{ if(typeof _flashToast==='function') _flashToast('🐾 '+first.petName+'回家啦～带回了小收获'); }catch(e){}
+      try{ renderUnreadDots(); }catch(e){}
+    }
+  }
+  return done;
+}
+// 到点结算：生成事件、物品、成长，写入记录
+function petResolveOuting(p){
+  const o = p && p.outing;
+  if(!o) return null;
+  p.outing = null;
+  const durMin = o.durMin;
+  const loc = o.location || { id:'', n:'外面' };
+  const pool = petOutEvents(p, loc);
+  const evs = [];
+  const cnt = 1 + Math.floor(Math.random()*3);
+  for(let i=0;i<cnt && pool.length;i++){
+    const idx = Math.floor(Math.random()*pool.length);
+    evs.push(pool.splice(idx,1)[0]);
+  }
+  const baseMood = Math.round(durMin / 15) + Math.floor(Math.random()*4);
+  const baseBond = Math.round(durMin / 30) + Math.floor(Math.random()*2);
+  const gains = { mood: Math.min(15, baseMood), bond: Math.min(8, baseBond), items: [], card: null };
+  if(Math.random() < 0.55) gains.items.push(pRand(PET_ITEMS));
+  if(Math.random() < 0.35) gains.card = pRand(PET_CARDS);
+  if(Math.random() < 0.2 && gains.items.length) gains.items.push(pRand(PET_ITEMS));
+  petTick(p);
+  p.mood = pClamp(p.mood + gains.mood);
+  p.bond = pClamp(p.bond + gains.bond);
+  p.eng  = pClamp(p.eng  - Math.round(durMin/10));
+  p.exp  = Math.max(0, (typeof p.exp==='number' ? p.exp : 0) + Math.round(durMin/10) + 2);
+  p.stage = petStageOf(p.exp).n;
+  p.lastInteract = Date.now();
+  if(!Array.isArray(p.items)) p.items = [];
+  if(!Array.isArray(p.memories)) p.memories = [];
+  if(gains.items.length) p.items.push(...gains.items);
+  if(gains.card) p.memories.push({t:Date.now(), text:gains.card, from:'out'});
+  const companionText = o.companion==='me' ? '你' :
+                        o.companion==='ta' ? pPn() :
+                        '你们一起';
+  const entry = {
+    id: pId(),
+    petIds: [p.id],
+    companion: o.companion,
+    location: loc.n,
+    durationMin: durMin,
+    events: evs,
+    gains,
+    time: Date.now(),
+    text: companionText + '和' + p.name + '一起去了' + loc.n
+  };
+  if(!Array.isArray(petData.outings)) petData.outings = [];
+  petData.outings.unshift(entry);
+  if(petData.outings.length > 60) petData.outings.length = 60;
+  if(!Array.isArray(p.log)) p.log = [];
+  p.log.unshift({
+    t: Date.now(),
+    kind: 'out',
+    text: entry.text + '（' + durMin + '分钟）',
+    chip: '心情 +'+gains.mood+' · 亲密度 +'+gains.bond+' · 成长 +'+(Math.round(durMin/10)+2),
+    who: o.companion
+  });
+  if(p.log.length > 80) p.log.length = 80;
+  return entry;
 }
 
 function petApply(p, kind, who){
@@ -11448,6 +11592,7 @@ function petFbMake(p, kind, r, who){
 async function petDoMe(kind){
   const p = petActive();
   if(!p){ pToast('还没有宠物哦'); return; }
+  if(petOutingBusy(p)){ pToast(p.name+'出门去啦，等它回来再和它玩吧～'); return; }
   petTick(p);
   const r = petApply(p, kind, 'me');
   if(!r.ok){ pToast(r.msg); await savePet(); renderPet(); return; }
@@ -11535,6 +11680,7 @@ function petStartOuting(){
   const p = petActive();
   if(!p){ pToast('请先选择一只宠物'); return; }
   if(p.eng < 20){ pToast(p.name+'太累了，先让它休息吧'); return; }
+  if(petOutingBusy(p)){ pToast(p.name+'还在外面玩呢，等它回来吧～'); return; }
   petUI.outing = {
     petId: p.id,
     duration: null,
@@ -11568,71 +11714,22 @@ async function petConfirmOuting(){
   if(!o || !o.duration || !o.location) return;
   const p = petGet(o.petId);
   if(!p) return;
-
+  if(petOutingBusy(p)){ pToast(p.name+'还在外面玩呢～'); return; }
   const durMin = o.duration.min + Math.floor(Math.random()*(o.duration.max - o.duration.min + 1));
-  // 随机 1~3 个事件
-  const pool = petOutEvents(p, o.location);
-  const evs = [];
-  const cnt = 1 + Math.floor(Math.random()*3);
-  for(let i=0;i<cnt && pool.length;i++){
-    const idx = Math.floor(Math.random()*pool.length);
-    evs.push(pool.splice(idx,1)[0]);
-  }
-
-  // 收益
-  const baseMood = Math.round(durMin / 15) + Math.floor(Math.random()*4);
-  const baseBond = Math.round(durMin / 30) + Math.floor(Math.random()*2);
-  const gains = {
-    mood: Math.min(15, baseMood),
-    bond: Math.min(8, baseBond),
-    items: [],
-    card: null
+  const now = Date.now();
+  p.outing = {
+    startAt: now,
+    endsAt: now + durMin*60000,
+    durMin: durMin,
+    location: { id: o.location.id, n: o.location.n },
+    companion: o.companion || 'me'
   };
-  if(Math.random() < 0.55) gains.items.push(pRand(PET_ITEMS));
-  if(Math.random() < 0.35) gains.card = pRand(PET_CARDS);
-  if(Math.random() < 0.2 && gains.items.length) gains.items.push(pRand(PET_ITEMS));
-
-  // 应用
-  petTick(p);
-  p.mood = pClamp(p.mood + gains.mood);
-  p.bond = pClamp(p.bond + gains.bond);
-  p.eng  = pClamp(p.eng  - Math.round(durMin/10));
-  p.exp  = Math.max(0, (typeof p.exp==='number' ? p.exp : 0) + Math.round(durMin/10) + 2);
-  p.stage = petStageOf(p.exp).n;
-  p.lastInteract = Date.now();
-  if(gains.items.length) p.items.push(...gains.items);
-  if(gains.card) p.memories.push({t:Date.now(), text:gains.card, from:'out'});
-
-  const companionText = o.companion==='me' ? '你' :
-                        o.companion==='ta' ? pPn() :
-                        '你们一起';
-  const entry = {
-    id: pId(),
-    petIds: [p.id],
-    companion: o.companion,
-    location: o.location.n,
-    durationMin: durMin,
-    events: evs,
-    gains,
-    time: Date.now(),
-    text: companionText + '和' + p.name + '一起去了' + o.location.n
-  };
-  petData.outings.unshift(entry);
-  if(petData.outings.length > 60) petData.outings.length = 60;
-
-  // 也记入宠物个人 log
-  p.log.unshift({
-    t: Date.now(),
-    kind: 'out',
-    text: entry.text + '（' + durMin + '分钟）',
-    chip: '心情 +'+gains.mood+' · 亲密度 +'+gains.bond+' · 成长 +'+(Math.round(durMin/10)+2),
-    who: o.companion
-  });
-
+  p.lastInteract = now;
   await savePet();
-  petUI.outing = { result: entry, petName: p.name };
-  petUI.page = 'outing-result';
+  petUI.outing = null;
+  petUI.page = 'outing-progress';
   renderPet();
+  pToast(p.name+'出发啦～大约 '+durMin+' 分钟后回来');
 }
 
 /* ---------- 增删改 ---------- */
@@ -11699,6 +11796,7 @@ function renderPet(){
     else if(page === 'outing-loc') h = renderOutingLoc();
     else if(page === 'outing-companion') h = renderOutingCompanion();
     else if(page === 'outing-confirm') h = renderOutingConfirm();
+    else if(page === 'outing-progress') h = renderOutingProgress();
     else if(page === 'outing-result') h = renderOutingResult();
     else if(page === 'records') h = renderPetRecords();
     else if(page === 'add') h = renderPetAdd();
@@ -11801,15 +11899,27 @@ function renderPetDetail(){
     h += '</div>';
   }
 
+  // 出门中：状态横幅（互动禁用）
+  const _busy = petOutingBusy(p);
+  const _dis = k => _busy && (k==='feed'||k==='play'||k==='pat'||k==='out');
+  if(_busy){
+    h += '<div class="pet-out-banner">';
+    h += '<div class="t">🐾 '+escapeHtml(p.name)+'出门中，不在家</div>';
+    h += '<div class="s">它正在'+escapeHtml(p.outing.location.n)+'玩耍，摸摸、喂食、玩耍暂时用不了哦</div>';
+    h += '<div class="c" id="petOutCountdown">还有 '+petFmtLeft(petOutingLeftMs(p))+'回来</div>';
+    h += '</div>';
+  }
   // 操作
   h += '<div class="pet-acts">';
   [['feed','喂食'],['play','玩耍'],['pat','摸摸'],['out','出门'],['more','更多']].forEach(([k,lab])=>{
     if(k==='out'){
-      h += '<div class="pet-act" onclick="petStartOuting()"><span>🐾</span><em>'+lab+'</em></div>';
+      if(_dis(k)) h += '<div class="pet-act dim"><span>🐾</span><em>出门中</em></div>';
+      else h += '<div class="pet-act" onclick="petStartOuting()"><span>🐾</span><em>'+lab+'</em></div>';
     } else if(k==='more'){
       h += '<div class="pet-act" onclick="petUI.page=\'manage\';renderPet()"><span>···</span><em>'+lab+'</em></div>';
     } else {
-      h += '<div class="pet-act" onclick="petDoMe(\''+k+'\')"><span>'+PET_KIND_ICON[k]+'</span><em>'+lab+'</em></div>';
+      if(_dis(k)) h += '<div class="pet-act dim"><span>'+PET_KIND_ICON[k]+'</span><em>'+lab+'</em></div>';
+      else h += '<div class="pet-act" onclick="petDoMe(\''+k+'\')"><span>'+PET_KIND_ICON[k]+'</span><em>'+lab+'</em></div>';
     }
   });
   h += '</div>';
@@ -11919,6 +12029,47 @@ function renderOutingCompanion(){
 }
 
 function renderOutingConfirm(){ return renderOutingCompanion(); }
+
+function renderOutingProgress(){
+  const p = petActive();
+  if(!p){ petUI.page='list'; return renderPetList(); }
+  if(!petOutingBusy(p)){ petUI.page='detail'; return renderPetDetail(); }
+  let h = '<div class="pet-detail-top">';
+  h += '<div class="pet-back" onclick="petUI.page=\'detail\';renderPet()">←</div>';
+  h += '<div class="pet-detail-title">它出门了</div>';
+  h += '</div>';
+  h += '<div class="pet-out-hero">';
+  h += '<div class="av">'+petAvatarHtml(p,120)+'</div>';
+  h += '<div class="nm">'+escapeHtml(p.name)+'正在外面玩耍</div>';
+  h += '<div class="st">'+escapeHtml(p.outing.location.n)+' · 约 '+p.outing.durMin+' 分钟</div>';
+  h += '</div>';
+  h += '<div class="pet-out-banner">';
+  h += '<div class="t">🐾 它不在家，暂时不能互动</div>';
+  h += '<div class="c" id="petOutCountdown">还有 '+petFmtLeft(petOutingLeftMs(p))+'回来</div>';
+  h += '<div class="s">等它回来，就会带回今天发生的事和小物件～</div>';
+  h += '</div>';
+  h += '<div class="pet-btn-primary full" style="margin-top:20px" onclick="petUI.page=\'list\';renderPet()">先去看看别的宠物</div>';
+  h += '<div class="pet-btn-secondary full" style="margin-top:10px" onclick="petRefreshOuting()">刷新一下</div>';
+  return h;
+}
+function petRefreshOuting(){
+  petCheckOutings();
+  renderPet();
+}
+// 后台定时：每 20 秒检查一次；不在宠物页也会结算并弹「已回家」提示
+setInterval(function(){
+  try{
+    if(!petData) return;
+    const done = petCheckOutings();
+    if(!petViewVisible()) return;
+    if(done.length){ renderPet(); return; }
+    if(petUI.page==='outing-progress' || petUI.page==='detail'){
+      const el = document.getElementById('petOutCountdown');
+      const p = petActive();
+      if(el && p && petOutingBusy(p)) el.textContent = '还有 ' + petFmtLeft(petOutingLeftMs(p)) + '回来';
+    }
+  }catch(e){}
+}, 20000);
 
 function renderOutingResult(){
   const r = petUI.outing && petUI.outing.result;
@@ -12353,7 +12504,12 @@ let mallState = {
   nextAutoBuyAt: null,
   lastBuyCheck: 0,
   pendingCart: null,
-  nextCartPickAt: null
+  nextCartPickAt: null,
+  reqEnabled: true,
+  reqProb: 60,
+  reqMinMin: 60,
+  reqMaxMin: 240,
+  nextReqAt: null
 };
 const MALL_ITEMS = {
   daily: [
@@ -12381,7 +12537,7 @@ const MALL_ITEMS = {
   couple: [
     {id:'c1', name:'情侣手链', emoji:'📿', price:88},
     {id:'c2', name:'情侣马克杯', emoji:'☕', price:56},
-    {id:'c3', name:'情侣睡衣', emoji:'🛏️', price:128},
+    {id:'c3', name:'情侣睡衣', emoji:'🥼', price:128},
     {id:'c4', name:'情侣钥匙扣', emoji:'🔑', price:35},
     {id:'c5', name:'情侣手机壳', emoji:'📱', price:49},
     {id:'c6', name:'情侣项链', emoji:'💎', price:199},
@@ -12482,6 +12638,12 @@ async function loadMallState(){
       mallState.lastBuyCheck = s.lastBuyCheck || 0;
       mallState.pendingCart = Array.isArray(s.pendingCart) ? s.pendingCart : null;
       mallState.nextCartPickAt = s.nextCartPickAt || null;
+      mallState.reqEnabled = s.reqEnabled !== false;
+      mallState.reqProb = typeof s.reqProb==='number' ? Math.max(0, Math.min(100, s.reqProb)) : 60;
+      mallState.reqMinMin = typeof s.reqMinMin==='number' ? Math.max(1, Math.min(10080, s.reqMinMin)) : 60;
+      mallState.reqMaxMin = typeof s.reqMaxMin==='number' ? Math.max(1, Math.min(10080, s.reqMaxMin)) : 240;
+      if(mallState.reqMinMin > mallState.reqMaxMin){ const _rq = mallState.reqMinMin; mallState.reqMinMin = mallState.reqMaxMin; mallState.reqMaxMin = _rq; }
+      mallState.nextReqAt = s.nextReqAt || null;
     }
   }catch(e){}
 }
@@ -12615,6 +12777,16 @@ function mallShowCat(cat, el){
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="number" id="mallBuyProb" min="0" max="100" step="1" value="${mallState.buyProb}" style="width:100%;text-align:center;" onchange="mallSetBuyProb(this.value)">
           <span>%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;">
+          <span style="font-size:13px;font-weight:700;">${safeName}找你帮买</span>
+          <span class="switch ${mallState.reqEnabled!==false?'on':''}" onclick="this.classList.toggle('on');mallSetReqEnabled(this.classList.contains('on'))"><div class="dot"></div></span>
+        </div>
+        <label class="field" style="margin-top:12px;">找帮买间隔（分钟，最短 ～ 最长）</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="mallReqMin" min="1" max="10080" value="${mallState.reqMinMin||60}" style="width:100%;text-align:center;" onchange="mallSetReqInterval()">
+          <span>～</span>
+          <input type="number" id="mallReqMax" min="1" max="10080" value="${mallState.reqMaxMin||240}" style="width:100%;text-align:center;" onchange="mallSetReqInterval()">
         </div>
       </div>`;
     return;
@@ -12899,7 +13071,88 @@ async function checkMallCartPick(){
   }catch(e){ console.warn('checkMallCartPick', e); }
   finally{ _cartPickBusy = false; }
 }
+function mallScheduleNextReq(){
+  const a = Math.max(1, Number(mallState.reqMinMin)||60) * 60 * 1000;
+  const b = Math.max(1, Number(mallState.reqMaxMin)||240) * 60 * 1000;
+  const wait = Math.min(a,b) + Math.random() * (Math.abs(b-a) + 1);
+  mallState.nextReqAt = Date.now() + wait;
+}
+async function checkMallReq(){
+  try{
+    if(mallState.reqEnabled === false) return;
+    if(!mallState.nextReqAt){ mallScheduleNextReq(); await saveMallState(); return; }
+    if(Date.now() < mallState.nextReqAt) return;
+    mallScheduleNextReq();
+    const prob = (typeof mallState.reqProb==='number' ? mallState.reqProb : 60) / 100;
+    if(Math.random() > prob){ await saveMallState(); return; }
+    const all = [];
+    Object.keys(MALL_ITEMS).forEach(cat => mallGetItems(cat).forEach(it => all.push(Object.assign({}, it, {_cat:cat}))));
+    if(!all.length){ await saveMallState(); return; }
+    const n = 1 + Math.floor(Math.random()*2);
+    const pool = all.slice();
+    const picked = [];
+    for(let i=0;i<n && pool.length;i++){ picked.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
+    const items = picked.map(x=>({name:x.name, emoji:x.emoji, price:x.price}));
+    const total = items.reduce((s,x)=>s+Number(x.price||0),0);
+    const notes = ['可以帮我买吗～','这些我想要，可以帮我买吗？','拜拜啦，可以帮我买吗～','看到这些好心动，可以帮我买吗？'];
+    const wmsg = {id:uid(), from:'bot', type:'wish', items, total, note:notes[Math.floor(Math.random()*notes.length)], status:'pending', time:Date.now(), read:true};
+    try{ assignGroupSender(wmsg); }catch(e){}
+    if(!Array.isArray(chatMessages)) chatMessages = [];
+    chatMessages.push(wmsg);
+    await saveMallState();
+    if(currentView==='chat'){ try{ renderChat(); scrollChatBottom(); }catch(e){} }
+    if(currentView!=='chat' && !(typeof roomIsOpen==='function' && roomIsOpen())){
+      chatUnread = true;
+      try{ await sSet('chat-unread', true); renderUnreadDots(); }catch(e){}
+      try{ tryBgNotify(notifyNameForMsg(wmsg), wmsg.note); }catch(e){}
+    }
+  }catch(e){ console.warn('checkMallReq', e); }
+}
+async function wishAccept(id){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || m.type!=='wish' || (m.status||'pending')!=='pending') return;
+  const items = m.items||[];
+  const name = (chatSettings && chatSettings.companionName) || 'TA';
+  for(const x of items){
+    mallState.gifts.push({id:'wish-'+Date.now()+'-'+Math.floor(Math.random()*1000), name:x.name, emoji:x.emoji, price:x.price, from:'me', to:'ta', time:Date.now()});
+    mallPushLedger('me', 'buy', -Number(x.price||0), '帮TA买了「'+x.name+'」');
+  }
+  m.status = 'bought';
+  try{ await saveMallState(); }catch(e){}
+  try{ await recPut('chatMessages', m); }catch(e){}
+  const reply = {id:uid(), from:'bot', type:'text', content:'谢谢'+(profile.myName||'你'), time:Date.now(), read:true};
+  try{ assignGroupSender(reply); }catch(e){}
+  if(!Array.isArray(chatMessages)) chatMessages = [];
+  chatMessages.push(reply);
+  try{ await recPut('chatMessages', reply); }catch(e){}
+  _flashToast('已帮 '+name+'买下 '+items.length+'件', false);
+  try{ renderChat(); scrollChatBottom(); }catch(e){}
+  if(currentView==='mall'){ try{ renderMall(); }catch(e){} }
+}
+async function wishDecline(id){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || m.type!=='wish' || (m.status||'pending')!=='pending') return;
+  m.status = 'declined';
+  try{ await recPut('chatMessages', m); }catch(e){}
+  try{ renderChat(); }catch(e){}
+}
+async function mallSetReqEnabled(on){
+  mallState.reqEnabled = !!on;
+  if(on && !mallState.nextReqAt) mallScheduleNextReq();
+  await saveMallState();
+}
+async function mallSetReqInterval(){
+  let a = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallReqMin').value,10)||60));
+  let b = Math.max(1, Math.min(10080, parseInt(document.getElementById('mallReqMax').value,10)||240));
+  if(a > b){ const t=a; a=b; b=t; }
+  mallState.reqMinMin = a;
+  mallState.reqMaxMin = b;
+  mallScheduleNextReq();
+  await saveMallState();
+  _flashToast('找帮买间隔已更新，已重新计时', false);
+}
 async function mallBuy(itemId, cat, who){
+
   const it = mallFindItem(itemId, cat);
   if(!it) return;
   const name = (chatSettings && chatSettings.companionName) || 'TA';
@@ -12913,6 +13166,10 @@ async function mallBuy(itemId, cat, who){
 loadMallState().then(()=>{
   if(mallState.autoBuy !== false && !mallState.nextAutoBuyAt){
     mallScheduleNextAutoBuy();
+    saveMallState();
+  }
+  if(mallState.reqEnabled !== false && !mallState.nextReqAt){
+    mallScheduleNextReq();
     saveMallState();
   }
 }).catch(()=>{});
@@ -13189,6 +13446,15 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .pet-act:active{background:rgba(243,214,220,.6);}
 .pet-act span{display:block;font-size:18px;margin-bottom:2px;}
 .pet-act em{font-style:normal;font-size:10.5px;color:#5c4a45;white-space:nowrap;}
+.pet-act.dim{opacity:.4;pointer-events:none;filter:grayscale(.45);}
+.pet-out-banner{margin:12px 0;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#fbeef0,#f6e3e6);border:1px solid rgba(210,178,168,.5);text-align:center;}
+.pet-out-banner .t{font-size:15px;color:#5c4a45;font-weight:600;letter-spacing:.4px;}
+.pet-out-banner .s{font-size:12.5px;color:#8a7370;margin-top:7px;line-height:1.5;}
+.pet-out-banner .c{font-size:20px;color:var(--rouge);font-weight:700;margin-top:8px;letter-spacing:1px;font-variant-numeric:tabular-nums;}
+.pet-out-hero{text-align:center;padding:28px 0 8px;}
+.pet-out-hero .av{width:120px;height:120px;margin:0 auto 14px;border-radius:50%;overflow:hidden;background:linear-gradient(145deg,#f3e4dc,#e8d0c6);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(120,80,70,.15);}
+.pet-out-hero .nm{font-size:17px;color:#5c4a45;font-weight:600;}
+.pet-out-hero .st{font-size:13px;color:#8a7370;margin-top:8px;}
 
 .pet-days{text-align:center;font-size:12px;color:var(--ink-soft);margin:8px 0 20px;line-height:1.6;}
 
