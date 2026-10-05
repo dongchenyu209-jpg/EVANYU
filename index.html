@@ -11118,7 +11118,12 @@ const PET_SPECIES_EVENTS = {
 };
 function petOutEvents(p, loc){
   const sp = (PET_SPECIES_EVENTS && p && p.species && PET_SPECIES_EVENTS[p.species]) || [];
-  return sp.concat((loc && loc.events) || []);
+  const base = sp.concat((loc && loc.events) || []);
+  const lid = (loc && loc.id) || '';
+  const custom = (petData && Array.isArray(petData.customEvents) ? petData.customEvents : [])
+    .filter(e=> e && e.text && (!e.loc || e.loc===lid))
+    .map(e=> e.text);
+  return base.concat(custom);
 }
 const PET_LOCATIONS = [
   {id:'park',   n:'公园',   time:'0.5-1.5h', desc:'花草、长椅、阳光', events:[
@@ -11293,6 +11298,7 @@ function petDefault(){
     activeId: p.id,
     pets: [p],
     outings: [],
+    customEvents: [],
     taMinMin: 60,
     taMaxMin: 360,
     nextTaAt: 0
@@ -11331,6 +11337,7 @@ async function loadPet(){
         petData = Object.assign(petDefault(), raw);
         if(!Array.isArray(petData.pets)) petData.pets = [];
         if(!Array.isArray(petData.outings)) petData.outings = [];
+        if(!Array.isArray(petData.customEvents)) petData.customEvents = [];
         // 刷新年龄与阶段
         petData.pets.forEach(p=>{
           p.ageMonths = petAgeMonths(p.birthday);
@@ -11696,6 +11703,7 @@ function renderPet(){
     else if(page === 'records') h = renderPetRecords();
     else if(page === 'add') h = renderPetAdd();
     else if(page === 'manage') h = renderPetManage();
+    else if(page === 'events') h = renderPetEvents();
     else h = renderPetList();
     body.innerHTML = h || '<div class="pet-empty-big">页面为空</div>';
   }catch(e){
@@ -12031,6 +12039,7 @@ function renderPetManage(){
   h += '<div class="pet-manage-item" onclick="petEditName()"><span>✏️ 修改名字</span><span>›</span></div>';
   h += '<div class="pet-manage-item" onclick="petEditBirthday()"><span>🎂 修改出生日期</span><span>›</span></div>';
   h += '<div class="pet-manage-item" onclick="petEditPhoto()"><span>📷 设置照片</span><span>›</span></div>';
+  h += '<div class="pet-manage-item" onclick="petUI.page=\'events\';renderPet()"><span>🐾 自定义出门事件</span><span>›</span></div>';
   h += '<div class="pet-manage-item danger" onclick="petDelete(\''+p.id+'\')"><span>🗑 删除宠物</span><span>›</span></div>';
   h += '</div>';
 
@@ -12042,6 +12051,59 @@ function renderPetManage(){
   h += '</div>';
 
   return h;
+}
+
+function renderPetEvents(){
+  let h = '<div class=\"pet-detail-top\">';
+  h += '<div class=\"pet-back\" onclick=\"petUI.page=\'manage\';renderPet()\">\u2190</div>';
+  h += '<div class=\"pet-detail-title\">\u81ea\u5b9a\u4e49\u51fa\u95e8\u4e8b\u4ef6</div>';
+  h += '</div>';
+  h += '<div class=\"pet-hint\">\u8fd9\u4e9b\u4e8b\u4ef6\u4f1a\u5728\u5ba0\u7269\u51fa\u95e8\u65f6\uff0c\u548c\u5185\u7f6e\u4e8b\u4ef6\u4e00\u8d77\u88ab\u968f\u673a\u62bd\u5230\u3002</div>';
+  h += '<div class=\"pet-card\">';
+  h += '<div class=\"pet-card-t\">\uff0b \u6dfb\u52a0\u4e00\u6761\u4e8b\u4ef6</div>';
+  h += '<div class=\"pet-field\"><label>\u4e8b\u4ef6\u5185\u5bb9</label><input id=\"petEvText\" type=\"text\" placeholder=\"\u4f8b\u5982\uff1a\u5728\u8349\u5730\u4e0a\u8ffd\u7740\u81ea\u5df1\u7684\u5f71\u5b50\u8dd1\"></div>';
+  h += '<div class=\"pet-field\"><label>\u9002\u7528\u5730\u70b9</label><select id=\"petEvLoc\">';
+  h += '<option value=\"\">\u901a\u7528\uff08\u6240\u6709\u5730\u70b9\uff09</option>';
+  PET_LOCATIONS.forEach(l=>{ h += '<option value=\"'+l.id+'\">'+escapeHtml(l.n)+'</option>'; });
+  h += '</select></div>';
+  h += '<div class=\"pet-btn-primary\" onclick=\"petAddEvent()\">\u6dfb\u52a0</div>';
+  h += '</div>';
+  const list = (petData && Array.isArray(petData.customEvents)) ? petData.customEvents : [];
+  h += '<div class=\"pet-card\" style=\"margin-top:16px\">';
+  h += '<div class=\"pet-card-t\">\u5df2\u6dfb\u52a0\uff08'+list.length+'\uff09</div>';
+  if(!list.length){
+    h += '<div class=\"pet-hint\">\u8fd8\u6ca1\u6709\u81ea\u5b9a\u4e49\u4e8b\u4ef6</div>';
+  } else {
+    list.forEach(e=>{
+      const locN = e.loc ? ((PET_LOCATIONS.find(x=>x.id===e.loc)||{}).n || e.loc) : '\u901a\u7528';
+      h += '<div class=\"pet-manage-item\" style=\"align-items:center\">';
+      h += '<span style=\"flex:1\"><b style=\"color:#8b6cff\">['+escapeHtml(locN)+']</b> '+escapeHtml(e.text)+'</span>';
+      h += `<span onclick="petDelEvent('`+e.id+`')" style="color:#e0556b">✕</span>`;
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+  return h;
+}
+
+async function petAddEvent(){
+  const t = document.getElementById('petEvText');
+  const l = document.getElementById('petEvLoc');
+  const text = t ? t.value.trim() : '';
+  if(!text){ pToast('\u8bf7\u8f93\u5165\u4e8b\u4ef6\u5185\u5bb9'); return; }
+  if(!petData) return;
+  if(!Array.isArray(petData.customEvents)) petData.customEvents = [];
+  petData.customEvents.push({id:pId(), text, loc: l ? l.value : ''});
+  await savePet();
+  if(t) t.value = '';
+  pToast('\u5df2\u6dfb\u52a0\u51fa\u95e8\u4e8b\u4ef6');
+  renderPet();
+}
+async function petDelEvent(id){
+  if(!petData || !Array.isArray(petData.customEvents)) return;
+  petData.customEvents = petData.customEvents.filter(e=>e.id!==id);
+  await savePet();
+  renderPet();
 }
 
 function petEditName(){
