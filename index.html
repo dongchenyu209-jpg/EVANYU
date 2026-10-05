@@ -12528,32 +12528,41 @@ async function loadStatusCard(){
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
 const SC_PERIODS = [['凌晨',0,5],['早上',6,10],['中午',11,13],['下午',14,16],['傍晚',17,18],['晚上',19,23]];
-function scDrawHour(st, h){
-  st.tBase = h;
-  st.tBaseAt = Date.now();
-}
 function scSettleTime(){
   const st = statusCardData.st;
   if(!st) return;
+  const now = Date.now();
+  const today = localDateStr();
   if(typeof st.tBase!=='number'){
     let h = null;
-    if(typeof st.tOff==='number') h = new Date(Date.now()+st.tOff).getHours();
+    if(typeof st.tOff==='number') h = new Date(now+st.tOff).getHours();
     else if(typeof st.tHour==='number') h = st.tHour;
     if(h!==null){
-      scDrawHour(st, h);
+      st.tBase = h;
+      st.tBaseAt = now;
+      st.tDay = '';
       delete st.tOff; delete st.tHour; delete st.tPeriod;
       saveStatusCard();
     }
   }
-  if(!st.tAt || Date.now() < st.tAt) return;
-  scDrawHour(st, Math.floor(Math.random()*24));
-  delete st.tAt;
+  if(st.tAt && now >= st.tAt){
+    st.tBase = Math.floor(Math.random()*24);
+    st.tBaseAt = now;
+    st.tDay = today;
+    delete st.tAt;
+    saveStatusCard();
+    return;
+  }
+  if(typeof st.tBase==='number' && st.tDay===today) return;
+  if(st.kind!=='online' || st.tAt) return;
+  st.tAt = now + 60000 + Math.random()*60000;
   saveStatusCard();
 }
 function scRoll(){
   const c = statusCardData;
   const now = Date.now();
-  if(c.st && now < c.st.nextAt){ scSettleTime(); return c.st; }
+  if(c.st) scSettleTime();
+  if(c.st && now < c.st.nextAt) return c.st;
   const kinds = ['online','busy','offline'];
   let quote = '';
   try{
@@ -12561,17 +12570,10 @@ function scRoll(){
   }catch(e){}
   const kind = kinds[Math.floor(Math.random()*kinds.length)];
   const prev = c.st || {};
-  const tBase = typeof prev.tBase==='number' ? prev.tBase : null;
-  const tBaseAt = prev.tBaseAt || 0;
-  const tOff = prev.tOff, tHour = prev.tHour;
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
-  let tAt = prev.tAt || 0;
-  if(!tAt && kind==='online' && (tBase===null || Math.random() < 0.05)){
-    tAt = now + Math.random()*120000;
-  }
-  c.st = { kind, quote, tBase, tBaseAt, tOff, tHour, tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
+  c.st = { kind, quote, tBase: prev.tBase, tBaseAt: prev.tBaseAt, tDay: prev.tDay, tAt: prev.tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
   saveStatusCard();
   return c.st;
 }
