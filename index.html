@@ -3168,7 +3168,7 @@ function recordStatusHistory(text){
 }
 function ensureTodayStatus(){
   const key = todayKey();
-  const due = !todayStatus || todayStatus.date !== key || !todayStatus.nextChangeAt || Date.now() >= todayStatus.nextChangeAt;
+  const due = !todayStatus || !todayStatus.nextChangeAt || Date.now() >= todayStatus.nextChangeAt;
   if(due){
     if(statusPool.length > 0){
       todayStatus = { date:key, text: pickRandomStatusText(), nextChangeAt: Date.now() + nextStatusChangeDelay() };
