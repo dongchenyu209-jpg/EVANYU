@@ -1098,6 +1098,53 @@
   width:7px; height:7px; border-radius:50%; background:#4CD964;
   animation:pulseDot 1.2s infinite; flex-shrink:0;
 }
+/* 悬浮小黑胶：一起听时显示，可拖动，点开看当前歌并切歌 */
+.vinyl-float{
+  position:fixed; bottom:calc(140px + env(safe-area-inset-bottom,0)); right:14px; z-index:198;
+  width:52px; height:52px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #3a3a3a 0%, #111 55%, #000 100%);
+  box-shadow:0 4px 16px rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.08);
+  cursor:grab; touch-action:none; user-select:none; -webkit-tap-highlight-color:transparent;
+  display:flex; align-items:center; justify-content:center;
+}
+.vinyl-float.hidden{ display:none !important; }
+.vinyl-float.dragging{ cursor:grabbing; }
+.vinyl-float.spinning .vinyl-float-disc{
+  animation:vinylSpin 3.2s linear infinite;
+}
+.vinyl-float-disc{
+  width:40px; height:40px; border-radius:50%;
+  background:
+    radial-gradient(circle at center, #1a1a1a 0 6px, transparent 7px),
+    repeating-radial-gradient(circle at center, #222 0 1px, #111 2px, #1c1c1c 3px);
+  border:1px solid rgba(255,255,255,.12);
+  position:relative;
+  overflow:hidden;
+}
+.vinyl-float-disc .vf-cover{
+  position:absolute; left:50%; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px;
+  border-radius:50%; object-fit:cover; background:#444;
+}
+.vinyl-float-disc .vf-label{
+  position:absolute; left:50%; top:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
+  border-radius:50%; background:var(--rouge,#8b3a56); box-shadow:0 0 0 1px rgba(255,255,255,.2);
+}
+.vinyl-float-panel{
+  position:fixed; z-index:199; width:min(280px, calc(100vw - 28px));
+  background:rgba(255,252,250,.96); border:1px solid var(--rule); border-radius:14px;
+  box-shadow:0 12px 32px rgba(40,20,30,.22); padding:12px 14px 14px;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+.vinyl-float-panel.hidden{ display:none !important; }
+.vinyl-float-panel .vfp-title{ font-size:11px; color:var(--ink-soft); letter-spacing:1px; margin-bottom:6px; }
+.vinyl-float-panel .vfp-name{
+  font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;
+  font-weight:700; font-size:14.5px; color:var(--ink); line-height:1.35;
+}
+.vinyl-float-panel .vfp-artist{ font-size:12px; color:var(--ink-soft); margin-top:3px; }
+.vinyl-float-panel .vfp-row{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+.vinyl-float-panel .vfp-row .btn{ padding:6px 12px; font-size:12px; }
+
 
 
 .pwa-install-bar{
@@ -1502,6 +1549,22 @@
     <span class="comp-float-dot"></span>
     <div class="av" id="compFloatAv">🌙</div>
     <span class="lab" id="compFloatText">陪伴中 00:00:00</span>
+  </div>
+  <div class="vinyl-float hidden" id="vinylFloat" title="正在播放">
+    <div class="vinyl-float-disc" id="vinylFloatDisc">
+      <span class="vf-label" id="vinylFloatLabel"></span>
+    </div>
+  </div>
+  <div class="vinyl-float-panel hidden" id="vinylFloatPanel">
+    <div class="vfp-title">♪ 正在播放</div>
+    <div class="vfp-name" id="vfpSongName">—</div>
+    <div class="vfp-artist" id="vfpArtist">—</div>
+    <div class="vfp-row">
+      <div class="btn outline" onclick="vinylPrev(); refreshVinylFloatPanel();">⏮</div>
+      <div class="btn rouge" id="vfpPlayBtn" onclick="vinylTogglePlay(); refreshVinylFloatPanel();">▶</div>
+      <div class="btn outline" onclick="vinylNext(); refreshVinylFloatPanel();">⏭</div>
+      <div class="btn outline" onclick="closeVinylFloatPanel(); openListenTogetherPanel(false);">打开</div>
+    </div>
   </div>
 
   <!-- ============ HOME ============ -->
@@ -8947,6 +9010,7 @@ async function respondInviteCard(msgId, action){
       openWatchTogetherPanel(false);
     } else if(kind==='music'){
       togetherState.music.active = true; togetherState.music.accepted = true;
+      try{ scheduleCompanionSkipSong(); }catch(e){}
       openListenTogetherPanel(false);
     } else if(kind==='study'){
       togetherState.study.active = true; togetherState.study.accepted = true;
@@ -9356,8 +9420,10 @@ function openListenTogetherPanel(asInvite){
     '<div class="btn-row" style="justify-content:center;flex-wrap:wrap;margin:2px 0 8px;">'+
       '<div class="btn outline" onclick="document.getElementById(\'vinylBgFile\').click()">🖼 换背景</div>'+
       '<div class="btn outline" onclick="clearVinylBg()">默认背景</div>'+
+      '<div class="btn outline" onclick="openPlaylistPanel()">📋 查看歌单</div>'+
       '<input type="file" id="vinylBgFile" accept="image/*" class="hidden" onchange="onVinylBgFile(event)">'+
     '</div>'+
+    '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin:0 0 6px;" id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</div>'+
     togetherAvatarHtml()+
     '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:4px;">'+statusText+'</div>'+
     '<div class="vinyl-lyrics" id="vinylLyrics"></div>'+
@@ -9395,10 +9461,10 @@ function openListenTogetherPanel(asInvite){
       '<textarea id="playlistImport" placeholder="每行：歌名 - 歌手" style="min-height:56px;margin-top:6px;"></textarea>'+
       '<div class="btn-row"><div class="btn outline" onclick="importPlaylistText()">导入文本</div></div>'+
     '</details>'+
-    '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft);" id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</div>'+
-    '<div id="playlistPreview" style="max-height:140px;overflow:auto;margin-top:6px;font-size:12.5px;"></div>'
+    '<div style="display:none;" id="playlistPreview"></div>'
   );
     renderPlaylistPreview();
+  try{ scheduleCompanionSkipSong(); }catch(e){}
   applyVinylPanelBg();
   try{ updateVinylLyrics(true); fetchVinylLyrics(song); }catch(e){}
   if(!togetherState.music._vinylLoaded){ togetherState.music._vinylLoaded = true; loadVinylSettings(); }
@@ -9414,6 +9480,7 @@ async function loadVinylSettings(){
       if(v.vinylImg) togetherState.music.vinylImg = v.vinylImg;
       if(Array.isArray(v.playlist) && v.playlist.length && !togetherState.music.playlist.length){
         togetherState.music.playlist = v.playlist;
+        togetherState.music._playlistOriginal = v.playlist.slice();
         togetherState.music.playlistName = v.playlistName || '';
         try{ togetherState.music.duration = v.playlist[0].duration || 180; }catch(e){}
       }
@@ -9463,6 +9530,125 @@ function renderPlaylistPreview(){
   }).join('');
 }
 
+function openPlaylistPanel(){
+  const st = togetherState.music;
+  const list = st.playlist || [];
+  const name = st.playlistName ? '「'+escapeHtml(st.playlistName)+'」' : '当前歌单';
+  var rows = '';
+  if(!list.length){
+    rows = '<div class="empty-note" style="padding:16px 0;text-align:center;">还没有导入歌单</div>';
+  } else {
+    rows = list.map(function(s,i){
+      var on = (i===st.index);
+      return '<div onclick="vinylJumpTo('+i+'); closeOverlay(); openListenTogetherPanel(false);" style="padding:10px 8px;border-bottom:1px solid var(--rule);cursor:pointer;display:flex;align-items:center;gap:8px;'+(on?'background:var(--blush);':'')+'">'+
+        '<span style="min-width:28px;color:var(--ink-soft);font-size:12px;">'+(i+1)+'</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:13.5px;'+(on?'color:var(--rouge);font-weight:700;':'')+'">'+escapeHtml(s.name||'未命名')+(s.url?'':' <span style="opacity:.45;font-size:11px;">(无链接)</span>')+'</div>'+
+          '<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">'+escapeHtml(s.artist||'未知歌手')+'</div>'+
+        '</div>'+
+        (on?'<span style="color:var(--rouge);font-size:12px;">播放中</span>':'')+
+      '</div>';
+    }).join('');
+  }
+  openOverlay(
+    '<div class="drawer-head"><h3>📋 歌单 '+name+'</h3><span class="close-x" onclick="closeOverlay(); openListenTogetherPanel(false);">✕</span></div>'+
+    '<div class="btn-row" style="justify-content:flex-start;flex-wrap:wrap;margin:0 0 10px;gap:6px;">'+
+      '<div class="btn outline" style="padding:4px 10px;font-size:12px;" onclick="sortPlaylistByArtist(false)">按歌手名排序</div>'+
+      '<div class="btn outline" style="padding:4px 10px;font-size:12px;" onclick="sortPlaylistByArtist(true)">按歌手名倒序</div>'+
+      '<div class="btn outline" style="padding:4px 10px;font-size:12px;" onclick="sortPlaylistOriginal()">恢复导入顺序</div>'+
+    '</div>'+
+    '<div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">共 '+(list.length)+' 首 · 点歌名即可播放</div>'+
+    '<div id="playlistFullList" style="max-height:min(62vh,520px);overflow:auto;border:1px solid var(--rule);border-radius:10px;background:rgba(255,255,255,.55);">'+rows+'</div>'+
+    '<div class="btn-row" style="margin-top:12px;"><div class="btn outline" onclick="closeOverlay(); openListenTogetherPanel(false);">返回播放器</div></div>'
+  );
+}
+
+function sortPlaylistByArtist(desc){
+  const st = togetherState.music;
+  if(!st.playlist || !st.playlist.length){ alert('请先导入歌单'); return; }
+  if(!st._playlistOriginal){
+    st._playlistOriginal = st.playlist.slice();
+  }
+  var cur = st.playlist[st.index];
+  st.playlist = st.playlist.slice().sort(function(a,b){
+    var aa = (a.artist||'').toString();
+    var bb = (b.artist||'').toString();
+    var c = aa.localeCompare(bb, 'zh-CN');
+    if(c===0) c = (a.name||'').toString().localeCompare((b.name||'').toString(), 'zh-CN');
+    return desc ? -c : c;
+  });
+  if(cur){
+    var ni = st.playlist.indexOf(cur);
+    if(ni<0){
+      ni = st.playlist.findIndex(function(s){ return s===cur || (s.id&&cur.id&&String(s.id)===String(cur.id)) || (s.name===cur.name && s.artist===cur.artist); });
+    }
+    if(ni>=0) st.index = ni;
+  }
+  saveVinylSettings();
+  openPlaylistPanel();
+  try{ renderPlaylistPreview(); }catch(e){}
+}
+
+function sortPlaylistOriginal(){
+  const st = togetherState.music;
+  if(!st._playlistOriginal || !st._playlistOriginal.length){
+    alert('没有保存的导入顺序（导入后才可恢复）');
+    return;
+  }
+  var cur = st.playlist[st.index];
+  st.playlist = st._playlistOriginal.slice();
+  if(cur){
+    var ni = st.playlist.indexOf(cur);
+    if(ni<0){
+      ni = st.playlist.findIndex(function(s){ return s===cur || (s.id&&cur.id&&String(s.id)===String(cur.id)) || (s.name===cur.name && s.artist===cur.artist); });
+    }
+    if(ni>=0) st.index = ni;
+  }
+  saveVinylSettings();
+  openPlaylistPanel();
+  try{ renderPlaylistPreview(); }catch(e){}
+}
+
+/* 梦角切歌：一起听进行中，约每 2.5～6.5 分钟 roll 一次，约 8% 概率真的切 */
+var _companionSkipTimer = null;
+function scheduleCompanionSkipSong(){
+  if(_companionSkipTimer){ clearTimeout(_companionSkipTimer); _companionSkipTimer = null; }
+  var st = togetherState.music;
+  if(!st || !st.active || !st.accepted || !st.playlist || st.playlist.length < 2) return;
+  var delay = 150000 + Math.floor(Math.random()*240000); // 2.5～6.5 分钟
+  _companionSkipTimer = setTimeout(function(){
+    _companionSkipTimer = null;
+    try{ companionMaybeSkipSong(); }catch(e){}
+    try{ scheduleCompanionSkipSong(); }catch(e){} // 继续下一轮
+  }, delay);
+}
+async function companionMaybeSkipSong(){
+  var st = togetherState.music;
+  if(!st || !st.active || !st.accepted) return;
+  if(!st.playing) return; // 没在播就不切
+  if(!st.playlist || st.playlist.length < 2) return;
+  if(Math.random() > 0.08) return; // 约 8% 真的切
+  var who = (profile && profile.myName) ? profile.myName : '小羽';
+  var phrase = who + '，我想换一首歌听';
+  // 梦角切歌：总是在歌单里随机挑一首（不跟当前同一首）
+  var nextIdx = st.index;
+  if(st.playlist.length > 1){
+    do { nextIdx = Math.floor(Math.random() * st.playlist.length); } while(nextIdx === st.index);
+  }
+  var nextSong = st.playlist[nextIdx];
+  st._companionSkipping = true;
+  loadVinylTrack(nextIdx, true);
+  try{
+    var msg = { id:uid(), from:'bot', type:'text', content: phrase + (nextSong && nextSong.name ? ('～「'+nextSong.name+'」') : ''), time:Date.now(), read:true };
+    if(!Array.isArray(chatMessages)) chatMessages = [];
+    chatMessages.push(msg);
+    try{ if(typeof recPut==='function') recPut('chatMessages', msg); }catch(e){}
+    try{ if(typeof renderChat==='function') renderChat(); }catch(e){}
+  }catch(e){}
+  try{ refreshVinylUI(); }catch(e){}
+  try{ refreshVinylFloat(); }catch(e){}
+}
+
 function parsePlaylistLines(raw){
   const lines = String(raw||'').split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
   const out = [];
@@ -9482,6 +9668,7 @@ function importPlaylistText(){
   const items = parsePlaylistLines(ta.value);
   if(!items.length){ alert('没有识别到歌曲，请每行一首：歌名 - 歌手'); return; }
   togetherState.music.playlist = items;
+  togetherState.music._playlistOriginal = items.slice();
   togetherState.music.playlistName = '手动导入';
   togetherState.music.index = 0;
   togetherState.music.progress = 0;
@@ -9839,6 +10026,7 @@ const items = list.map(function(x){
   }).filter(function(x){ return x.name; });
   if(!togetherState.music.playlistName) togetherState.music.playlistName = '网易云 · '+id;
   togetherState.music.playlist = items;
+  togetherState.music._playlistOriginal = items.slice();
   togetherState.music.index = 0;
   togetherState.music.progress = 0;
   togetherState.music.duration = items[0].duration || 180;
@@ -9885,6 +10073,8 @@ function loadVinylTrack(idx, autoPlay){
     if(tip) tip.textContent = '这首没有可播放链接（文本导入的歌名无法在线播放）';
   }
   refreshVinylUI();
+  try{ refreshVinylFloat(); }catch(e){}
+  st._companionSkipping = false;
 }
 
 function refreshVinylUI(){
@@ -9912,6 +10102,7 @@ function refreshVinylUI(){
     }
   }
   renderPlaylistPreview();
+  try{ refreshVinylFloat(); }catch(e){}
 }
 function vinylTogglePlay(){
   const st = togetherState.music;
@@ -10047,6 +10238,7 @@ function scheduleTogetherReply(kind){
         togetherState.music.active = true;
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起听歌', { kind:'music', status:'accepted', inviter:'user', from:'bot' });
+        try{ scheduleCompanionSkipSong(); }catch(e){}
         const song = togetherState.music.playlist[togetherState.music.index];
         const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好啊，一起听'+(song?'「'+song.name+'」':'')) , time:Date.now(), read:true};
         chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
@@ -10138,10 +10330,12 @@ async function endCompanionInvite(kind, text, extra){
 }
 async function endListenTogether(){
   stopVinylTimer();
+  if(typeof _companionSkipTimer !== 'undefined' && _companionSkipTimer){ clearTimeout(_companionSkipTimer); _companionSkipTimer = null; }
   togetherState.music.playing = false;
   await endCompanionInvite('music', '一起听歌结束了', { kind:'music', status:'ended', inviter: togetherState.music.inviter||'user', from:'user' });
   togetherState.music.active=false; togetherState.music.accepted=false;
   saveTogetherState();
+  try{ refreshVinylFloat(); closeVinylFloatPanel(); }catch(e){}
   closeOverlay();
 }
 
@@ -10394,6 +10588,137 @@ setInterval(function(){
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
 })();
+
+/* ============ 悬浮小黑胶 ============ */
+function refreshVinylFloat(){
+  var el = document.getElementById('vinylFloat');
+  if(!el) return;
+  var st = togetherState.music;
+  var show = !!(st && st.playlist && st.playlist.length && (st.playing || st.active || st._vinylLoaded));
+  // 有歌单且正在/曾经进入过一起听就显示；结束播放后仍可点开切歌
+  if(!(st && st.playlist && st.playlist.length)){
+    el.classList.add('hidden');
+    closeVinylFloatPanel();
+    return;
+  }
+  // 仅当播放中或一起听进行中时显示，避免常驻打扰
+  if(st.playing || (st.active && st.accepted)){
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+    closeVinylFloatPanel();
+  }
+  if(st.playing) el.classList.add('spinning');
+  else el.classList.remove('spinning');
+  var disc = document.getElementById('vinylFloatDisc');
+  var song = st.playlist[st.index];
+  if(disc && song){
+    var cover = song.pic ? ('<img class="vf-cover" src="'+song.pic+'" alt="">') : '<span class="vf-label"></span>';
+    disc.innerHTML = cover;
+  }
+  try{ refreshVinylFloatPanel(true); }catch(e){}
+}
+function refreshVinylFloatPanel(quiet){
+  var panel = document.getElementById('vinylFloatPanel');
+  if(!panel || (quiet && panel.classList.contains('hidden'))) return;
+  var st = togetherState.music;
+  var song = st && st.playlist && st.playlist[st.index];
+  var nameEl = document.getElementById('vfpSongName');
+  var artEl = document.getElementById('vfpArtist');
+  var btn = document.getElementById('vfpPlayBtn');
+  if(nameEl) nameEl.textContent = song ? (song.name || '未命名') : '还没有歌曲';
+  if(artEl) artEl.textContent = song ? (song.artist || '—') : '—';
+  if(btn) btn.textContent = (st && st.playing) ? '⏸' : '▶';
+}
+function openVinylFloatPanel(){
+  var panel = document.getElementById('vinylFloatPanel');
+  var bubble = document.getElementById('vinylFloat');
+  if(!panel || !bubble) return;
+  refreshVinylFloatPanel();
+  panel.classList.remove('hidden');
+  // 贴在黑胶附近
+  var r = bubble.getBoundingClientRect();
+  var pw = panel.offsetWidth || 260;
+  var ph = panel.offsetHeight || 140;
+  var left = Math.min(window.innerWidth - pw - 10, Math.max(10, r.left + r.width/2 - pw/2));
+  var top = r.top - ph - 10;
+  if(top < 10) top = r.bottom + 10;
+  if(top + ph > window.innerHeight - 10) top = Math.max(10, window.innerHeight - ph - 10);
+  panel.style.left = left + 'px';
+  panel.style.top = top + 'px';
+  panel.style.right = 'auto';
+  panel.style.bottom = 'auto';
+}
+function closeVinylFloatPanel(){
+  var panel = document.getElementById('vinylFloatPanel');
+  if(panel) panel.classList.add('hidden');
+}
+function toggleVinylFloatPanel(){
+  var panel = document.getElementById('vinylFloatPanel');
+  if(!panel) return;
+  if(panel.classList.contains('hidden')) openVinylFloatPanel();
+  else closeVinylFloatPanel();
+}
+(function initVinylFloatDrag(){
+  function bind(){
+    var bubble = document.getElementById('vinylFloat');
+    if(!bubble || bubble.dataset.dragBound) return;
+    bubble.dataset.dragBound = '1';
+    var dragging = false, moved = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    bubble.addEventListener('pointerdown', function(e){
+      if(e.button !== undefined && e.button !== 0) return;
+      var rect = bubble.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+      dragging = true; moved = false;
+      bubble.classList.add('dragging');
+      try{ bubble.setPointerCapture(e.pointerId); }catch(_){}
+      e.preventDefault();
+    });
+    bubble.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      if(!moved) return;
+      var maxLeft = Math.max(0, window.innerWidth - bubble.offsetWidth);
+      var maxTop = Math.max(0, window.innerHeight - bubble.offsetHeight);
+      var left = Math.min(maxLeft, Math.max(0, startLeft + dx));
+      var top = Math.min(maxTop, Math.max(0, startTop + dy));
+      bubble.style.left = left + 'px';
+      bubble.style.top = top + 'px';
+      bubble.style.right = 'auto';
+      bubble.style.bottom = 'auto';
+      e.preventDefault();
+    });
+    function endDrag(e){
+      if(!dragging) return;
+      dragging = false;
+      bubble.classList.remove('dragging');
+      try{ bubble.releasePointerCapture(e.pointerId); }catch(_){}
+    }
+    bubble.addEventListener('pointerup', endDrag);
+    bubble.addEventListener('pointercancel', endDrag);
+    bubble.addEventListener('click', function(e){
+      if(moved){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        moved = false;
+        return;
+      }
+      toggleVinylFloatPanel();
+    });
+    // 点面板外关闭
+    document.addEventListener('pointerdown', function(e){
+      var panel = document.getElementById('vinylFloatPanel');
+      if(!panel || panel.classList.contains('hidden')) return;
+      if(panel.contains(e.target) || (bubble && bubble.contains(e.target))) return;
+      closeVinylFloatPanel();
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+setInterval(function(){ try{ refreshVinylFloat(); }catch(e){} }, 2000);
 
 /* ============ 陪伴空间里的聊天 ============
    不单独做一套：这里就是传讯聊天的另一个窗口。
