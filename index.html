@@ -2668,6 +2668,7 @@ function normalizeLoadedSettings(){
   if(!Array.isArray(moyuState.activities)) moyuState.activities = [];
   if(!Array.isArray(moyuState.locations)) moyuState.locations = [];
   if(!Array.isArray(moyuState.history)) moyuState.history = [];
+  if(moyuState.history.length > 3) moyuState.history = moyuState.history.slice(0,3);
   if(typeof moyuState.showDetails !== 'boolean') moyuState.showDetails = true;
   if(typeof moyuState.enabled !== 'boolean') moyuState.enabled = false;
   if(Array.isArray(moyuState.records) && moyuState.records.length && !moyuState.currentSession){
@@ -3153,7 +3154,7 @@ function pickRandomStatusText(){
   return statusPool[Math.floor(Math.random()*statusPool.length)];
 }
 function nextStatusChangeDelay(){
-  const minH = 0, maxH = 5; // 0~5小时之间随机一个间隔
+  const minH = 1, maxH = 8;
   return (minH + Math.random()*(maxH-minH)) * 3600 * 1000;
 }
 function pruneStatusHistoryToToday(){
@@ -4599,6 +4600,7 @@ function getSplicedCardText(){
   const n = minN >= maxN ? maxN : (minN + Math.floor(Math.random() * (maxN - minN + 1)));
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
+
 const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
@@ -7644,6 +7646,12 @@ function formatRemain(ms){
   if(h>0) return '剩余工作时间 ' + h + '小时' + m + '分钟';
   return '剩余工作时间 ' + m + '分钟';
 }
+const MOYU_HISTORY_MAX = 3;
+function archiveMoyuSession(sess){
+  if(!Array.isArray(moyuState.history)) moyuState.history = [];
+  moyuState.history.unshift(sess);
+  if(moyuState.history.length > MOYU_HISTORY_MAX) moyuState.history = moyuState.history.slice(0, MOYU_HISTORY_MAX);
+}
 function scheduleNextMoyu(){
   let interval = (10 + Math.floor(Math.random()*41))*60*1000;
   // 照抄 ZY3：不超过本班下班时间
@@ -7665,9 +7673,7 @@ async function startMoyuSession(){
   if(!hasActs || !hasLocs) return;
   // 先把上一班归档
   if(moyuState.currentSession){
-    if(!moyuState.history) moyuState.history = [];
-    moyuState.history.unshift(moyuState.currentSession);
-    if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
+    archiveMoyuSession(moyuState.currentSession);
   }
   const workMs = Math.floor(Math.random()*8*60*60*1000);
   moyuState.currentSession = {
@@ -7702,9 +7708,7 @@ async function generateMoyuRecord(){
   const elapsed = Date.now() - sess.startTime;
   // 下班了：先归档本班，再随机等一段时间开新班
   if(elapsed >= sess.workMs){
-    if(!moyuState.history) moyuState.history = [];
-    moyuState.history.unshift(sess);
-    if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
+    archiveMoyuSession(sess);
     moyuState.currentSession = null;
     scheduleNextSession();
     await sSet('moyu-state', moyuState);
@@ -7738,9 +7742,7 @@ function resumeMoyuSchedule(){
   // 当前班次已下班：归档清空 + 排下一班
   if(typeof sess.startTime === 'number' && typeof sess.workMs === 'number'
      && (Date.now() - sess.startTime) >= sess.workMs){
-    if(!moyuState.history) moyuState.history = [];
-    moyuState.history.unshift(sess);
-    if(moyuState.history.length > 30) moyuState.history = moyuState.history.slice(0,30);
+    archiveMoyuSession(sess);
     moyuState.currentSession = null;
     scheduleNextSession();
     sSet('moyu-state', moyuState);
@@ -11715,8 +11717,12 @@ function petTick(p){
   if(!p) return;
   const now = Date.now();
   const hrs = Math.max(0, Math.min(48, (now - (p.at||now)) / 3600000));
-  p.sat  = pClamp(p.sat  - 2.5*hrs);
-  p.mood = pClamp(p.mood - (1.2 + (p.sat < 30 ? 2 : 0))*hrs);
+  const dayKey = localDateStr();
+  if(p.dayKey !== dayKey){
+    if(p.mood > 50) p.mood = 50;
+    if(p.sat > 50) p.sat = 50;
+    p.dayKey = dayKey;
+  }
   // 精力随时间自动恢复：吃饱恢复快，饿肚子恢复慢
   p.eng  = pClamp(p.eng  + (p.sat >= 20 ? 5 : 1.5)*hrs);
   const idleStart = Math.max(p.at||now, (p.lastInteract||now) + 72*3600000);
@@ -12763,7 +12769,8 @@ let scClockTimer = null;
 const SC_STATES = {
   online:  { label:'在线', e:'💬' },
   busy:    { label:'在忙', e:'💼' },
-  offline: { label:'离线', e:'🌙' }
+  offline: { label:'离线', e:'🌙' },
+  sleep:   { label:'睡觉', e:'😴' }
 };
 const SC_TIERS = [
   { min:95, label:'深度连接', color:'#7fb08a' },
@@ -12786,7 +12793,6 @@ function scSettleTime(){
   const st = statusCardData.st;
   if(!st) return;
   const now = Date.now();
-  const today = localDateStr();
   if(typeof st.tBase!=='number'){
     let h = null;
     if(typeof st.tOff==='number') h = new Date(now+st.tOff).getHours();
@@ -12794,7 +12800,6 @@ function scSettleTime(){
     if(h!==null){
       st.tBase = h;
       st.tBaseAt = now;
-      st.tDay = '';
       delete st.tOff; delete st.tHour; delete st.tPeriod;
       saveStatusCard();
     }
@@ -12802,12 +12807,11 @@ function scSettleTime(){
   if(st.tAt && now >= st.tAt){
     st.tBase = Math.floor(Math.random()*24);
     st.tBaseAt = now;
-    st.tDay = today;
     delete st.tAt;
     saveStatusCard();
     return;
   }
-  if(typeof st.tBase==='number' && st.tDay===today) return;
+  if(typeof st.tBase==='number') return;
   if(st.kind!=='online' || st.tAt) return;
   st.tAt = now + 60000 + Math.random()*60000;
   saveStatusCard();
@@ -12817,7 +12821,7 @@ function scRoll(){
   const now = Date.now();
   if(c.st) scSettleTime();
   if(c.st && now < c.st.nextAt) return c.st;
-  const kinds = ['online','busy','offline'];
+  const kinds = ['online','busy','offline','sleep'];
   let quote = '';
   try{
     if(typeof getRandomCardText === 'function'){ const t = getRandomCardText(); quote = t ? String(t) : ''; }
@@ -12827,7 +12831,9 @@ function scRoll(){
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
-  c.st = { kind, quote, tBase: prev.tBase, tBaseAt: prev.tBaseAt, tDay: prev.tDay, tAt: prev.tAt, nextAt: now + Math.max(120000, Math.random()*4*3600000) };
+  let tAt = prev.tAt;
+  if(kind==='online' && typeof prev.tBase==='number' && !tAt && Math.random() < 0.05) tAt = now + 60000 + Math.random()*60000;
+  c.st = { kind, quote, tBase: prev.tBase, tBaseAt: prev.tBaseAt, tAt, nextAt: now + (1 + Math.random()*6)*3600000 };
   saveStatusCard();
   return c.st;
 }
@@ -12840,7 +12846,7 @@ function scClockFull(){
   const pr = SC_PERIODS.find(x => h >= x[1] && h <= x[2]);
   return (pr ? pr[0] : '') + ' ' + h + '点';
 }
-const SC_CONN_RANGES = { online:[50,100], busy:[0,70], offline:[0,70] };
+const SC_CONN_RANGES = { online:[50,100], busy:[10,75], offline:[10,75], sleep:[10,75] };
 function scConnDraw(kind){
   const r = SC_CONN_RANGES[kind] || [0,100];
   return r[0] + Math.floor(Math.random()*(r[1]-r[0]+1));
@@ -14071,7 +14077,8 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .gm-c4col{display:flex;flex-direction:column;gap:4px;cursor:pointer;}
 .gm-c4cell{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:inset 0 3px 6px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;}
 .gm-c4cell .st{width:100%;height:100%;box-shadow:none;background:transparent;}
-.gm-c4cell .st.r,.gm-c4cell .st.y{box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
+.gm-c4cell .st.r{background:radial-gradient(circle at 32% 28%,#ff9aa5,#d63b4f 70%);box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
+.gm-c4cell .st.y{background:radial-gradient(circle at 32% 28%,#fff1a6,#f0b92e 70%);box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
 .gm-c4cell .st.pop{animation:gmPop .3s ease;}
 @keyframes gmPop{0%{transform:translateY(-120%);opacity:.3}100%{transform:none;opacity:1}}
 .gm-ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,300px);margin:6px auto 0;}
@@ -14154,6 +14161,7 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .gm-ch-item small{font-size:12px;color:var(--ink-soft);line-height:1.6;}
 .gm-ch-item i{font-style:normal;color:var(--ink-soft);cursor:pointer;padding:2px 6px;}
 .gm-ch-empty{font-size:12.5px;color:var(--ink-soft);text-align:center;padding:10px;}
+
 </style>
 </body>
 </html>
