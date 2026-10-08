@@ -7877,6 +7877,7 @@ async function clearMoyuHistory(){
 let _moyuManageTab = 'activities';
 function openMoyuManagePanel(){
   _moyuManageTab = 'activities';
+  _moyuGroupFilter = '';
   openOverlay(`
     <div class="drawer-head"><h3>🐟 摸鱼管理</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <div class="btn-row" style="margin-bottom:10px;">
@@ -7889,21 +7890,119 @@ function openMoyuManagePanel(){
 }
 function switchMoyuManageTab(tab){
   _moyuManageTab = tab;
+  _moyuGroupFilter = '';
   const a = document.getElementById('moyuMTabAct');
   const l = document.getElementById('moyuMTabLoc');
   if(a) a.className = 'btn' + (tab==='activities'?'':' outline');
   if(l) l.className = 'btn' + (tab==='locations'?'':' outline');
   renderMoyuManageBody();
 }
+let _moyuGroupFilter = '';
+function moyuCardKey(){ return _moyuManageTab === 'activities' ? 'activities' : 'locations'; }
+function moyuGroupStore(key){
+  if(!moyuState.cardGroups || typeof moyuState.cardGroups !== 'object') moyuState.cardGroups = {};
+  if(!moyuState.cardGroups[key] || typeof moyuState.cardGroups[key] !== 'object') moyuState.cardGroups[key] = { names:[], map:{} };
+  const g = moyuState.cardGroups[key];
+  if(!Array.isArray(g.names)) g.names = [];
+  if(!g.map || typeof g.map !== 'object') g.map = {};
+  return g;
+}
+function moyuAddCard(key, text){
+  if(!moyuState[key]) moyuState[key] = [];
+  if(moyuState[key].includes(text)) return;
+  moyuState[key].push(text);
+  if(_moyuGroupFilter && _moyuGroupFilter !== '__none'){
+    const g = moyuGroupStore(key);
+    if(g.names.includes(_moyuGroupFilter)) g.map[text] = _moyuGroupFilter;
+  }
+}
+function setMoyuGroupFilter(n){
+  const g = moyuGroupStore(moyuCardKey());
+  _moyuGroupFilter = n === -2 ? '' : (n === -1 ? '__none' : (g.names[n] || ''));
+  renderMoyuManageBody();
+}
+async function newMoyuGroup(){
+  const name = (prompt('新分组名称') || '').trim();
+  if(!name) return;
+  const g = moyuGroupStore(moyuCardKey());
+  if(!g.names.includes(name)) g.names.push(name);
+  _moyuGroupFilter = name;
+  await sSet('moyu-state', moyuState);
+  renderMoyuManageBody();
+}
+async function renameMoyuGroup(){
+  const key = moyuCardKey();
+  const g = moyuGroupStore(key);
+  const old = _moyuGroupFilter;
+  if(!old || old === '__none' || !g.names.includes(old)) return;
+  const name = (prompt('分组改名', old) || '').trim();
+  if(!name || name === old) return;
+  if(g.names.includes(name)){ alert('已有同名分组'); return; }
+  g.names[g.names.indexOf(old)] = name;
+  Object.keys(g.map).forEach(t=>{ if(g.map[t] === old) g.map[t] = name; });
+  _moyuGroupFilter = name;
+  await sSet('moyu-state', moyuState);
+  renderMoyuManageBody();
+}
+async function deleteMoyuGroup(){
+  const key = moyuCardKey();
+  const g = moyuGroupStore(key);
+  const old = _moyuGroupFilter;
+  if(!old || old === '__none' || !g.names.includes(old)) return;
+  if(!confirm('删除分组「' + old + '」？里面的字卡不会删除，会变成未分组。')) return;
+  g.names = g.names.filter(n=>n !== old);
+  Object.keys(g.map).forEach(t=>{ if(g.map[t] === old) delete g.map[t]; });
+  _moyuGroupFilter = '';
+  await sSet('moyu-state', moyuState);
+  renderMoyuManageBody();
+}
+async function moveMoyuItem(i){
+  const key = moyuCardKey();
+  const list = moyuState[key] || [];
+  const text = list[i];
+  if(text == null) return;
+  const g = moyuGroupStore(key);
+  const cur = g.map[text] || '';
+  const hint = g.names.length ? '\n现有分组：' + g.names.join('、') : '';
+  const ans = prompt('把这张字卡移到哪个分组？输入分组名，留空表示未分组。' + hint, cur);
+  if(ans === null) return;
+  const name = ans.trim();
+  if(name){
+    if(!g.names.includes(name)) g.names.push(name);
+    g.map[text] = name;
+  } else {
+    delete g.map[text];
+  }
+  await sSet('moyu-state', moyuState);
+  renderMoyuManageBody();
+}
 function renderMoyuManageBody(){
   const body = document.getElementById('moyuManageBody');
   if(!body) return;
-  const isAct = _moyuManageTab === 'activities';
-  const list = isAct ? (moyuState.activities||[]) : (moyuState.locations||[]);
+  const key = moyuCardKey();
+  const isAct = key === 'activities';
+  const list = moyuState[key] || [];
+  const g = moyuGroupStore(key);
+  if(_moyuGroupFilter && _moyuGroupFilter !== '__none' && !g.names.includes(_moyuGroupFilter)) _moyuGroupFilter = '';
   const label = isAct ? '摸鱼活动' : '工作地点';
+  const groupOf = (t)=> (g.map[t] && g.names.includes(g.map[t])) ? g.map[t] : '';
+  const shown = list.map((t,i)=>({t,i})).filter(o=>{
+    if(!_moyuGroupFilter) return true;
+    if(_moyuGroupFilter === '__none') return !groupOf(o.t);
+    return groupOf(o.t) === _moyuGroupFilter;
+  });
+  const noneCount = list.filter(t=>!groupOf(t)).length;
+  const chip = (txt, on, n)=>`<div class="btn${on?'':' outline'}" style="padding:6px 12px;font-size:12.5px;" onclick="setMoyuGroupFilter(${n})">${txt}</div>`;
+  const chips = chip('全部 ' + list.length, !_moyuGroupFilter, -2)
+    + chip('未分组 ' + noneCount, _moyuGroupFilter === '__none', -1)
+    + g.names.map((n,idx)=>chip(escapeHtml(n) + ' ' + list.filter(t=>groupOf(t)===n).length, _moyuGroupFilter === n, idx)).join('')
+    + `<div class="btn outline" style="padding:6px 12px;font-size:12.5px;" onclick="newMoyuGroup()">＋ 分组</div>`;
+  const inGroup = _moyuGroupFilter && _moyuGroupFilter !== '__none';
   body.innerHTML = `
-    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">当前「${label}」共 ${list.length} 条。</div>
-    <label class="field">批量添加（每行一条）</label>
+    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">当前「${label}」共 ${list.length} 条。点字卡可以移到别的分组。</div>
+    <div class="btn-row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px;">${chips}</div>
+    ${inGroup ? `<div class="btn-row" style="margin-bottom:8px;"><div class="btn outline" style="padding:6px 12px;font-size:12.5px;" onclick="renameMoyuGroup()">改名</div><div class="btn outline" style="padding:6px 12px;font-size:12.5px;" onclick="deleteMoyuGroup()">删除分组</div></div>` : ''}
+    <label class="field">批量添加（每行一条${inGroup ? '，会加入当前分组' : ''}）</label>
     <textarea id="moyuBulkInput" placeholder="${isAct ? '超市扫荡&#10;陪你&#10;边工作边想你' : '花店&#10;咖啡馆'}" style="min-height:80px;"></textarea>
     <div class="btn-row">
       <div class="btn" onclick="addMoyuBulk()">添加</div>
@@ -7911,7 +8010,7 @@ function renderMoyuManageBody(){
     </div>
     <input type="file" id="moyuFileInput" accept=".txt,.json" class="hidden" onchange="onMoyuFile(event)">
     <div style="margin-top:12px;">
-      ${list.length ? list.map((t,i)=>`<span class="card-pill">${escapeHtml(t)}<span class="del" style="margin-left:6px;" onclick="deleteMoyuItem(${i})">✕</span></span>`).join('') : '<div class="empty-note">列表空空如也</div>'}
+      ${shown.length ? shown.map(o=>`<span class="card-pill" onclick="moveMoyuItem(${o.i})">${(!_moyuGroupFilter && groupOf(o.t)) ? `<span style="opacity:.55;font-size:11px;margin-right:4px;">${escapeHtml(groupOf(o.t))}·</span>` : ''}${escapeHtml(o.t)}<span class="del" style="margin-left:6px;" onclick="event.stopPropagation();deleteMoyuItem(${o.i})">✕</span></span>`).join('') : '<div class="empty-note">这里还没有字卡</div>'}
     </div>
     <div class="btn-row" style="margin-top:14px;">
       <input type="text" id="moyuSingleInput" placeholder="单条新增…" style="flex:1;">
@@ -7926,7 +8025,7 @@ async function addMoyuBulk(){
   if(!lines.length) return;
   const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
   if(!moyuState[key]) moyuState[key] = [];
-  lines.forEach(l=>{ if(!moyuState[key].includes(l)) moyuState[key].push(l); });
+  lines.forEach(l=>moyuAddCard(key, l));
   raw.value = '';
   await sSet('moyu-state', moyuState);
   renderMoyuManageBody();
@@ -7938,7 +8037,7 @@ async function addMoyuSingle(){
   if(!val) return;
   const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
   if(!moyuState[key]) moyuState[key] = [];
-  if(!moyuState[key].includes(val)) moyuState[key].push(val);
+  moyuAddCard(key, val);
   inp.value = '';
   await sSet('moyu-state', moyuState);
   renderMoyuManageBody();
@@ -7946,7 +8045,9 @@ async function addMoyuSingle(){
 async function deleteMoyuItem(i){
   const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
   if(!moyuState[key]) return;
-  moyuState[key].splice(i, 1);
+  const removed = moyuState[key].splice(i, 1)[0];
+  const gs = moyuGroupStore(key);
+  if(removed != null) delete gs.map[removed];
   await sSet('moyu-state', moyuState);
   renderMoyuManageBody();
 }
@@ -7968,7 +8069,7 @@ function onMoyuFile(e){
     if(!lines.length){ alert('没有识别到内容'); return; }
     const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
     if(!moyuState[key]) moyuState[key] = [];
-    lines.forEach(l=>{ if(!moyuState[key].includes(l)) moyuState[key].push(l); });
+    lines.forEach(l=>moyuAddCard(key, l));
     await sSet('moyu-state', moyuState);
     renderMoyuManageBody();
   };
