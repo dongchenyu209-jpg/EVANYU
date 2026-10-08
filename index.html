@@ -7604,7 +7604,7 @@ function renderMoyuHome(){
     for(let i=sess.records.length-1;i>=0;i--){ if(isToday(sess.records[i])){ latest = sess.records[i]; break; } }
   }
   if(!latest && Array.isArray(moyuState.history)){
-    for(let i=moyuState.history.length-1;i>=0 && !latest;i--){
+    for(let i=0;i<moyuState.history.length && !latest;i++){
       const h = moyuState.history[i];
       if(h && Array.isArray(h.records)){
         for(let j=h.records.length-1;j>=0;j--){ if(isToday(h.records[j])){ latest = h.records[j]; break; } }
@@ -7829,7 +7829,8 @@ function renderMoyuNotePanelBody(tab){
   }
   if(tab==='today'){
     const todayStr = localDateStr();
-    const isTodaySess = (x)=> x && typeof x.startTime==='number' && localDateStr(new Date(x.startTime))===todayStr;
+    const isTodaySess = (x)=> !!x && ((typeof x.startTime==='number' && localDateStr(new Date(x.startTime))===todayStr) ||
+      (Array.isArray(x.records) && x.records.some(r=> r && r.time!=null && localDateStr(new Date(r.time))===todayStr)));
     const cur = moyuState.currentSession;
     const list = [];
     if(cur && isTodaySess(cur)) list.push(renderSessionCard(cur, true));
