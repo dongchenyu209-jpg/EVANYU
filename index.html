@@ -1649,7 +1649,7 @@
 
       <div class="h2-cols h2-squares">
         <div class="h2-card h2-sq h2-habit" id="habitCard">
-          <div class="h2-sqhead"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.3 2.5 2.5 4.8-5.2"/></svg></span><b>习惯</b><small id="homeHabitCount"></small></div>
+          <div class="h2-sqhead"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.3 2.5 2.5 4.8-5.2"/></svg></span><b>待办</b><small id="homeHabitCount"></small></div>
           <div id="homeHabitList"></div>
         </div>
         <div class="h2-card h2-sq h2-daily">
@@ -1663,7 +1663,7 @@
             </div>
             <div class="h2-dpage h2-daily-grid">
               <div class="h2-d" onclick="go('period')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c3 3.6 5.5 6.5 5.5 9.5a5.5 5.5 0 0 1-11 0C6.5 10.5 9 7.6 12 4Z"/></svg></span><em>月经</em></div>
-              <div class="h2-d" onclick="go('companion');setTimeout(()=>switchCompanionTab('anniv'),50)"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></span><em>纪念日</em></div>
+              <div class="h2-d" onclick="go('anniv')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></span><em>纪念日</em></div>
             </div>
           </div></div>
         </div>
@@ -1704,18 +1704,10 @@
     </div>
   </section>
 
-  <!-- ============ COMPANION 陪伴记录 ============ -->
-  <section id="view-companion" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>陪伴记录</h2></div>
-    <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap;">
-      <div class="btn" id="compTabTodo" onclick="switchCompanionTab('todo')">待办</div>
-      <div class="btn outline" id="compTabHabit" onclick="switchCompanionTab('habit')">习惯</div>
-      <div class="btn outline" id="compTabDiary" onclick="switchCompanionTab('diary')">日记</div>
-      <div class="btn outline" id="compTabAnniv" onclick="switchCompanionTab('anniv')">纪念日</div>
-      <div class="btn outline" id="compTabPeriod" onclick="switchCompanionTab('period')">月经</div>
-      <div class="btn outline" id="compTabFav" onclick="switchCompanionTab('fav')">收藏</div>
-    </div>
-    <div id="companionBody"></div>
+  <!-- ============ ANNIV 纪念日 ============ -->
+  <section id="view-anniv" class="view hidden">
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>纪念日</h2></div>
+    <div id="annivBody"></div>
   </section>
 
   <!-- ============ CALLS 通话（挂在传讯页面下面，从聊天头部进入） ============ -->
@@ -1739,20 +1731,17 @@
           <div class="cname" id="chatCName">陆沉</div>
           <div class="cstat" id="chatCStat" onclick="openStatusCard()" style="cursor:pointer;">在线</div>
         </div>
-        <div class="mini-btn" onclick="triggerProactiveMessage()" title="让TA主动找我">
-          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/><path d="M12 13v5" opacity=".4"/></svg>
-        </div>
         <div class="mini-btn" onclick="startOutgoingCall()" title="打电话">
           <svg viewBox="0 0 24 24"><path d="M6.5 3.5c.6-.6 1.6-.6 2.2 0l1.6 1.6c.5.5.5 1.4 0 1.9l-1.3 1.3a12 12 0 0 0 5.7 5.7l1.3-1.3c.5-.5 1.4-.5 1.9 0l1.6 1.6c.6.6.6 1.6 0 2.2l-1.4 1.4c-.7.7-1.7.9-2.6.5A16 16 0 0 1 4.6 7.5c-.4-.9-.2-1.9.5-2.6z"/></svg>
         </div>
-        <div class="mini-btn" onclick="go('calls')" title="通话记录">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.5 2"/></svg>
+        <div class="mini-btn" onclick="toggleChatMore(event)" title="更多">
+          <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>
         </div>
-        <div class="mini-btn" onclick="openChatFunctionPanel()" title="更多功能">
-          <svg viewBox="0 0 24 24"><path d="M12 4.5v2M12 17.5v2M4.5 12h2M17.5 12h2M6.8 6.8l1.4 1.4M15.8 15.8l1.4 1.4M6.8 17.2l1.4-1.4M15.8 8.2l1.4-1.4"/><circle cx="12" cy="12" r="2.2"/></svg>
-        </div>
-        <div class="mini-btn" onclick="openChatSettings()" title="传讯设置">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div class="chat-more hidden" id="chatMore" onclick="hideChatMore()">
+          <div onclick="triggerProactiveMessage()">让 TA 主动找我</div>
+          <div onclick="go('calls')">通话记录</div>
+          <div onclick="openChatFunctionPanel()">更多功能</div>
+          <div onclick="openChatSettings()">传讯设置</div>
         </div>
       </div>
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -1763,15 +1752,12 @@
         <span style="flex:1"></span>
         <span class="close-x" onclick="clearPendingSticker()" title="取消">✕</span>
       </div>
-      <div class="chat-input-bar">
+      <div class="chat-tools hidden" id="chatTools" onclick="hideChatTools()">
         <div class="mini-btn" onclick="openCardPicker()" title="字卡">
           <svg viewBox="0 0 24 24"><rect x="5" y="4" width="10" height="14" rx="1.5"/><rect x="9" y="6" width="10" height="14" rx="1.5" opacity=".55"/><path d="M8 9h4M8 12h3"/></svg>
         </div>
-        <div class="mini-btn" onclick="openStickerPicker('attach','my')" title="我的表情包（可与文字同发）">
+        <div class="mini-btn" onclick="openStickerPicker('attach','my')" title="表情包">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01M8.5 14.5c1.2 1.3 2.8 2 3.5 2s2.3-.7 3.5-2"/></svg>
-        </div>
-        <div class="mini-btn" onclick="openStickerPicker('attach','ta')" title="对方的表情包（可与文字同发）">
-          <svg viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="13" rx="2.5"/><path d="M8.5 9h.01M14.5 9h.01M9 12.5c.9 1 1.9 1.5 3 1.5s2.1-.5 3-1.5"/><path d="M8 20.5h8"/></svg>
         </div>
         <div class="mini-btn" onclick="openSendTransfer()" title="转账">
           <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M5 9h14"/><circle cx="12" cy="13.5" r="2.2"/></svg>
@@ -1780,6 +1766,11 @@
           <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m7 16 3.5-3.5 2.5 2.5 3-4L17 16"/></svg>
         </div>
         <input type="file" id="chatImageInput" accept="image/*" class="hidden" onchange="onChatImageFile(event)">
+      </div>
+      <div class="chat-input-bar">
+        <div class="mini-btn" onclick="toggleChatTools()" title="更多">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
         <input type="text" id="chatInput" placeholder="说点什么…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)sendUserMessage()">
         <div class="mini-btn" onclick="sendUserMessage()" title="发送">
           <svg viewBox="0 0 24 24"><path d="M4 12h13M13 6l6 6-6 6"/></svg>
@@ -2029,22 +2020,17 @@
 
   <!-- ============ DIARY 日记 ============ -->
   <section id="view-diary" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>日记日历</h2></div>
-    <div class="box" style="padding:12px 10px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px;">
-        <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(-1)">‹</span>
-        <span id="diaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
-        <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(1)">›</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
-        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-      </div>
-      <div id="diaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>日记</h2></div>
+    <div class="dy-top">
+      <div><span class="dy-month" id="diaryMonthLabel"></span><span class="dy-year" id="diaryYearLabel"></span></div>
+      <div class="dy-side"><span class="dy-count" id="diaryCount"></span><span class="dy-nav" onclick="shiftDiaryMonth(-1)">‹</span><span class="dy-nav" onclick="shiftDiaryMonth(1)">›</span></div>
     </div>
-    <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>
-    <div class="btn-row" style="margin-top:10px;">
-      <div class="btn outline" onclick="openTaMoodPoolPanel()">💗 陆沉的心情池</div>
+    <div class="dy-cal">
+      <div class="dy-week"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
+      <div id="diaryCalendarGrid" class="dy-grid"></div>
     </div>
+    <div class="dy-detail" id="diaryDetail"></div>
+    <div class="dy-link" id="diaryPoolLink" onclick="openTaMoodPoolPanel()"></div>
   </section>
 
   <!-- beautify 已并入设置 -->
@@ -2083,7 +2069,8 @@
 
   <section id="view-mall" class="view hidden">
     <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>商场</h2></div>
-    <div id="mallBody" style="padding:12px 14px 90px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
+    <div id="mallBody" style="padding:12px 14px 120px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
+    <div class="ml-cartbar hidden" id="mallCartBar" onclick="mallShowCat('cart')"><span id="mallCartTxt"></span><span class="ml-cartgo">去结算</span></div>
   </section>
 
   <!-- ============ MOYU 摸鱼小记 ============ -->
@@ -2800,7 +2787,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', companion:'陪伴记录', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', pet:'宠物', moyu:'摸鱼小记', mall:'商场' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', anniv:'纪念日', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', pet:'宠物', moyu:'摸鱼小记', mall:'商场' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2816,6 +2803,7 @@ function go(name){
   const bn = document.getElementById('bnTitle');
   if(bn) bn.textContent = VIEW_TITLES[name] || 'EVAN';
   currentView = name;
+  document.body.dataset.view = name;
   // 传讯全屏：隐藏底部导航 + 锁住页面滚动（只允许消息列表内部滚）
   const bottomNav = document.querySelector('.bottom-nav');
   if(bottomNav) bottomNav.style.display = (name==='chat') ? 'none' : '';
@@ -2843,7 +2831,7 @@ function go(name){
   }
   if(name==='cards'){ renderCardsView(); }
   if(name==='period'){ renderPeriod(); }
-  if(name==='companion'){ renderCompanionBody(); }
+  if(name==='anniv'){ renderAnnivPage(); }
   if(name==='favs'){ try{ renderCompanionFavList(); }catch(e){} }
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
@@ -3998,6 +3986,23 @@ function assignGroupSender(msg){
   }
   return msg;
 }
+function msgTimeDivider(m, prev){
+  if(!m || !m.time) return '';
+  if(prev && prev.time && (m.time - prev.time) < 300000) return '';
+  return '<div class="msg-time">'+formatMsgTime(m.time)+'</div>';
+}
+function toggleChatMore(e){
+  if(e) e.stopPropagation();
+  const el = document.getElementById('chatMore');
+  if(!el) return;
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')){
+    setTimeout(function(){ document.addEventListener('click', hideChatMore, {once:true}); }, 0);
+  }
+}
+function hideChatMore(){ const el = document.getElementById('chatMore'); if(el) el.classList.add('hidden'); }
+function toggleChatTools(){ const el = document.getElementById('chatTools'); if(el) el.classList.toggle('hidden'); }
+function hideChatTools(){ const el = document.getElementById('chatTools'); if(el) el.classList.add('hidden'); }
 function renderChat(preserveScroll, scrollToId){
   const wrap = document.getElementById('chatMsgs');
   document.getElementById('chatCName').textContent = chatSettings.companionName;
@@ -4012,7 +4017,7 @@ function renderChat(preserveScroll, scrollToId){
   const botAvatar = profile.avatar && profile.avatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.avatar}">` : (profile.avatar||'🌙');
   const myAvatar = profile.myAvatar && profile.myAvatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.myAvatar}">` : (profile.myAvatar||'🙂');
   const loadMoreHtml = !pageState.chatMessages.exhausted ? `<div class="load-more-bar" onclick="loadMoreChat()">↑ 加载更早的聊天记录</div>` : '';
-  wrap.innerHTML = loadMoreHtml + chatMessages.map(m=>{
+  const _renderOne = (m)=>{
     const time = formatMsgTime(m.time);
     if(m.type==='pat' || m.type==='gesture'){
       return `<div id="msg-${m.id}" style="text-align:center;font-size:11.5px;color:var(--ink-soft);margin:6px 0;">${escapeHtml(m.content)}</div>`;
@@ -4026,7 +4031,7 @@ function renderChat(preserveScroll, scrollToId){
     }
     const quoteRefHtml = m.quoteOf
       ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${escapeHtml(m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName)}: ${escapeHtml(m.quoteOf.preview)}</div>` : '';
-    const quoteBtn = `<span class="quote-trigger" onclick="setQuoteTarget('${m.id}')">↩引用</span>`;
+    const quoteBtn = '';
       const _isGroup = !!(m.from==='bot' && chatSettings.group && chatSettings.group.enabled);
   const _senderName = _isGroup ? (m.sender || chatSettings.companionName) : null;
   const _senderAvatar = (_isGroup && m.sender && m.senderAvatar && String(m.senderAvatar).startsWith('data:')) ? m.senderAvatar : null;
@@ -4040,9 +4045,9 @@ function renderChat(preserveScroll, scrollToId){
     let bubbleHtml;
     if(m.type==='sticker'){
       const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
-      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${quoteBtn}</div></div>`;
     } else if(m.type==='image'){
-      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div></div>`;
     } else if(m.type==='transfer'){
       const st = m.status || 'pending';
       const mine = m.from==='user';
@@ -4054,7 +4059,7 @@ function renderChat(preserveScroll, scrollToId){
         ${quoteRefHtml}
         <div class="tf-main"><div class="tf-ico">${stIco}</div><div><div class="tf-amount">¥${Number(m.amount).toFixed(2)}</div><div class="tf-status">${stText}</div></div></div>
         <div class="tf-note">${escapeHtml(m.note||'转账')}</div>
-        <div class="t" style="color:rgba(255,255,255,0.85);">${time}${quoteBtn}</div>
+        <div class="t" style="color:rgba(255,255,255,0.85);">${quoteBtn}</div>
       </div>`;
     } else if(m.type==='gift'){
       const fromMe = m.from==='user';
@@ -4074,7 +4079,7 @@ function renderChat(preserveScroll, scrollToId){
             ${priceOrNote}
           </div>
         </div>
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='wish'){
       const wItems = (m.items||[]);
@@ -4095,7 +4100,7 @@ function renderChat(preserveScroll, scrollToId){
           <div class="wish-total">共 ${wItems.length}件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
           ${wActs}
         </div>
-        <div class="t" style="text-align:center;">${time}${quoteBtn}</div>
+        <div class="t" style="text-align:center;">${quoteBtn}</div>
       </div>`;
     } else if(m.type==='cart'){
       const fromMe = m.from==='user';
@@ -4107,7 +4112,7 @@ function renderChat(preserveScroll, scrollToId){
         <div>${rows}</div>
         <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">共 ${items.length} 件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
         ${(m.skipped && m.skipped.length) ? '<div style="font-size:12px;color:var(--ink-soft);margin:8px 0 3px;">下次再买</div><div style="opacity:.6;">' + m.skipped.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span>¥${Number(x.price||0).toFixed(0)}</span></div>`).join('') + '</div>' : ''}
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${time}${(fromMe&&m.read)?' · 已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
@@ -4133,7 +4138,7 @@ function renderChat(preserveScroll, scrollToId){
         <div class="q-question">${escapeHtml(m.question||'')}</div>
         ${opts}
         ${statusHtml}
-        <div class="t">${time}${quoteBtn}</div>
+        <div class="t">${quoteBtn}</div>
       </div>`;
     } else if(m.type==='weblink'){
       const collapsed = m.collapsed !== undefined ? m.collapsed : true;
@@ -4146,24 +4151,25 @@ function renderChat(preserveScroll, scrollToId){
           <span onclick="event.stopPropagation();toggleWebLinkCollapse('${m.id}')" style="cursor:pointer;padding:2px 4px;" title="展开/收起">${collapsed ? '▾' : '▴'}</span>
         </div>
         ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escapeHtml(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
-        <div class="t" style="padding:4px 12px 8px;">${time}${(m.from==='user'&&m.read)?' · 已读':''}${quoteBtn}</div>
+        <div class="t" style="padding:4px 12px 8px;">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='combo'){
       const stVal = m.sticker || '';
       const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(stVal)}">` : escapeHtml(stVal);
-      const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
-      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${time}${readTag}${quoteBtn}</div></div>`;
+      const readTag = (m.from==='user' && m.read) ? '已读' : '';
+      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${readTag}${quoteBtn}</div></div>`;
     } else if(m.type==='invite'){
       bubbleHtml = renderInviteCardHtml(m, time);
     } else {
-      const readTag = (m.from==='user' && m.read) ? ' · 已读' : '';
+      const readTag = (m.from==='user' && m.read) ? '已读' : '';
       const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
-      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${time}${readTag}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${readTag}${quoteBtn}</div></div>`;
     }
       const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
   const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}</div>` : bubbleHtml;
   return `<div id="msg-${m.id}" class="msg-row ${m.from}" data-mid="${m.id}" ontouchstart="lpStart(event, this)" ontouchend="lpEnd(event)" ontouchmove="lpCancel()" oncontextmenu="lpMenu(event, this)">${avatarHtml}${_rowInner}</div>`;
-  }).join('');
+  };
+  wrap.innerHTML = loadMoreHtml + chatMessages.map((m,i)=>msgTimeDivider(m, chatMessages[i-1]) + _renderOne(m)).join('');
   syncTypingIndicatorDOM(false); // 重建整个聊天列表会把"正在输入…"这个提示一起冲掉，这里给它补回来，避免看起来像回复被打断了
   if(scrollToId){
     const el = document.getElementById('msg-'+scrollToId);
@@ -4293,13 +4299,15 @@ function lpFindMenu(el){
   var menu = document.createElement('div');
   menu.className = 'lp-menu';
   var html = '';
+  html += '<div class="lp-list" data-act="quote">引用</div>';
   html += '<div class="lp-list" data-act="recall">撤回</div>';
   if(canCopy) html += '<div class="lp-list" data-act="copy">复制</div>';
   html += '<div class="lp-list" data-act="none">取消</div>';
   menu.innerHTML = html;
   menu.onclick = function(ev){
     var a = ev.target.getAttribute('data-act');
-    if(a==='recall') recallMessage(mid);
+    if(a==='quote'){ lpTeardown(); setQuoteTarget(mid); }
+    else if(a==='recall') recallMessage(mid);
     else if(a==='copy') copyMessage(mid);
     else lpTeardown();
   };
@@ -4387,11 +4395,11 @@ function renderQuoteBar(){
   const who = quoteTarget.from==='user' ? (profile.myName||'我') : chatSettings.companionName;
   bar.innerHTML = `<div class="quote-bar-inner"><span>回复 ${escapeHtml(who)}：${escapeHtml(quoteTarget.preview)}</span><span class="close-x" onclick="clearQuoteTarget()">✕</span></div>`;
 }
-/* TA 自己回复时，随机决定要不要引用聊天记录里的某一条，纯随机不看内容对不对得上 */
+/* TA 自己回复时，随机决定要不要引用最近 15 条消息（不分类型）里的某一条，纯随机不看内容对不对得上 */
 function maybeQuoteMessage(){
-  const candidates = chatMessages.filter(m=> (m.type==='text' || !m.type) );
+  const candidates = chatMessages.slice(-15);
   if(candidates.length===0) return null;
-  if(Math.random() < 0.5){ // 不设区间，就是最朴素的对半抛硬币，跟已读不回那个逻辑一致
+  if(Math.random() < 0.35){
     const target = candidates[Math.floor(Math.random()*candidates.length)];
     return { id: target.id, from: target.from, preview: buildQuotePreview(target) };
   }
@@ -4483,6 +4491,7 @@ function runReplyBatch(userText, total, startFrom){
   const _sendOneReply = async function(i){
     let reply = null;
     try{ reply = pickReplyFor(userText, { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
+    if(i===0){ const _tr = maybeTodoReminder(); if(_tr) reply = _tr; }
     if(!reply){
       reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
     }
@@ -4849,6 +4858,7 @@ function runProBurst(total, startFrom){
   const sendOneInner = async function(i){
     let reply = null;
     try{ reply = pickReplyFor('', { followup: i>0 }); }catch(e){ console.error('pickReply', e); }
+    if(i===0){ const _tr = maybeTodoReminder(); if(_tr) reply = _tr; }
     showTyping(false);
     if(!reply){ _proMsgBusy = false; clearPendingProBurst(); return; }
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
@@ -5904,33 +5914,29 @@ async function sendCardText(text){
 
 /* ---- sticker picker (user sends a sticker) ---- */
 function openStickerPicker(mode, which){
-  // mode: 'send' = 只发表情；'attach' = 选表情挂到输入框，可与文字一起发
-  // which: 'my' = 我的表情包（默认）；'ta' = 对方的表情包
-  // 注：两个按钮都由「我」发出，只是来源分组不同；'ta' 组同时也是 TA 自动回复抽选用的池子
   mode = mode || 'attach';
   which = (which === 'ta') ? 'ta' : 'my';
   const grpName = which === 'ta' ? '对方的表情包' : '我的表情包';
   const all = getStickerList(which);
   const validIdx = [];
   all.forEach((s,i)=>{ if(s && s.value) validIdx.push(i); });
-  if(validIdx.length===0){
-    openOverlay(`<div class="drawer-head"><h3>还没有表情包</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">先去传讯设置 →「${grpName}」里添加吧。</div>`);
-    return;
-  }
+  const tabs = `<div class="stk-tabs"><span class="${which==='my'?'on':''}" onclick="openStickerPicker('${mode}','my')">我的表情</span><span class="${which==='ta'?'on':''}" onclick="openStickerPicker('${mode}','ta')">对方的表情</span></div>`;
+  const grid = validIdx.length === 0
+    ? `<div class="empty-note">还没有表情包，先去传讯设置 →「${grpName}」里添加吧。</div>`
+    : `<div>${validIdx.map(idx=>{
+        const s = all[idx];
+        const isImg = String(s.value).startsWith('data:');
+        const disp = isImg
+          ? `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`
+          : `<span style="font-size:30px;">${escapeHtml(s.value)}</span>`;
+        const fn = mode==='attach' ? 'pickStickerByIndex' : 'sendStickerByIndex';
+        return `<span class="chip" style="padding:8px;" onclick="${fn}(${idx},'${which}')">${disp}</span>`;
+      }).join('')}</div>`;
   openOverlay(`
     <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。也可点「仅发表情」。':'点一下立刻发出。'} 当前：${grpName} · 去「传讯设置 → ${grpName}」可管理。</p>
-    <div>${validIdx.map(idx=>{
-      const s = all[idx];
-      const isImg = String(s.value).startsWith('data:');
-      const disp = isImg
-        ? `<img loading="lazy" decoding="async" src="${escapeHtml(s.value)}" style="width:44px;height:44px;object-fit:contain;">`
-        : `<span style="font-size:30px;">${escapeHtml(s.value)}</span>`;
-      if(mode==='attach'){
-        return `<span class="chip" style="padding:8px;" onclick="pickStickerByIndex(${idx},'${which}')">${disp}</span>`;
-      }
-      return `<span class="chip" style="padding:8px;" onclick="sendStickerByIndex(${idx},'${which}')">${disp}</span>`;
-    }).join('')}</div>
+    ${tabs}
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。':'点一下立刻发出。'}</p>
+    ${grid}
   `);
 }
 function pickStickerByIndex(i, which){ const s = getStickerList(which==='ta'?'ta':'my')[i]; if(s && s.value) pickStickerForCombo(s.value); }
@@ -6864,7 +6870,7 @@ async function openDiaryDay(dateStr){
   const latest = existing[0];
   const curMood = latest ? latest.mood : '🙂';
   const moodOptions = DIARY_MOODS.map(m=>`<span class="chip diary-mood-chip" data-mood="${m}" onclick="selectDiaryMood(this)" style="font-size:20px;padding:6px 8px;${m===curMood?'background:var(--blush);border-color:var(--rouge);':''}">${m}</span>`).join('');
-  openOverlay(`
+  openOverlay(`<div class="dy-sheet">
     <div class="drawer-head"><h3>${dateStr}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <label class="field">今日心情</label>
     <div id="diaryMoodPicker" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">${moodOptions}</div>
@@ -6879,7 +6885,7 @@ async function openDiaryDay(dateStr){
       ${latest ? `<div class="btn outline" onclick="deleteDiary('${latest.id}')">删除</div>` : ''}
       <div class="btn outline" onclick="closeOverlay()">取消</div>
     </div>
-  `);
+  </div>`);
   const ta = document.getElementById('diaryText');
   const food = document.getElementById('diaryFood');
   if(ta && latest) ta.value = latest.text || '';
@@ -6914,35 +6920,57 @@ async function deleteDiary(id){
   closeOverlay();
   renderDiary();
 }
+function diaryPick(key){
+  diaryUI.sel = key;
+  renderDiary();
+}
 function renderDiary(){
   const y = diaryUI.year, m = diaryUI.month;
   const firstDow = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m+1, 0).getDate();
   const today = todayKey();
+  const prefix = y+'-'+String(m+1).padStart(2,'0');
+  if(!diaryUI.sel || diaryUI.sel.slice(0,7)!==prefix){
+    diaryUI.sel = today.slice(0,7)===prefix ? today : diaryKey(y,m,1);
+  }
+  const who = (typeof chatSettings!=='undefined' && chatSettings && chatSettings.companionName) ? chatSettings.companionName : 'TA';
   let html = '';
+  let written = 0;
   for(let i=0;i<firstDow;i++) html += '<div></div>';
   for(let d=1;d<=daysInMonth;d++){
     const key = diaryKey(y,m,d);
-    const entries = diaryByDate(key);
-    const mood = entries[0] ? entries[0].mood : '';
-    const isToday = key===today;
-    const has = entries.length>0;
-    html += `<div onclick="openDiaryDay('${key}')" style="
-      aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid ${isToday?'var(--rouge)':(has?'var(--ink)':'var(--rule)')};
-      background:${has?'var(--blush)':(isToday?'var(--paper-2)':'var(--paper)')};
-      border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      cursor:pointer;font-size:12px;padding:2px;box-sizing:border-box;">
-      <div style="font-weight:${isToday?'700':'400'};">${d}</div>
-      <div style="font-size:14px;line-height:1.1;min-height:16px;">${mood||''}</div>
-      ${_taMoodCell(key)}
-    </div>`;
+    const has = diaryByDate(key).length>0;
+    if(has) written++;
+    const ta = !!taMoodFor(key);
+    html += `<div class="dy-cell${key===diaryUI.sel?' sel':''}${key===today?' today':''}" onclick="diaryPick('${key}')"><span class="dy-n">${d}</span><span class="dy-dots"><i class="${has?'on':''}"></i><i class="${ta?'ta':''}"></i></span></div>`;
   }
-  [['diaryMonthLabel','diaryCalendarGrid'],['compDiaryMonthLabel','compDiaryCalendarGrid']].forEach(function(ids){
-    const label = document.getElementById(ids[0]);
-    if(label) label.textContent = `${y}年${m+1}月`;
-    const grid = document.getElementById(ids[1]);
-    if(grid) grid.innerHTML = html;
-  });
+  const monthLabel = document.getElementById('diaryMonthLabel');
+  if(monthLabel) monthLabel.textContent = (m+1)+'月';
+  const yearLabel = document.getElementById('diaryYearLabel');
+  if(yearLabel) yearLabel.textContent = y;
+  const cnt = document.getElementById('diaryCount');
+  if(cnt) cnt.textContent = '已写 '+written+' 篇';
+  const grid = document.getElementById('diaryCalendarGrid');
+  if(grid) grid.innerHTML = html;
+  const link = document.getElementById('diaryPoolLink');
+  if(link) link.textContent = who+'的心情池';
+  const box = document.getElementById('diaryDetail');
+  if(box){
+    const sel = diaryUI.sel;
+    const ent = diaryByDate(sel)[0];
+    const tm = taMoodFor(sel);
+    const day = parseInt(sel.slice(8),10);
+    const wk = '日一二三四五六'.charAt(new Date(y,m,day).getDay());
+    let h = `<div class="dy-d-head"><div>${m+1}月${day}日<span class="dy-wk">周${wk}</span></div><span class="dy-edit" onclick="openDiaryDay('${sel}')">${ent?'编辑':'写日记'}</span></div>`;
+    let tags = '';
+    if(ent && ent.mood) tags += `<span class="dy-tag">我 ${escapeHtml(ent.mood)}</span>`;
+    if(tm) tags += `<span class="dy-tag">${escapeHtml(who)} ${escapeHtml(tm.mood||'')}</span>`;
+    if(tags) h += `<div class="dy-tags">${tags}</div>`;
+    if(ent && ent.text) h += `<div class="dy-text">${escapeHtml(ent.text)}</div>`;
+    else h += `<div class="dy-empty">这一天还没有写日记</div>`;
+    if(ent && ent.food) h += `<div class="dy-sep"></div><div class="dy-label">吃了什么</div><div class="dy-food">${escapeHtml(ent.food)}</div>`;
+    box.innerHTML = h;
+  }
 }
 
 /* ============================================================
@@ -7184,7 +7212,7 @@ async function clearAvatarImage(){
   fillSettingsForm();
 }
 const _origGo = go;
-go = function(name){ _origGo(name); if(name==='companion'){ loadCompanionData().then(()=>{ const t=window._wantCompTab||'todo'; window._wantCompTab=null; _compTab=t; switchCompanionTab(t); }); } };
+go = function(name){ _origGo(name); if(name==='anniv'){ loadCompanionData().then(renderAnnivPage); } };
 
 async function saveProfile(){
   profile.name = document.getElementById('setName').value.trim() || profile.name;
@@ -7217,7 +7245,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','companion-todos','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','todo-remind','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -7256,7 +7284,7 @@ async function exportBackup(){
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState, choiceGame: (typeof choiceGame!=='undefined' ? choiceGame : null),
-    companionTodos, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
+    todoRemind, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -7337,7 +7365,7 @@ function onImportBackupFile(e){
     await sSet('splice-cards-enabled', spliceCardsEnabled);
     await sSet('splice-card-settings', spliceCardSettings);
     // 陪伴记录 / 接口设置 / 朋友圈待办事件（老备份里没有这些字段就保持现状不动）
-    if(Array.isArray(data.companionTodos)){ companionTodos = data.companionTodos; await sSet('companion-todos', companionTodos); }
+    if(data.todoRemind && typeof data.todoRemind.prob === 'number'){ todoRemind = { prob: data.todoRemind.prob }; await sSet('todo-remind', todoRemind); }
     if(Array.isArray(data.companionHabits)){ companionHabits = data.companionHabits; await sSet('companion-habits', companionHabits); }
     if(Array.isArray(data.companionAnnivs)){ companionAnnivs = data.companionAnnivs; await sSet('companion-annivs', companionAnnivs); }
     if(Array.isArray(data.companionFavorites)){ companionFavorites = data.companionFavorites; await sSet('companion-favorites', companionFavorites); }
@@ -8151,14 +8179,16 @@ function closeOverlay(){ document.getElementById('overlayRoot').innerHTML=''; }
 /* ============================================================
    COMPANION 陪伴记录：待办 / 习惯 / 纪念日 / 月经
    ============================================================ */
-let companionTodos = [];
+let todoRemind = { prob: 30 };
 let companionHabits = [];
 let companionAnnivs = [];
 let companionFavorites = [];
-let _compTab = 'todo';
 
 async function loadCompanionData(){
-  companionTodos = await sGet('companion-todos', []);
+  try{
+    const _tr = await sGet('todo-remind', null);
+    if(_tr && typeof _tr.prob === 'number') todoRemind = { prob: _tr.prob };
+  }catch(e){}
   companionHabits = await sGet('companion-habits', []);
   try{
     const _hd = await sGet('companion-habits-day', '');
@@ -8173,107 +8203,26 @@ async function loadCompanionData(){
   companionAnnivs = await sGet('companion-annivs', []);
   companionFavorites = await sGet('companion-favorites', []);
 }
-function switchCompanionTab(tab){
-  _compTab = tab;
-  const map = {todo:'compTabTodo', habit:'compTabHabit', diary:'compTabDiary', anniv:'compTabAnniv', period:'compTabPeriod', fav:'compTabFav'};
-  Object.keys(map).forEach(t=>{
-    const el = document.getElementById(map[t]);
-    if(el) el.className = 'btn' + (t===tab ? '' : ' outline');
-  });
-  renderCompanionBody();
-}
-function renderCompanionBody(){
-  const body = document.getElementById('companionBody');
+function renderAnnivPage(){
+  const body = document.getElementById('annivBody');
   if(!body) return;
-  if(_compTab === 'todo'){
-    body.innerHTML = `
-      <div class="box">
-        <div class="box-title">待办事项</div>
-        <div id="compTodoList"></div>
-        <div class="pet-add-row" style="margin-top:10px;">
-          <input type="text" id="compTodoInput" placeholder="添加待办…">
-          <div class="go-btn" onclick="addCompanionTodo()">+添加</div>
-        </div>
-      </div>`;
-    const list = document.getElementById('compTodoList');
-    if(!companionTodos.length) list.innerHTML = '<div class="empty-note">还没有待办事项</div>';
-    else list.innerHTML = companionTodos.map((t,i)=>`
-      <div class="pet-task-item">
-        <div class="pet-check ${t.done?'on':''}" onclick="toggleCompanionTodo(${i})"></div>
-        <span class="${t.done?'done':''}">${escapeHtml(t.text)}</span>
-        <span class="pet-task-del" onclick="delCompanionTodo(${i})">删除</span>
-      </div>`).join('');
-  } else if(_compTab === 'habit'){
-    body.innerHTML = `
-      <div class="box">
-        <div class="box-title">习惯打卡</div>
-        <div id="compHabitList"></div>
-        <div class="pet-add-row" style="margin-top:10px;">
-          <input type="text" id="compHabitInput" placeholder="添加习惯…">
-          <div class="go-btn" onclick="addCompanionHabit()">+添加</div>
-        </div>
-      </div>`;
-    const list = document.getElementById('compHabitList');
-    if(!companionHabits.length) list.innerHTML = '<div class="empty-note">还没有习惯</div>';
-    else list.innerHTML = companionHabits.map((h,i)=>`
-      <div class="pet-task-item">
-        <div class="pet-check ${h.doneToday?'on':''}" onclick="toggleCompanionHabit(${i})"></div>
-        <span>${escapeHtml(h.text)}</span>
-        <span class="pet-task-del" onclick="delCompanionHabit(${i})">删除</span>
-      </div>`).join('');
-  } else if(_compTab === 'anniv'){
-    body.innerHTML = `
-      <div class="box">
-        <div class="box-title">纪念日列表</div>
-        <div id="compAnnivList"></div>
-        <label class="field">名称</label>
-        <input type="text" id="compAnnivName" placeholder="例如：在一起纪念日">
-        <label class="field">日期</label>
-        <input type="date" id="compAnnivDate">
-        <div class="btn-row"><div class="btn" onclick="addCompanionAnniv()">添加纪念日</div></div>
-      </div>`;
-    const list = document.getElementById('compAnnivList');
-    if(!companionAnnivs.length) list.innerHTML = '<div class="empty-note">还没有额外纪念日（首页置顶的在一起天数单独设置）</div>';
-    else list.innerHTML = companionAnnivs.map((a,i)=>{
-      const d = new Date(a.date);
-      const days = Math.floor((Date.now()-d.getTime())/86400000);
-      return `<div class="list-item"><div><b>${escapeHtml(a.name)}</b><div class="meta">${escapeHtml(a.date)} · 已过 ${days} 天</div></div><span class="del" onclick="delCompanionAnniv(${i})">✕</span></div>`;
-    }).join('');
-  } else if(_compTab === 'diary'){
-    body.innerHTML = `
-      <div class="box" style="padding:12px 10px;">
-        <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px;">
-          <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(-1)">‹</span>
-          <span id="compDiaryMonthLabel" style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">—</span>
-          <span class="icon-btn" style="width:32px;height:32px;font-size:14px;" onclick="shiftDiaryMonth(1)">›</span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:4px;">
-          <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-        </div>
-        <div id="compDiaryCalendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;"></div>
-      </div>
-      <p style="font-size:12px;color:var(--ink-soft);text-align:center;margin:10px 0 0;">点某一天，写下心情、日记和今天吃了什么</p>`;
-    renderDiary();
-  } else if(_compTab === 'period'){
-    body.innerHTML = `
-      <div class="box">
-        <div class="box-title">月经记录与预测</div>
-        <div id="compPeriodList"></div>
-        <div id="compPeriodPredict" style="margin:10px 0;font-size:13px;color:var(--ink-soft);"></div>
-        <label class="field">记录开始日期</label>
-        <input type="date" id="compPeriodDate">
-        <div class="btn-row"><div class="btn" onclick="addPeriod()">添加记录</div></div>
-      </div>`;
-    renderPeriod();
-    const _pd = document.getElementById('compPeriodDate'); if(_pd && !_pd.value) _pd.value = localDateStr();
-  } else if(_compTab === 'fav'){
-    body.innerHTML = `
-      <div class="box">
-        <div class="box-title">TA悄悄收藏的</div>
-        <div id="compFavList"></div>
-      </div>`;
-    renderCompanionFavList();
-  }
+  body.innerHTML = `
+    <div class="box">
+      <div class="box-title">纪念日列表</div>
+      <div id="compAnnivList"></div>
+      <label class="field">名称</label>
+      <input type="text" id="compAnnivName" placeholder="例如：在一起纪念日">
+      <label class="field">日期</label>
+      <input type="date" id="compAnnivDate">
+      <div class="btn-row"><div class="btn" onclick="addCompanionAnniv()">添加纪念日</div></div>
+    </div>`;
+  const list = document.getElementById('compAnnivList');
+  if(!companionAnnivs.length) list.innerHTML = '<div class="empty-note">还没有额外纪念日（首页置顶的在一起天数单独设置）</div>';
+  else list.innerHTML = companionAnnivs.map((a,i)=>{
+    const d = new Date(a.date);
+    const days = Math.floor((Date.now()-d.getTime())/86400000);
+    return `<div class="list-item"><div><b>${escapeHtml(a.name)}</b><div class="meta">${escapeHtml(a.date)} · 已过 ${days} 天</div></div><span class="del" onclick="delCompanionAnniv(${i})">✕</span></div>`;
+  }).join('');
 }
 function renderCompanionFavList(){
   ['compFavList','favsViewList'].forEach(function(id){ const e=document.getElementById(id); if(e) _renderFavInto(e); });
@@ -8338,7 +8287,7 @@ async function addCompanionFavorite(item){
   item.id = uid();
   companionFavorites.unshift(item);
   try{ await sSet('companion-favorites', companionFavorites); }catch(e){ console.warn('save fav fail', e); }
-  if(typeof currentView !== 'undefined' && (currentView === 'favs' || (currentView === 'companion' && _compTab === 'fav'))){ try{ renderCompanionFavList(); }catch(e){} }
+  if(typeof currentView !== 'undefined' && currentView === 'favs'){ try{ renderCompanionFavList(); }catch(e){} }
   try{ showFavPopup(item.type, item); }catch(e){}
 }
 /* 同一首在本次加载里只抽一次；听满 45 秒才抽 */
@@ -8368,31 +8317,12 @@ function maybeBotFavoriteMessage(msg){
     addCompanionFavorite({ type:'message', msgId:msg.id, from:'me', content:txt, note: FAV_MSG_NOTES[Math.floor(Math.random()*FAV_MSG_NOTES.length)], at: Date.now() });
   }, 5000 + Math.random()*85000);
 }
-async function addCompanionTodo(){
-  const inp = document.getElementById('compTodoInput');
-  const val = (inp&&inp.value||'').trim(); if(!val) return;
-  companionTodos.push({id:uid(), text:val, done:false});
-  await sSet('companion-todos', companionTodos);
-  renderCompanionBody();
-}
-async function toggleCompanionTodo(i){
-  companionTodos[i].done = !companionTodos[i].done;
-  await sSet('companion-todos', companionTodos);
-  renderCompanionBody();
-}
-async function delCompanionTodo(i){
-  companionTodos.splice(i,1);
-  await sSet('companion-todos', companionTodos);
-  renderCompanionBody();
-}
-
-/* ===== 首页习惯卡片（数据与「陪伴记录 → 习惯」共用）===== */
 function renderHomeHabits(){
   const list=document.getElementById('homeHabitList'); if(!list) return;
   const keep=list.scrollTop;
   const cnt=document.getElementById('homeHabitCount');
   if(!companionHabits.length){
-    list.innerHTML='<div class="h2-empty">长按这里<br>添加习惯</div>';
+    list.innerHTML='<div class="h2-empty">长按这里<br>添加待办</div>';
     if(cnt) cnt.textContent='';
     return;
   }
@@ -8410,16 +8340,48 @@ function openHabitEditor(){
   const rows=companionHabits.map((h,i)=>`
     <div class="pet-add-row" style="margin-bottom:8px;">
       <input type="text" value="${escapeHtml(h.text)}" onchange="habitEdSave(${i},this.value)">
+      <div class="go-btn" onclick="habitEdSend(${i})">发送</div>
       <div class="go-btn" onclick="habitEdDel(${i})">删除</div>
     </div>`).join('');
   openOverlay(`
-    <div class="drawer-head"><h3>编辑习惯</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div id="habitEdRows">${rows||'<div class="empty-note">还没有习惯，在下面添加一条吧</div>'}</div>
+    <div class="drawer-head"><h3>编辑待办</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div id="habitEdRows">${rows||'<div class="empty-note">还没有待办，在下面添加一条吧</div>'}</div>
     <div class="pet-add-row" style="margin-top:6px;">
-      <input type="text" id="habitEdNew" placeholder="添加一条习惯…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)habitEdAdd()">
+      <input type="text" id="habitEdNew" placeholder="添加一条待办…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)habitEdAdd()">
       <div class="go-btn" onclick="habitEdAdd()">+添加</div>
     </div>
+    <div class="pet-add-row" style="margin-top:14px;">
+      <span style="font-size:13px;white-space:nowrap;">TA 提醒我的概率</span>
+      <input type="number" min="0" max="100" step="1" value="${todoRemind.prob}" style="width:70px;text-align:center;flex:none;" onchange="todoRemindSetProb(this.value)">
+      <span style="font-size:13px;">%</span>
+    </div>
     <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay()">完成</div></div>`);
+}
+async function habitEdSend(i){
+  const h = companionHabits[i];
+  if(!h) return;
+  const msg = {id:uid(), from:'user', type:'text', content:'待办：'+h.text, time:Date.now(), read:false};
+  if(!Array.isArray(chatMessages)) chatMessages = [];
+  chatMessages.push(msg);
+  try{ await recPut('chatMessages', msg); }catch(e){}
+  try{ handleIncomingForBot(msg.content); }catch(e){}
+  if(currentView==='chat'){ try{ renderChat(); }catch(e){} }
+  pToast('已发送到聊天');
+}
+async function todoRemindSetProb(v){
+  const n = parseInt(v,10);
+  todoRemind.prob = Math.max(0, Math.min(100, Number.isFinite(n) ? n : 30));
+  await sSet('todo-remind', todoRemind);
+}
+const TODO_REMIND_TEXTS = ['「{事项}」做了吗。','别忘了「{事项}」。','「{事项}」还没做，去做吧。','记得「{事项}」。','先把「{事项}」做了。'];
+function maybeTodoReminder(){
+  const p = Number(todoRemind && todoRemind.prob) || 0;
+  if(p <= 0 || Math.random()*100 >= p) return null;
+  const open = companionHabits.filter(h=>!h.doneToday);
+  if(!open.length) return null;
+  const h = open[Math.floor(Math.random()*open.length)];
+  const t = TODO_REMIND_TEXTS[Math.floor(Math.random()*TODO_REMIND_TEXTS.length)];
+  return { type:'text', content: t.replace('{事项}', h.text) };
 }
 async function habitEdSave(i,v){
   const t=String(v||'').trim(); if(!companionHabits[i]) return;
@@ -8469,38 +8431,18 @@ async function toggleHomeHabit(i){
   renderHomeHabits();
 }
 
-async function addCompanionHabit(){
-  const inp = document.getElementById('compHabitInput');
-  const val = (inp&&inp.value||'').trim(); if(!val) return;
-  companionHabits.push({id:uid(), text:val, doneToday:false});
-  await sSet('companion-habits', companionHabits);
-  renderCompanionBody();
-  try{ renderHomeHabits(); }catch(e){}
-}
-async function toggleCompanionHabit(i){
-  companionHabits[i].doneToday = !companionHabits[i].doneToday;
-  await sSet('companion-habits', companionHabits);
-  renderCompanionBody();
-  try{ renderHomeHabits(); }catch(e){}
-}
-async function delCompanionHabit(i){
-  companionHabits.splice(i,1);
-  await sSet('companion-habits', companionHabits);
-  renderCompanionBody();
-  try{ renderHomeHabits(); }catch(e){}
-}
 async function addCompanionAnniv(){
   const name = (document.getElementById('compAnnivName')||{}).value||''.trim();
   const date = (document.getElementById('compAnnivDate')||{}).value;
   if(!name || !date){ alert('请填写名称和日期'); return; }
   companionAnnivs.push({id:uid(), name, date});
   await sSet('companion-annivs', companionAnnivs);
-  renderCompanionBody();
+  renderAnnivPage();
 }
 async function delCompanionAnniv(i){
   companionAnnivs.splice(i,1);
   await sSet('companion-annivs', companionAnnivs);
-  renderCompanionBody();
+  renderAnnivPage();
 }
 
 
@@ -11982,6 +11924,7 @@ let petUI = { page: 'list', activeId: null, outing: null, showAllLog: false };
 let _petTaBusy = false;
 
 function pClamp(v){ return Math.max(0, Math.min(100, v|0)); }
+function pClampF(v){ return Math.max(0, Math.min(100, v)); }
 function pRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function pId(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function pPn(){
@@ -12143,18 +12086,17 @@ function petActive(){
 function petTick(p){
   if(!p) return;
   const now = Date.now();
-  const hrs = Math.max(0, Math.min(48, (now - (p.at||now)) / 3600000));
+  const rawHrs = Math.max(0, (now - (p.at||now)) / 3600000);
+  const hrs = Math.min(48, rawHrs);
   const dayKey = localDateStr();
   if(p.dayKey !== dayKey){
-    if(p.mood > 50) p.mood = 50;
-    if(p.sat > 50) p.sat = 50;
+    if(p.mood > 20) p.mood = 20;
+    if(p.sat > 20) p.sat = 20;
     p.dayKey = dayKey;
   }
   // 精力随时间自动恢复：吃饱恢复快，饿肚子恢复慢
   p.eng  = pClamp(p.eng  + (p.sat >= 20 ? 5 : 1.5)*hrs);
-  const idleStart = Math.max(p.at||now, (p.lastInteract||now) + 72*3600000);
-  const extraDays = Math.max(0, now - idleStart) / 86400000;
-  if(extraDays > 0) p.bond = Math.max(0, p.bond - extraDays*1.5);
+  p.bond = Math.max(0, p.bond - 0.5*rawHrs);
   p.at = now;
   p.ageMonths = petAgeMonths(p.birthday);
   if(typeof p.exp !== 'number') p.exp = petSeedExp(p.ageMonths);
@@ -12223,16 +12165,14 @@ function petResolveOuting(p){
     const idx = Math.floor(Math.random()*pool.length);
     evs.push(pool.splice(idx,1)[0]);
   }
-  const baseMood = Math.round(durMin / 15) + Math.floor(Math.random()*4);
-  const baseBond = Math.round(durMin / 30) + Math.floor(Math.random()*2);
-  const gains = { mood: Math.min(15, baseMood), bond: Math.min(8, baseBond), items: [], card: null };
+  const gains = { mood: 10, bond: 2, items: [], card: null };
   if(Math.random() < 0.55) gains.items.push(pRand(PET_ITEMS));
   if(Math.random() < 0.35) gains.card = pRand(PET_CARDS);
   if(Math.random() < 0.2 && gains.items.length) gains.items.push(pRand(PET_ITEMS));
   petTick(p);
   p.mood = pClamp(p.mood + gains.mood);
-  p.bond = pClamp(p.bond + gains.bond);
-  p.eng  = pClamp(p.eng  - Math.round(durMin/10));
+  p.bond = pClampF(p.bond + gains.bond);
+  p.eng  = pClamp(p.eng  - 20);
   p.exp  = Math.max(0, (typeof p.exp==='number' ? p.exp : 0) + Math.round(durMin/10) + 2);
   p.stage = petStageOf(p.exp).n;
   p.lastInteract = Date.now();
@@ -12280,28 +12220,32 @@ function petApply(p, kind, who){
 
   if(kind==='feed'){
     if(p.sat >= 95) return {ok:false, msg:n+'已经吃得很饱了'};
-    delta.sat = 18 + Math.floor(Math.random()*8);
-    delta.mood = 5;
-    delta.bond = 2;
+    const f = p.sat >= 80 ? 0.3 : (p.sat >= 60 ? 0.6 : 1);
+    delta.sat = Math.round(15*f);
+    delta.mood = Math.round(2*f);
+    delta.bond = Math.round(1*f*10)/10;
     delta.exp = 2;
     delta.eng = 2 + Math.floor(Math.random()*3);
     text = subj+'给'+n+'喂了食物。';
-    chip = '饱腹 +'+delta.sat+' · 精力 +'+delta.eng+' · 成长 +'+delta.exp;
+    chip = '饱腹 +'+delta.sat+' · 心情 +'+delta.mood+' · 亲密度 +'+delta.bond+' · 成长 +'+delta.exp;
   } else if(kind==='play'){
     if(p.eng < 15) return {ok:false, msg:n+'太累了，先让它休息吧'};
-    delta.eng = -(10 + Math.floor(Math.random()*7));
-    delta.mood = 13 + Math.floor(Math.random()*7);
-    delta.bond = 2;
+    delta.eng = -15;
+    delta.mood = 12;
+    delta.sat = -5;
+    delta.bond = 3;
     delta.exp = 3;
     text = subj+'和'+n+'玩了一会儿。';
-    chip = '心情 +'+delta.mood+' · 成长 +'+delta.exp;
+    chip = '心情 +'+delta.mood+' · 精力 '+delta.eng+' · 饱腹 '+delta.sat+' · 亲密度 +'+delta.bond+' · 成长 +'+delta.exp;
   } else if(kind==='pat'){
-    delta.mood = 7 + Math.floor(Math.random()*6);
-    delta.bond = 3;
+    const today = localDateStr();
+    if(p.patDay !== today){ p.patDay = today; p.patCnt = 0; }
+    delta.mood = 5;
+    if(p.patCnt < 5){ delta.bond = 2; p.patCnt++; }
     delta.exp = 1;
     delta.eng = 1 + Math.floor(Math.random()*2);
     text = subj+'轻轻摸了摸'+n+'。';
-    chip = '亲密度 +'+delta.bond+' · 精力 +'+delta.eng+' · 成长 +'+delta.exp;
+    chip = '心情 +'+delta.mood+' · 亲密度 +'+delta.bond+' · 精力 +'+delta.eng+' · 成长 +'+delta.exp;
   } else {
     return {ok:false, msg:'未知操作'};
   }
@@ -12309,7 +12253,7 @@ function petApply(p, kind, who){
   p.sat  = pClamp(p.sat  + delta.sat);
   p.mood = pClamp(p.mood + delta.mood);
   p.eng  = pClamp(p.eng  + delta.eng);
-  p.bond = pClamp(p.bond + delta.bond);
+  p.bond = pClampF(p.bond + delta.bond);
   if(delta.exp) p.exp = Math.max(0, (typeof p.exp==='number' ? p.exp : 0) + delta.exp);
   p.stage = petStageOf(typeof p.exp==='number' ? p.exp : 0).n;
   p.lastInteract = now;
@@ -12441,6 +12385,7 @@ async function petConfirmOuting(){
   if(!p) return;
   if(petOutingBusy(p)){ pToast(p.name+'还在外面玩呢～'); return; }
   if(p.outingInvite){ pToast('邀请还在等待回应呢'); return; }
+  if(p.eng < 20){ pToast(p.name+'太累了，先让它休息吧'); return; }
   const durMin = o.duration.min + Math.floor(Math.random()*(o.duration.max - o.duration.min + 1));
   const companion = o.companion || 'me';
   if(companion === 'me'){
@@ -13484,6 +13429,16 @@ function mallFindItem(itemId, cat){
   }
   return (mallState.customItems || []).find(x => x.id === itemId) || null;
 }
+function mallLedgerText(r, name){
+  const esc = t => (typeof escapeHtml==='function') ? escapeHtml(t) : t;
+  const note = r.note || '';
+  const m = /「(.+?)」/.exec(note);
+  if(!m) return (r.who==='me' ? '我' : name)+' · '+esc(note||r.type);
+  const item = esc('「'+m[1]+'」');
+  if(r.who==='me') return '我给'+name+'买了'+item;
+  if(note.startsWith('给自己')) return name+'给自己买了'+item;
+  return name+'给我买了'+item;
+}
 function mallPushLedger(who, type, amount, note){
   if(!Array.isArray(mallState.ledger)) mallState.ledger = [];
   mallState.ledger.unshift({
@@ -13570,7 +13525,7 @@ async function checkMallAutoBuy(){
       return;
     }
     mallState.gifts.push({id:giftId, name:it.name, emoji:it.emoji, price:it.price, from:'ta', to:'me', time:Date.now()});
-    mallPushLedger('ta', 'auto', -it.price, '自动买了「'+it.name+'」给你');
+    mallPushLedger('ta', 'auto', -it.price, '买了「'+it.name+'」给你');
     await saveMallState();
     await pushGiftChatMsg(it, 'bot');
     try{ mallShowBuyCard('me', [it]); }catch(e){}
@@ -13601,26 +13556,39 @@ function renderMall(initialCat){
   loadMallState().then(()=>{
     const body = document.getElementById('mallBody');
     if(!body) return;
-    let html = `
-    <div class="mb-tabs" style="margin-bottom:10px;">
-      <div class="mb-tab on" data-cat="daily" onclick="mallShowCat('daily',this)">日常用品</div>
-      <div class="mb-tab" data-cat="couple" onclick="mallShowCat('couple',this)">情侣用品</div>
-      <div class="mb-tab" data-cat="food" onclick="mallShowCat('food',this)">食物</div>
-      <div class="mb-tab" data-cat="memorial" onclick="mallShowCat('memorial',this)">纪念品</div>
-      <div class="mb-tab" data-cat="cart" onclick="mallShowCat('cart',this)">购物车</div>
-      <div class="mb-tab" data-cat="gifts" onclick="mallShowCat('gifts',this)">礼物柜</div>
-      <div class="mb-tab" data-cat="ledger" onclick="mallShowCat('ledger',this)">流水</div>
-      <div class="mb-tab" data-cat="custom" onclick="mallShowCat('custom',this)">自定义</div>
-      <div class="mb-tab" data-cat="settings" onclick="mallShowCat('settings',this)">设置</div>
-    </div>
-    <div id="mallItems"></div>`;
+    let html = `<div class="ml-seg" id="mlSeg"></div><div class="ml-sub" id="mlSub"></div><div id="mallItems"></div>`;
     body.innerHTML = html;
     const tab = (initialCat && ['daily','couple','food','memorial','cart','gifts','ledger','custom','settings'].includes(initialCat)) ? initialCat : (mallState._lastCat || 'daily');
     mallShowCat(tab);
   });
 }
+const MALL_GROUPS = [
+  { id:'browse', n:'逛', cats:[['daily','日常用品'],['couple','情侣用品'],['food','食物'],['memorial','纪念品']] },
+  { id:'mine', n:'我的', cats:[['cart','购物车'],['gifts','礼物柜'],['ledger','流水']] },
+  { id:'setting', n:'设置', cats:[['custom','自定义商品'],['settings','自动购买']] }
+];
+function mallGroupOf(cat){ return MALL_GROUPS.find(g=>g.cats.some(c=>c[0]===cat)) || MALL_GROUPS[0]; }
+function mallSyncGroup(cat){
+  const g = mallGroupOf(cat);
+  const seg = document.getElementById('mlSeg');
+  const sub = document.getElementById('mlSub');
+  if(seg) seg.innerHTML = MALL_GROUPS.map(x=>`<div class="ml-seg-i${x.id===g.id?' on':''}" onclick="mallShowCat('${x.cats[0][0]}')">${x.n}</div>`).join('');
+  if(sub) sub.innerHTML = g.cats.map(c=>`<span class="mb-tab ml-sub-i" data-cat="${c[0]}" onclick="mallShowCat('${c[0]}',this)">${c[1]}</span>`).join('');
+  mallUpdateCartBar(g.id);
+}
+function mallUpdateCartBar(gid){
+  const bar = document.getElementById('mallCartBar');
+  if(!bar) return;
+  const n = (mallState && Array.isArray(mallState.cart)) ? mallState.cart.length : 0;
+  const g = gid || mallGroupOf(mallState._lastCat || 'daily').id;
+  bar.classList.toggle('hidden', !(n>0 && g==='browse'));
+  const t = document.getElementById('mallCartTxt');
+  if(t) t.textContent = '购物车 · '+n+' 件';
+}
 function mallShowCat(cat, el){
   mallState._lastCat = cat;
+  mallSyncGroup(cat);
+  el = null;
   document.querySelectorAll('#mallBody .mb-tab').forEach(t=>t.classList.remove('on'));
   if(el) el.classList.add('on');
   else {
@@ -13714,13 +13682,12 @@ function mallShowCat(cat, el){
       return;
     }
     box.innerHTML = mallState.ledger.map(r=>{
-      const whoLabel = r.who==='me' ? '我' : safeName;
       const sign = r.amount >= 0 ? '+' : '';
       const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
       const d = r.time ? new Date(r.time).toLocaleString() : '';
       return `<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
         <div style="display:flex;justify-content:space-between;gap:8px;">
-          <div style="font-weight:700;font-size:13px;">${whoLabel} · ${(typeof escapeHtml==='function')?escapeHtml(r.note||r.type): (r.note||r.type)}</div>
+          <div style="font-weight:700;font-size:13px;">${mallLedgerText(r, safeName)}</div>
           <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
         </div>
         <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}</div>
@@ -13766,21 +13733,15 @@ function mallShowCat(cat, el){
   }
 
   const items = mallGetItems(cat);
-  box.innerHTML = items.map(it=>{
+  box.innerHTML = '<div class="ml-grid">' + items.map(it=>{
     const isCustom = String(it.id||'').startsWith('custom-');
-    return `
-    <div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
-      <div style="font-size:28px;">${it.emoji}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:14px;">${it.name}${isCustom?' <span style="font-size:10px;color:var(--ink-soft);font-weight:400;">自定义</span>':''}</div>
-        <div style="font-size:13px;color:var(--rouge);margin-top:2px;">¥${it.price}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <div class="btn" style="padding:5px 10px;font-size:11px;" onclick="mallBuy('${it.id}','${cat}','me')">我买给${safeName}</div>
-        <div class="btn outline" style="padding:5px 10px;font-size:11px;" onclick="mallAddToCart('${it.id}','${cat}')">加入购物车</div>
-      </div>
+    return `<div class="ml-card">
+      <div class="ml-pic">${it.emoji}</div>
+      <div class="ml-name">${it.name}${isCustom?'<span class="ml-tag">自定义</span>':''}</div>
+      <div class="ml-row"><span class="ml-price">¥${it.price}</span><span class="ml-add" onclick="mallAddToCart('${it.id}','${cat}')">+</span></div>
+      <div class="ml-buy" onclick="mallBuy('${it.id}','${cat}','me')">买给${safeName}</div>
     </div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 async function mallSetBuyProb(v){
   const n = parseInt(v,10);
@@ -13865,6 +13826,7 @@ async function mallAddToCart(itemId, cat){
   mallState.cart.push({name:it.name, emoji:it.emoji, price:it.price});
   await saveMallState();
   _flashToast('已加入购物车：'+it.name+'（共 '+mallState.cart.length+' 件）', false);
+  mallUpdateCartBar();
   /* 不再自动跳转购物车：加完留在当前分类，可继续加，之后手动点「购物车」查看 */
 }
 async function mallRemoveCart(idx){
@@ -14589,6 +14551,102 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .gm-ch-item i{font-style:normal;color:var(--ink-soft);cursor:pointer;padding:2px 6px;}
 .gm-ch-empty{font-size:12.5px;color:var(--ink-soft);text-align:center;padding:10px;}
 
+</style>
+<style id="ui-refresh">
+body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background:#F4F6F8}
+#view-chat,#view-mall,#view-diary,.dy-sheet{--paper:#F4F6F8;--paper-2:#EEF1F4;--ink:#22262B;--ink-soft:#8A929C;--rule:#E3E8ED;--rouge:#7C93AB;--blush:#E6EBF0}
+#view-chat{background:#F4F6F8}
+#view-chat .chat-head{background:#fff;border-bottom:none;box-shadow:0 6px 20px -14px rgba(60,80,100,.3);padding:12px 14px;gap:6px}
+#view-chat .chat-head .cname{font-family:inherit;font-weight:500;font-size:15px}
+#view-chat .chat-head .cstat{font-size:11px;color:#7C93AB}
+#view-chat .mini-btn{border:none;background:transparent;border-radius:50%;box-shadow:none}
+#view-chat .mini-btn:active{background:#E6EBF0}
+#view-chat .chat-msgs{padding:18px 16px;gap:12px}
+#view-chat .msg.message{font-family:inherit;font-size:14px;line-height:1.6;padding:10px 14px}
+#view-chat .msg.message.bot{background:#fff;border:none;border-radius:4px 18px 18px 18px;color:#22262B}
+#view-chat .msg.message.user{background:#7C93AB;border:none;border-radius:18px 4px 18px 18px;color:#fff}
+#view-chat .msg-avatar{border:none;width:32px;height:32px}
+#view-chat .msg .t{font-size:10px;margin-top:4px;opacity:.7}
+#view-chat .msg .t:empty{display:none}
+#view-chat .msg-time{align-self:center;font-size:11px;letter-spacing:1px;color:#8A929C;margin:6px 0 0}
+#view-chat .quote-ref{background:#E6EBF0;color:#6A737D;border:none;border-left:2px solid #7C93AB;border-radius:8px;font-size:11.5px;padding:6px 10px;margin-bottom:6px}
+#view-chat .msg.user .quote-ref{background:rgba(255,255,255,.2);color:rgba(255,255,255,.92);border-left-color:#fff}
+#view-chat .chat-more{position:absolute;right:12px;top:100%;margin-top:6px;background:#fff;border-radius:14px;box-shadow:0 12px 32px -10px rgba(40,60,80,.3);overflow:hidden;z-index:50;min-width:150px}
+#view-chat .chat-more div{padding:13px 18px;font-size:14px;color:#22262B}
+#view-chat .chat-more div:active{background:#F4F6F8}
+#view-chat .chat-tools{display:flex;justify-content:space-around;margin:0 16px 4px;padding:10px 6px;background:#fff;border-radius:18px;box-shadow:0 8px 24px -12px rgba(60,80,100,.25)}
+#view-chat .chat-tools.hidden{display:none}
+#view-chat .chat-tools .mini-btn{width:44px;height:44px;background:#F4F6F8}
+.msg.sticker{font-size:56px;line-height:1.1}
+.msg.sticker img{width:120px;height:120px}
+.msg.combo .combo-sticker{font-size:48px}
+.msg.combo .combo-sticker img{width:96px;height:96px}
+#view-chat .chat-input-bar{background:transparent;border-top:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:8px 16px calc(14px + env(safe-area-inset-bottom));gap:10px}
+#view-chat .chat-input-bar input{height:46px;border:none;border-radius:23px;background:#fff;box-shadow:0 8px 24px -12px rgba(60,80,100,.25);padding:0 20px;font-size:14px}
+#view-chat .chat-input-bar .mini-btn{width:46px;height:46px;background:#fff;box-shadow:0 8px 24px -12px rgba(60,80,100,.25)}
+#view-chat .chat-input-bar .mini-btn svg{width:22px;height:22px}
+#view-chat .chat-input-bar .mini-btn:last-child{background:#22262B}
+#view-chat .chat-input-bar .mini-btn:last-child svg{stroke:#fff}
+#view-mall .view-head h2,#view-diary .view-head h2{font-family:inherit;font-weight:500;letter-spacing:2px}
+.ml-seg{display:flex;background:#E6EBF0;border-radius:14px;padding:3px;margin-top:4px}
+.ml-seg-i{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7A828C;border-radius:11px}
+.ml-seg-i.on{background:#fff;color:#22262B;font-weight:500;box-shadow:0 2px 8px -4px rgba(60,80,100,.25)}
+.ml-sub{display:flex;gap:22px;margin:18px 2px 4px;overflow-x:auto;scrollbar-width:none}
+.ml-sub::-webkit-scrollbar{display:none}
+#view-mall .ml-sub .mb-tab{flex:0 0 auto;padding:0 0 5px;border:none;border-bottom:1.5px solid transparent;border-radius:0;background:transparent;font-size:13px;font-weight:400;letter-spacing:0;color:#8A929C}
+#view-mall .ml-sub .mb-tab.on{background:transparent;color:#22262B;border-bottom-color:#22262B}
+.ml-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.ml-card{background:#fff;border-radius:18px;padding:10px 10px 12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-pic{height:112px;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:44px}
+.ml-name{font-size:13px;margin-top:10px;color:#22262B}
+.ml-tag{font-size:10px;color:#8A929C;margin-left:6px}
+.ml-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.ml-price{font-size:12px;color:#5A626C;letter-spacing:.5px}
+.ml-add{width:26px;height:26px;border-radius:50%;background:#22262B;color:#fff;font-size:16px;line-height:25px;text-align:center}
+.ml-buy{margin-top:10px;padding:7px 0;border-radius:12px;background:#F4F6F8;text-align:center;font-size:12px;color:#5A626C}
+.ml-cartbar{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:448px;margin:0 auto;height:54px;border-radius:27px;background:#22262B;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 22px;font-size:13px;letter-spacing:1px;z-index:30}
+.ml-cartbar.hidden{display:none}
+.ml-cartgo{height:38px;padding:0 20px;border-radius:19px;background:#fff;color:#22262B;line-height:38px}
+.dy-top{display:flex;justify-content:space-between;align-items:baseline;margin:8px 4px 0}
+.dy-month{font-size:30px;font-weight:200;letter-spacing:1px}
+.dy-year{font-size:11px;letter-spacing:2px;color:#8A929C;margin-left:10px}
+.dy-side{display:flex;align-items:center;gap:14px}
+.dy-count{font-size:11px;letter-spacing:1px;color:#8A929C}
+.dy-nav{font-size:22px;color:#5A626C;padding:0 4px}
+.dy-cal{background:#fff;border-radius:18px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18);padding:14px 8px 8px;margin-top:14px}
+.dy-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;font-size:11px;color:#9AA2AB;margin-bottom:6px}
+.dy-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.dy-cell{height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#22262B}
+.dy-n{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.dy-cell.today .dy-n{color:#7C93AB;font-weight:600}
+.dy-cell.sel .dy-n{background:#22262B;color:#fff}
+.dy-dots{display:flex;gap:3px;height:4px}
+.dy-dots i{width:4px;height:4px;border-radius:50%;background:transparent}
+.dy-dots i.on{background:#7C93AB}
+.dy-dots i.ta{background:#C3CDD7}
+.dy-detail{background:#fff;border-radius:18px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18);padding:18px 20px;margin-top:16px}
+.dy-d-head{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:500}
+.dy-wk{font-size:11px;letter-spacing:1px;color:#8A929C;margin-left:8px;font-weight:400}
+.dy-edit{font-size:12px;color:#7C93AB}
+.dy-tags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.dy-tag{font-size:11px;padding:4px 10px;border-radius:10px;background:#E6EBF0;color:#5A626C}
+.dy-text{font-size:14px;line-height:1.7;margin-top:14px;color:#3A4048;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.dy-empty{font-size:13px;margin-top:14px;color:#A7AFB8}
+.dy-sep{height:1px;background:#E8ECF0;margin:14px 0}
+.dy-label{font-size:11px;letter-spacing:1px;color:#8A929C}
+.dy-food{font-size:13px;margin-top:6px;color:#5A626C;white-space:pre-line}
+.dy-link{text-align:center;margin:20px 0 90px;font-size:12px;letter-spacing:1px;color:#7C93AB}
+.drawer:has(.stk-tabs){background:#F4F6F8;border-top:none;border-radius:22px 22px 0 0;padding:20px}
+.drawer:has(.stk-tabs) .chip{background:#fff;border:none;border-radius:14px}
+.stk-tabs{display:flex;background:#E6EBF0;border-radius:14px;padding:3px;margin:0 0 12px}
+.stk-tabs span{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7A828C;border-radius:11px}
+.stk-tabs span.on{background:#fff;color:#22262B;font-weight:500;box-shadow:0 2px 8px -4px rgba(60,80,100,.25)}
+.drawer:has(.dy-sheet){background:#F4F6F8;border-top:none;border-radius:22px 22px 0 0;padding:20px}
+.dy-sheet .drawer-head h3{font-family:inherit;font-weight:500;font-size:16px;letter-spacing:1px}
+.dy-sheet textarea{border:none;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 18px -12px rgba(60,80,100,.25)}
+.dy-sheet .btn{background:#22262B;color:#fff;border:none;border-radius:22px;box-shadow:none}
+.dy-sheet .btn.outline{background:transparent;color:#5A626C;border:1px solid #D5DCE3}
+.dy-sheet .chip{border-radius:12px}
 </style>
 </body>
 </html>
