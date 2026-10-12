@@ -13560,17 +13560,10 @@ async function loadStatusCard(){
 }
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
-// 先抽时间段，再在对应时间块里抽具体小时
-// 凌晨 1~5 / 上午 6~11 / 下午 12~23（0 点归入凌晨显示）
+// 直接抽 0~23 点；显示按小时分段：0~5 凌晨 / 6~11 早上 / 12~17 下午 / 18~23 晚上
 // 每次进入「在线」有 5% 概率重抽；不抽则沿用原时间继续走；要抽则在 0~90 秒后再抽
 function scRollHour(){
-  const periods = [
-    { hours: [1,2,3,4,5] },          // 凌晨
-    { hours: [6,7,8,9,10,11] },       // 上午
-    { hours: [12,13,14,15,16,17,18,19,20,21,22,23] } // 下午（含晚间）
-  ];
-  const p = periods[Math.floor(Math.random() * periods.length)];
-  return p.hours[Math.floor(Math.random() * p.hours.length)];
+  return Math.floor(Math.random() * 24);
 }
 function scSettleTime(){
   const st = statusCardData.st;
@@ -13638,10 +13631,12 @@ function scClockFull(){
   let h;
   if(st && typeof st.tBase==='number') h = (st.tBase + Math.floor((Date.now()-st.tBaseAt)/3600000)) % 24;
   else h = new Date().getHours();
+  // 从 0 点起：过 6 小时早上，过 12 小时下午，过 18 小时晚上
   let label;
-  if(h === 0 || (h >= 1 && h <= 5)) label = '凌晨';
-  else if(h < 12) label = '上午';
-  else label = '下午';
+  if(h < 6) label = '凌晨';
+  else if(h < 12) label = '早上';
+  else if(h < 18) label = '下午';
+  else label = '晚上';
   return label + ' ' + h + '点';
 }
 const SC_CONN_RANGES = { online:[50,100], busy:[10,75], offline:[10,75] };
