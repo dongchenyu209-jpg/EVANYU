@@ -11143,7 +11143,24 @@ const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'
 const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣' };
 function gmTitleShort(n){ return String(GM_TITLES[n] || n).replace(/（.*?）/g,''); }
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
-function closeGame(){ clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
+function closeGame(){
+  clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf);
+  const endedGame = GM.name;
+  GM.name = null; GM.s = null; gmRoot().innerHTML = '';
+  // 退出游戏后，把对应「一起玩」邀请卡标为已结束
+  if(endedGame && Array.isArray(chatMessages)){
+    const cards = chatMessages.filter(function(m){
+      return m.type==='invite' && m.kind==='game' && m.status==='accepted' && (!m.game || m.game===endedGame);
+    });
+    if(cards.length){
+      cards.forEach(function(m){
+        m.status = 'ended';
+        try{ recPut('chatMessages', m); }catch(e){}
+      });
+      try{ if(typeof currentView!=='undefined' && currentView==='chat') renderChat(); }catch(e){}
+    }
+  }
+}
 function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
 function gmBody(h){ const e = document.getElementById('gmBody'); if(e) e.innerHTML = h; }
 function gmName(){ return escapeHtml((chatSettings && chatSettings.companionName) || 'TA'); }
