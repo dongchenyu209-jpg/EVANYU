@@ -10219,9 +10219,6 @@ function scheduleTogetherReply(kind){
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起听歌', { kind:'music', status:'accepted', inviter:'user', from:'bot' });
         try{ scheduleCompanionSkipSong(); }catch(e){}
-        const song = togetherState.music.playlist[togetherState.music.index];
-        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好啊，一起听'+(song?'「'+song.name+'」':'')) , time:Date.now(), read:true};
-        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
       } else {
         togetherState.music.active = false;
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
@@ -10260,8 +10257,6 @@ function scheduleTogetherReply(kind){
       if(accept){
         await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起玩'+gname, { kind:'game', status:'accepted', inviter:'user', from:'bot', game:lastInvite.game });
-        const gmsg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好，一起玩'+gname), time:Date.now(), read:true};
-        chatMessages.push(gmsg); try{ await recPut('chatMessages', gmsg);}catch(e){}
       } else {
         await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 现在不太想玩'+gname, { kind:'game', status:'declined', inviter:'user', from:'bot', game:lastInvite.game });
@@ -10275,8 +10270,6 @@ function scheduleTogetherReply(kind){
           kind:'watch', status:'accepted', inviter:'user', from:'bot',
           bvid: togetherState.watch.bvid, scheduledAt: togetherState.watch.scheduledAt
         });
-        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || '好，到点一起看。一边看也可以继续聊天。', time:Date.now(), read:true};
-        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
       } else {
         // 30% 改时间而不是直接拒
         if(Math.random() < 0.35){
