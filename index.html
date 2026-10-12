@@ -207,7 +207,11 @@
   .gm-m3 div{aspect-ratio:1;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:min(7vw,28px);background:var(--paper-2);cursor:pointer;}
   .gm-m3 div.sel{background:var(--blush);outline:2px solid var(--rouge);}
   .gm-btn{display:block;margin:10px auto 0;padding:10px 26px;border:1.5px solid var(--ink);background:var(--paper-2);cursor:pointer;font-size:14px;text-align:center;}
-  .gm-btn.off{opacity:.4;pointer-events:none;}  .gm-log{font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7;margin-top:8px;}  .pet-task-item{ display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dotted var(--rule); font-size:13px; }
+  .gm-btn.off{opacity:.4;pointer-events:none;}
+  .letter-act.wide{grid-column:1 / -1;}
+  .letter-games{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px;position:relative;}
+  .lg-chip{padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(255,255,255,.8);border:1.5px solid rgba(120,70,90,.12);color:#6b4555;cursor:pointer;}
+  .lg-chip.on{border-color:rgba(140,60,90,.5);background:rgba(255,240,246,.95);color:#8b3a56;font-weight:600;}  .gm-log{font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7;margin-top:8px;}  .pet-task-item{ display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dotted var(--rule); font-size:13px; }
   .pet-task-item span:nth-child(2){ flex:1; }
   .pet-task-item span.done{ text-decoration:line-through; color:var(--ink-soft); }
   .pet-check{ width:19px; height:19px; border:1.5px solid var(--ink); border-radius:5px; flex-shrink:0; cursor:pointer; position:relative; }
@@ -1706,7 +1710,7 @@
   </section>
 
   <section id="view-tarot" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="tarotBack()">←</div><h2>占卜</h2></div>
+    <div class="view-head"><div class="icon-btn" onclick="tarotBack()">←</div><h2>占卜</h2><div class="icon-btn" id="tarotHistBtn" onclick="tarotOpenHistory()" title="历史记录" style="margin-left:auto;font-size:13px;letter-spacing:1px;width:auto;padding:0 10px">历史</div></div>
     <div id="tarotBody"></div>
   </section>
 
@@ -7246,7 +7250,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','todo-remind','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','todo-remind','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state','tarot-history'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -8810,6 +8814,7 @@ let togetherState = {
   roomTimer: null
 };
 let letterInviteKind = 'sleep';
+let letterInviteGame = 'miner';
 
 /* v67：陪伴状态持久化——刷新 / 重开后，正在进行的陪伴（听/学/睡/看）还能接着来。
    之前 togetherState 只在内存里，一刷新就清空：空间关掉、小胶囊消失、计时清零。
@@ -8853,7 +8858,8 @@ function inviteKindMeta(kind){
     study: { icon:'📚', name:'一起学习' },
     sleep: { icon:'🌙', name:'一起睡觉' },
     watch: { icon:'📺', name:'一起看视频' },
-    outing: { icon:'🐾', name:'一起带宠物出门' }
+    outing: { icon:'🐾', name:'一起带宠物出门' },
+    game: { icon:'🎮', name:'一起玩游戏' }
   };
   return map[kind] || { icon:'💌', name:'邀请' };
 }
@@ -8862,6 +8868,7 @@ function inviteStatusLabel(st){
 }
 function renderInviteCardHtml(m, time){
   const meta = inviteKindMeta(m.kind);
+  if(m.kind==='game' && m.game){ meta.icon = GM_ICONS[m.game] || meta.icon; meta.name = '一起玩'+gmTitleShort(m.game); }
   const st = m.status || 'pending';
   const fromMe = m.from === 'user' || m.inviter === 'user';
   let extra = m.detail || m.content || '';
@@ -8887,6 +8894,9 @@ function renderInviteCardHtml(m, time){
   if(st==='accepted' && (m.kind==='music'||m.kind==='study'||m.kind==='sleep')){
     const openers = { music:'openListenTogetherPanel(false)', study:'openCompanionRoom(\'study\')', sleep:'openCompanionRoom(\'sleep\')', watch:'openWatchTogetherPanel(false)' };
     actions += '<div class="invite-card-actions"><div class="btn outline" onclick="'+openers[m.kind]+'">打开</div></div>';
+  }
+  if(st==='accepted' && m.kind==='game' && m.game){
+    actions += '<div class="invite-card-actions"><div class="btn" onclick="openGame(\''+m.game+'\')">开始游戏</div></div>';
   }
   return '<div class="msg invite-card-msg '+m.from+'"><div class="invite-card-inner">'
     + '<div class="invite-card-title">'+meta.icon+' '+meta.name+'</div>'
@@ -8914,6 +8924,7 @@ async function postTogetherSystemMsg(text, extra){
       detail: extra.detail || text || '',
       note: extra.note || '',
       bvid: extra.bvid || '',
+      game: extra.game || '',
       scheduledAt: extra.scheduledAt || null,
       time: Date.now(),
       read: true
@@ -9002,8 +9013,8 @@ function openGameMenu(){
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'gomoku\')"><i>⚫</i><b>五子棋</b><small>落子连线</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'guess\')"><i>🔢</i><b>猜数字</b><small>轮流竞猜</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'match3\')"><i>🍓</i><b>消消乐</b><small>水果连消</small></div>'+
-      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'c4\')"><i>🔴</i><b>四子棋</b><small>竖着落子</small></div>'+
-      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'ttt\')"><i>⭕</i><b>井字棋</b><small>三连即胜</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'miner\')"><i>⛏️</i><b>黄金矿工</b><small>双人像素挖金</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'fish\')"><i>🎣</i><b>钓鱼</b><small>双人像素垂钓</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'mem\')"><i>🃏</i><b>翻牌配对</b><small>记忆对碰</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'choice\')"><i>⚖️</i><b>二选一审判</b><small>默契大考验</small></div>'+
     '</div>'
@@ -9013,7 +9024,7 @@ function openGameMenu(){
 function openChatFunctionPanel(){
   openOverlay(
     '<div class="drawer-head"><h3>✨ 功能</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">一起听 / 学 / 睡可以互相邀请；发出后，对方会按「传讯设置」里的回复时长随机回应（约 75% 接受）。</p>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">一起听 / 学 / 睡 / 玩游戏可以互相邀请；发出后，对方会按「传讯设置」里的回复时长随机回应（约 85% 接受）。</p>'+
     '<div class="fn-panel-grid">'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openChatSettings();"><div class="fn-panel-icon">⚙️</div><div class="fn-panel-label">传讯设置</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openQuestionnaireComposer();"><div class="fn-panel-icon">📋</div><div class="fn-panel-label">梦向问卷</div></div>'+
@@ -9044,6 +9055,10 @@ function openInvitePanel(){
         letterActHtml('sleep','🌙','睡觉','同一片夜里安静待着')+
         letterActHtml('watch','📺','看电视','同一部片子、可以边聊')+
         letterActHtml('study','📚','学习 / 工作','各自专注，也算在一起')+
+        letterActHtml('game','🎮','娱乐','一起玩个小游戏','wide')+
+      '</div>'+
+      '<div class="letter-games" id="letterGames" style="display:none">'+
+        ['miner','fish','gomoku','ludo','guess','match3','mem','choice'].map(function(g){ return '<span class="lg-chip" id="lg-'+g+'" onclick="selectLetterGame(\''+g+'\')">'+GM_ICONS[g]+' '+gmTitleShort(g)+'</span>'; }).join('')+
       '</div>'+
       '<div class="letter-note">'+
         '<textarea id="letterNote" maxlength="80" placeholder="留一句只给对方的话（可选）" oninput="var n=this.value.length;var e=document.getElementById(\'letterNoteCount\');if(e)e.textContent=n+\'/80\'"></textarea>'+
@@ -9058,17 +9073,29 @@ function openInvitePanel(){
   // default select sleep
   setTimeout(function(){ selectLetterAct('sleep'); }, 0);
 }
-function letterActHtml(kind, ico, title, sub){
-  return '<div class="letter-act" id="lact-'+kind+'" onclick="selectLetterAct(\''+kind+'\')">'+
+function letterActHtml(kind, ico, title, sub, extraCls){
+  return '<div class="letter-act'+(extraCls ? ' '+extraCls : '')+'" id="lact-'+kind+'" onclick="selectLetterAct(\''+kind+'\')">'+
     '<div class="ico">'+ico+'</div>'+
     '<div class="txt"><b>'+title+'</b><small>'+sub+'</small></div>'+
     '<div class="chk"></div></div>';
 }
 function selectLetterAct(kind){
   letterInviteKind = kind;
-  ['music','sleep','watch','study'].forEach(function(k){
+  ['music','sleep','watch','study','game'].forEach(function(k){
     var el = document.getElementById('lact-'+k);
     if(el) el.classList.toggle('on', k===kind);
+  });
+  var box = document.getElementById('letterGames');
+  if(box){
+    box.style.display = kind==='game' ? 'flex' : 'none';
+    if(kind==='game') selectLetterGame(letterInviteGame);
+  }
+}
+function selectLetterGame(g){
+  letterInviteGame = g;
+  Object.keys(GM_TITLES).forEach(function(k){
+    var el = document.getElementById('lg-'+k);
+    if(el) el.classList.toggle('on', k===g);
   });
 }
 function showInviteHistory(){
@@ -9076,8 +9103,9 @@ function showInviteHistory(){
   if(!list.length){ alert('还没有邀请记录'); return; }
   var html = list.map(function(m){
     var meta = inviteKindMeta(m.kind);
+    var gameTitle = (m.kind==='game' && m.game) ? '一起玩'+gmTitleShort(m.game) : (meta.name||'');
     return '<div style="padding:8px 0;border-bottom:1px solid var(--rule);font-size:13px;">'+
-      meta.icon+' '+(meta.name||'')+' · '+inviteStatusLabel(m.status)+
+      (m.kind==='game' && m.game ? (GM_ICONS[m.game]||meta.icon) : meta.icon)+' '+gameTitle+' · '+inviteStatusLabel(m.status)+
       '<div style="font-size:11px;color:var(--ink-soft);">'+formatMsgTime(m.time)+'</div></div>';
   }).join('');
   openOverlay('<div class="drawer-head"><h3>活动记录</h3><span class="close-x" onclick="openInvitePanel()">←</span></div>'+html);
@@ -9111,6 +9139,15 @@ async function sendLetterInvite(){
     saveTogetherState();
     if(typeof go==='function') go('chat');
     scheduleTogetherReply('study');
+    return;
+  }
+  if(kind==='game'){
+    var g = letterInviteGame || 'miner';
+    await postTogetherSystemMsg('你邀请 '+chatSettings.companionName+' 一起玩'+gmTitleShort(g)+(note?' · '+note:''), {
+      kind:'game', status:'pending', inviter:'user', note:note, game:g
+    });
+    if(typeof go==='function') go('chat');
+    scheduleTogetherReply('game');
     return;
   }
   // sleep
@@ -10169,7 +10206,7 @@ function scheduleTogetherReply(kind){
   cancelTogetherReply(kind);
   _togetherReplyTimers[kind] = setTimeout(async function(){
     delete _togetherReplyTimers[kind];
-    const accept = Math.random() < 0.75;
+    const accept = Math.random() < 0.85;
     const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user');
     // v63：如果用户已经按了“结束”（不再是“等他回应”），对方就不再回应了
     // v67：只看邀请卡是否仍在“等待回应”（用户按“结束”会把卡置为 ended，lastInvite 就找不到了）。
@@ -10217,6 +10254,17 @@ function scheduleTogetherReply(kind){
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 还想再待一会儿', { kind:'sleep', status:'declined', inviter:'user', from:'bot' });
         try{ refreshCompanionFloat(); }catch(e){}
+      }
+    } else if(kind==='game'){
+      const gname = gmTitleShort(lastInvite.game);
+      if(accept){
+        await updateInviteCardStatus(lastInvite.id, 'accepted');
+        await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起玩'+gname, { kind:'game', status:'accepted', inviter:'user', from:'bot', game:lastInvite.game });
+        const gmsg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好，一起玩'+gname), time:Date.now(), read:true};
+        chatMessages.push(gmsg); try{ await recPut('chatMessages', gmsg);}catch(e){}
+      } else {
+        await updateInviteCardStatus(lastInvite.id, 'declined');
+        await postTogetherSystemMsg(chatSettings.companionName+' 现在不太想玩'+gname, { kind:'game', status:'declined', inviter:'user', from:'bot', game:lastInvite.game });
       }
     } else if(kind==='watch'){
       togetherState.watch.accepted = accept;
@@ -11098,9 +11146,11 @@ loadBgSettings();
 
 /* ---------------- 娱乐 v61：抽签定先手，TA 想 0~10 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
-const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', c4:'四子棋', ttt:'井字棋', mem:'翻牌配对', choice:'二选一审判' };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', mem:'翻牌配对', choice:'二选一审判', miner:'黄金矿工（双人）', fish:'钓鱼（双人）' };
+const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣' };
+function gmTitleShort(n){ return String(GM_TITLES[n] || n).replace(/（.*?）/g,''); }
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
-function closeGame(){ clearTimeout(GM.t); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
+function closeGame(){ clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
 function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
 function gmBody(h){ const e = document.getElementById('gmBody'); if(e) e.innerHTML = h; }
 function gmName(){ return escapeHtml((chatSettings && chatSettings.companionName) || 'TA'); }
@@ -11111,10 +11161,11 @@ function taThink(fn){
   GM.t = setTimeout(()=>{ GM.thinking = false; if(GM.name) fn(); }, ms);
 }
 function openGame(name){
-  clearTimeout(GM.t);
+  clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf);
   GM = { name:name, t:null, s:null, busy:false };
   gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
   if(name==='choice'){ gm_choice_init(); return; }
+  if(name==='miner' || name==='fish'){ window['gm_'+name+'_init'](); return; }
   const meFirst = Math.random() < 0.5;
   window['gm_'+name+'_init'](meFirst);
   gmMsg('🪙 抽签结果：<b>'+(meFirst?'你先手':gmName()+' 先手')+'</b>'+(meFirst?'':'<br>'+gmName()+' 思考中…'));
@@ -11184,76 +11235,418 @@ function gm_gomoku_ta(){
 }
 
 
-function gm_c4_init(me){ GM.s = { b:new Array(42).fill(0), turn: me?1:2, last:-1 }; gm_c4_draw(); }
-function gm_c4_draw(){
-  const s = GM.s; let h = '<div class="gm-c4">';
-  for(let c=0;c<7;c++){
-    h += '<div class="gm-c4col" onclick="gm_c4_click('+c+')">';
-    for(let r=0;r<6;r++){ const i=r*7+c; h += '<div class="gm-c4cell"><i class="st '+(s.b[i]===1?'r':s.b[i]===2?'y':'')+(i===s.last?' pop':'')+'"></i></div>'; }
-    h += '</div>';
+const PX_MAN = [
+  '...hhhh...',
+  '..hhhhhh..',
+  '.hhhhhhhh.',
+  '..ssssss..',
+  '..sessse..',
+  '..ssssss..',
+  '...ssss...',
+  '..bbbbbb..',
+  '.sbbbbbbs.',
+  '.sbbbbbbs.',
+  '..bbbbbb..',
+  '..pp..pp..',
+  '..pp..pp..',
+  '.kkk..kkk.'
+];
+const PX_PAL = {
+  me: { h:'#e0607e', b:'#f6a6bb', s:'#f7d6b8', e:'#2b2b3a', p:'#4b4b6b', k:'#2b2b3a' },
+  ta: { h:'#3f73c9', b:'#86b0ea', s:'#f7d6b8', e:'#2b2b3a', p:'#4b4b6b', k:'#2b2b3a' }
+};
+function pxDot(c,x,y,col){ c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), 1, 1); }
+function pxLine(c,x0,y0,x1,y1,col){
+  const n = Math.ceil(Math.max(Math.abs(x1-x0), Math.abs(y1-y0)));
+  c.fillStyle = col;
+  for(let i=0;i<=n;i++){ const t = n ? i/n : 0; c.fillRect(Math.round(x0+(x1-x0)*t), Math.round(y0+(y1-y0)*t), 1, 1); }
+}
+function pxBlob(c,cx,cy,r,col,hi){
+  c.fillStyle = col;
+  for(let j=-r;j<=r;j++){ const w = Math.floor(Math.sqrt(r*r - j*j + 0.5)); c.fillRect(Math.round(cx)-w, Math.round(cy)+j, w*2+1, 1); }
+  if(hi){ c.fillStyle = hi; c.fillRect(Math.round(cx)-Math.floor(r/2), Math.round(cy)-Math.floor(r/2), Math.max(1,Math.floor(r/3)), 1); }
+}
+function pxSprite(c,rows,x,y,pal){
+  for(let j=0;j<rows.length;j++){
+    for(let i=0;i<rows[j].length;i++){
+      const k = rows[j][i];
+      if(pal[k]){ c.fillStyle = pal[k]; c.fillRect(x+i, y+j, 1, 1); }
+    }
   }
-  gmBody(h+'</div><div class="gm-log">你 🔴　'+gmName()+' 🟡</div>');
 }
-function gm_c4_drop(c,who){
-  const s = GM.s;
-  for(let r=5;r>=0;r--){ const i=r*7+c; if(!s.b[i]){ s.b[i]=who; s.last=i; return i; } }
-  return -1;
+function pxText(c,t,x,y,col){
+  c.font = 'bold 9px monospace'; c.textAlign = 'center';
+  c.fillStyle = 'rgba(0,0,0,.4)'; c.fillText(t, Math.round(x)+1, Math.round(y)+1);
+  c.fillStyle = col; c.fillText(t, Math.round(x), Math.round(y));
 }
-function gm_c4_win(b,i,c){
-  const x = i%7, y = Math.floor(i/7);
-  return [[1,0],[0,1],[1,1],[1,-1]].some(([dx,dy])=>{
-    let n = 1;
-    for(const sg of [1,-1]){ let k = 1; while(true){ const nx = x+dx*k*sg, ny = y+dy*k*sg; if(nx<0||ny<0||nx>6||ny>5||b[ny*7+nx]!==c) break; n++; k++; } }
-    return n>=4;
-  });
+function gmCanvas(W,H,extra){
+  const sc = Math.max(1, Math.min((window.innerWidth-24)/W, (window.innerHeight-230)/H, 3));
+  gmBody('<canvas id="gmCv" width="'+W+'" height="'+H+'" style="width:'+Math.floor(W*sc)+'px;height:'+Math.floor(H*sc)+'px;display:block;margin:0 auto;image-rendering:pixelated;touch-action:none;border-radius:12px;box-shadow:0 10px 26px rgba(80,60,40,.25);"></canvas>'+(extra||''));
+  const cv = document.getElementById('gmCv');
+  const c = cv.getContext('2d');
+  c.imageSmoothingEnabled = false;
+  return { cv:cv, c:c };
 }
-function gm_c4_end(i,who){
-  const s = GM.s;
-  if(gm_c4_win(s.b,i,who)){ gm_c4_draw(); gmOver(who===1?'🎉 你赢了':gmName()+' 赢了'); return true; }
-  if(s.b.every(v=>v)){ gm_c4_draw(); gmOver('平局'); return true; }
-  return false;
+function gmHud(s){
+  const txt = '<span style="color:#d6456c">你 <b>'+s.pl[0].sc+'</b></span>　⏱ '+Math.ceil(s.left)+'　<span style="color:#3f73c9">'+gmName()+' <b>'+s.pl[1].sc+'</b></span>';
+  if(txt !== s.hud){ s.hud = txt; gmMsg(txt); }
 }
-function gm_c4_click(c){
-  const s = GM.s; if(!s || GM.over || s.turn!==1 || GM.thinking) return;
-  const i = gm_c4_drop(c,1); if(i<0) return;
-  s.turn = 2; gm_c4_draw();
-  if(gm_c4_end(i,1)) return;
-  gmThinking(); taThink(gm_c4_ta);
+function gmRtEnd(s){
+  s.over = true; GM.over = true;
+  const a = s.pl[0].sc, b = s.pl[1].sc;
+  gmOver((a>b ? '🎉 你赢了' : (a<b ? gmName()+' 赢了' : '平局'))+'　'+a+' : '+b);
 }
-function gm_c4_ta(){
-  const s = GM.s; if(!s || GM.over) return;
-  const cols = [0,1,2,3,4,5,6].filter(c=>!s.b[c]);
-  const i = gm_c4_drop(pRand(cols),2);
-  s.turn = 1; gm_c4_draw();
-  if(gm_c4_end(i,2)) return;
-  gmMsg('轮到你了');
+function gmPops(s,dt){
+  s.pops = s.pops.filter(function(p){ return p.t > 0; });
+  s.pops.forEach(function(p){ p.t -= dt; p.y -= 14*dt; pxText(s.c, p.txt, p.x, p.y, p.col); });
 }
 
-function gm_ttt_init(me){ GM.s = { b:new Array(9).fill(0), turn: me?1:2 }; gm_ttt_draw(); }
-function gm_ttt_draw(){
-  const s = GM.s; let h = '<div class="gm-ttt">';
-  for(let i=0;i<9;i++) h += '<div onclick="gm_ttt_click('+i+')">'+(s.b[i]===1?'<b class="x">✕</b>':s.b[i]===2?'<b class="o">◯</b>':'')+'</div>';
-  gmBody(h+'</div><div class="gm-log">你 ✕　'+gmName()+' ◯</div>');
+const MINER_TYPES = {
+  gs: { r:5,  v:50,  sp:1,    c:'#f2c230', h:'#fff3a8' },
+  gm: { r:8,  v:120, sp:0.7,  c:'#f2c230', h:'#fff3a8' },
+  gl: { r:12, v:300, sp:0.42, c:'#e9b21c', h:'#fff3a8' },
+  rs: { r:6,  v:10,  sp:0.6,  c:'#8a8f98', h:'#c3c8d0' },
+  rl: { r:11, v:25,  sp:0.35, c:'#767b85', h:'#b0b5bd' },
+  dm: { r:4,  v:400, sp:1.15, c:'#5fe0ee', h:'#e6ffff' },
+  bag:{ r:7,  v:0,   sp:0.7,  c:'#b9824a', h:'#e0b07a' }
+};
+function gm_miner_man(x,spd){
+  return { x:x, ang:(Math.random()-0.5)*1.4, dir:Math.random()<0.5?1:-1, len:12, st:'swing', item:null, sc:0, spd:spd };
 }
-function gm_ttt_end(who){
-  const b = GM.s.b;
-  const L = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  if(L.some(l=>l.every(i=>b[i]===who))){ gm_ttt_draw(); gmOver(who===1?'🎉 你赢了':gmName()+' 赢了'); return true; }
-  if(b.every(v=>v)){ gm_ttt_draw(); gmOver('平局'); return true; }
-  return false;
+function gm_miner_level(W,H){
+  const kinds = ['gs','gs','gs','gs','gs','rs','gm','gm','gl','rs','rs','rl','rl','dm','bag','bag'];
+  const items = [];
+  kinds.forEach(function(k){
+    const t = MINER_TYPES[k];
+    for(let n=0;n<80;n++){
+      const x = t.r+6+Math.random()*(W-2*t.r-12);
+      const y = 72+t.r+Math.random()*(H-72-2*t.r-8);
+      if(items.every(function(o){ return Math.hypot(o.x-x,o.y-y) > o.r+t.r+4; })){
+        items.push({ k:k, x:x, y:y, r:t.r, v:k==='bag' ? 20+Math.floor(Math.random()*8)*40 : t.v, sp:t.sp, st:0 });
+        break;
+      }
+    }
+  });
+  return items;
 }
-function gm_ttt_click(i){
-  const s = GM.s; if(!s || GM.over || s.turn!==1 || GM.thinking || s.b[i]) return;
-  s.b[i]=1; s.turn=2; gm_ttt_draw();
-  if(gm_ttt_end(1)) return;
-  gmThinking(); taThink(gm_ttt_ta);
+function gm_miner_init(){
+  const st = gmCanvas(180,300,'<div class="gm-btn" id="gmFire" onclick="gm_miner_fire()">🪝 放钩</div><div class="gm-log">钩子摆到目标正上方时点按钮（或点屏幕）放钩<br>被谁先钩住就是谁的，限时 90 秒</div>');
+  const dots = [];
+  for(let i=0;i<150;i++) dots.push([Math.floor(Math.random()*180), 44+Math.floor(Math.random()*256), Math.random()<0.5?'#8c5a30':'#b57a46']);
+  GM.s = {
+    c:st.c, W:180, H:300, items:gm_miner_level(180,300), dots:dots,
+    pl:[gm_miner_man(48,1.6), gm_miner_man(132,1.45)],
+    left:90, pops:[], last:performance.now(), over:false, hud:'',
+    ai:{ wait:1.2, tgt:null, err:0, giveUp:0, aim:null }
+  };
+  st.cv.addEventListener('pointerdown', function(e){ e.preventDefault(); gm_miner_fire(); });
+  gmHud(GM.s);
+  GM.raf = requestAnimationFrame(gm_miner_loop);
 }
-function gm_ttt_ta(){
-  const s = GM.s; if(!s || GM.over) return;
-  const e = []; s.b.forEach((v,i)=>{ if(!v) e.push(i); });
-  s.b[pRand(e)] = 2; s.turn = 1; gm_ttt_draw();
-  if(gm_ttt_end(2)) return;
-  gmMsg('轮到你了');
+function gm_miner_fire(){
+  const s = GM.s;
+  if(!s || GM.name !== 'miner' || s.over || s.left <= 0) return;
+  if(s.pl[0].st === 'swing') s.pl[0].st = 'out';
+}
+function gm_miner_step(dt){
+  const s = GM.s;
+  s.left = Math.max(0, s.left-dt);
+  s.pl.forEach(function(p,i){
+    if(p.st === 'swing'){
+      p.ang += p.dir*p.spd*dt;
+      if(Math.abs(p.ang) > 1.15){ p.ang = Math.sign(p.ang)*1.15; p.dir = -p.dir; }
+    } else if(p.st === 'out'){
+      p.len += 95*dt;
+      const tx = p.x+Math.sin(p.ang)*p.len, ty = 41+Math.cos(p.ang)*p.len;
+      const hit = s.items.find(function(o){ return o.st === 0 && Math.hypot(o.x-tx,o.y-ty) <= o.r+2; });
+      if(hit){ hit.st = 1; p.item = hit; p.st = 'in'; }
+      else if(tx < 2 || tx > s.W-2 || ty > s.H-2 || s.left <= 0) p.st = 'in';
+    } else {
+      p.len -= (p.item ? 95*p.item.sp : 130)*dt;
+      if(p.item){ p.item.x = p.x+Math.sin(p.ang)*p.len; p.item.y = 41+Math.cos(p.ang)*p.len; }
+      if(p.len <= 12){
+        p.len = 12; p.st = 'swing';
+        if(p.item){
+          p.sc += p.item.v; p.item.st = 2;
+          s.pops.push({ x:p.x, y:24, t:1, txt:p.item.v ? '+'+p.item.v : '0', col:i ? '#8fb8ff' : '#ffb0c4' });
+          p.item = null;
+        }
+      }
+    }
+  });
+}
+function gm_miner_ai(dt){
+  const s = GM.s, p = s.pl[1], a = s.ai;
+  if(s.left <= 0) return;
+  if(p.st !== 'swing'){ a.wait = 1.5+Math.random()*2.5; a.tgt = null; a.aim = null; return; }
+  a.wait -= dt;
+  if(a.wait > 0) return;
+  if(a.aim === null || a.aim === undefined) a.aim = Math.random() < 0.15;
+  if(!a.aim){ p.st = 'out'; a.aim = null; return; }
+  if(!a.tgt || a.tgt.st !== 0){
+    const free = s.items.filter(function(o){ return o.st === 0; });
+    if(!free.length) return;
+    if(Math.random() < 0.6){
+      a.tgt = free[Math.floor(Math.random()*free.length)];
+    } else {
+      let best = null, bs = -1;
+      free.forEach(function(o){
+        const val = (o.k === 'rs' || o.k === 'rl') ? 5 : (o.v || 80);
+        const sc = val/(Math.hypot(o.x-p.x,o.y-41)+60);
+        if(sc > bs){ bs = sc; best = o; }
+      });
+      a.tgt = best;
+    }
+    a.err = (Math.random()-0.5)*0.3;
+    a.giveUp = 3+Math.random()*3;
+  }
+  a.giveUp -= dt;
+  const want = Math.atan2(a.tgt.x-p.x, a.tgt.y-41)+a.err;
+  if(Math.abs(want) > 1.12){ a.tgt = null; a.wait = 0.1; return; }
+  if(Math.abs(p.ang-want) < 0.06 || a.giveUp <= 0){ p.st = 'out'; a.tgt = null; a.aim = null; }
+}
+function gm_miner_item(c,o){
+  const t = MINER_TYPES[o.k];
+  if(o.k === 'dm'){
+    c.fillStyle = t.c;
+    for(let j=-4;j<=4;j++){ const w = 4-Math.abs(j); c.fillRect(Math.round(o.x)-w, Math.round(o.y)+j, w*2+1, 1); }
+    pxDot(c,o.x-1,o.y-2,t.h); pxDot(c,o.x,o.y-3,t.h);
+    return;
+  }
+  pxBlob(c,o.x,o.y,o.r,t.c,t.h);
+  if(o.k === 'bag'){
+    [[-1,-3],[0,-3],[1,-2],[0,-1],[0,0],[0,2]].forEach(function(q){ pxDot(c,o.x+q[0],o.y+q[1],'#fff'); });
+  } else if(o.k === 'rs' || o.k === 'rl'){
+    pxDot(c,o.x+Math.floor(o.r/2),o.y+Math.floor(o.r/3),'#5c6068'); pxDot(c,o.x-Math.floor(o.r/3),o.y+Math.floor(o.r/2),'#5c6068');
+  } else {
+    pxDot(c,o.x+Math.floor(o.r/2),o.y+Math.floor(o.r/2),'#b8870f');
+  }
+}
+function gm_miner_draw(){
+  const s = GM.s, c = s.c, W = s.W, H = s.H;
+  c.fillStyle = '#bfe3f2'; c.fillRect(0,0,W,41);
+  c.fillStyle = '#fff';
+  c.fillRect(18,8,16,4); c.fillRect(22,5,9,3); c.fillRect(120,14,18,4); c.fillRect(125,11,9,3);
+  c.fillStyle = '#6fbf5a'; c.fillRect(0,41,W,3);
+  c.fillStyle = '#a06a3c'; c.fillRect(0,44,W,H-44);
+  s.dots.forEach(function(d){ c.fillStyle = d[2]; c.fillRect(d[0],d[1],1,1); });
+  s.items.forEach(function(o){ if(o.st !== 2) gm_miner_item(c,o); });
+  s.pl.forEach(function(p){
+    const tx = p.x+Math.sin(p.ang)*p.len, ty = 41+Math.cos(p.ang)*p.len;
+    pxLine(c,p.x,41,tx,ty,'#5a3b1e');
+    pxDot(c,tx,ty,'#d0d4da'); pxDot(c,tx-1,ty-1,'#d0d4da'); pxDot(c,tx+1,ty-1,'#d0d4da'); pxDot(c,tx-2,ty-2,'#d0d4da'); pxDot(c,tx+2,ty-2,'#d0d4da');
+  });
+  s.pl.forEach(function(p,i){
+    pxSprite(c,PX_MAN,p.x-5,27,PX_PAL[i ? 'ta' : 'me']);
+    c.fillStyle = '#555'; c.fillRect(p.x-3,40,7,2);
+    c.fillStyle = i ? '#3f73c9' : '#d6456c';
+    c.fillRect(p.x-2,21,5,1); c.fillRect(p.x-1,22,3,1); c.fillRect(p.x,23,1,1);
+  });
+}
+function gm_miner_loop(now){
+  const s = GM.s;
+  if(!s || GM.name !== 'miner' || s.over || !document.getElementById('gmCv')) return;
+  const dt = Math.min(0.05, (now-s.last)/1000);
+  s.last = now;
+  gm_miner_step(dt); gm_miner_ai(dt);
+  gm_miner_draw(); gmPops(s,dt); gmHud(s);
+  if(s.left <= 0 && s.pl.every(function(p){ return p.st === 'swing'; })){ gmRtEnd(s); return; }
+  GM.raf = requestAnimationFrame(gm_miner_loop);
+}
+
+const FISH_TYPES = {
+  s:   { r:4, v:10,  sw:26, rl:1,   c:'#ffb04a', w:4 },
+  m:   { r:5, v:25,  sw:20, rl:0.8, c:'#4fc3a1', w:3 },
+  b:   { r:8, v:60,  sw:12, rl:0.5, c:'#7a8bd6', w:1 },
+  g:   { r:4, v:100, sw:42, rl:1,   c:'#ffd23f', w:1 },
+  boot:{ r:5, v:1,   sw:7,  rl:0.8, c:'#7a5a3a', w:1 },
+  jelly:{ r:6, v:0,  sw:9,  rl:1,   c:'#f19ae0', w:1 }
+};
+function gm_fish_spawn(s,edge){
+  const keys = [];
+  Object.keys(FISH_TYPES).forEach(function(k){ for(let i=0;i<FISH_TYPES[k].w;i++) keys.push(k); });
+  const k = keys[Math.floor(Math.random()*keys.length)], t = FISH_TYPES[k];
+  const dir = Math.random() < 0.5 ? 1 : -1;
+  return {
+    k:k, dir:dir, st:0, ph:Math.random()*6.28,
+    x: edge ? (dir > 0 ? -10 : s.W+10) : 12+Math.random()*(s.W-24),
+    y: 62+Math.random()*(s.H-92),
+    sw: t.sw*(0.85+Math.random()*0.3), r:t.r, v:t.v, rl:t.rl, c:t.c
+  };
+}
+function gm_fish_man(cx,rx){
+  return { cx:cx, rx:rx, x:rx, y:44, px:rx, st:'idle', down:false, fish:null, sc:0, stun:0 };
+}
+function gm_fish_init(){
+  const st = gmCanvas(180,300,'<div class="gm-log">按住屏幕放线，左右拖动对准鱼，松手收线<br>钩到鱼会自动拉上来；小心水母会电到钩子 ⚡</div>');
+  const s = {
+    c:st.c, W:180, H:300, t:0, left:90, pops:[], last:performance.now(), over:false, hud:'', fish:[],
+    pl:[gm_fish_man(30,46), gm_fish_man(150,134)],
+    ai:{ wait:1.2, tgt:null, err:0, hold:0, track:false }
+  };
+  for(let i=0;i<13;i++) s.fish.push(gm_fish_spawn(s,false));
+  GM.s = s;
+  const cv = st.cv;
+  function pos(e){ const r = cv.getBoundingClientRect(); return (e.clientX-r.left)/r.width*180; }
+  cv.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+    if(!GM.s) return;
+    GM.s.pl[0].down = true; GM.s.pl[0].px = pos(e);
+  });
+  cv.addEventListener('pointermove', function(e){ if(GM.s && GM.s.pl && GM.s.pl[0].down) GM.s.pl[0].px = pos(e); });
+  const up = function(){ if(GM.s && GM.s.pl) GM.s.pl[0].down = false; };
+  cv.addEventListener('pointerup', up);
+  cv.addEventListener('pointercancel', up);
+  gmHud(s);
+  GM.raf = requestAnimationFrame(gm_fish_loop);
+}
+function gm_fish_step(dt){
+  const s = GM.s;
+  s.t += dt; s.left = Math.max(0, s.left-dt);
+  s.fish.forEach(function(f){
+    if(f.st !== 0) return;
+    f.x += f.dir*f.sw*dt;
+    f.y = Math.max(56, Math.min(s.H-24, f.y+Math.sin(s.t*2+f.ph)*5*dt));
+    if((f.dir > 0 && f.x > s.W+12) || (f.dir < 0 && f.x < -12)){ f.dir = -f.dir; f.y = 62+Math.random()*(s.H-92); }
+  });
+  s.pl.forEach(function(p){
+    if(p.stun > 0) p.stun -= dt;
+    if(s.left <= 0) p.down = false;
+    if(p.st === 'idle'){
+      p.x += Math.max(-60*dt, Math.min(60*dt, p.rx-p.x));
+      if(p.down && p.stun <= 0) p.st = 'down';
+    } else if(p.st === 'down'){
+      p.y += 48*dt;
+      p.x += Math.max(-70*dt, Math.min(70*dt, p.px-p.x));
+      p.x = Math.max(4, Math.min(s.W-4, p.x));
+      const hit = p.stun > 0 ? null : s.fish.find(function(f){ return f.st === 0 && Math.hypot(f.x+f.dir*f.r*0.6-p.x, f.y-p.y) <= f.r+3; });
+      if(hit){
+        if(hit.k === 'jelly'){
+          p.stun = 1.6; p.st = 'up';
+          s.pops.push({ x:p.x, y:p.y, t:0.9, txt:'⚡', col:'#f6c800' });
+        } else { hit.st = 1; p.fish = hit; p.st = 'up'; }
+      } else if(!p.down || p.y >= s.H-14) p.st = 'up';
+    } else {
+      p.y -= (p.fish ? 95*p.fish.rl : 110)*dt;
+      if(p.fish){ p.fish.x = p.x; p.fish.y = p.y+3; }
+      if(p.y <= 44){
+        p.y = 44;
+        if(p.fish){
+          p.sc += p.fish.v;
+          s.pops.push({ x:p.x, y:38, t:1, txt:p.fish.v > 1 ? '+'+p.fish.v : (p.fish.v ? '+1' : '0'), col:'#ffe27a' });
+          s.fish[s.fish.indexOf(p.fish)] = gm_fish_spawn(s,true);
+          p.fish = null;
+        }
+        p.st = 'idle';
+      }
+    }
+  });
+}
+function gm_fish_ai(dt){
+  const s = GM.s, p = s.pl[1], a = s.ai;
+  if(s.left <= 0){ p.down = false; return; }
+  if(p.st === 'idle'){
+    p.down = false;
+    a.wait -= dt;
+    if(a.wait > 0 || p.stun > 0) return;
+    const free = s.fish.filter(function(f){ return f.st === 0 && f.k !== 'jelly'; });
+    if(!free.length) return;
+    if(Math.random() < 0.85){
+      a.tgt = free[Math.floor(Math.random()*free.length)];
+    } else {
+      let best = null, bs = -1;
+      free.forEach(function(f){
+        const sc = (f.v+8)/(Math.hypot(f.x-p.x,f.y-44)+50);
+        if(sc > bs){ bs = sc; best = f; }
+      });
+      a.tgt = best;
+    }
+    a.err = (Math.random()-0.5)*40;
+    a.hold = 2.5+Math.random()*3.5;
+    a.track = Math.random() < 0.3;
+    p.px = a.track ? a.tgt.x : 10+Math.random()*160;
+    p.down = true;
+  } else if(p.st === 'down'){
+    a.hold -= dt;
+    const f = a.tgt;
+    if(a.track){
+      if(f && f.st === 0){
+        const eta = Math.max(0,(f.y-p.y)/48);
+        p.px = f.x+f.dir*f.sw*eta+a.err;
+        if(p.y > f.y+10) p.down = false;
+      } else p.down = false;
+    }
+    if(a.hold <= 0) p.down = false;
+  } else {
+    a.wait = 0.8+Math.random()*2.2; a.tgt = null;
+  }
+}
+function gm_fish_pxFish(c,f){
+  const x = Math.round(f.x), y = Math.round(f.y);
+  if(f.k === 'boot'){
+    c.fillStyle = f.c; c.fillRect(x-2,y-4,3,6); c.fillRect(x-2,y+1,6,3);
+    pxDot(c,x-2,y-4,'#a07a50');
+    return;
+  }
+  if(f.k === 'jelly'){
+    c.fillStyle = f.c;
+    for(let j=-f.r;j<=0;j++){ const w = Math.floor(Math.sqrt(f.r*f.r-j*j+0.5)); c.fillRect(x-w,y+j,w*2+1,1); }
+    for(let t=-3;t<=3;t+=2) c.fillRect(x+t,y+1,1,3+Math.round(Math.sin(t+f.ph+x*0.1)));
+    pxDot(c,x-2,y-3,'#fff');
+    return;
+  }
+  const rx = f.r+2, ry = Math.max(2, Math.round(f.r*0.65));
+  c.fillStyle = f.c;
+  for(let j=-ry;j<=ry;j++){
+    const w = Math.round(rx*Math.sqrt(1-(j*j)/((ry+0.5)*(ry+0.5))));
+    c.fillRect(x-w,y+j,w*2+1,1);
+  }
+  for(let t=0;t<3;t++) c.fillRect(x-f.dir*(rx+t), y-t, 1, 1+t*2);
+  pxDot(c,x+f.dir*(rx-2),y-1,'#222');
+  if(f.k === 'g') pxDot(c,x-1,y-ry+1,'#fff6b0');
+}
+function gm_fish_draw(){
+  const s = GM.s, c = s.c, W = s.W, H = s.H;
+  c.fillStyle = '#cfeaf7'; c.fillRect(0,0,W,42);
+  c.fillStyle = '#fff'; c.fillRect(70,8,18,4); c.fillRect(75,5,9,3); c.fillRect(104,16,14,3);
+  const bands = ['#5fb7e0','#4aa5d4','#3a8fc2','#2f78ad','#27658f'], bh = Math.ceil((H-42)/5);
+  bands.forEach(function(col,i){ c.fillStyle = col; c.fillRect(0,42+i*bh,W,bh); });
+  c.fillStyle = 'rgba(255,255,255,.35)';
+  for(let x=0;x<W;x+=14) c.fillRect(x+Math.round(Math.sin(s.t*1.5+x)*2),43,6,1);
+  c.fillStyle = '#d9c18a'; c.fillRect(0,H-10,W,10);
+  c.fillStyle = '#3f9f5a';
+  [[20,12],[44,8],[96,14],[128,9],[160,12]].forEach(function(q){ c.fillRect(q[0],H-10-q[1],1,q[1]); c.fillRect(q[0]+1,H-10-q[1]+3,1,q[1]-3); });
+  s.fish.forEach(function(f){ gm_fish_pxFish(c,f); });
+  s.pl.forEach(function(p,i){
+    const tipY = 23, rodX = p.rx;
+    pxLine(c,p.cx+(i ? -4 : 4),34,rodX,tipY,'#7a5a3a');
+    pxLine(c,rodX,tipY,p.x,p.y,'#eeeeee');
+    const hc = (p.stun > 0 && Math.floor(s.t*10)%2) ? '#f6c800' : '#c9ced6';
+    if(p.st === 'idle'){
+      c.fillStyle = '#e04040'; c.fillRect(Math.round(p.x)-1,41,3,2);
+      pxDot(c,p.x,40,'#fff');
+    } else {
+      pxDot(c,p.x,p.y,hc); pxDot(c,p.x,p.y+1,hc); pxDot(c,p.x-1,p.y+2,hc); pxDot(c,p.x-2,p.y+1,hc);
+    }
+  });
+  s.pl.forEach(function(p,i){
+    c.fillStyle = '#8a6a45'; c.fillRect(p.cx-22,40,44,3);
+    c.fillStyle = '#6b4f30'; c.fillRect(p.cx-20,43,2,6); c.fillRect(p.cx+18,43,2,6);
+    pxSprite(c,PX_MAN,p.cx-5,26,PX_PAL[i ? 'ta' : 'me']);
+    c.fillStyle = i ? '#3f73c9' : '#d6456c';
+    c.fillRect(p.cx-2,19,5,1); c.fillRect(p.cx-1,20,3,1); c.fillRect(p.cx,21,1,1);
+  });
+}
+function gm_fish_loop(now){
+  const s = GM.s;
+  if(!s || GM.name !== 'fish' || s.over || !document.getElementById('gmCv')) return;
+  const dt = Math.min(0.05, (now-s.last)/1000);
+  s.last = now;
+  gm_fish_step(dt); gm_fish_ai(dt);
+  gm_fish_draw(); gmPops(s,dt); gmHud(s);
+  if(s.left <= 0 && s.pl.every(function(p){ return p.st === 'idle'; })){ gmRtEnd(s); return; }
+  GM.raf = requestAnimationFrame(gm_fish_loop);
 }
 
 function gm_mem_init(me){
@@ -12222,11 +12615,15 @@ function petApply(p, kind, who){
   if(kind==='feed'){
     if(p.sat >= 95) return {ok:false, msg:n+'已经吃得很饱了'};
     const f = p.sat >= 80 ? 0.3 : (p.sat >= 60 ? 0.6 : 1);
-    delta.sat = Math.round(15*f);
-    delta.mood = Math.round(2*f);
-    delta.bond = Math.round(1*f*10)/10;
-    delta.exp = 2;
-    delta.eng = 2 + Math.floor(Math.random()*3);
+    const today = localDateStr();
+    if(p.feedDay !== today){ p.feedDay = today; p.feedCnt = 0; }
+    const full = p.feedCnt < 3;
+    p.feedCnt++;
+    delta.sat = Math.max(1, Math.round(10*f));
+    delta.mood = Math.round(1*f);
+    delta.bond = full ? Math.round(0.5*f*10)/10 : 0;
+    delta.exp = full ? 1 : 0;
+    delta.eng = Math.floor(Math.random()*2);
     text = subj+'给'+n+'喂了食物。';
     chip = '饱腹 +'+delta.sat+' · 心情 +'+delta.mood+' · 亲密度 +'+delta.bond+' · 成长 +'+delta.exp;
   } else if(kind==='play'){
@@ -12241,10 +12638,9 @@ function petApply(p, kind, who){
   } else if(kind==='pat'){
     const today = localDateStr();
     if(p.patDay !== today){ p.patDay = today; p.patCnt = 0; }
-    delta.mood = 5;
-    if(p.patCnt < 5){ delta.bond = 2; p.patCnt++; }
-    delta.exp = 1;
-    delta.eng = 1 + Math.floor(Math.random()*2);
+    if(p.patCnt < 5){ delta.mood = 3; delta.bond = 1; delta.exp = 1; p.patCnt++; }
+    else { delta.mood = 1; }
+    delta.eng = Math.floor(Math.random()*2);
     text = subj+'轻轻摸了摸'+n+'。';
     chip = '心情 +'+delta.mood+' · 亲密度 +'+delta.bond+' · 精力 +'+delta.eng+' · 成长 +'+delta.exp;
   } else {
@@ -12425,7 +12821,7 @@ async function petCheckInvites(){
       const inv = p.outingInvite;
       if(!inv || Date.now() < inv.replyAt) continue;
       delete p.outingInvite;
-      const accept = Math.random() < 0.75;
+      const accept = Math.random() < 0.85;
       const name = pPn();
       const together = inv.companion === 'together';
       try{ await updateInviteCardStatus(inv.cardId, accept ? 'accepted' : 'declined'); }catch(e){}
@@ -14463,18 +14859,7 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .gm-m3 div{border:none;border-radius:12px;background:#fff;box-shadow:0 2px 6px rgba(156,47,59,.12);transition:transform .15s;}
 .gm-m3 div.sel{background:var(--blush);outline:none;box-shadow:0 0 0 2px var(--rouge);transform:scale(1.08);}
 .gm-btn{border:none;border-radius:999px;background:linear-gradient(135deg,#d96b78,var(--rouge));color:#fff;box-shadow:0 8px 18px rgba(156,47,59,.3);padding:11px 30px;letter-spacing:2px;}
-.gm-c4{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:min(100%,380px);margin:0 auto;padding:10px;box-sizing:border-box;border-radius:20px;background:linear-gradient(160deg,#6c8fd8,#4a69b8);box-shadow:0 12px 28px rgba(60,80,150,.35);}
-.gm-c4col{display:flex;flex-direction:column;gap:4px;cursor:pointer;}
-.gm-c4cell{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:inset 0 3px 6px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;}
-.gm-c4cell .st{width:100%;height:100%;box-shadow:none;background:transparent;}
-.gm-c4cell .st.r{background:radial-gradient(circle at 32% 28%,#ff9aa5,#d63b4f 70%);box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
-.gm-c4cell .st.y{background:radial-gradient(circle at 32% 28%,#fff1a6,#f0b92e 70%);box-shadow:inset 0 -3px 5px rgba(0,0,0,.2);}
-.gm-c4cell .st.pop{animation:gmPop .3s ease;}
 @keyframes gmPop{0%{transform:translateY(-120%);opacity:.3}100%{transform:none;opacity:1}}
-.gm-ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,300px);margin:6px auto 0;}
-.gm-ttt div{aspect-ratio:1;border-radius:18px;background:rgba(255,255,255,.85);box-shadow:0 6px 14px rgba(156,47,59,.12);display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;}
-.gm-ttt b.x{color:var(--rouge);}
-.gm-ttt b.o{color:#5b86c9;}
 .gm-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(100%,340px);margin:0 auto;}
 .gm-mem div{aspect-ratio:1;border-radius:16px;background:linear-gradient(145deg,#e9a1ab,#c9525f);box-shadow:0 6px 14px rgba(156,47,59,.25);color:rgba(255,255,255,.85);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .25s;}
 .gm-mem div.up{background:#fff;color:inherit;font-size:30px;transform:rotateY(0);box-shadow:0 6px 14px rgba(156,47,59,.15);}
@@ -14711,6 +15096,19 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"],body[data-
 .tz-sum{margin-top:14px;padding:14px 16px;border-radius:16px;border:1px dashed #C3CDD7;font-size:13px;line-height:1.7;color:#22262B}
 .tz-sum b{display:block;font-size:12px;letter-spacing:2px;color:#8A929C;margin-bottom:4px;font-weight:500}
 .tz-note{font-size:11.5px;color:#8A929C;text-align:center;margin-top:16px;line-height:1.6}
+.tz-hist{margin-top:28px;padding-top:18px;border-top:1px solid #E3E8ED}
+.tz-hist-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.tz-hist-h span{font-size:12px;letter-spacing:2px;color:#8A929C}
+.tz-hist-h small{font-size:11px;color:#A7AFB8}
+.tz-hist-item{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 6px 18px -12px rgba(60,80,100,.18);cursor:pointer}
+.tz-hist-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tz-hist-top b{font-size:13.5px;font-weight:500;color:#22262B}
+.tz-hist-top span{font-size:11px;color:#A7AFB8;white-space:nowrap}
+.tz-hist-q{font-size:12.5px;color:#5A626C;margin-top:4px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tz-hist-c{font-size:11.5px;color:#7C93AB;margin-top:6px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tz-hist-view-h{text-align:center;margin-bottom:4px}
+.tz-hist-time{font-size:11px;color:#A7AFB8;letter-spacing:1px;margin-top:2px}
+.tz-hist-empty{text-align:center;font-size:14px;color:#8A929C;padding:60px 20px 12px;letter-spacing:2px}
 </style>
 <script>
 const TAROT_MAJOR = `愚者|The Fool|新开始,自由,冒险|带着好奇出发，不必准备万全，信任直觉迈出第一步。|鲁莽,犹豫,不计后果|要么冲动行事，要么迟迟不敢动，先看清脚下再走。
@@ -14842,7 +15240,9 @@ const TAROT_TABS = [
   ['love','爱情',['free','relcheck','newlove','strengthen','dao','past10','past5','ppf']]
 ];
 const TAROT_SUIT_HINT = ['行动与热情','情感与关系','思考与沟通','现实与资源'];
-let tarotS = { tab:'daily', spread:'free', rev:true, q:'', stage:'setup', drawn:[], flipped:[], busy:false };
+const TAROT_HISTORY_MAX = 4; // 最新的 + 剩下的 3 次
+let tarotHistory = [];
+let tarotS = { tab:'daily', spread:'free', rev:true, q:'', stage:'setup', drawn:[], flipped:[], busy:false, saved:false };
 
 function tarotRand(){
   const a = new Uint32Array(1);
@@ -14870,16 +15270,51 @@ function tarotShuffleDeck(){
 }
 function tarotSleep(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
 
-function tarotOpen(){
+async function tarotOpen(){
   tarotS.stage = 'setup';
   tarotS.busy = false;
+  tarotS.saved = false;
+  try{
+    const h = await sGet('tarot-history', []);
+    tarotHistory = Array.isArray(h) ? h.slice(0, TAROT_HISTORY_MAX) : [];
+  }catch(e){ tarotHistory = []; }
   tarotRenderSetup();
 }
 function tarotBack(){
   if(tarotS.busy) return;
   if(tarotS.stage === 'setup'){ go('home'); return; }
+  if(tarotS.stage === 'history-detail'){ tarotOpenHistory(); return; }
+  if(tarotS.stage === 'history'){ tarotS.stage = 'setup'; tarotRenderSetup(); return; }
   tarotS.stage = 'setup';
   tarotRenderSetup();
+}
+function tarotOpenHistory(){
+  if(tarotS.busy) return;
+  tarotS.stage = 'history';
+  const body = document.getElementById('tarotBody');
+  if(!body) return;
+  if(!tarotHistory.length){
+    body.innerHTML = `<div class="tz-wrap">
+      <div class="tz-hist-empty">暂无历史记录</div>
+      <div class="tz-note">完成一次占卜并翻开全部牌后，会自动保存在这里。<br>仅保留最近 ${TAROT_HISTORY_MAX} 次。</div>
+      <div class="tz-btns"><div class="tz-b" onclick="tarotBack()">返回</div></div>
+    </div>`;
+    return;
+  }
+  const list = tarotHistory.map(function(h,i){
+    const t = new Date(h.time);
+    const ds = (t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+    const cards = (h.drawn||[]).map(function(d){ const c=TAROT_CARDS[d.id]; return c?c.zh+(d.rev?'↓':''):'?'; }).join(' · ');
+    return `<div class="tz-hist-item" onclick="tarotShowHistory(${i})">
+      <div class="tz-hist-top"><b>${escapeHtml(h.spreadName||'')}</b><span>${ds}</span></div>
+      <div class="tz-hist-q">${escapeHtml(h.q||'今日一牌')}</div>
+      <div class="tz-hist-c">${escapeHtml(cards)}</div>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="tz-wrap">
+    <div class="tz-hist-h"><span>历史记录</span><small>仅保留最近 ${TAROT_HISTORY_MAX} 次</small></div>
+    ${list}
+  </div>`;
 }
 function tarotPickTab(id){
   tarotS.tab = id;
@@ -14907,6 +15342,8 @@ function tarotRenderSetup(){
     <div class="tz-opt" onclick="tarotToggleRev()"><span>启用逆位</span><i class="tz-sw${tarotS.rev?' on':''}"></i></div>
     <div class="tz-go" onclick="tarotStart()">开始洗牌</div>
   </div>`;
+  const btn = document.getElementById('tarotHistBtn');
+  if(btn) btn.style.display = '';
 }
 
 async function tarotStart(){
@@ -14915,6 +15352,7 @@ async function tarotStart(){
   if(!q && tarotS.spread !== 'daily'){ pToast('先写下你的问题吧'); return; }
   tarotS.busy = true;
   tarotS.stage = 'shuffle';
+  tarotS.saved = false;
   const body = document.getElementById('tarotBody');
   let cards = '';
   for(let i=0;i<14;i++) cards += `<div class="tz-c" style="transform:translate(0,${-i*1.2}px);z-index:${i}"></div>`;
@@ -15019,6 +15457,7 @@ function tarotRenderRead(){
     const sm = tarotSummaryLines();
     if(sm.length) html += `<div class="tz-sum"><b>整体观察</b>${sm.map(function(t){ return '<div>'+t+'</div>'; }).join('')}</div>`;
     html += `<div class="tz-note">牌只是帮你整理想法的一面镜子，最后的决定在你自己手里。</div><div class="tz-btns"><div class="tz-b main" onclick="tarotSend()">发给${escapeHtml((chatSettings && chatSettings.companionName) || 'TA')}</div><div class="tz-b" onclick="tarotAgain()">再占一次</div></div>`;
+    tarotSaveHistory();
   }
   box.innerHTML = html;
   if(order.length === ds.length){
@@ -15029,6 +15468,51 @@ function tarotRenderRead(){
 function tarotAgain(){
   tarotS.stage = 'setup';
   tarotRenderSetup();
+}
+async function tarotSaveHistory(){
+  if(tarotS.saved) return;
+  tarotS.saved = true;
+  const sp = TAROT_SPREADS[tarotS.spread];
+  if(!sp) return;
+  const entry = {
+    id: (typeof uid==='function' ? uid() : String(Date.now())),
+    time: Date.now(),
+    q: (tarotS.q || '').trim() || '今日一牌',
+    spread: tarotS.spread,
+    spreadName: sp.name,
+    drawn: tarotS.drawn.map(function(d){ return { id:d.id, rev:!!d.rev }; })
+  };
+  if(!Array.isArray(tarotHistory)) tarotHistory = [];
+  tarotHistory.unshift(entry);
+  if(tarotHistory.length > TAROT_HISTORY_MAX) tarotHistory = tarotHistory.slice(0, TAROT_HISTORY_MAX);
+  try{ await sSet('tarot-history', tarotHistory); }catch(e){}
+}
+function tarotShowHistory(idx){
+  const h = tarotHistory[idx];
+  if(!h) return;
+  tarotS.stage = 'history-detail';
+  const sp = TAROT_SPREADS[h.spread] || { name:h.spreadName||'', pos:(h.drawn||[]).map(function(_,i){ return {n:'位置 '+(i+1), q:''}; }) };
+  const t = new Date(h.time);
+  const ds = (t.getMonth()+1)+'月'+t.getDate()+'日 '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  let items = (h.drawn||[]).map(function(d,i){
+    const c = TAROT_CARDS[d.id];
+    if(!c) return '';
+    const p = (sp.pos && sp.pos[i]) ? sp.pos[i] : {n:'位置 '+(i+1), q:''};
+    const kw = d.rev ? c.rk : c.uk, tx = d.rev ? c.rt : c.ut;
+    return `<div class="tz-r"><div class="tz-r-h"><b>${i+1} · ${p.n}</b><span>${c.zh} · ${d.rev?'逆位':'正位'}</span></div>${p.q?`<div class="tz-r-q">${p.q}</div>`:''}<div class="tz-r-k">${(kw||'').split(',').join(' · ')}</div><div class="tz-r-t">${tx||''}</div></div>`;
+  }).join('');
+  const body = document.getElementById('tarotBody');
+  body.innerHTML = `<div class="tz-wrap">
+    <div class="tz-hist-view-h">
+      <div class="tz-spname">${escapeHtml(h.spreadName||sp.name||'')}</div>
+      <div class="tz-hist-time">${ds}</div>
+    </div>
+    <div class="tz-q">${escapeHtml(h.q||'今日一牌')}</div>
+    <div id="tzRead">${items}
+      <div class="tz-note">这是历史记录，仅供回顾。</div>
+      <div class="tz-btns"><div class="tz-b" onclick="tarotBack()">返回</div></div>
+    </div>
+  </div>`;
 }
 async function tarotSend(){
   const sp = TAROT_SPREADS[tarotS.spread];
