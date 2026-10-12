@@ -13561,7 +13561,7 @@ async function loadStatusCard(){
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
 // 直接抽 0~23 点；显示按小时分段：0~5 凌晨 / 6~11 早上 / 12~17 下午 / 18~23 晚上
-// 每次进入「在线」有 5% 概率重抽；不抽则沿用原时间继续走；要抽则在 0~90 秒后再抽
+// 每次进入「在线」有 10% 概率重抽；不抽则沿用原时间继续走；要抽则在 0~90 秒后再抽
 function scRollHour(){
   return Math.floor(Math.random() * 24);
 }
@@ -13615,8 +13615,8 @@ function scRoll(){
     c.connNextAt = now + Math.random()*120000;
   }
   let tAt = prev.tAt;
-  // 每次进入在线：已有基准时间时，5% 概率在 0~90 秒后重抽
-  if(kind === 'online' && typeof prev.tBase === 'number' && !tAt && Math.random() < 0.05){
+  // 每次进入在线：已有基准时间时，10% 概率在 0~90 秒后重抽
+  if(kind === 'online' && typeof prev.tBase === 'number' && !tAt && Math.random() < 0.10){
     tAt = now + Math.random() * 90000;
   }
   c.st = { kind, quote, tBase: prev.tBase, tBaseAt: prev.tBaseAt, tAt, nextAt: now + (1 + Math.random()*6)*3600000 };
