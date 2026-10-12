@@ -381,11 +381,23 @@
 .msg.image{ background:none !important; border:none !important; padding:0; box-shadow:none; max-width:65%; }
 .chat-image{ max-width:100%; max-height:220px; border-radius:8px; display:block; cursor:pointer; box-shadow:0 2px 6px -2px rgba(42,36,31,0.3); }
 .quote-ref{
-    font-size:11px; opacity:.8; border-left:2.5px solid currentColor; padding:3px 8px; margin-bottom:6px; border-radius:3px;
-    background:rgba(0,0,0,0.06); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
-    cursor:pointer;
+    font-size:11px; opacity:.9; border-left:2.5px solid currentColor; padding:5px 8px; margin-bottom:6px; border-radius:3px;
+    background:rgba(0,0,0,0.06); max-width:100%;
+    cursor:pointer; display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px;
   }
   .quote-ref:active{ background:rgba(0,0,0,0.14); }
+  .quote-ref-who{ font-weight:600; opacity:.85; flex-shrink:0; }
+  .quote-ref-who::after{ content:':'; margin-left:1px; }
+  .quote-ref-text{
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+    overflow:hidden; text-overflow:ellipsis; white-space:normal; line-height:1.35;
+    max-width:100%; word-break:break-word;
+  }
+  .quote-ref-thumb{
+    width:28px; height:28px; object-fit:cover; border-radius:4px; flex-shrink:0;
+    vertical-align:middle;
+  }
+  .quote-ref-emoji{ font-size:18px; line-height:1; flex-shrink:0; }
   .msg-jump-highlight{ animation: msgJumpFlash 1.2s ease; }
   @keyframes msgJumpFlash{
     0%{ box-shadow:0 0 0 3px var(--rouge); }
@@ -400,7 +412,9 @@
   .lp-mask{ position:fixed; inset:0; z-index:9998; background:transparent; }
   .quote-bar{ padding:7px 12px; border-top:1px dashed rgba(0,0,0,0.08); background:rgba(255,255,255,0.55); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
   .quote-bar-inner{ display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-soft); }
-  .quote-bar-inner span:first-child{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .quote-bar-main{ display:flex; align-items:center; gap:6px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .quote-bar-thumb{ width:22px; height:22px; object-fit:cover; border-radius:3px; flex-shrink:0; }
+  .quote-bar-emoji{ font-size:16px; line-height:1; flex-shrink:0; }
   .msg.transfer{ background:#F79C46; color:#fff; border:none !important; border-radius:10px; padding:10px 14px; min-width:170px; cursor:default; box-shadow:0 3px 8px -2px rgba(160,90,20,0.45); }
   .msg.transfer .tf-main{ display:flex; align-items:center; gap:10px; }
   .msg.transfer .tf-ico{ width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; flex-shrink:0; }
@@ -4033,8 +4047,7 @@ function renderChat(preserveScroll, scrollToId){
       const _who = m.from==='user' ? '我' : (chatSettings.companionName || 'TA');
       return `<div id="msg-${m.id}" class="msg-row recalled-tip"><div class="msg recalled">${escapeHtml(m.content || (_who + '撤回了一条消息'))}</div></div>`;
     }
-    const quoteRefHtml = m.quoteOf
-      ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${escapeHtml(m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName)}: ${escapeHtml(m.quoteOf.preview)}</div>` : '';
+    const quoteRefHtml = m.quoteOf ? renderQuoteRefHtml(m.quoteOf) : '';
     const quoteBtn = '';
       const _isGroup = !!(m.from==='bot' && chatSettings.group && chatSettings.group.enabled);
   const _senderName = _isGroup ? (m.sender || chatSettings.companionName) : null;
@@ -4246,8 +4259,16 @@ function scrollChatBottom(){
 
 /* ---- 引用消息：我可以引用，TA 也可以引用 ---- */
 function buildQuotePreview(m){
-  if(m.type==='sticker') return '[表情]';
-  if(m.type==='combo') return '[表情+文字] '+(m.content||'').slice(0,20);
+  // 纯文字预览（多行只取开头一点点，类似微信）
+  if(m.type==='sticker'){
+    const v = m.content || '';
+    if(v.startsWith('data:')) return '[表情]';
+    return v || '[表情]';
+  }
+  if(m.type==='combo'){
+    const t = (m.content||'').replace(/\s+/g,' ').trim();
+    return t ? t.slice(0,28) : '[表情]';
+  }
   if(m.type==='invite') return '[邀请] '+(m.title||m.kind||'');
   if(m.type==='transfer') return '[转账] ¥' + Number(m.amount).toFixed(2);
   if(m.type==='gift') return (m.bouquet?'[花束] ':'[礼物] ') + (m.itemName||m.content||'');
@@ -4256,9 +4277,43 @@ function buildQuotePreview(m){
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
-
-  if(m.type==='pat' || m.type==='gesture') return m.content;
-  return (m.content||'').slice(0,40);
+  if(m.type==='pat' || m.type==='gesture') return String(m.content||'').replace(/\s+/g,' ').slice(0,40);
+  return String(m.content||'').replace(/\s+/g,' ').trim().slice(0,40);
+}
+function buildQuoteOf(m){
+  if(!m) return null;
+  const q = { id:m.id, from:m.from, preview: buildQuotePreview(m), qType: m.type||'text' };
+  if(m.type==='sticker'){
+    q.qThumb = m.content || '';
+  } else if(m.type==='combo' && m.sticker){
+    q.qThumb = m.sticker;
+  } else if(m.type==='image' && m.content){
+    q.qThumb = m.content;
+  }
+  return q;
+}
+function renderQuoteRefHtml(q){
+  if(!q) return '';
+  const who = q.from==='user' ? (profile.myName||'我') : ((chatSettings&&chatSettings.companionName)||'TA');
+  let thumb = '';
+  if(q.qThumb){
+    if(String(q.qThumb).startsWith('data:')){
+      thumb = `<img class="quote-ref-thumb" src="${escapeHtml(q.qThumb)}" alt="">`;
+    } else {
+      thumb = `<span class="quote-ref-emoji">${escapeHtml(String(q.qThumb).slice(0,8))}</span>`;
+    }
+  }
+  // 纯表情包：只显示小图/小表情；文字/组合：显示截断文字（组合可带小图）
+  const isPureSticker = q.qType==='sticker' && thumb;
+  let textHtml = '';
+  if(!isPureSticker && q.preview){
+    textHtml = `<span class="quote-ref-text">${escapeHtml(q.preview)}</span>`;
+  } else if(q.qType==='combo' && q.preview){
+    textHtml = `<span class="quote-ref-text">${escapeHtml(q.preview)}</span>`;
+  } else if(!thumb){
+    textHtml = `<span class="quote-ref-text">${escapeHtml(q.preview||'[消息]')}</span>`;
+  }
+  return `<div class="quote-ref" onclick="jumpToMessage('${q.id}')"><span class="quote-ref-who">${escapeHtml(who)}</span>${thumb}${textHtml}</div>`;
 }
 function viewChatImage(id){
   const m = chatMessages.find(x=>x.id===id);
@@ -4271,7 +4326,7 @@ function viewChatImage(id){
 function setQuoteTarget(id){
   const m = chatMessages.find(x=>x.id===id);
   if(!m) return;
-  quoteTarget = { id:m.id, from:m.from, preview: buildQuotePreview(m) };
+  quoteTarget = buildQuoteOf(m);
   renderQuoteBar();
   const inp = document.getElementById('chatInput');
   if(inp) inp.focus();
@@ -4397,7 +4452,16 @@ function renderQuoteBar(){
   if(!quoteTarget){ bar.classList.add('hidden'); bar.innerHTML=''; return; }
   bar.classList.remove('hidden');
   const who = quoteTarget.from==='user' ? (profile.myName||'我') : chatSettings.companionName;
-  bar.innerHTML = `<div class="quote-bar-inner"><span>回复 ${escapeHtml(who)}：${escapeHtml(quoteTarget.preview)}</span><span class="close-x" onclick="clearQuoteTarget()">✕</span></div>`;
+  let thumb = '';
+  if(quoteTarget.qThumb){
+    if(String(quoteTarget.qThumb).startsWith('data:')){
+      thumb = `<img class="quote-bar-thumb" src="${escapeHtml(quoteTarget.qThumb)}" alt="">`;
+    } else {
+      thumb = `<span class="quote-bar-emoji">${escapeHtml(String(quoteTarget.qThumb).slice(0,8))}</span>`;
+    }
+  }
+  const prev = (quoteTarget.qType==='sticker' && thumb) ? '' : escapeHtml(quoteTarget.preview||'');
+  bar.innerHTML = `<div class="quote-bar-inner"><span class="quote-bar-main">回复 ${escapeHtml(who)}：${thumb}${prev}</span><span class="close-x" onclick="clearQuoteTarget()">✕</span></div>`;
 }
 /* TA 自己回复时，随机决定要不要引用最近 15 条消息（不分类型）里的某一条，纯随机不看内容对不对得上 */
 function maybeQuoteMessage(){
@@ -4405,7 +4469,7 @@ function maybeQuoteMessage(){
   if(candidates.length===0) return null;
   if(Math.random() < 0.35){
     const target = candidates[Math.floor(Math.random()*candidates.length)];
-    return { id: target.id, from: target.from, preview: buildQuotePreview(target) };
+    return buildQuoteOf(target);
   }
   return null;
 }
@@ -14965,8 +15029,10 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"],body[data-
 #view-chat .msg .t{font-size:10px;margin-top:4px;opacity:.7}
 #view-chat .msg .t:empty{display:none}
 #view-chat .msg-time{align-self:center;font-size:11px;letter-spacing:1px;color:#8A929C;margin:6px 0 0}
-#view-chat .quote-ref{background:#E6EBF0;color:#6A737D;border:none;border-left:2px solid #7C93AB;border-radius:8px;font-size:11.5px;padding:6px 10px;margin-bottom:6px}
+#view-chat .quote-ref{background:#E6EBF0;color:#6A737D;border:none;border-left:2px solid #7C93AB;border-radius:8px;font-size:11.5px;padding:6px 10px;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
 #view-chat .msg.user .quote-ref{background:rgba(255,255,255,.2);color:rgba(255,255,255,.92);border-left-color:#fff}
+#view-chat .quote-ref-thumb{width:28px;height:28px;border-radius:4px;object-fit:cover}
+#view-chat .quote-ref-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;max-width:100%}
 #view-chat .chat-tools{display:flex;justify-content:space-around;margin:0 16px 4px;padding:10px 6px;background:#fff;border-radius:18px;box-shadow:0 8px 24px -12px rgba(60,80,100,.25)}
 #view-chat .chat-tools.hidden{display:none}
 #view-chat .chat-tools .mini-btn{width:44px;height:44px;background:#F4F6F8}
