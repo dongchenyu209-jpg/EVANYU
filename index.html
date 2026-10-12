@@ -7654,10 +7654,13 @@ function applyCustomBubbleCSSToPage(){
 function renderMoyuHome(){
   const el = document.getElementById('moyuLatestText');
   if(!el) return;
-  // 只显示“今天”的记录：当前班次/历史班次/records 里取时间属于今天的最后一条；
-  // 今天没有记录则占位，不回退到前几天的旧记录。
+  // 今天的记录 + 进行中班次（可跨 0 点）都要能显示，避免过了午夜就变成「今日无排班」
   const today = localDateStr();
   const isToday = (r)=> !!r && r.time != null && localDateStr(new Date(r.time)) === today;
+  const isOngoing = (sess0)=>{
+    return !!sess0 && typeof sess0.startTime === 'number' && typeof sess0.workMs === 'number'
+      && (Date.now() - sess0.startTime) < sess0.workMs;
+  };
   // 已下班：当前班次已过 workMs 就显示“已下班 · 下班时间”；
   // 若当前班次已归档清空（照抄 ZY3），则看最近一班（history[0]）是否今天下班。
   const _offInfo = (sess0)=>{
@@ -7684,7 +7687,11 @@ function renderMoyuHome(){
   }
   let latest = null;
   const sess = moyuState.currentSession;
-  if(sess && Array.isArray(sess.records)){
+  // 进行中的班次（含昨晚开班、过了 0 点仍在上）：直接取最新一条，不要求记录时间是「今天」
+  if(sess && isOngoing(sess) && Array.isArray(sess.records) && sess.records.length){
+    latest = sess.records[sess.records.length - 1];
+  }
+  if(!latest && sess && Array.isArray(sess.records)){
     for(let i=sess.records.length-1;i>=0;i--){ if(isToday(sess.records[i])){ latest = sess.records[i]; break; } }
   }
   if(!latest && Array.isArray(moyuState.history)){
@@ -7913,11 +7920,20 @@ function renderMoyuNotePanelBody(tab){
   }
   if(tab==='today'){
     const todayStr = localDateStr();
-    const isTodaySess = (x)=> !!x && ((typeof x.startTime==='number' && localDateStr(new Date(x.startTime))===todayStr) ||
-      (Array.isArray(x.records) && x.records.some(r=> r && r.time!=null && localDateStr(new Date(r.time))===todayStr)));
+    // 进行中班次：即使 startTime 是昨天（跨 0 点），也算「今天」要显示
+    const isOngoingSess = (x)=> !!x && typeof x.startTime==='number' && typeof x.workMs==='number'
+      && (Date.now() - x.startTime) < x.workMs;
+    const isTodaySess = (x)=> !!x && (
+      isOngoingSess(x) ||
+      (typeof x.startTime==='number' && localDateStr(new Date(x.startTime))===todayStr) ||
+      (Array.isArray(x.records) && x.records.some(r=> r && r.time!=null && localDateStr(new Date(r.time))===todayStr)) ||
+      // 今天下班的历史班次也算今天
+      (typeof x.startTime==='number' && typeof x.workMs==='number' && localDateStr(new Date(x.startTime + x.workMs))===todayStr)
+    );
     const cur = moyuState.currentSession;
     const list = [];
-    if(cur && isTodaySess(cur)) list.push(renderSessionCard(cur, true));
+    // 当前进行中的班次始终放最前，不因跨日被过滤
+    if(cur && (isOngoingSess(cur) || isTodaySess(cur))) list.push(renderSessionCard(cur, true));
     (moyuState.history||[]).forEach((x,hi)=>{ if(isTodaySess(x)) list.push(renderSessionCard(x, false, hi)); });
     let foot = '';
     if(cur) foot = `<div class="btn-row"><div class="btn outline" onclick="generateMoyuRecord()">立即摸一条</div></div>`;
@@ -13545,12 +13561,13 @@ async function loadStatusCard(){
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
 // 先抽时间段，再在对应时间块里抽具体小时
-// 凌晨 1~5 / 上午 6~11 / 晚上 12~23（0 点归入凌晨显示）
+// 凌晨 1~5 / 上午 6~11 / 下午 12~23（0 点归入凌晨显示）
+// 每次进入「在线」有 5% 概率重抽；不抽则沿用原时间继续走；要抽则在 0~90 秒后再抽
 function scRollHour(){
   const periods = [
     { hours: [1,2,3,4,5] },          // 凌晨
     { hours: [6,7,8,9,10,11] },       // 上午
-    { hours: [12,13,14,15,16,17,18,19,20,21,22,23] } // 晚上
+    { hours: [12,13,14,15,16,17,18,19,20,21,22,23] } // 下午（含晚间）
   ];
   const p = periods[Math.floor(Math.random() * periods.length)];
   return p.hours[Math.floor(Math.random() * p.hours.length)];
@@ -13559,6 +13576,7 @@ function scSettleTime(){
   const st = statusCardData.st;
   if(!st) return;
   const now = Date.now();
+  // 兼容旧数据
   if(typeof st.tBase!=='number'){
     let h = null;
     if(typeof st.tOff==='number') h = new Date(now+st.tOff).getHours();
@@ -13570,16 +13588,22 @@ function scSettleTime(){
       saveStatusCard();
     }
   }
+  // 定时重抽到期：仅在线时真正换时间，否则只清定时
   if(st.tAt && now >= st.tAt){
-    st.tBase = scRollHour();
-    st.tBaseAt = now;
+    if(st.kind === 'online'){
+      st.tBase = scRollHour();
+      st.tBaseAt = now;
+    }
     delete st.tAt;
     saveStatusCard();
     return;
   }
+  // 已有基准时间就按真实流逝走，不再立刻抽
   if(typeof st.tBase==='number') return;
-  if(st.kind!=='online' || st.tAt) return;
-  st.tAt = now + 60000 + Math.random()*60000;
+  // 没有基准时间：仅在线时立刻抽一次作为起点
+  if(st.kind !== 'online' || st.tAt) return;
+  st.tBase = scRollHour();
+  st.tBaseAt = now;
   saveStatusCard();
 }
 function scRoll(){
@@ -13598,9 +13622,14 @@ function scRoll(){
     c.connNextAt = now + Math.random()*120000;
   }
   let tAt = prev.tAt;
-  if(kind==='online' && typeof prev.tBase==='number' && !tAt && Math.random() < 0.05) tAt = now + 60000 + Math.random()*60000;
+  // 每次进入在线：已有基准时间时，5% 概率在 0~90 秒后重抽
+  if(kind === 'online' && typeof prev.tBase === 'number' && !tAt && Math.random() < 0.05){
+    tAt = now + Math.random() * 90000;
+  }
   c.st = { kind, quote, tBase: prev.tBase, tBaseAt: prev.tBaseAt, tAt, nextAt: now + (1 + Math.random()*6)*3600000 };
   saveStatusCard();
+  // 首次在线且还没有基准时间 → 立刻抽一次
+  if(kind === 'online' && typeof c.st.tBase !== 'number') scSettleTime();
   return c.st;
 }
 function scClockFull(){
@@ -13612,7 +13641,7 @@ function scClockFull(){
   let label;
   if(h === 0 || (h >= 1 && h <= 5)) label = '凌晨';
   else if(h < 12) label = '上午';
-  else label = '晚上';
+  else label = '下午';
   return label + ' ' + h + '点';
 }
 const SC_CONN_RANGES = { online:[50,100], busy:[10,75], offline:[10,75] };
