@@ -8900,7 +8900,7 @@ function renderInviteCardHtml(m, time){
     actions += '<div class="invite-card-actions"><div class="btn outline" onclick="'+openers[m.kind]+'">打开</div></div>';
   }
   if(st==='accepted' && m.kind==='game' && m.game){
-    actions += '<div class="invite-card-actions"><div class="btn" onclick="openGame(\''+m.game+'\')">开始游戏</div></div>';
+    actions += '<div class="invite-card-actions"><div class="btn" onclick="openGame(\''+m.game+'\',\''+m.id+'\')">开始游戏</div></div>';
   }
   return '<div class="msg invite-card-msg '+m.from+'"><div class="invite-card-inner">'
     + '<div class="invite-card-title">'+meta.icon+' '+meta.name+'</div>'
@@ -10223,9 +10223,6 @@ function scheduleTogetherReply(kind){
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起听歌', { kind:'music', status:'accepted', inviter:'user', from:'bot' });
         try{ scheduleCompanionSkipSong(); }catch(e){}
-        const song = togetherState.music.playlist[togetherState.music.index];
-        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好啊，一起听'+(song?'「'+song.name+'」':'')) , time:Date.now(), read:true};
-        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
       } else {
         togetherState.music.active = false;
         if(lastInvite) await updateInviteCardStatus(lastInvite.id, 'declined');
@@ -10264,8 +10261,6 @@ function scheduleTogetherReply(kind){
       if(accept){
         await updateInviteCardStatus(lastInvite.id, 'accepted');
         await postTogetherSystemMsg(chatSettings.companionName+' 接受了一起玩'+gname, { kind:'game', status:'accepted', inviter:'user', from:'bot', game:lastInvite.game });
-        const gmsg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || ('好，一起玩'+gname), time:Date.now(), read:true};
-        chatMessages.push(gmsg); try{ await recPut('chatMessages', gmsg);}catch(e){}
       } else {
         await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 现在不太想玩'+gname, { kind:'game', status:'declined', inviter:'user', from:'bot', game:lastInvite.game });
@@ -10279,8 +10274,6 @@ function scheduleTogetherReply(kind){
           kind:'watch', status:'accepted', inviter:'user', from:'bot',
           bvid: togetherState.watch.bvid, scheduledAt: togetherState.watch.scheduledAt
         });
-        const msg = {id:uid(), from:'bot', type:'text', content: (getRandomCardText&&getRandomCardText()) || '好，到点一起看。一边看也可以继续聊天。', time:Date.now(), read:true};
-        chatMessages.push(msg); try{ await recPut('chatMessages', msg);}catch(e){}
       } else {
         // 30% 改时间而不是直接拒
         if(Math.random() < 0.35){
@@ -11154,7 +11147,18 @@ const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'
 const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣' };
 function gmTitleShort(n){ return String(GM_TITLES[n] || n).replace(/（.*?）/g,''); }
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
-function closeGame(){ clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf); GM.name = null; GM.s = null; gmRoot().innerHTML = ''; }
+async function gmEndCards(name, cardId){
+  if(!cardId) return;
+  const ids = [cardId];
+  (chatMessages || []).forEach(m=>{ if(m.type==='invite' && m.kind==='game' && m.game===name && m.status==='accepted' && m.id!==cardId) ids.push(m.id); });
+  for(const id of ids){ try{ await updateInviteCardStatus(id, 'ended'); }catch(e){} }
+}
+function closeGame(){
+  clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf);
+  const name = GM.name, cardId = GM.cardId;
+  GM.name = null; GM.s = null; GM.cardId = null; gmRoot().innerHTML = '';
+  if(name && cardId) gmEndCards(name, cardId);
+}
 function gmMsg(t){ const e = document.getElementById('gmMsg'); if(e) e.innerHTML = t; }
 function gmBody(h){ const e = document.getElementById('gmBody'); if(e) e.innerHTML = h; }
 function gmName(){ return escapeHtml((chatSettings && chatSettings.companionName) || 'TA'); }
@@ -11164,9 +11168,10 @@ function taThink(fn){
   const ms = Math.random()*10000;   // 游戏思考时间 0~10 秒
   GM.t = setTimeout(()=>{ GM.thinking = false; if(GM.name) fn(); }, ms);
 }
-function openGame(name){
+function openGame(name, cardId){
   clearTimeout(GM.t); if(GM.raf) cancelAnimationFrame(GM.raf);
-  GM = { name:name, t:null, s:null, busy:false };
+  if(cardId===undefined) cardId = (GM.name===name) ? GM.cardId : null;
+  GM = { name:name, t:null, s:null, busy:false, cardId:cardId || null };
   gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
   if(name==='choice'){ gm_choice_init(); return; }
   if(name==='miner' || name==='fish'){ window['gm_'+name+'_init'](); return; }
