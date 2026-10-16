@@ -1623,12 +1623,14 @@
 
     <div class="home-page" id="homePage2">
     <div class="h2-scroll">
+      <div class="h2-searchwrap">
       <div class="h2-search">
         <span class="h2-si home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.500" cy="10.500" r="6.500"/><path d="m16 16 5 5"/></svg></span>
-        <input type="text" id="searchInput" placeholder="搜索聊天回忆…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)doSearch()">
+        <input type="text" id="searchInput" placeholder="搜索聊天回忆…" oninput="if(!this.value.trim())clearSearchResults()" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)doSearch()">
         <span class="h2-go" onclick="doSearch()">搜索</span>
       </div>
       <div class="search-results" id="searchResults"></div>
+      </div>
 
       <div class="h2-card h2-status">
         <div class="h2-half" onclick="openMoyuNotePanel()">
@@ -2466,9 +2468,6 @@ let letterUnread = false;
 let inboxLetterUnread = false;
 let momentsUnread = false;
 let lifePhotos = [];
-let statusPool = [];
-let todayStatus = null;
-let todayStatusHistory = [];
 /* ---- 陆沉（TA）的每日心情池：每天 TA 自己挑一条上传进日记 ---- */
 const TA_MOOD_DEFAULTS = [
   { mood:'🥰' }, { mood:'😌' }, { mood:'😊' }, { mood:'😔' }, { mood:'😎' },
@@ -2599,7 +2598,7 @@ async function init(){
     _chatMessages, _cardsData, _ledgerEntries, _periodEntries, _diaryEntries,
     _momentsPosts, _momentEvents, _letters, _inboxLetters, _callLogs,
     _proactiveState, _chatUnread, _letterUnread, _inboxLetterUnread, _momentsUnread,
-    _lifePhotos, _statusPool, _todayStatus, _todayStatusHistory, _moyuState,
+    _lifePhotos, _moyuState,
     _proactiveMsgSettings, _momentInteractSettings, _proactiveLetterSettings, _spliceCardsEnabled, _spliceCardSettings,
     _taMoodPool, _taDiaryMoods
   ] = await Promise.all([
@@ -2619,9 +2618,6 @@ async function init(){
     sGet('inbox-letter-unread', false),
     sGet('moments-unread', false),
     loadInitialPage('lifePhotos'),
-    sGet('status-pool', []),
-    sGet('today-status', null),
-    sGet('today-status-history', []),
     sGet('moyu-state', moyuState),
     sGet('proactive-msg-settings', proactiveMsgSettings),
     sGet('moment-interact-settings', momentInteractSettings),
@@ -2648,9 +2644,6 @@ async function init(){
   inboxLetterUnread = _inboxLetterUnread;
   momentsUnread = _momentsUnread;
   lifePhotos = _lifePhotos.slice().reverse();
-  statusPool = Array.isArray(_statusPool) ? _statusPool : [];
-  todayStatus = _todayStatus;
-  todayStatusHistory = _todayStatusHistory || [];
   moyuState = (_moyuState && typeof _moyuState==='object') ? _moyuState : moyuState;
   proactiveMsgSettings = (_proactiveMsgSettings && typeof _proactiveMsgSettings==='object') ? _proactiveMsgSettings : proactiveMsgSettings;
   momentInteractSettings = (_momentInteractSettings && typeof _momentInteractSettings==='object') ? _momentInteractSettings : momentInteractSettings;
@@ -2685,7 +2678,6 @@ async function init(){
   normalizeLoadedSettings();
 
   // 首页轻量补渲染
-  try{ ensureTodayStatus(); }catch(e){ console.warn(e); }
   renderMoyuHome();
   renderUnreadDots();
 
@@ -3194,164 +3186,23 @@ async function compressImage(dataUrl, maxWidth = 800) {
   });
 }
 // ==================== 结束 ====================
-/* ============================================================
-   今日状态：自由导入一批状态，一天内随机时机自动换一个显示
-   ------------------------------------------------------------
-   不用 setInterval 定时触发——App 切到后台时定时器会被系统暂停（跟之前
-   主动消息打字指示器踩过的坑一样），定时器到点了也不会真的执行。
-   改成"记录下次该变的时间点，每次有机会渲染时顺便检查一下有没有到点"，
-   这样哪怕 App 被搁置很久，一打开就能立刻补上该有的变化。
-   ============================================================ */
 function todayKey(){
   return localDateStr(); // 补零：要和日记日历的 diaryKey 一致，否则「今天」高亮永远对不上
 }
-function pickRandomStatusText(){
-  return statusPool[Math.floor(Math.random()*statusPool.length)];
-}
-function nextStatusChangeDelay(){
-  const minH = 1, maxH = 8;
-  return (minH + Math.random()*(maxH-minH)) * 3600 * 1000;
-}
-function pruneStatusHistoryToToday(){
-  const key = todayKey();
-  todayStatusHistory = todayStatusHistory.filter(h=>h.date===key);
-}
-function recordStatusHistory(text){
-  pruneStatusHistoryToToday();
-  todayStatusHistory.push({ date: todayKey(), text, time: Date.now() });
-  sSet('today-status-history', todayStatusHistory);
-}
-function ensureTodayStatus(){
-  const key = todayKey();
-  const due = !todayStatus || !todayStatus.nextChangeAt || Date.now() >= todayStatus.nextChangeAt;
-  if(due){
-    if(statusPool.length > 0){
-      todayStatus = { date:key, text: pickRandomStatusText(), nextChangeAt: Date.now() + nextStatusChangeDelay() };
-      sSet('today-status', todayStatus);
-      recordStatusHistory(todayStatus.text);
-    } else {
-      todayStatus = null;
-    }
-  }
-}
-function renderTodayStatusHome(){
-  const el = document.getElementById('todayStatusText');
-  if(!el) return;
-  // 优先当前状态；若当前无状态，则回退显示今天最近一条历史状态；都没有才占位
-  let text = (todayStatus && todayStatus.text) ? todayStatus.text : '';
-  if(!text && Array.isArray(todayStatusHistory) && todayStatusHistory.length){
-    const last = todayStatusHistory[todayStatusHistory.length-1];
-    if(last && last.text) text = last.text;
-  }
-  if(text){
-    el.textContent = text;
-    el.style.color = '';
-  } else {
-    el.textContent = '[未设置状态]';
-    el.style.color = 'var(--ink-soft)';
-  }
-}
-
-function openTodayStatusPanel(){
-  openOverlay(`
-    <div class="drawer-head"><h3>今日状态</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div style="font-size:16px;font-weight:700;color:var(--rouge);margin-bottom:10px;">${todayStatus ? escapeHtml(todayStatus.text) : '暂无状态，先导入一些吧'}</div>
-    <div class="btn-row">
-      ${todayStatus ? `<div class="btn outline" onclick="rerollTodayStatus()">🎲 换一个</div>` : ''}
-      <div class="btn outline" onclick="openTodayStatusHistoryPanel()">📋 今日状态记录</div>
-    </div>
-    <div class="box-title" style="margin-top:16px;">状态库（共 ${statusPool.length} 条）</div>
-    <label class="field">批量导入（每行一条，比如：想你了 / 有点累 / 元气满满）</label>
-    <textarea id="statusBulkInput" placeholder="想你了&#10;有点累&#10;元气满满"></textarea>
-    <div class="btn-row">
-      <div class="btn outline" onclick="importStatusBulk()">导入这些</div>
-      <div class="btn outline" onclick="document.getElementById('statusFileInput').click()">📁 导入文件</div>
-    </div>
-    <input type="file" id="statusFileInput" accept=".txt,.json" class="hidden" onchange="onStatusFile(event)">
-    <div id="statusPoolList" style="margin-top:10px;">${renderStatusChips()}</div>
-  `);
-}
-function renderStatusHistoryList(){
-  pruneStatusHistoryToToday();
-  if(todayStatusHistory.length===0) return '<div class="empty-note">今天还没有状态变化记录</div>';
-  return [...todayStatusHistory].reverse().map(h=>{
-    const t = new Date(h.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
-    return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);"><span style="color:var(--ink-soft);font-size:13px;flex-shrink:0;">${t}</span><span style="text-align:right;">${escapeHtml(h.text)}</span></div>`;
-  }).join('');
-}
-function openTodayStatusHistoryPanel(){
-  openOverlay(`
-    <div class="drawer-head"><h3>今日状态记录</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div id="statusHistoryList">${renderStatusHistoryList()}</div>
-  `);
-}
-function renderStatusChips(){
-  if(statusPool.length===0) return '<div class="empty-note">还没有状态，先导入一些</div>';
-  return statusPool.map((s,i)=>`<span class="card-pill">${escapeHtml(s)}<span class="del" style="margin-left:6px;" onclick="deleteStatus(${i})">✕</span></span>`).join('');
-}
-async function importStatusBulk(){
-  const raw = document.getElementById('statusBulkInput').value;
-  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
-  if(lines.length===0) return;
-  lines.forEach(l=>{ if(!statusPool.includes(l)) statusPool.push(l); });
-  await sSet('status-pool', statusPool);
-  document.getElementById('statusBulkInput').value = '';
-  const listEl = document.getElementById('statusPoolList');
-  if(listEl) listEl.innerHTML = renderStatusChips();
-  ensureTodayStatus();
-  renderTodayStatusHome();
-}
-function onStatusFile(e){
-  const f = e.target.files[0]; if(!f) return;
-  const reader = new FileReader();
-  reader.onload = async ()=>{
-    let lines = [];
-    try{
-      const parsed = JSON.parse(reader.result);
-      if(Array.isArray(parsed)) lines = parsed.filter(x=>typeof x==='string');
-    }catch(err){
-      lines = reader.result.split('\n').map(l=>l.trim()).filter(Boolean);
-    }
-    lines.forEach(l=>{ if(!statusPool.includes(l)) statusPool.push(l); });
-    await sSet('status-pool', statusPool);
-    const listEl = document.getElementById('statusPoolList');
-    if(listEl) listEl.innerHTML = renderStatusChips();
-    ensureTodayStatus();
-    renderTodayStatusHome();
-  };
-  reader.readAsText(f, 'utf-8');
-}
-async function deleteStatus(i){
-  statusPool.splice(i,1);
-  await sSet('status-pool', statusPool);
-  const listEl = document.getElementById('statusPoolList');
-  if(listEl) listEl.innerHTML = renderStatusChips();
-}
-async function rerollTodayStatus(){
-  if(statusPool.length===0) return;
-  todayStatus = { date: todayKey(), text: pickRandomStatusText(), nextChangeAt: Date.now() + nextStatusChangeDelay() };
-  await sSet('today-status', todayStatus);
-  recordStatusHistory(todayStatus.text);
-  renderTodayStatusHome();
-  openTodayStatusPanel();
-}
-// App 从后台切回前台、或长时间停留在前台时，顺手检查一下状态是否到点该换了
-function refreshTodayStatusIfDue(){
-  ensureTodayStatus();
-  renderTodayStatusHome();
+function refreshChatStatusLabel(){
   const chatStatEl = document.getElementById('chatCStat');
   if(chatStatEl && currentView==='chat') chatStatEl.textContent = scStatusLabel();
 }
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible'){
-    refreshTodayStatusIfDue();
+    refreshChatStatusLabel();
     if(typeof checkProactiveDue === 'function') checkProactiveDue(); // 切回前台时补发被后台冻结的主动消息/信件/来电/动态
     if(typeof requestKeepAliveWakeLock === 'function') requestKeepAliveWakeLock();
   }
 });
 // 从 bfcache 恢复（部分浏览器不派发 visibilitychange）时也补一次
 window.addEventListener('pageshow', function(){ if(typeof checkProactiveDue === 'function') checkProactiveDue(); });
-setInterval(refreshTodayStatusIfDue, 10*60*1000); // 前台长时间停留时，每 10 分钟兜底检查一次
+setInterval(refreshChatStatusLabel, 10*60*1000);
 setInterval(()=>{ const bgOn = (typeof bgSettings!=='undefined' && bgSettings && bgSettings.keepAlive); if((document.visibilityState==='visible' || bgOn) && typeof checkProactiveDue==='function') checkProactiveDue(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallAutoBuy==='function') checkMallAutoBuy(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallCartPick==='function') checkMallCartPick(); if((document.visibilityState==='visible' || bgOn) && typeof checkMallReq==='function') checkMallReq(); if((document.visibilityState==='visible' || bgOn) && typeof checkTransferDue==='function') checkTransferDue(); }, 60*1000); // 每 1 分钟兜底检查一次主动消息（前台，或开了后台保活时在后台也查）
 
 
@@ -4000,7 +3851,6 @@ function hideChatTools(){ const el = document.getElementById('chatTools'); if(el
 function renderChat(preserveScroll, scrollToId){
   const wrap = document.getElementById('chatMsgs');
   document.getElementById('chatCName').textContent = chatSettings.companionName;
-  ensureTodayStatus();
   document.getElementById('chatCStat').textContent = scStatusLabel();
   if(chatMessages.length===0){
     wrap.innerHTML = '<div class="empty-note">还没有聊天记录，说点什么吧～</div>';
@@ -4011,6 +3861,11 @@ function renderChat(preserveScroll, scrollToId){
   const botAvatar = profile.avatar && profile.avatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.avatar}">` : (profile.avatar||'🌙');
   const myAvatar = profile.myAvatar && profile.myAvatar.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${profile.myAvatar}">` : (profile.myAvatar||'🙂');
   const loadMoreHtml = !pageState.chatMessages.exhausted ? `<div class="load-more-bar" onclick="loadMoreChat()">↑ 加载更早的聊天记录</div>` : '';
+  const _tt = (m)=>{
+    const t = m.time ? formatMsgTime(m.time) : '';
+    const r = (m.from==='user' && m.read) ? '已读' : '';
+    return (t && r) ? t+' · '+r : (t || r);
+  };
   const _renderOne = (m)=>{
     const time = formatMsgTime(m.time);
     if(m.type==='pat' || m.type==='gesture'){
@@ -4039,9 +3894,9 @@ function renderChat(preserveScroll, scrollToId){
     let bubbleHtml;
     if(m.type==='sticker'){
       const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
-      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${_tt(m)}${quoteBtn}</div></div>`;
     } else if(m.type==='image'){
-      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${_tt(m)}${quoteBtn}</div></div>`;
     } else if(m.type==='transfer'){
       const st = m.status || 'pending';
       const mine = m.from==='user';
@@ -4053,7 +3908,7 @@ function renderChat(preserveScroll, scrollToId){
         ${quoteRefHtml}
         <div class="tf-main"><div class="tf-ico">${stIco}</div><div><div class="tf-amount">¥${Number(m.amount).toFixed(2)}</div><div class="tf-status">${stText}</div></div></div>
         <div class="tf-note">${escapeHtml(m.note||'转账')}</div>
-        <div class="t" style="color:rgba(255,255,255,0.85);">${quoteBtn}</div>
+        <div class="t" style="color:rgba(255,255,255,0.85);">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='gift'){
       const fromMe = m.from==='user';
@@ -4073,7 +3928,7 @@ function renderChat(preserveScroll, scrollToId){
             ${priceOrNote}
           </div>
         </div>
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='wish'){
       const wItems = (m.items||[]);
@@ -4094,7 +3949,7 @@ function renderChat(preserveScroll, scrollToId){
           <div class="wish-total">共 ${wItems.length}件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
           ${wActs}
         </div>
-        <div class="t" style="text-align:center;">${quoteBtn}</div>
+        <div class="t" style="text-align:center;">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='cart'){
       const fromMe = m.from==='user';
@@ -4106,7 +3961,7 @@ function renderChat(preserveScroll, scrollToId){
         <div>${rows}</div>
         <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">共 ${items.length} 件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
         ${(m.skipped && m.skipped.length) ? '<div style="font-size:12px;color:var(--ink-soft);margin:8px 0 3px;">下次再买</div><div style="opacity:.6;">' + m.skipped.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span>¥${Number(x.price||0).toFixed(0)}</span></div>`).join('') + '</div>' : ''}
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
@@ -4132,7 +3987,7 @@ function renderChat(preserveScroll, scrollToId){
         <div class="q-question">${escapeHtml(m.question||'')}</div>
         ${opts}
         ${statusHtml}
-        <div class="t">${quoteBtn}</div>
+        <div class="t">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='weblink'){
       const collapsed = m.collapsed !== undefined ? m.collapsed : true;
@@ -4145,19 +4000,17 @@ function renderChat(preserveScroll, scrollToId){
           <span onclick="event.stopPropagation();toggleWebLinkCollapse('${m.id}')" style="cursor:pointer;padding:2px 4px;" title="展开/收起">${collapsed ? '▾' : '▴'}</span>
         </div>
         ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escapeHtml(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
-        <div class="t" style="padding:4px 12px 8px;">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="padding:4px 12px 8px;">${_tt(m)}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='combo'){
       const stVal = m.sticker || '';
       const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(stVal)}">` : escapeHtml(stVal);
-      const readTag = (m.from==='user' && m.read) ? '已读' : '';
-      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${readTag}${quoteBtn}</div></div>`;
+            bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${_tt(m)}${quoteBtn}</div></div>`;
     } else if(m.type==='invite'){
       bubbleHtml = renderInviteCardHtml(m, time);
     } else {
-      const readTag = (m.from==='user' && m.read) ? '已读' : '';
-      const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
-      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${readTag}${quoteBtn}</div></div>`;
+            const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
+      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${_tt(m)}${quoteBtn}</div></div>`;
     }
       const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
   const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}</div>` : bubbleHtml;
@@ -7292,7 +7145,7 @@ async function exportBackup(){
   const data = {
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
-    lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState, choiceGame: (typeof choiceGame!=='undefined' ? choiceGame : null),
+    lifePhotos: fullPhotos, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState, choiceGame: (typeof choiceGame!=='undefined' ? choiceGame : null),
     todoRemind, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
@@ -7328,9 +7181,6 @@ function onImportBackupFile(e){
     themeSettings = data.themeSettings ? withDefaults('themeSettings', data.themeSettings) : themeSettings;
     proactiveState = data.proactiveState || { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null };
     const importedPhotos = data.lifePhotos || [];
-    statusPool = data.statusPool || [];
-    todayStatus = data.todayStatus || null;
-    todayStatusHistory = data.todayStatusHistory || [];
     customBubbleCSS = data.customBubbleCSS || '';
     moyuState = data.moyuState || moyuState;
     proactiveMsgSettings = data.proactiveMsgSettings || proactiveMsgSettings;
@@ -7362,9 +7212,6 @@ function onImportBackupFile(e){
     await sSet('call-logs', callLogs);
     await sSet('theme-settings', themeSettings);
     await sSet('proactive-state', proactiveState);
-    await sSet('status-pool', statusPool);
-    await sSet('today-status', todayStatus);
-    await sSet('today-status-history', todayStatusHistory);
     await sSet('custom-bubble-css', customBubbleCSS);
             await sSet('moyu-state', moyuState);
     await sSet('proactive-msg-settings', proactiveMsgSettings);
@@ -7407,7 +7254,7 @@ function onImportBackupFile(e){
     applyCustomBubbleCSSToPage();
     renderHomeProfile(); renderChat(); renderCardsView(); renderLedger(); renderPeriod();
     renderDiary(); renderBeautify(); renderMoments(); renderMailbox();
-    renderCallLog(); renderLifePhotos(); renderTodayStatusHome();
+    renderCallLog(); renderLifePhotos();
     resumeLetterTimers();
     resumeInboxLetterReplyTimers();
     resumeMoyuSchedule();
@@ -8566,13 +8413,18 @@ async function onPhotoUpload(e){
   reader.readAsDataURL(f);
   e.target.value = '';
 }
+function clearSearchResults(){
+  const box = document.getElementById('searchResults');
+  if(box) box.innerHTML = '';
+}
 async function doSearch(){
   const inp = document.getElementById('searchInput');
   const box = document.getElementById('searchResults');
   if(!inp || !box) return;
+  const closeBtn = '<div class="sr-close" onclick="clearSearchResults()">✕</div>';
   const q = (inp.value || '').trim();
-  if(!q){ box.innerHTML = '<div class="empty-note" style="padding:8px 0;">输入关键词后搜索</div>'; return; }
-  box.innerHTML = '<div style="padding:8px 0;color:var(--ink-soft);font-size:12.5px;">搜索中…</div>';
+  if(!q){ box.innerHTML = closeBtn + '<div class="empty-note" style="padding:8px 0;">输入关键词后搜索</div>'; return; }
+  box.innerHTML = closeBtn + '<div style="padding:8px 0;color:var(--ink-soft);font-size:12.5px;">搜索中…</div>';
   try{
     const allChat = await recGetAll('chatMessages');
     const hits = [];
@@ -8591,15 +8443,15 @@ async function doSearch(){
       }
     });
     if(!hits.length){
-      box.innerHTML = '<div class="empty-note" style="padding:8px 0;">没有找到相关回忆</div>';
+      box.innerHTML = closeBtn + '<div class="empty-note" style="padding:8px 0;">没有找到相关回忆</div>';
       return;
     }
-    box.innerHTML = hits.slice(0,40).map(h=>
+    box.innerHTML = closeBtn + hits.slice(0,40).map(h=>
       `<div class="hit"><b>${escapeHtml(h.who)}</b>：${escapeHtml(h.preview)}</div>`
     ).join('') + (hits.length>40?`<div style="font-size:11px;color:var(--ink-soft);padding:6px 0;">仅显示前40条</div>`:'');
   }catch(err){
     console.error(err);
-    box.innerHTML = '<div class="empty-note">搜索失败</div>';
+    box.innerHTML = closeBtn + '<div class="empty-note">搜索失败</div>';
   }
 }
 
@@ -14492,9 +14344,6 @@ loadMallState().then(()=>{
 #view-home #homePage2 .h2-si{width:20px;height:20px;color:var(--ink-soft);flex:0 0 20px;}
 #view-home #homePage2 .h2-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:13px;letter-spacing:1px;color:var(--ink);font-family:inherit;}
 #view-home #homePage2 .h2-go{font-size:11px;letter-spacing:2px;color:#fff;background:var(--rouge);border-radius:999px;padding:6px 13px;}
-#view-home #homePage2 .h2-head{display:flex;align-items:center;gap:9px;}
-#view-home #homePage2 .h2-head b{font-size:15px;font-weight:500;letter-spacing:2px;color:var(--ink);}
-#view-home #homePage2 .h2-head small{font-size:10px;letter-spacing:1px;color:var(--ink-soft);margin-left:2px;}
 #view-home #homePage2 .h2-hi{width:20px;height:20px;flex:0 0 20px;color:var(--ink-soft);}
 #view-home #homePage2 .h2-arrow{margin-left:auto;font-size:20px;line-height:1;color:var(--ink-soft);opacity:.7;}
 #view-home #homePage2 .h2-en{font-family:Georgia,'Times New Roman',serif;font-size:17px!important;letter-spacing:2px!important;}
@@ -14505,7 +14354,6 @@ loadMallState().then(()=>{
 #view-home #homePage2 .h2-half:active,#view-home #homePage2 .h2-mini:active,#view-home #homePage2 .h2-d:active{opacity:.6;}
 #view-home #homePage2 .h2-bubble{width:36px;height:36px;flex:0 0 36px;padding:8px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(90,60,70,.1);color:var(--ink);}
 #view-home #homePage2 .h2-txt b:empty::before{content:'—';color:var(--ink-soft);}
-#view-home #homePage2 .h2-habit .h2-head{margin-bottom:6px;}
 #view-home #homePage2 .h2-hab{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed rgba(42,36,31,.1);}
 #view-home #homePage2 .h2-chk{width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1.4px solid var(--rouge);position:relative;background:rgba(255,255,255,.7);}
 #view-home #homePage2 .h2-hab.on .h2-chk{background:var(--rouge);}
@@ -14557,7 +14405,7 @@ loadMallState().then(()=>{
 #view-home #homePage2 .h2-d span{width:34px;height:34px;padding:8px;}
 #view-home #homePage2 .h2-d em{font-size:10.5px;letter-spacing:1px;}
 #view-home #homePage2 .h2-scroll{position:relative;}
-#view-home #homePage2 #searchResults:not(:empty){position:absolute;left:6px;right:6px;top:50px;z-index:20;max-height:62%;overflow-y:auto;background:rgba(255,255,255,.96);border-radius:16px;padding:8px 10px;box-shadow:0 10px 28px rgba(90,60,70,.18);}
+#view-home #homePage2 .h2-searchwrap{position:relative;flex:0 0 auto;z-index:20;}#view-home #homePage2 #searchResults:not(:empty){position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;max-height:50dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:rgba(255,255,255,.96);border-radius:16px;padding:8px 10px;box-shadow:0 10px 28px rgba(90,60,70,.18);}#view-home #homePage2 .sr-close{position:sticky;top:0;float:right;width:24px;height:24px;line-height:24px;text-align:center;font-size:13px;color:var(--ink-soft);background:rgba(255,255,255,.96);border-radius:50%;cursor:pointer;z-index:1;}
 #view-home #homePage2 .h2-squares{align-items:start!important;flex:0 0 auto!important;}
 #view-home #homePage2 .h2-sq{height:auto!important;max-height:none!important;}
 /* ===== 修正：两页之间可以一滑就过去；上下方向不动 ===== */
