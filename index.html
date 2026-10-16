@@ -783,7 +783,7 @@
 #view-home .love-meter-line::before{content:'';position:absolute;left:0;right:0;top:6px;border-top:1px solid rgba(42,36,31,.35);}
 #view-home .love-meter-line span{position:absolute;left:0;top:4px;width:50%;border-top:1px solid var(--rouge);}
 #view-home .love-meter-line i{position:relative;z-index:1;background:var(--paper);padding:0 6px;color:var(--rouge);font-style:normal;font-size:12px;}
-#view-home .love-meter-sub{font-family:Georgia,'Times New Roman',serif;font-size:7px;letter-spacing:5px;color:rgba(42,36,31,.4);margin-top:-1px;}#view-home #todayStatusText:empty{display:none;}#view-home .go-btn{padding:4px 10px;border:1px solid rgba(42,36,31,.12);font-size:12px;background:rgba(255,255,255,.38);}#view-home .grid8{grid-template-columns:repeat(4,1fr);gap:0;margin:0 0 4px;padding:0;border:1px solid rgba(42,36,31,.08);background:rgba(255,255,255,.48);}
+#view-home .love-meter-sub{font-family:Georgia,'Times New Roman',serif;font-size:7px;letter-spacing:5px;color:rgba(42,36,31,.4);margin-top:-1px;}#view-home .go-btn{padding:4px 10px;border:1px solid rgba(42,36,31,.12);font-size:12px;background:rgba(255,255,255,.38);}#view-home .grid8{grid-template-columns:repeat(4,1fr);gap:0;margin:0 0 4px;padding:0;border:1px solid rgba(42,36,31,.08);background:rgba(255,255,255,.48);}
 #view-home .fn-item{padding:13px 4px 11px;gap:7px;border-right:1px dotted rgba(42,36,31,.14);border-bottom:1px dotted rgba(42,36,31,.14);}
 #view-home .fn-item:nth-child(4),#view-home .fn-item:nth-child(6){border-right:0;}
 #view-home .fn-item:nth-child(5),#view-home .fn-item:nth-child(6){border-bottom:0;}
@@ -801,7 +801,7 @@
 #view-home .home-top-action.home-svg-icon{width:31px;height:31px;}
 #view-home .home-top-action.home-svg-icon svg{width:19px;height:19px;}#view-home .go-btn.home-svg-icon{width:34px;height:30px;padding:0;}
 #view-home .go-btn.home-svg-icon svg{width:17px;height:17px;}#view-home .hero-caption:empty{display:none;}
-#view-home .love-meter-number:empty{display:none;}#view-home #todayStatusText:empty{display:inline !important;}/* 右上角来信红点 */
+#view-home .love-meter-number:empty{display:none;}/* 右上角来信红点 */
 #view-home .home-top-action .dot-badge{
   top:0; right:0; width:8px; height:8px;
 }
@@ -1631,16 +1631,10 @@
       <div class="search-results" id="searchResults"></div>
 
       <div class="h2-card h2-status">
-        <div class="h2-head" onclick="openTodayStatusPanel()"><span class="h2-hi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.800"/><path d="M12 3.500v2M12 18.500v2M3.500 12h2M18.500 12h2M6 6l1.400 1.400M16.600 16.600 18 18M18 6l-1.400 1.400M7.400 16.600 6 18"/></svg></span><b>今日状态</b><span class="h2-arrow">›</span></div>
-        <div class="h2-two">
-          <div class="h2-half" onclick="openTodayStatusPanel()">
-            <span class="h2-bubble home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.500 14c1 1.500 2.200 2.200 3.500 2.200s2.500-.7 3.500-2.200M9 9.500h.01M15 9.500h.01"/></svg></span>
-            <div class="h2-txt"><b id="todayStatusText"></b><small>今日状态</small></div>
-          </div>
-          <div class="h2-half" onclick="openMoyuNotePanel()">
-            <span class="h2-bubble home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c4.400 0 8 2.700 8 6.200S16.400 17.400 12 17.400c-.9 0-1.700-.1-2.500-.3L5.500 19l1-3.200C5 14.700 4 13 4 11.200 4 7.700 7.600 5 12 5Z"/><path d="M9 11.500h.01M12 11.500h.01M15 11.500h.01"/></svg></span>
-            <div class="h2-txt"><b id="moyuLatestText"></b><small>摸鱼小记</small></div>
-          </div>
+        <div class="h2-half" onclick="openMoyuNotePanel()">
+          <span class="h2-bubble home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c4.400 0 8 2.700 8 6.200S16.400 17.400 12 17.400c-.9 0-1.700-.1-2.500-.3L5.500 19l1-3.200C5 14.700 4 13 4 11.200 4 7.700 7.600 5 12 5Z"/><path d="M9 11.500h.01M12 11.500h.01M15 11.500h.01"/></svg></span>
+          <div class="h2-txt"><b id="moyuLatestText"></b><small>摸鱼小记</small></div>
+          <span class="h2-arrow">›</span>
         </div>
       </div>
 
@@ -1661,7 +1655,6 @@
             <div class="h2-dpage h2-daily-grid">
               <div class="h2-d" onclick="go('period')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c3 3.6 5.5 6.5 5.5 9.5a5.5 5.5 0 0 1-11 0C6.5 10.5 9 7.6 12 4Z"/></svg></span><em>月经</em></div>
               <div class="h2-d" onclick="go('anniv')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg></span><em>纪念日</em></div>
-              <div class="h2-d" onclick="go('tarot')"><span class="home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="3.5" width="11" height="17" rx="2"/><path d="m12 8.3.9 1.9 2.1.3-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.3.9-1.9Z"/></svg></span><em>占卜</em></div>
             </div>
           </div></div>
         </div>
@@ -1700,11 +1693,6 @@
       <div class="box-title">TA悄悄收藏的</div>
       <div id="favsViewList"></div>
     </div>
-  </section>
-
-  <section id="view-tarot" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="tarotBack()">←</div><h2>占卜</h2><div class="icon-btn" id="tarotHistBtn" onclick="tarotOpenHistory()" title="历史记录" style="margin-left:auto;font-size:13px;letter-spacing:1px;width:auto;padding:0 10px">历史</div></div>
-    <div id="tarotBody"></div>
   </section>
 
   <!-- ============ ANNIV 纪念日 ============ -->
@@ -2696,9 +2684,8 @@ async function init(){
 
   normalizeLoadedSettings();
 
-  // 首页轻量补渲染（先确保今日状态已算出，一打开就有内容）
+  // 首页轻量补渲染
   try{ ensureTodayStatus(); }catch(e){ console.warn(e); }
-  renderTodayStatusHome();
   renderMoyuHome();
   renderUnreadDots();
 
@@ -2725,13 +2712,6 @@ async function init(){
   });
   setInterval(checkMomentEvents, 20000);
   setInterval(function(){ checkMoyuTick(); renderMoyuHome(); }, 20000);
-  // 今日状态 / 摸鱼小记 首页卡片自动刷新（仅当首页可见时重绘；摸鱼重绘已由上面的定时器负责）
-  setInterval(function(){
-    const home = document.getElementById('view-home');
-    if(home && !home.classList.contains('hidden')){
-      renderTodayStatusHome();
-    }
-  }, 20000);
   const periodEl = document.getElementById('periodDate');
   if(periodEl) try{ periodEl.value = localDateStr(); }catch(e){}
 }
@@ -2811,7 +2791,7 @@ function normalizeLoadedSettings(){
 /* ============================================================
    NAV
    ============================================================ */
-const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', anniv:'纪念日', tarot:'占卜', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', pet:'宠物', moyu:'摸鱼小记', mall:'商场' };
+const VIEW_TITLES = { home:'EVAN', chat:'传讯', cards:'字卡', ledger:'记账', period:'月经', favs:'收藏', anniv:'纪念日', settings:'设置', diary:'日记', beautify:'美化', moments:'朋友圈', mailbox:'信箱', calls:'通话', pet:'宠物', moyu:'摸鱼小记', mall:'商场' };
 function go(name){
   if(name==='beautify') name = 'settings'; // 美化已并入设置
   // 来信 / 写信 / 记录 都并入「信箱」
@@ -2856,7 +2836,6 @@ function go(name){
   if(name==='cards'){ renderCardsView(); }
   if(name==='period'){ renderPeriod(); }
   if(name==='anniv'){ renderAnnivPage(); }
-  if(name==='tarot'){ tarotOpen(); }
   if(name==='favs'){ try{ renderCompanionFavList(); }catch(e){} }
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
@@ -4414,7 +4393,9 @@ function renderQuoteBar(){
 function maybeQuoteMessage(){
   const candidates = chatMessages.slice(-15);
   if(candidates.length===0) return null;
-  if(Math.random() < 0.35){
+  if(chatSettings.quoteEnabled===false) return null;
+  const qp = chatSettings.quoteProb!=null ? chatSettings.quoteProb : 35;
+  if(Math.random()*100 < qp){
     const target = candidates[Math.floor(Math.random()*candidates.length)];
     return { id: target.id, from: target.from, preview: buildQuotePreview(target) };
   }
@@ -5402,6 +5383,13 @@ function openChatSettings(){
       <span>允许发送转账<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 有机会随机给你转账；关闭后不会自动转账</div></span>
       <div class="switch ${chatSettings.transferEnabled?'on':''}" id="csTransferEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
+    <div class="switch-row">
+      <span>回复时引用消息<div style="font-size:10.5px;color:var(--ink-soft);font-weight:400;">开启后 TA 回复时有概率引用最近的某条消息；关闭后不再引用</div></span>
+      <div class="switch ${chatSettings.quoteEnabled!==false?'on':''}" id="csQuoteEnabled" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
+    </div>
+    <label class="field">引用概率</label>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,chatSettings.quoteProb!=null?chatSettings.quoteProb:35))}" id="csQuoteProb" style="width:100%;"><span style="font-size:13px;color:var(--ink-soft);">%</span></div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">开启后，TA 每次回复有多大概率引用最近 15 条里的一条</div>
     <div class="box-title" style="margin-top:14px;">回复连发</div>
     <label class="field">一次最多连回：<input type="number" id="csReplyMaxCount" min="1" max="20" step="1" value="${Math.max(1,Math.min(20,chatSettings.replyMaxCount||1))}" inputmode="numeric" style="width:70px;text-align:center;"> 条</label>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复你时，在 1～该数之间随机挑个条数（填 1 = 只回 1 条，跟以前一样）。最多 20 条。</div>
@@ -5788,6 +5776,9 @@ async function saveChatSettings(){
     const rmc = document.getElementById('csReplyMaxCount');
   if(rmc){ const rmv = parseInt(rmc.value,10); chatSettings.replyMaxCount = Number.isFinite(rmv) ? Math.max(1, Math.min(20, rmv)) : 1; }
   chatSettings.transferEnabled = document.getElementById('csTransferEnabled').classList.contains('on');
+  chatSettings.quoteEnabled = document.getElementById('csQuoteEnabled').classList.contains('on');
+  const qpEl = document.getElementById('csQuoteProb');
+  if(qpEl){ const qv = parseInt(qpEl.value,10); chatSettings.quoteProb = Number.isFinite(qv) ? Math.max(0, Math.min(100, qv)) : 35; }
   const fmp = document.getElementById('csFavMsgProb');
   if(fmp){ const fv = parseInt(fmp.value,10); chatSettings.favMsgProb = Number.isFinite(fv) ? Math.max(0, Math.min(100, fv)) : 10; }
   await sSet('chat-settings', chatSettings);
@@ -7263,7 +7254,7 @@ async function clearAppCache(){
 }
 async function resetAll(){
   if(!confirm('确定要清空全部数据吗？这个操作无法撤销。')) return;
-  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','todo-remind','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state','tarot-history'];
+  const keys = ['profile','chat-settings','chat-messages','cards-data','ledger-entries','period-entries','diary-entries','theme-settings','moments-posts','letters','inbox-letters','call-logs','proactive-state','chat-unread','letter-unread','inbox-letter-unread','moments-unread','life-photos','status-pool','today-status','today-status-history','custom-bubble-css','rec-store-migrated-v2','moyu-state','proactive-msg-settings','moment-interact-settings','proactive-letter-settings','splice-cards-enabled','splice-card-settings','mall-state','pet-data','status-card','companion-favorites','moment-events','todo-remind','companion-habits','companion-annivs','bg-settings','companion-room-bg','vinyl-settings','call-session','together-state'];
   // 云端存储（如果有）
   for(const k of keys){
     try{ if(hasCloudStorage()) await window.storage.delete(k, false); }catch(e){}
@@ -14510,9 +14501,7 @@ loadMallState().then(()=>{
 #view-home #homePage2 .h2-txt{display:flex;flex-direction:column;gap:3px;min-width:0;}
 #view-home #homePage2 .h2-txt b{font-size:15.5px;font-weight:500;letter-spacing:1px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #view-home #homePage2 .h2-txt small{font-size:10px;letter-spacing:1px;color:var(--ink-soft);white-space:nowrap;}
-#view-home #homePage2 .h2-two{display:grid;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,36,31,.09);}
 #view-home #homePage2 .h2-half{display:flex;align-items:center;gap:9px;min-width:0;padding:0 4px;}
-#view-home #homePage2 .h2-half+.h2-half{border-left:1px solid rgba(42,36,31,.09);padding-left:14px;}
 #view-home #homePage2 .h2-half:active,#view-home #homePage2 .h2-mini:active,#view-home #homePage2 .h2-d:active{opacity:.6;}
 #view-home #homePage2 .h2-bubble{width:36px;height:36px;flex:0 0 36px;padding:8px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(90,60,70,.1);color:var(--ink);}
 #view-home #homePage2 .h2-txt b:empty::before{content:'—';color:var(--ink-soft);}
@@ -14552,7 +14541,6 @@ loadMallState().then(()=>{
 #view-home #homePage2 .h2-scroll{overflow:hidden!important;justify-content:space-evenly;gap:8px;padding:2px 6px 4px;}
 #view-home #homePage2 .h2-card{padding:10px 12px;}
 #view-home #homePage2 .h2-search{padding:7px 7px 7px 13px;}
-#view-home #homePage2 .h2-two{margin-top:8px;padding-top:8px;}
 #view-home #homePage2 .h2-mini{flex-direction:row;align-items:center;gap:10px;padding:10px 12px;}
 #view-home #homePage2 .h2-mini .h2-arrow{position:static;margin-left:auto;}
 #view-home #homePage2 .h2-mi{width:32px;height:32px;flex:0 0 32px;padding:6px;}
@@ -14993,8 +14981,8 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 
 </style>
 <style id="ui-refresh">
-body[data-view="chat"],body[data-view="mall"],body[data-view="diary"],body[data-view="tarot"]{background:#F4F6F8}
-#view-chat,#view-mall,#view-diary,#view-tarot,.dy-sheet{--paper:#F4F6F8;--paper-2:#EEF1F4;--ink:#22262B;--ink-soft:#8A929C;--rule:#E3E8ED;--rouge:#7C93AB;--blush:#E6EBF0}
+body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background:#F4F6F8}
+#view-chat,#view-mall,#view-diary,.dy-sheet{--paper:#F4F6F8;--paper-2:#EEF1F4;--ink:#22262B;--ink-soft:#8A929C;--rule:#E3E8ED;--rouge:#7C93AB;--blush:#E6EBF0}
 #view-chat{background:#F4F6F8}
 #view-chat .chat-head{background:#fff;border-bottom:none;box-shadow:0 6px 20px -14px rgba(60,80,100,.3);padding:12px 14px;gap:6px}
 #view-chat .chat-head .cname{font-family:inherit;font-weight:500;font-size:15px}
@@ -15086,502 +15074,5 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"],body[data-
 .dy-sheet .btn.outline{background:transparent;color:#5A626C;border:1px solid #D5DCE3}
 .dy-sheet .chip{border-radius:12px}
 </style>
-
-<style id="tarot-style">
-#view-tarot .view-head h2{font-family:inherit;font-weight:500;letter-spacing:2px}
-.tz-wrap{padding:6px 16px 120px;color:#22262B}
-.tz-l{font-size:12px;letter-spacing:2px;color:#8A929C}
-#tarotQ{width:100%;box-sizing:border-box;margin-top:8px;background:#fff;border:none;border-radius:16px;padding:14px 16px;color:#22262B;font-size:14px;line-height:1.6;resize:none;font-family:inherit;outline:none;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.tz-tabs{display:flex;background:#E6EBF0;border-radius:14px;padding:3px;margin:18px 0 12px}
-.tz-tabs span{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7A828C;border-radius:11px}
-.tz-tabs span.on{background:#fff;color:#22262B;font-weight:500;box-shadow:0 2px 8px -4px rgba(60,80,100,.25)}
-.tz-sp{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:10px;border:1px solid transparent;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.tz-sp.on{border-color:#7C93AB}
-.tz-sp-h{display:flex;justify-content:space-between;align-items:baseline}
-.tz-sp-h b{font-size:15px;font-weight:500;color:#22262B}
-.tz-sp-h span{font-size:11px;letter-spacing:1px;color:#8A929C}
-.tz-sp-d{font-size:12.5px;color:#5A626C;margin-top:6px;line-height:1.5}
-.tz-sp-s{font-size:10.5px;color:#A7AFB8;margin-top:6px;letter-spacing:.5px}
-.tz-opt{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;font-size:14px;color:#22262B}
-.tz-sw{width:42px;height:24px;border-radius:12px;background:#D5DCE3;position:relative;display:inline-block}
-.tz-sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
-.tz-sw.on{background:#7C93AB}
-.tz-sw.on::after{left:21px}
-.tz-go{margin-top:8px;height:50px;border-radius:25px;background:#22262B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:4px;font-weight:500}
-.tz-stage{display:flex;flex-direction:column;align-items:center;padding-top:60px}
-.tz-count{font-size:14px;letter-spacing:4px;color:#22262B}
-.tz-deck{position:relative;width:96px;height:156px;margin:100px 0 80px;isolation:isolate}
-.tz-c,.tz-back{border-radius:10px;border:1px solid #3B4A68;background:radial-gradient(circle at 50% 50%,rgba(185,199,218,.85) 0 2px,transparent 3px),repeating-radial-gradient(circle at 50% 50%,transparent 0 9px,rgba(185,199,218,.14) 9px 10px),linear-gradient(160deg,#2A3650,#1B2437);box-sizing:border-box}
-.tz-c{position:absolute;left:0;top:0;width:100%;height:100%}
-.tz-tip{font-size:12px;color:#8A929C;letter-spacing:1px}
-.tz-q{font-size:14px;line-height:1.6;color:#22262B;text-align:center;padding:4px 10px 0}
-.tz-spname{text-align:center;font-size:11px;letter-spacing:3px;color:#8A929C;margin:10px 0 18px}
-.tz-table{position:relative;margin:0 auto}
-.tz-slot{position:absolute;opacity:0;transform:translateY(-30px) scale(.92);transition:opacity .45s ease,transform .45s ease;perspective:600px}
-.tz-slot.dealt{opacity:1;transform:none}
-.tz-slot.cross{z-index:5}
-.tz-slot.cross .tz-card{transform:rotate(90deg)}
-.tz-slot.cross .tz-card.on{transform:rotate(90deg) rotateY(180deg)}
-.tz-card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s ease}
-.tz-card.on{transform:rotateY(180deg)}
-.tz-back,.tz-front{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:calc(var(--cw)*.1);backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.tz-front{transform:rotateY(180deg);background:#fff;color:#22262B;overflow:hidden;border:1px solid #D5DCE3;box-sizing:border-box;box-shadow:0 8px 20px -10px rgba(60,80,100,.35)}
-.tz-fi{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8% 6%;box-sizing:border-box;text-align:center}
-.tz-fi.rev{transform:rotate(180deg)}
-.tz-fi em{font-style:normal;font-size:calc(var(--cw)*.14);color:#7C93AB;letter-spacing:1px}
-.tz-fi b{font-weight:400;line-height:1;color:#22262B}
-.tz-fi b.mj{font-size:calc(var(--cw)*.3);font-family:Georgia,serif}
-.tz-fi b.mn{font-size:calc(var(--cw)*.42)}
-.tz-fi span{font-size:calc(var(--cw)*.15);font-weight:600;line-height:1.2;color:#22262B}
-.tz-fi small{font-size:calc(var(--cw)*.085);color:#8A929C;line-height:1.1}
-.tz-no{position:absolute;top:-8px;left:-6px;width:18px;height:18px;border-radius:50%;background:#22262B;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6}
-.tz-hint{text-align:center;font-size:12px;color:#8A929C;margin-top:18px;letter-spacing:1px}
-.tz-btns{display:flex;gap:12px;justify-content:center;margin-top:18px}
-.tz-b{padding:0 22px;height:40px;border-radius:20px;border:1px solid #D5DCE3;color:#22262B;background:#fff;display:flex;align-items:center;font-size:13px}
-.tz-b.main{background:#22262B;color:#fff;border-color:#22262B}
-.tz-r{background:#fff;border-radius:16px;padding:14px 16px;margin-top:14px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.tz-r-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.tz-r-h b{font-size:14px;font-weight:500;color:#22262B}
-.tz-r-h span{font-size:12px;color:#5A626C;white-space:nowrap}
-.tz-r-q{font-size:11.5px;color:#8A929C;margin-top:4px}
-.tz-r-k{font-size:12px;color:#7C93AB;margin-top:10px;letter-spacing:1px}
-.tz-r-t{font-size:14px;line-height:1.7;margin-top:6px;color:#22262B}
-.tz-sum{margin-top:14px;padding:14px 16px;border-radius:16px;border:1px dashed #C3CDD7;font-size:13px;line-height:1.7;color:#22262B}
-.tz-sum b{display:block;font-size:12px;letter-spacing:2px;color:#8A929C;margin-bottom:4px;font-weight:500}
-.tz-note{font-size:11.5px;color:#8A929C;text-align:center;margin-top:16px;line-height:1.6}
-.tz-hist-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
-.tz-hist-h span{font-size:12px;letter-spacing:2px;color:#8A929C}
-.tz-hist-h small{font-size:11px;color:#A7AFB8}
-.tz-hist-item{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 6px 18px -12px rgba(60,80,100,.18);cursor:pointer}
-.tz-hist-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.tz-hist-top b{font-size:13.5px;font-weight:500;color:#22262B}
-.tz-hist-top span{font-size:11px;color:#A7AFB8;white-space:nowrap}
-.tz-hist-q{font-size:12.5px;color:#5A626C;margin-top:4px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tz-hist-c{font-size:11.5px;color:#7C93AB;margin-top:6px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tz-hist-view-h{text-align:center;margin-bottom:4px}
-.tz-hist-time{font-size:11px;color:#A7AFB8;letter-spacing:1px;margin-top:2px}
-.tz-hist-empty{text-align:center;font-size:14px;color:#8A929C;padding:60px 20px 12px;letter-spacing:2px}
-</style>
-<script>
-const TAROT_MAJOR = `愚者|The Fool|新开始,自由,冒险|带着好奇出发，不必准备万全，信任直觉迈出第一步。|鲁莽,犹豫,不计后果|要么冲动行事，要么迟迟不敢动，先看清脚下再走。
-魔术师|The Magician|创造,行动,资源|你手上已有所需的一切，把想法落成行动。|欺瞒,拖延,才能未用|手段不正或空有想法，先理清真实的目标。
-女祭司|The High Priestess|直觉,静观,秘密|先安静倾听内心，答案藏在尚未说出口的地方。|压抑直觉,隐瞒,浮躁|忽略了内心的声音，或有信息被刻意隐藏。
-皇后|The Empress|丰盛,滋养,感官|被爱与丰盛包围，适合培育、创造与享受。|依赖,过度付出,停滞|过度索取或透支自己，别忘了照顾自己。
-皇帝|The Emperor|秩序,权威,稳固|建立规则与边界，用理性和责任掌控局面。|专断,僵化,失控|过度控制或缺乏章法，放松一点也要有底线。
-教皇|The Hierophant|传统,学习,信念|遵循既有的方法与指引，向前辈或体系学习。|墨守成规,叛逆,束缚|被条条框框困住，或该找到自己的方式了。
-恋人|The Lovers|爱,选择,契合|真心的连结与重要的选择，忠于自己的价值观。|失衡,摇摆,错位|价值观不合或选择困难，先弄清自己真正想要的。
-战车|The Chariot|意志,前进,胜利|凭决心与自律推进，调和矛盾后一往无前。|失控,方向不明,冲突|力量分散、方向摇摆，先收拢心力。
-力量|Strength|勇气,温柔,耐心|以柔克刚，用耐心与自信驯服内在的恐惧。|自我怀疑,软弱,压抑|信心不足或情绪失控，先安抚自己。
-隐者|The Hermit|独处,内省,指引|暂时退后一步，向内寻找属于自己的光。|孤立,逃避,封闭|过度封闭或迷失，也许该走出去求助。
-命运之轮|Wheel of Fortune|转机,循环,命运|局势正在转动，把握时机顺势而为。|低谷,抗拒变化,时运不济|暂时逆风，周期会过去，别硬扛。
-正义|Justice|公正,因果,真相|事实将被看清，凭理性与诚实做决定。|偏颇,逃避责任,不公|有失公允或逃避后果，直面事实。
-倒吊人|The Hanged Man|暂停,换位,牺牲|停一停，换个角度看，放下反而有所得。|拖延,徒劳,固执|白白消耗或不肯放手，该做个决定了。
-死神|Death|结束,转化,重生|旧的阶段结束，为新的开始腾出空间。|抗拒结束,停滞,不舍|抓着过去不放，转变被拖慢。
-节制|Temperance|平衡,调和,耐心|适度、融合与节奏，慢慢调出刚好的比例。|失衡,急躁,过度|节奏失调或走极端，回到中庸。
-恶魔|The Devil|执念,诱惑,束缚|看清自己被什么牵绊，沉迷与依赖正在绑住你。|挣脱,觉醒,摆脱控制|开始看清并松开束缚，重获自由。
-高塔|The Tower|突变,崩塌,觉醒|不稳的根基被打破，震荡之后才有真实。|勉强维持,逃过一劫,恐惧变动|变动被延后或在内部酝酿，别再硬撑虚假的稳定。
-星星|The Star|希望,疗愈,信心|风暴过后的平静与希望，保持信心慢慢恢复。|失望,缺乏信心,迷茫|暂时看不到希望，仍请对自己温柔。
-月亮|The Moon|不安,幻象,潜意识|情况尚不明朗，别被恐惧与猜测牵着走。|迷雾散去,真相浮现,焦虑|误会与迷惑逐渐澄清，但情绪仍需安顿。
-太阳|The Sun|喜悦,成功,活力|明朗温暖，事情顺利，坦率地享受光亮。|延迟的喜悦,过度乐观,倦怠|好事稍有延迟，或过度自信，保持踏实。
-审判|Judgement|觉醒,召唤,重新评估|回顾过往，听见内心的召唤，做出新的决断。|自我批判,犹豫,拒绝反省|对过去纠结不放，错过了回应召唤的时机。
-世界|The World|圆满,完成,整合|一个阶段圆满收束，成果得到认可。|未完成,拖延收尾,缺少一步|离完成只差一点，别在最后一步松懈。`;
-const TAROT_MINOR = [`灵感,新起点,热情|新的火花与机会出现，趁热情行动。|延迟,动力不足,错失|想法难以落地或热情消退。
-规划,抉择,远见|站在已有成就上规划下一步，眼光放远。|犹豫,害怕离开舒适圈|迟迟不敢踏出，计划停在纸面。
-展望,拓展,等待回音|前期付出开始看到远方，扩展的时机。|受阻,延误,期待落空|进展比预期慢，需要调整方向。
-庆祝,稳定,归属|阶段性成果与喜悦，和重要的人一起庆祝。|不安定,缺乏归属,小波折|根基尚不稳，或庆祝被推迟。
-竞争,摩擦,争论|意见纷杂的碰撞，良性竞争可以促进成长。|回避冲突,内耗,化解|争斗趋于平息，或在内耗里失去焦点。
-胜利,认可,自信|获得认可与成就，保持谦逊继续前进。|自负,未获认可,失败|成果被忽视或过于在意外界评价。
-坚守,防御,立场|守住自己的位置，面对质疑要有底气。|疲于招架,退缩,放弃|压力太大想放弃，先确认哪些值得守。
-迅速,进展,消息|事情加速推进，消息与行动接踵而来。|延误,仓促,方向混乱|节奏被打乱，慢下来理清优先级。
-坚韧,最后一搏,戒备|疲惫但接近终点，再坚持一下。|精疲力竭,过度防备,放弃|过度戒备或已到极限，该休息了。
-负担,责任,压力|肩上扛得太多，接近终点但需学会卸载。|卸下重担,放手,不堪重负|开始减负或仍硬扛，学会分担。
-好奇,消息,新尝试|对新事物充满热情，试着迈出小步。|三分钟热度,拖延,莽撞|兴致来得快去得快，先定个小目标。
-冲劲,冒险,行动力|行动力十足，勇往直前，但别太冲。|急躁,鲁莽,虎头蛇尾|冲动或半途而废，放慢一点。
-自信,热情,魅力|自信温暖，用热情感染并推动身边的人。|嫉妒,情绪化,自我中心|缺乏安全感或脾气上来，先稳住自己。
-领导,远见,魄力|有愿景有担当，带着大家向前。|专横,急躁,虚张声势|独断或空有声势，多听听别人。`,
-`新感情,爱,直觉|情感的新开端，敞开心去感受与给予。|压抑感情,空虚,错过|把感受关起来，先接纳自己的情绪。
-相互吸引,连结,平等|彼此相应的真诚联结，互相尊重。|失衡,误解,疏离|付出不对等或沟通错位，需要坦率谈一谈。
-友谊,庆祝,团聚|与朋友分享喜悦，被支持被陪伴。|过度放纵,小圈子,八卦|社交过度或有人被排挤，留意界限。
-倦怠,冷淡,沉思|对现有的提不起劲，留意身边被忽略的机会。|回过神,重新投入,接受|走出麻木，重新看见身边的善意。
-失落,遗憾,悲伤|沉浸在失去里，但仍有留下的可以珍惜。|释怀,向前看,接受|慢慢走出悲伤，开始往前看。
-怀旧,童真,重逢|温柔的回忆与旧人旧事，纯粹的善意。|沉溺过去,不切实际|困在回忆里，该回到现在了。
-幻想,选择过多,诱惑|想象很多，需要分辨哪些是真正可行的。|看清现实,聚焦,做决定|拨开迷雾，终于能认清并选定方向。
-离开,放下,寻找意义|明知不够圆满，转身去寻找更重要的东西。|徘徊,不舍,逃避|想走又不舍，或在逃避真正的问题。
-满足,心愿,享受|心愿得偿，好好享受已有的满足。|贪心,表面满足,空虚|得到了却不快乐，问问自己真正要的。
-圆满,幸福,家庭|情感上的美满，与重要的人共享安稳。|失和,期待落差,不完整|理想与现实有落差，需要更多沟通。
-温柔,浪漫,好消息|带着温柔的讯息或灵感，保持柔软的好奇。|情绪不成熟,幼稚,逃避|过于敏感或沉溺幻想。
-浪漫,邀请,理想|带着真心与浪漫而来，跟随心意。|不切实际,情绪化,善变|情话多行动少，辨别真诚。
-共情,温柔,直觉|懂得倾听与包容，用感受力照顾自己与他人。|情绪淹没,过度依赖,敏感|被情绪牵着走，先划清界限。
-成熟,稳重,情绪管理|理解情感又保持克制，沉稳可靠。|冷漠,情绪压抑,操控|压抑感受或用情绪操控，坦诚些。`,
-`清晰,真相,突破|头脑清醒，看清真相，做出清晰的判断。|混乱,偏见,言辞伤人|思路不清或话说得太重，先理清再开口。
-僵局,回避,权衡|面对抉择而闭上眼睛，需要正视再决定。|做决定,信息揭露,压力|僵局被打破，或再拖下去压力更大。
-心痛,失落,真话|受伤的真相，允许自己难过，之后才会痊愈。|疗愈,放下伤痛,压抑悲伤|伤口在愈合，别再反复揭开。
-休息,恢复,暂停|需要停下来休养，补充能量再继续。|重新行动,焦躁,休息不够|准备好重新出发，但别勉强透支。
-冲突,胜负,代价|争赢未必值得，权衡值得争的是什么。|和解,放下争执,余波|愿意停战，或仍在为过去的争执耿耿于怀。
-过渡,离开,平稳|带着伤痛慢慢驶向平静，阶段性的转换。|滞留,难以前行,逃避|难以放下过去，转换被延迟。
-策略,隐瞒,取巧|需要巧妙行事，也提防不诚实与暗度陈仓。|坦白,良心不安,被识破|秘密浮出水面，选择坦诚更好。
-受困,自我限制,无力|感觉被困住，其实出口多由心里的想法限定。|解脱,重获自由,看清|开始看见出路，一步步解开束缚。
-焦虑,失眠,担忧|夜里的担忧被放大，说出来会轻一些。|缓解,走出焦虑,寻求帮助|焦虑渐渐散去，愿意求助就会好转。
-终结,谷底,解脱|糟糕的阶段到尽头，最坏已过。|重新站起,恢复,挣扎|缓慢恢复中，别再重复旧伤。
-好奇,观察,求知|敏锐好奇，多问多看多学。|多疑,言语尖锐,浮躁|话多心浮，先核实再下结论。
-果断,直接,迅速|行动迅速、思路清晰，但留意说话方式。|冒进,冲动,咄咄逼人|太急太冲，容易伤人伤己。
-独立,清醒,坦率|理性清明，看得透也说得明白。|冷淡,苛刻,封闭|过于苛刻或筑起高墙，试着柔软。
-理性,权威,公正|以逻辑与原则做判断，公平而有条理。|冷酷,独断,滥用权力|过度强硬或以理压人，保留人情味。`,
-`机会,资源,踏实开始|实在的机会出现，一步步播种。|错失机会,计划落空,吝啬|机会没把握住或准备不足。
-平衡,弹性,多任务|同时兼顾几件事，保持灵活与节奏。|失衡,手忙脚乱,过载|事情太多难以兼顾，先排优先级。
-合作,专业,打磨|与他人配合、精进技艺，成果受到认可。|配合不佳,敷衍,缺乏沟通|分工不清或标准不一，需要对齐。
-守成,安全感,控制|守住已有的，但别抓得太紧。|吝啬,放手,过度保守|开始松开手，或仍被不安全感控制。
-匮乏,孤立,困难|艰难时期会觉得孤单，其实有门可敲。|好转,求助,走出困境|状况好转，向外求助会更快。
-给予,分享,公平|有来有往的互助，给予与接受都要适度。|不对等,附带条件,亏欠|付出与回报失衡，留意界限。
-耐心,评估,等待收成|播种之后的等待，评估成果再调整。|急躁,回报不佳,放弃|觉得白费功夫，想想是方法还是时间。
-专注,练习,精进|一步一个脚印地练习，熟能生巧。|敷衍,倦怠,完美主义|失去耐心或过度苛求，稳住节奏。
-独立,自足,享受成果|靠自己得到的从容与品质。|依赖,过度工作,物质焦虑|为了外在过度奔忙，别忽略内在。
-传承,安稳,富足|长期积累的稳固与家庭、根基的富足。|不稳定,家庭摩擦,短视|根基有些松动，需要重新规划。
-学习,务实,新计划|踏实学习，从小目标开始。|拖延,不专注,眼高手低|光想不做，把计划拆小。
-稳健,可靠,持之以恒|慢而稳，用耐心和责任推进。|固执,停滞,过度谨慎|太保守或原地打转，需要一点变通。
-务实,照顾,丰盛|脚踏实地、善于照顾，把生活经营得温暖。|忽略自己,过度操心,物质化|为了照顾别人累垮自己。
-稳定,成就,资源|事业与财务稳固，慷慨又可靠。|贪恋,固执,过度看重物质|太看重得失，别被金钱遮住眼睛。`];
-const TAROT_ROMAN = ['0','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI'];
-const TAROT_RANKS = [['王牌','Ace','A'],['二','Two','2'],['三','Three','3'],['四','Four','4'],['五','Five','5'],['六','Six','6'],['七','Seven','7'],['八','Eight','8'],['九','Nine','9'],['十','Ten','10'],['侍从','Page','P'],['骑士','Knight','Kn'],['王后','Queen','Q'],['国王','King','K']];
-const TAROT_SUITS = [['权杖','Wands','杖'],['圣杯','Cups','杯'],['宝剑','Swords','剑'],['星币','Pentacles','币']];
-const TAROT_CARDS = (function(){
-  const out = [];
-  TAROT_MAJOR.split('\n').forEach(function(line, i){
-    const p = line.split('|');
-    out.push({ id:i, zh:p[0], en:p[1], uk:p[2], ut:p[3], rk:p[4], rt:p[5], top:TAROT_ROMAN[i], glyph:TAROT_ROMAN[i], major:true });
-  });
-  TAROT_MINOR.forEach(function(block, s){
-    block.split('\n').forEach(function(line, r){
-      const p = line.split('|');
-      out.push({ id:out.length, zh:TAROT_SUITS[s][0]+TAROT_RANKS[r][0], en:TAROT_RANKS[r][1]+' of '+TAROT_SUITS[s][1], uk:p[0], ut:p[1], rk:p[2], rt:p[3], top:TAROT_RANKS[r][2], glyph:TAROT_SUITS[s][2], suit:s, major:false });
-    });
-  });
-  return out;
-})();
-
-const TAROT_SPREADS = {
-  free:{ name:'自由问答', n:2, desc:'洗牌 5 次后抽最上面 2 张，回答你的问题', src:'', cols:2, xy:[[0,0],[1,0]],
-    pos:[{n:'问题的核心',q:'这件事目前真正的状态'},{n:'指引与走向',q:'接下来的建议与可能的发展'}] },
-  daily:{ name:'每日一牌', n:1, desc:'为今天抽一张牌，留意它带来的主题', src:'Daily Card · Kerykeion', cols:1, xy:[[0,0]],
-    pos:[{n:'今日之牌',q:'今天值得留意的主题'}] },
-  ppf:{ name:'过去·现在·未来', n:3, desc:'最经典的三张牌，看事情的来龙去脉', src:'Past–Present–Future · Biddy Tarot', cols:3, xy:[[0,0],[1,0],[2,0]],
-    pos:[{n:'过去',q:'影响现在的过往因素'},{n:'现在',q:'目前的处境与状态'},{n:'未来',q:'保持现状可能的走向'}] },
-  sao:{ name:'情境·行动·结果', n:3, desc:'适合做决定和解决具体问题', src:'Situation–Action–Outcome · Kerykeion', cols:3, xy:[[0,0],[1,0],[2,0]],
-    pos:[{n:'情境',q:'现在到底是什么情况'},{n:'行动',q:'可以怎么做'},{n:'结果',q:'可能展开的走向'}] },
-  celtic:{ name:'凯尔特十字', n:10, desc:'最经典的十张牌阵，全面看清一件复杂的事', src:'Celtic Cross · A.E. Waite 1910', cols:4,
-    xy:[[1,1.5],[1,1.5],[1,2.5],[0,1.5],[1,0.5],[2,1.5],[3,3],[3,2],[3,1],[3,0]], cross:1,
-    pos:[{n:'现状',q:'你目前所处的核心处境'},{n:'阻碍',q:'横在你面前的挑战或交叉的力量'},{n:'根基',q:'事情深层的基础与潜在原因'},{n:'过去',q:'正在远去的近期影响'},{n:'目标',q:'你意识中的目标，或最好的可能'},{n:'近期未来',q:'即将到来的发展'},{n:'你自己',q:'你的态度与自我状态'},{n:'环境',q:'周围的人与外部影响'},{n:'希望与恐惧',q:'你内心的期待与担忧'},{n:'结果',q:'事情最终的走向'}] },
-  two:{ name:'二选一（两条路）', n:6, desc:'在问题里写清 A、B 两个选项，前三张是 A，后三张是 B', src:'Two Paths · Kerykeion', cols:3, xy:[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]],
-    pos:[{n:'A · 本质',q:'选择 A 本质上是选择什么'},{n:'A · 成长课题',q:'这条路会要求你成长的地方'},{n:'A · 可能的结果',q:'认真走下去可能通向哪里'},{n:'B · 本质',q:'选择 B 本质上是选择什么'},{n:'B · 成长课题',q:'这条路会要求你成长的地方'},{n:'B · 可能的结果',q:'认真走下去可能通向哪里'}] },
-  relcheck:{ name:'关系检视', n:5, desc:'看清一段关系现在的状态与成长方向', src:'Relationship Check-In · Kerykeion', cols:3, xy:[[0.5,1],[0,0],[2,0],[1,0],[1.5,1]],
-    pos:[{n:'根基',q:'你们目前共同的基础'},{n:'你带来的',q:'你在这段关系中的贡献'},{n:'对方带来的',q:'你感受到的对方的贡献'},{n:'彼此之间的动力',q:'你们之间产生的能量'},{n:'成长方向',q:'这段关系可以一起成长的地方'}] },
-  newlove:{ name:'新恋情', n:6, desc:'探索刚萌芽的关系：吸引、期待与潜力', src:'New Love · Kerykeion', cols:3, xy:[[0,0],[2,0],[1,0],[0,1],[2,1],[1,1]],
-    pos:[{n:'现在的你',q:'你带着什么样的状态进入这段关系'},{n:'现在的对方',q:'对方目前的状态'},{n:'吸引力',q:'你们之间互相吸引的部分'},{n:'你的期待',q:'你对这段关系的希望'},{n:'对方的期待',q:'你感受到的对方的希望'},{n:'潜力',q:'这段关系可能的发展'}] },
-  strengthen:{ name:'加深关系', n:6, desc:'想让感情更深入、更有默契时使用', src:'Strengthening Your Relationship · Biddy Tarot', cols:3, xy:[[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]],
-    pos:[{n:'共同的潜能',q:'我们可以一起成长为什么样子'},{n:'运作良好之处',q:'我们的关系里什么是有效的'},{n:'脱节之处',q:'哪里让我们感到不同步'},{n:'脱节的根源',q:'这种不同步的根本原因'},{n:'我带来的力量',q:'我为这段关系增添了什么'},{n:'如何更投入',q:'我们怎样更完整地为彼此出现'}] },
-  dao:{ name:'欲望·行动·结果', n:5, desc:'双方各自渴望什么、如何表达，以及最终的契合度', src:'Desire–Action–Outcome · Angelorum', cols:3, xy:[[0,0],[2,0],[0,1],[2,1],[1,0.5]],
-    pos:[{n:'你的渴望',q:'此刻对关系影响最大的你的渴望'},{n:'对方的渴望',q:'对方现在最需要的'},{n:'你如何表达渴望',q:'这个渴望自然流露的方式'},{n:'对方如何表达渴望',q:'对方表达渴望的方式'},{n:'结果与契合',q:'双方行为叠加后对关系幸福的影响'}] },
-  past10:{ name:'前世缘分（十张）', n:10, desc:'探索你与某个人跨越前世今生的连结与课题', src:'Past Life Connection · Angelorum', cols:5, xy:[[0,0],[1,0],[2,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1]],
-    pos:[{n:'前世连结的性质',q:'你们在前世的关系是什么性质'},{n:'前世的灵魂课题',q:'那一世要学的功课'},{n:'前世的你',q:'你当时的身份或与对方的相处方式'},{n:'前世的对方',q:'对方当时的身份或与你的相处方式'},{n:'前世学得如何',q:'你们在那一世的课题完成得怎样'},{n:'今生的灵魂课题',q:'这一世你们一起要学的功课'},{n:'今生的你',q:'你现在的需求、恐惧与渴望'},{n:'今生的对方',q:'对方现在的需求、恐惧与渴望'},{n:'给你的行动建议',q:'怎样做能带来最大的成长'},{n:'给对方的行动建议',q:'对方怎样做能带来最大的成长'}] },
-  past5:{ name:'前世回响（五张）', n:5, desc:'看前世留给你的天赋、伤痕与今生的方向', src:'Past Lives · Kerykeion', cols:5, xy:[[0,0],[1,0],[2,0],[3,0],[4,0]],
-    pos:[{n:'前世回响',q:'哪段前世或深层模式最影响现在的你'},{n:'带来的天赋',q:'灵魂从过去带来的才能与品质'},{n:'带来的伤痕',q:'仍在影响你的旧伤'},{n:'业力课题',q:'这一世需要学习的功课'},{n:'灵魂的目的',q:'过去与现在共同指向的方向'}] }
-};
-const TAROT_TABS = [
-  ['daily','日常',['free','daily','ppf','sao','celtic']],
-  ['study','学业',['free','sao','two','ppf','celtic']],
-  ['love','爱情',['free','relcheck','newlove','strengthen','dao','past10','past5','ppf']]
-];
-const TAROT_SUIT_HINT = ['行动与热情','情感与关系','思考与沟通','现实与资源'];
-const TAROT_HISTORY_MAX = 4; // 最新的 + 剩下的 3 次
-let tarotHistory = [];
-let tarotS = { tab:'daily', spread:'free', rev:true, q:'', stage:'setup', drawn:[], flipped:[], busy:false, saved:false };
-
-function tarotRand(){
-  const a = new Uint32Array(1);
-  crypto.getRandomValues(a);
-  return a[0] / 4294967296;
-}
-function tarotRiffle(deck){
-  const cut = (deck.length >> 1) + Math.round((tarotRand()-0.5)*8);
-  const A = deck.slice(0, cut), B = deck.slice(cut), out = [];
-  let i = 0, j = 0;
-  while(i < A.length || j < B.length){
-    const ra = A.length - i, rb = B.length - j;
-    if(tarotRand() < ra/(ra+rb)) out.push(A[i++]); else out.push(B[j++]);
-  }
-  return out;
-}
-function tarotCut(deck){
-  const k = 1 + Math.floor(tarotRand()*(deck.length-1));
-  return deck.slice(k).concat(deck.slice(0,k));
-}
-function tarotShuffleDeck(){
-  let deck = TAROT_CARDS.map(c=>c.id);
-  for(let r=0;r<5;r++) deck = tarotCut(tarotRiffle(deck));
-  return deck;
-}
-function tarotSleep(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
-
-async function tarotOpen(){
-  tarotS.stage = 'setup';
-  tarotS.busy = false;
-  tarotS.saved = false;
-  try{
-    const h = await sGet('tarot-history', []);
-    tarotHistory = Array.isArray(h) ? h.slice(0, TAROT_HISTORY_MAX) : [];
-  }catch(e){ tarotHistory = []; }
-  tarotRenderSetup();
-}
-function tarotBack(){
-  if(tarotS.busy) return;
-  if(tarotS.stage === 'setup'){ go('home'); return; }
-  if(tarotS.stage === 'history-detail'){ tarotOpenHistory(); return; }
-  if(tarotS.stage === 'history'){ tarotS.stage = 'setup'; tarotRenderSetup(); return; }
-  tarotS.stage = 'setup';
-  tarotRenderSetup();
-}
-function tarotOpenHistory(){
-  if(tarotS.busy) return;
-  tarotS.stage = 'history';
-  const body = document.getElementById('tarotBody');
-  if(!body) return;
-  if(!tarotHistory.length){
-    body.innerHTML = `<div class="tz-wrap">
-      <div class="tz-hist-empty">暂无历史记录</div>
-      <div class="tz-note">完成一次占卜并翻开全部牌后，会自动保存在这里。<br>仅保留最近 ${TAROT_HISTORY_MAX} 次。</div>
-      <div class="tz-btns"><div class="tz-b" onclick="tarotBack()">返回</div></div>
-    </div>`;
-    return;
-  }
-  const list = tarotHistory.map(function(h,i){
-    const t = new Date(h.time);
-    const ds = (t.getMonth()+1)+'/'+t.getDate()+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-    const cards = (h.drawn||[]).map(function(d){ const c=TAROT_CARDS[d.id]; return c?c.zh+(d.rev?'↓':''):'?'; }).join(' · ');
-    return `<div class="tz-hist-item" onclick="tarotShowHistory(${i})">
-      <div class="tz-hist-top"><b>${escapeHtml(h.spreadName||'')}</b><span>${ds}</span></div>
-      <div class="tz-hist-q">${escapeHtml(h.q||'今日一牌')}</div>
-      <div class="tz-hist-c">${escapeHtml(cards)}</div>
-    </div>`;
-  }).join('');
-  body.innerHTML = `<div class="tz-wrap">
-    <div class="tz-hist-h"><span>历史记录</span><small>仅保留最近 ${TAROT_HISTORY_MAX} 次</small></div>
-    ${list}
-  </div>`;
-}
-function tarotPickTab(id){
-  tarotS.tab = id;
-  const ids = TAROT_TABS.find(t=>t[0]===id)[2];
-  if(ids.indexOf(tarotS.spread) < 0) tarotS.spread = 'free';
-  tarotRenderSetup();
-}
-function tarotPickSpread(id){ tarotS.spread = id; tarotRenderSetup(); }
-function tarotToggleRev(){ tarotS.rev = !tarotS.rev; tarotRenderSetup(); }
-
-function tarotRenderSetup(){
-  const body = document.getElementById('tarotBody');
-  if(!body) return;
-  const tabs = TAROT_TABS.map(t=>`<span class="${t[0]===tarotS.tab?'on':''}" onclick="tarotPickTab('${t[0]}')">${t[1]}</span>`).join('');
-  const cur = TAROT_TABS.find(t=>t[0]===tarotS.tab)[2];
-  const list = cur.map(id=>{
-    const s = TAROT_SPREADS[id];
-    return `<div class="tz-sp${id===tarotS.spread?' on':''}" onclick="tarotPickSpread('${id}')"><div class="tz-sp-h"><b>${s.name}</b><span>${s.n} 张</span></div><div class="tz-sp-d">${s.desc}</div>${s.src?`<div class="tz-sp-s">${s.src}</div>`:''}</div>`;
-  }).join('');
-  body.innerHTML = `<div class="tz-wrap">
-    <label class="tz-l">你的问题</label>
-    <textarea id="tarotQ" rows="3" placeholder="写下你想问的问题…" oninput="tarotS.q=this.value">${escapeHtml(tarotS.q)}</textarea>
-    <div class="tz-tabs">${tabs}</div>
-    <div class="tz-sps">${list}</div>
-    <div class="tz-opt" onclick="tarotToggleRev()"><span>启用逆位</span><i class="tz-sw${tarotS.rev?' on':''}"></i></div>
-    <div class="tz-go" onclick="tarotStart()">开始洗牌</div>
-  </div>`;
-  const btn = document.getElementById('tarotHistBtn');
-  if(btn) btn.style.display = '';
-}
-
-async function tarotStart(){
-  if(tarotS.busy) return;
-  const q = (tarotS.q || '').trim();
-  if(!q && tarotS.spread !== 'daily'){ pToast('先写下你的问题吧'); return; }
-  tarotS.busy = true;
-  tarotS.stage = 'shuffle';
-  tarotS.saved = false;
-  const body = document.getElementById('tarotBody');
-  let cards = '';
-  for(let i=0;i<14;i++) cards += `<div class="tz-c" style="transform:translate(0,${-i*1.2}px);z-index:${i}"></div>`;
-  body.innerHTML = `<div class="tz-stage"><div class="tz-count" id="tzCount">洗牌 0 / 5</div><div class="tz-deck" id="tzDeck">${cards}</div><div class="tz-tip">78 张牌 · 每次洗牌包含交叉洗牌与切牌</div></div>`;
-  const deck = tarotShuffleDeck();
-  await tarotShuffleAnim();
-  const sp = TAROT_SPREADS[tarotS.spread];
-  tarotS.drawn = deck.slice(0, sp.n).map(function(id){ return { id:id, rev: tarotS.rev && tarotRand() < 0.5 }; });
-  tarotS.flipped = [];
-  tarotS.stage = 'table';
-  tarotS.busy = false;
-  tarotRenderTable();
-}
-async function tarotShuffleAnim(){
-  const els = Array.prototype.slice.call(document.querySelectorAll('#tzDeck .tz-c'));
-  const n = els.length, h = n >> 1;
-  const put = function(i, x, y, r){ els[i].style.transform = `translate(${x}px,${y}px) rotate(${r}deg)`; };
-  for(let r=1;r<=5;r++){
-    const cnt = document.getElementById('tzCount');
-    if(cnt) cnt.textContent = '洗牌 '+r+' / 5';
-    els.forEach(function(e,i){ e.style.transition = 'transform .28s ease'; e.style.zIndex = i; put(i, i<h?-64:64, -(i%h)*1.2, i<h?-7:7); });
-    await tarotSleep(320);
-    els.forEach(function(e,i){ e.style.transition = `transform .34s ease ${(i%h)*14}ms`; e.style.zIndex = (i%h)*2 + (i<h?0:1); put(i, (Math.random()-.5)*4, -(i%h)*1.6, (Math.random()-.5)*4); });
-    await tarotSleep(340 + h*14 + 40);
-    els.forEach(function(e,i){ e.style.transition = 'transform .24s ease'; if(i%2===1) put(i, 0, -58 - (i>>1)*1.2, 0); });
-    await tarotSleep(260);
-    els.forEach(function(e,i){ e.style.transition = 'transform .24s ease'; e.style.zIndex = i%2===1 ? i-n : i; put(i, 0, -i*1.2, 0); });
-    await tarotSleep(280);
-  }
-}
-
-function tarotFaceHtml(c, rev){
-  return `<div class="tz-fi${rev?' rev':''}"><em>${c.top}</em><b class="${c.major?'mj':'mn'}">${c.glyph}</b><span>${c.zh}</span><small>${c.en}</small></div>`;
-}
-function tarotRenderTable(){
-  const body = document.getElementById('tarotBody');
-  const sp = TAROT_SPREADS[tarotS.spread];
-  const W = Math.min(body.clientWidth || 340, 420) - 8;
-  const cw = Math.min(W / sp.cols, 122);
-  const cardW = cw * 0.84, cardH = cardW * 1.6, rowH = cardH + 10;
-  let maxY = 0;
-  sp.xy.forEach(function(p){ if(p[1] > maxY) maxY = p[1]; });
-  const slots = tarotS.drawn.map(function(d, i){
-    const c = TAROT_CARDS[d.id], p = sp.xy[i];
-    const rot = (sp.cross === i) ? ' cross' : '';
-    return `<div class="tz-slot${rot}" id="tzs${i}" style="left:${p[0]*cw + (cw-cardW)/2}px;top:${p[1]*rowH}px;width:${cardW}px;height:${cardH}px;transition-delay:${i*110}ms" onclick="tarotFlip(${i})"><div class="tz-card" id="tzk${i}"><div class="tz-back"></div><div class="tz-front">${tarotFaceHtml(c, d.rev)}</div></div><span class="tz-no">${i+1}</span></div>`;
-  }).join('');
-  const q = (tarotS.q || '').trim();
-  body.innerHTML = `<div class="tz-wrap">
-    ${q?`<div class="tz-q">${escapeHtml(q)}</div>`:''}
-    <div class="tz-spname">${sp.name}</div>
-    <div class="tz-table" style="--cw:${cardW}px;width:${cw*sp.cols}px;height:${maxY*rowH + cardH}px">${slots}</div>
-    <div class="tz-hint" id="tzHint">轻点牌面翻开</div>
-    <div class="tz-btns"><div class="tz-b" onclick="tarotFlipAll()">全部翻开</div></div>
-    <div id="tzRead"></div>
-  </div>`;
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){
-    tarotS.drawn.forEach(function(d,i){ const e = document.getElementById('tzs'+i); if(e) e.classList.add('dealt'); });
-  }); });
-}
-function tarotFlip(i){
-  if(tarotS.flipped.indexOf(i) >= 0) return;
-  tarotS.flipped.push(i);
-  const k = document.getElementById('tzk'+i);
-  if(k) k.classList.add('on');
-  tarotRenderRead();
-}
-async function tarotFlipAll(){
-  for(let i=0;i<tarotS.drawn.length;i++){
-    if(tarotS.flipped.indexOf(i) < 0){ tarotFlip(i); await tarotSleep(380); }
-  }
-}
-function tarotItemHtml(i){
-  const sp = TAROT_SPREADS[tarotS.spread], d = tarotS.drawn[i], c = TAROT_CARDS[d.id], p = sp.pos[i];
-  const kw = d.rev ? c.rk : c.uk, tx = d.rev ? c.rt : c.ut;
-  return `<div class="tz-r"><div class="tz-r-h"><b>${i+1} · ${p.n}</b><span>${c.zh} · ${d.rev?'逆位':'正位'}</span></div><div class="tz-r-q">${p.q}</div><div class="tz-r-k">${kw.split(',').join(' · ')}</div><div class="tz-r-t">${tx}</div></div>`;
-}
-function tarotSummaryLines(){
-  const ds = tarotS.drawn, n = ds.length, out = [];
-  if(n < 2) return out;
-  const major = ds.filter(function(d){ return d.id < 22; }).length;
-  const rev = ds.filter(function(d){ return d.rev; }).length;
-  if(n >= 3 && major / n >= 0.5) out.push('大阿卡纳偏多，这件事牵涉到比较重要的人生课题。');
-  else if(n >= 3 && major === 0) out.push('全是小阿卡纳，更多落在日常、具体的事务层面。');
-  if(rev / n >= 0.5) out.push('逆位偏多：可能有阻力、延迟，或能量转向内在，值得先处理内心与细节。');
-  else if(rev === 0 && tarotS.rev) out.push('全部正位，整体能量比较顺畅直接。');
-  const cnt = [0,0,0,0];
-  ds.forEach(function(d){ const c = TAROT_CARDS[d.id]; if(!c.major) cnt[c.suit]++; });
-  const top = cnt.indexOf(Math.max.apply(null, cnt));
-  if(cnt[top] >= 2 && cnt[top] >= Math.ceil(n/2)) out.push('「'+TAROT_SUITS[top][0]+'」牌最多，主题集中在'+TAROT_SUIT_HINT[top]+'。');
-  return out;
-}
-function tarotRenderRead(){
-  const box = document.getElementById('tzRead');
-  if(!box) return;
-  const ds = tarotS.drawn;
-  const order = tarotS.flipped.slice().sort(function(a,b){ return a-b; });
-  let html = order.map(tarotItemHtml).join('');
-  const hint = document.getElementById('tzHint');
-  if(order.length === ds.length){
-    if(hint) hint.style.display = 'none';
-    const sm = tarotSummaryLines();
-    if(sm.length) html += `<div class="tz-sum"><b>整体观察</b>${sm.map(function(t){ return '<div>'+t+'</div>'; }).join('')}</div>`;
-    html += `<div class="tz-note">牌只是帮你整理想法的一面镜子，最后的决定在你自己手里。</div><div class="tz-btns"><div class="tz-b main" onclick="tarotSend()">发给${escapeHtml((chatSettings && chatSettings.companionName) || 'TA')}</div><div class="tz-b" onclick="tarotAgain()">再占一次</div></div>`;
-    tarotSaveHistory();
-  }
-  box.innerHTML = html;
-  if(order.length === ds.length){
-    const last = box.lastElementChild;
-    if(last && last.scrollIntoView) last.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }
-}
-function tarotAgain(){
-  tarotS.stage = 'setup';
-  tarotRenderSetup();
-}
-async function tarotSaveHistory(){
-  if(tarotS.saved) return;
-  tarotS.saved = true;
-  const sp = TAROT_SPREADS[tarotS.spread];
-  if(!sp) return;
-  const entry = {
-    id: (typeof uid==='function' ? uid() : String(Date.now())),
-    time: Date.now(),
-    q: (tarotS.q || '').trim() || '今日一牌',
-    spread: tarotS.spread,
-    spreadName: sp.name,
-    drawn: tarotS.drawn.map(function(d){ return { id:d.id, rev:!!d.rev }; })
-  };
-  if(!Array.isArray(tarotHistory)) tarotHistory = [];
-  tarotHistory.unshift(entry);
-  if(tarotHistory.length > TAROT_HISTORY_MAX) tarotHistory = tarotHistory.slice(0, TAROT_HISTORY_MAX);
-  try{ await sSet('tarot-history', tarotHistory); }catch(e){}
-}
-function tarotShowHistory(idx){
-  const h = tarotHistory[idx];
-  if(!h) return;
-  tarotS.stage = 'history-detail';
-  const sp = TAROT_SPREADS[h.spread] || { name:h.spreadName||'', pos:(h.drawn||[]).map(function(_,i){ return {n:'位置 '+(i+1), q:''}; }) };
-  const t = new Date(h.time);
-  const ds = (t.getMonth()+1)+'月'+t.getDate()+'日 '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-  let items = (h.drawn||[]).map(function(d,i){
-    const c = TAROT_CARDS[d.id];
-    if(!c) return '';
-    const p = (sp.pos && sp.pos[i]) ? sp.pos[i] : {n:'位置 '+(i+1), q:''};
-    const kw = d.rev ? c.rk : c.uk, tx = d.rev ? c.rt : c.ut;
-    return `<div class="tz-r"><div class="tz-r-h"><b>${i+1} · ${p.n}</b><span>${c.zh} · ${d.rev?'逆位':'正位'}</span></div>${p.q?`<div class="tz-r-q">${p.q}</div>`:''}<div class="tz-r-k">${(kw||'').split(',').join(' · ')}</div><div class="tz-r-t">${tx||''}</div></div>`;
-  }).join('');
-  const body = document.getElementById('tarotBody');
-  body.innerHTML = `<div class="tz-wrap">
-    <div class="tz-hist-view-h">
-      <div class="tz-spname">${escapeHtml(h.spreadName||sp.name||'')}</div>
-      <div class="tz-hist-time">${ds}</div>
-    </div>
-    <div class="tz-q">${escapeHtml(h.q||'今日一牌')}</div>
-    <div id="tzRead">${items}
-      <div class="tz-note">这是历史记录，仅供回顾。</div>
-      <div class="tz-btns"><div class="tz-b" onclick="tarotBack()">返回</div></div>
-    </div>
-  </div>`;
-}
-async function tarotSend(){
-  const sp = TAROT_SPREADS[tarotS.spread];
-  const q = (tarotS.q || '').trim();
-  const lines = tarotS.drawn.map(function(d,i){
-    const c = TAROT_CARDS[d.id];
-    return (i+1)+'. '+sp.pos[i].n+'：'+c.zh+'（'+(d.rev?'逆位':'正位')+'）';
-  });
-  const content = '占卜：'+(q || '今日一牌')+'\n牌阵：'+sp.name+'\n'+lines.join('\n');
-  const msg = { id:uid(), from:'user', type:'text', content:content, time:Date.now(), read:false };
-  if(!Array.isArray(chatMessages)) chatMessages = [];
-  chatMessages.push(msg);
-  try{ await recPut('chatMessages', msg); }catch(e){}
-  try{ handleIncomingForBot(msg.content); }catch(e){}
-  go('chat');
-}
-
-</script>
 </body>
 </html>
