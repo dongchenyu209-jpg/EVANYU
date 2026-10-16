@@ -2457,6 +2457,7 @@ let diaryEntries = [];
 let momentsPosts = [];
 let momentEvents = []; // 朋友圈"待触发事件"队列（点赞/评论、回评论），持久化存储，靠轮询检查而非setTimeout，防止长延迟跨设备/跨刷新失效
 let momentDraftMedia = null;
+let momentDraftSticker = null;
 let letters = [];
 let inboxLetters = [];
 let callLogs = [];
@@ -5790,17 +5791,23 @@ function openStickerPicker(mode, which){
         const disp = isImg
           ? `<img loading="lazy" decoding="async" src="${escapeHtml(v)}" style="width:100%;height:100%;object-fit:contain;padding:6px;box-sizing:border-box;">`
           : `<span style="font-size:${Array.from(v).length>2?14:30}px;line-height:1.2;text-align:center;word-break:break-all;">${escapeHtml(v)}</span>`;
-        const fn = mode==='attach' ? 'pickStickerByIndex' : 'sendStickerByIndex';
-        return `<span class="chip" onclick="${fn}(${idx},'${which}')">${disp}</span>`;
+        const fn = (mode==='attach') ? `pickStickerByIndex(${idx},'${which}')` : `chooseStickerForMoment(${idx},'${which}','${mode}')`;
+        return `<span class="chip" onclick="${fn}">${disp}</span>`;
       }).join('')}</div>`;
   openOverlay(`
-    <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':'发送表情包'}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <div class="drawer-head"><h3>${mode==='attach'?'选择表情（可与文字同发）':(mode==='momentPost'?'选择朋友圈表情':(mode.startsWith('momentComment:')?'选择评论表情':'发送表情包'))}</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     ${tabs}
-    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。':'点一下立刻发出。'}</p>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">${mode==='attach'?'点选后回到输入框写字，点发送会表情+文字一起发出。':(mode==='momentPost'?'选择后可继续编辑文字，再发布朋友圈。':(mode.startsWith('momentComment:')?'选择后直接发送这条表情评论。':'点一下立刻发出。'))}</p>
     ${grid}
   `);
 }
 function pickStickerByIndex(i, which){ const s = getStickerList(which==='ta'?'ta':'my')[i]; if(s && s.value) pickStickerForCombo(s.value); }
+async function chooseStickerForMoment(i, which, mode){
+  const s = getStickerList(which==='ta'?'ta':'my')[i]; if(!s || !s.value) return;
+  if(mode==='momentPost'){ momentDraftSticker = s.value; closeOverlay(); openMomentComposer(true); return; }
+  if(String(mode).startsWith('momentComment:')){ const postId = mode.split(':').slice(1).join(':'); await addMomentComment(postId, s.value); return; }
+}
+
 function sendStickerByIndex(i, which){ const s = getStickerList(which==='ta'?'ta':'my')[i]; if(s && s.value) sendStickerMsg(s.value); }
 function pickStickerForCombo(value){
   pendingSticker = { value: value };
@@ -6122,15 +6129,17 @@ function renderPeriod(){
 /* ============================================================
    MOMENTS 朋友圈
    ============================================================ */
-function openMomentComposer(){
-  momentDraftMedia = null;
+function openMomentComposer(keepDraft){
+  if(!keepDraft){ momentDraftMedia = null; momentDraftSticker = null; }
   openOverlay(`
     <div class="drawer-head"><h3>发一条朋友圈</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
     <textarea id="momentText" placeholder="分享点什么…" style="min-height:90px;"></textarea>
     <div id="momentMediaPreview"></div>
+    <div id="momentStickerPreview" style="margin-top:8px;">${momentDraftSticker?renderMomentSticker(momentDraftSticker):''}</div>
     <input type="file" id="momentMediaInput" accept="image/*,video/*" class="hidden" onchange="onMomentMedia(event)">
     <div class="btn-row">
       <div class="btn outline" onclick="document.getElementById('momentMediaInput').click()">📎 配图 / 视频</div>
+      <div class="btn outline" onclick="openStickerPicker('momentPost','my')">表情包</div>
       <div class="btn" onclick="postMoment()">发布</div>
     </div>
   `);
@@ -6162,16 +6171,17 @@ async function postMoment(){
   const textEl = document.getElementById('momentText');
   const text = textEl ? textEl.value.trim() : '';
   const media = momentDraftMedia;
-  if(!text && !media){ alert('写点什么或配张图/视频吧'); return; }
+  const sticker = momentDraftSticker;
+  if(!text && !media && !sticker){ alert('写点什么、选个表情包或配张图/视频吧'); return; }
   const post = {
-    id:uid(), authorType:'user', text, time:Date.now(),
+    id:uid(), authorType:'user', text, sticker:sticker||null, time:Date.now(),
     photo: media && media.type==='image' ? media.src : null,
     video: media && media.type==='video' ? media.src : null,
     liked:false, comment:null, commented:false, likedByUser:false, comments:[]
   };
   momentsPosts.unshift(post);
   await recPut('momentsPosts', post);
-  momentDraftMedia = null;
+  momentDraftMedia = null; momentDraftSticker = null;
   closeOverlay();
   renderMoments();
   // 按传讯设置里的概率决定会不会点赞、会不会评论；只有「会」才登记时间，到期必执行
@@ -6264,8 +6274,10 @@ async function sendProactiveMoment(){
   const lines = [];
   for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
   if(lines.length===0) return;
+  const taStickers = getStickerList('ta').filter(x=>x && x.value);
+  const useSticker = taStickers.length && Math.random()<0.25;
   const post = {
-    id:uid(), authorType:'bot', text: lines.join('　'), photo:null, time:Date.now(),
+    id:uid(), authorType:'bot', text: useSticker ? '' : lines.join('　'), sticker:useSticker ? taStickers[Math.floor(Math.random()*taStickers.length)].value : null, photo:null, time:Date.now(),
     liked:false, comment:null, commented:false, likedByUser:false, comments:[]
   };
   momentsPosts.unshift(post);
@@ -6282,15 +6294,15 @@ async function toggleMomentLike(id){
   renderMoments();
 }
 /* ---- 评论：我可以评论任何一条，TA 要不要回是纯随机的 ---- */
-async function addMomentComment(id){
+async function addMomentComment(id, stickerValue){
   const input = document.getElementById('momentCommentInput_'+id);
-  if(!input) return;
-  const text = input.value.trim();
-  if(!text) return;
+  const text = input ? input.value.trim() : '';
+  if(!text && !stickerValue) return;
   const post = momentsPosts.find(p=>p.id===id); if(!post) return;
   if(!post.comments) post.comments = [];
-  post.comments.push({ author:'user', text, time:Date.now() });
-  input.value = '';
+  post.comments.push({ author:'user', text, sticker:stickerValue||null, time:Date.now() });
+  if(input) input.value = '';
+  if(stickerValue) closeOverlay();
   await recPut('momentsPosts', post);
   renderMoments();
   if(Math.random() < ((momentInteractSettings.replyProb||60)/100)){
@@ -6298,6 +6310,10 @@ async function addMomentComment(id){
   }
 }
 
+function renderMomentSticker(value){
+  if(!value) return ''; const v=String(value);
+  return v.startsWith('data:') ? `<img src="${escapeHtml(v)}" alt="表情包" style="display:block;max-width:120px;max-height:120px;object-fit:contain;margin-top:6px;">` : `<div style="font-size:32px;margin-top:6px;">${escapeHtml(v)}</div>`;
+}
 function renderMoments(){
   const wrap = document.getElementById('momentsList');
   if(!wrap) return;
@@ -6321,7 +6337,7 @@ function renderMoments(){
     const likersLine = p.likedByUser ? `<div class="moment-likes" style="margin-top:6px;">❤️ ${escapeHtml(myName)}</div>` : '';
 
     const thread = (p.comments && p.comments.length)
-      ? `<div class="moment-thread">${p.comments.map(c=>`<div class="moment-comment-line"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${escapeHtml(c.author==='user'?myName:chatSettings.companionName)}：</b>${escapeHtml(c.text)}</div>`).join('')}</div>`
+      ? `<div class="moment-thread">${p.comments.map(c=>`<div class="moment-comment-line"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${escapeHtml(c.author==='user'?myName:chatSettings.companionName)}：</b>${c.text?escapeHtml(c.text):''}${c.sticker?renderMomentSticker(c.sticker):''}</div>`).join('')}</div>`
       : '';
 
     return `<div class="moment-post">
@@ -6329,6 +6345,7 @@ function renderMoments(){
       <div class="moment-body">
         <div class="moment-name">${escapeHtml(name)}</div>
         ${p.text?`<div class="moment-text">${escapeHtml(p.text)}</div>`:''}
+        ${p.sticker?renderMomentSticker(p.sticker):''}
         ${p.photo?`<img loading="lazy" decoding="async" class="moment-photo" src="${escapeHtml(p.photo)}">`:''}
         ${p.video?`<video class="moment-photo" src="${escapeHtml(p.video)}" controls></video>`:''}
         <div class="moment-meta">${new Date(p.time).toLocaleString('zh-CN')}</div>
@@ -6338,6 +6355,7 @@ function renderMoments(){
         ${thread}
         <div class="moment-comment-input-row">
           <input type="text" id="momentCommentInput_${p.id}" placeholder="评论…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)addMomentComment('${p.id}')">
+          <span onclick="openStickerPicker('momentComment:${p.id}','my')">表情</span>
           <span onclick="addMomentComment('${p.id}')">发送</span>
         </div>
       </div>
