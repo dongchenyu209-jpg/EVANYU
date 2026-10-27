@@ -453,27 +453,6 @@
   .msg.wish-card .wish-acts .btn{ flex:1; padding:6px 0; font-size:12px; text-align:center; }
   .msg.wish-card .wish-status{ font-size:11px; color:var(--ink-soft); margin-top:7px; }
   .msg.wish-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
-.msg.questionnaire{
-  background:#fff; border:1.5px solid #1a1a1a; border-radius:12px; padding:6px 10px; width:92%; max-width:92%; min-width:85%; box-sizing:border-box; display:grid; grid-template-columns:1fr; row-gap:4px; align-items:center;
-}
-.msg.questionnaire .q-title{ display:flex; align-items:center; gap:8px; font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:11.5px; letter-spacing:2px; color:var(--rouge); margin:0; grid-column:1 / -1; white-space:nowrap; }
-.msg.questionnaire .q-question{ font-size:14px; font-weight:700; line-height:1.4; margin:0; grid-column:1 / -1; word-break:break-word; }
-.msg.questionnaire .q-opts{ display:flex; flex-direction:column; gap:4px; grid-column:1 / -1; }
-.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:wrap; gap:5px; }
-.msg.questionnaire .q-option{
-  display:flex; align-items:center; gap:10px; border:1px solid var(--rule); border-radius:10px; padding:5px 10px; margin:0; font-size:13px; line-height:1.4;
-  background:var(--paper-2); word-break:break-word;
-}
-.msg.questionnaire .q-dot{ flex:none; width:15px; height:15px; border-radius:50%; border:1.5px solid var(--ink-soft); box-sizing:border-box; position:relative; }
-.msg.questionnaire .q-option.chosen .q-dot{ border-color:var(--rouge); background:var(--rouge); }
-.msg.questionnaire .q-option.chosen .q-dot::after{ content:''; position:absolute; left:4px; top:1.5px; width:4px; height:7px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
-.msg.questionnaire .q-opts.row .q-option{ flex:1 1 auto; justify-content:center; text-align:center; padding:5px 12px; }
-.msg.questionnaire .q-opts.row .q-dot{ display:none; }
-.msg.questionnaire .q-opts.row .q-option.chosen::before{ content:'✓'; }
-.msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); font-weight:700; }
-.msg.questionnaire .q-meta, .msg.questionnaire .q-waiting, .msg.questionnaire .t{ display:none; }
-.msg.questionnaire .quote-ref{ grid-column:1 / -1; }
-
 .typing{ 
   align-self:flex-start; 
   font-size:11.5px; 
@@ -4096,6 +4075,7 @@ function renderChat(preserveScroll, scrollToId){
         wActs = '<div class="wish-status">这次先没买～</div>';
       }
       bubbleHtml = `<div class="msg wish-card ${m.from}">
+        <div class="cd-head"><span class="cd-ico">🛍️</span><b class="cd-title">心愿清单</b><span class="cd-sub">${wItems.length} 件</span></div>
         <div class="wish-inner">
           <div class="wish-text">${escapeHtml(m.note||'可以帮我买吗～')}</div>
           <div class="wish-rows">${wRows}</div>
@@ -4107,13 +4087,17 @@ function renderChat(preserveScroll, scrollToId){
     } else if(m.type==='cart'){
       const fromMe = m.from==='user';
       const items = (m.items||[]);
-      const rows = items.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span style="color:var(--rouge);">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('');
+      const rows = items.map(x=>`<div class="ct-row"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span class="ct-p">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('');
+      const skipRows = (m.skipped && m.skipped.length) ? '<div class="ct-lead">下次再买</div><div class="ct-skip">' + m.skipped.map(x=>`<div class="ct-row"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span class="ct-p">¥${Number(x.price||0).toFixed(0)}</span></div>`).join('') + '</div>' : '';
+      const cartTitle = String(m.title || '购物清单').replace(/^🛒\s*/, '');
       bubbleHtml = `<div class="msg cart-card ${m.from}">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${escapeHtml(m.title || '🛒 购物清单')}</div>
-        ${m.title ? '<div style="font-size:12px;color:var(--ink-soft);margin-bottom:3px;">我给你买了</div>' : ''}
-        <div>${rows}</div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">共 ${items.length} 件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
-        ${(m.skipped && m.skipped.length) ? '<div style="font-size:12px;color:var(--ink-soft);margin:8px 0 3px;">下次再买</div><div style="opacity:.6;">' + m.skipped.map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>${escapeHtml(x.emoji||'🎁')} ${escapeHtml(x.name||'')}</span><span>¥${Number(x.price||0).toFixed(0)}</span></div>`).join('') + '</div>' : ''}
+        <div class="cd-head"><span class="cd-ico">🛒</span><b class="cd-title">${escapeHtml(cartTitle)}</b><span class="cd-sub">${items.length} 件</span></div>
+        <div class="cd-body">
+          ${m.title ? '<div class="ct-lead">我给你买了</div>' : ''}
+          <div class="ct-rows">${rows}</div>
+          ${skipRows}
+        </div>
+        <div class="cd-foot"><span class="cd-chip">合计</span><span class="cd-end">¥${Number(m.total||0).toFixed(0)}</span></div>
         <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
@@ -4125,24 +4109,26 @@ function renderChat(preserveScroll, scrollToId){
       }).join('') + '</div>';
       let statusHtml = '';
       if(m.answered){
-        statusHtml = `<div class="q-meta">已选择 · ${formatMsgTime(m.answerTime||m.time)}</div>`;
+        statusHtml = `<div class="cd-foot"><span class="cd-chip">已选择</span><span class="cd-end">${formatMsgTime(m.answerTime||m.time)}</span></div>`;
       } else if(m.scheduledReplyAt){
+        let waitTip = '';
         if(m.timeMode === 'fast'){
-          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 10 秒内选好</div>`;
+          waitTip = 'TA 会在 10 秒内选好';
         } else if(m.timeMode === 'slow'){
-          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 10~60 秒内选好</div>`;
+          waitTip = 'TA 会在 10~60 秒内选好';
         } else {
-          const eta = new Date(m.scheduledReplyAt).toLocaleString('zh-CN');
-          statusHtml = `<div class="q-waiting">等待回复中…大概 ${eta} 前会选好</div>`;
+          waitTip = '大概 ' + new Date(m.scheduledReplyAt).toLocaleString('zh-CN') + ' 前选好';
         }
+        statusHtml = `<div class="cd-foot"><span class="cd-chip">等待回复中…</span><span class="cd-end cd-soft">${escapeHtml(waitTip)}</span></div>`;
       }
       bubbleHtml = `<div class="msg questionnaire ${m.from}">
         ${quoteRefHtml}
-        <div class="q-title">📋 梦向问卷</div>
-        <div class="q-question">${escapeHtml(m.question||'')}</div>
-        ${opts}
+        <div class="cd-head"><span class="cd-ico">📋</span><b class="cd-title">梦向问卷</b><span class="cd-sub">${qList.length} 个选项</span></div>
+        <div class="cd-body">
+          <div class="q-question">${escapeHtml(m.question||'')}</div>
+          ${opts}
+        </div>
         ${statusHtml}
-        <div class="t">${quoteBtn}</div>
       </div>`;
     } else if(m.type==='weblink'){
       const collapsed = m.collapsed !== undefined ? m.collapsed : true;
@@ -15022,6 +15008,63 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .ml-led-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .ml-led-t{font-weight:500;font-size:13.5px;line-height:1.5;color:#22262B}
 .ml-led-a{font-weight:600;white-space:nowrap;font-size:14px}
+
+.msg.questionnaire, .msg.gift-card, .msg.wish-card, .msg.cart-card, .msg.invite-card-msg{
+  padding:0; overflow:hidden; background:#fff; color:var(--ink); border:1px solid rgba(0,0,0,.07);
+  border-radius:22px; box-shadow:0 8px 24px -12px rgba(60,40,36,.28); white-space:normal;
+}
+.msg.questionnaire, .msg.cart-card{ display:block; width:88%; max-width:360px; min-width:0; }
+.msg.gift-card{ width:220px; max-width:80%; }
+.msg.wish-card{ width:240px; max-width:84%; }
+.msg.invite-card-msg{ width:88%; max-width:360px; }
+.cd-head{ display:flex; align-items:center; gap:10px; padding:11px 16px; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); }
+.cd-ico{ flex:none; width:26px; height:26px; border-radius:8px; background:var(--blush); display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; }
+.cd-title{ flex:1; min-width:0; font-size:14px; font-weight:800; letter-spacing:1px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cd-sub{ flex:none; font-size:12px; color:var(--ink-soft); }
+.cd-body{ padding:14px 16px; }
+.cd-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 16px; border-top:1px solid rgba(0,0,0,.06); }
+.cd-chip{ flex:none; font-size:12px; color:var(--ink-soft); background:rgba(0,0,0,.05); border-radius:999px; padding:5px 12px; }
+.cd-end{ font-size:13px; font-weight:800; color:var(--ink); text-align:right; }
+.cd-end.cd-soft{ font-size:11.5px; font-weight:400; color:var(--ink-soft); }
+.msg.questionnaire .q-question{ font-size:16px; font-weight:800; line-height:1.5; margin:0 0 14px; word-break:break-word; }
+.msg.questionnaire .q-opts{ display:flex; flex-direction:column; gap:10px; }
+.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:wrap; }
+.msg.questionnaire .q-option{ display:flex; align-items:center; gap:10px; border:1.5px solid rgba(0,0,0,.09); border-radius:16px; background:#fff; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.4; box-shadow:0 2px 0 rgba(0,0,0,.07); word-break:break-word; }
+.msg.questionnaire .q-opts.row .q-option{ border-radius:999px; padding:9px 18px; justify-content:center; }
+.msg.questionnaire .q-dot{ flex:none; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft); box-sizing:border-box; position:relative; }
+.msg.questionnaire .q-opts.row .q-dot{ display:none; }
+.msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); box-shadow:none; }
+.msg.questionnaire .q-option.chosen .q-dot{ border-color:var(--rouge); background:var(--rouge); }
+.msg.questionnaire .q-option.chosen .q-dot::after{ content:''; position:absolute; left:4.5px; top:2px; width:4px; height:7px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
+.msg.questionnaire .q-opts.row .q-option.chosen::before{ content:'✓'; margin-right:6px; }
+.msg.questionnaire .quote-ref{ margin:10px 16px 0; }
+.msg.gift-card .gift-label-top{ padding:11px 16px; margin:0; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); font-size:12.5px; font-weight:700; letter-spacing:.5px; color:var(--ink); }
+.msg.gift-card .gift-inner, .msg.gift-card.bouquet .gift-inner{ padding:14px 16px !important; gap:12px !important; background:none; }
+.msg.gift-card .gift-emoji, .msg.gift-card.bouquet .gift-emoji{ flex:none; width:46px; height:46px; border-radius:14px; background:var(--paper-2); display:flex; align-items:center; justify-content:center; font-size:26px !important; }
+.msg.gift-card .gift-name{ font-size:14.5px; font-weight:800; }
+.msg.gift-card .gift-price{ font-size:13.5px; font-weight:800; margin-top:3px; }
+.msg.gift-card .t, .msg.cart-card .t, .msg.wish-card .t{ padding:0 16px 10px; margin:0; }
+.msg.gift-card .t:empty, .msg.cart-card .t:empty, .msg.wish-card .t:empty{ display:none; }
+.msg.wish-card .wish-inner{ padding:14px 16px 12px; }
+.msg.wish-card .wish-text{ font-size:13.5px; font-weight:700; line-height:1.5; margin-bottom:8px; }
+.msg.wish-card .wish-row{ font-size:13px; padding:7px 0; border-bottom:1px dashed rgba(0,0,0,.09); }
+.msg.wish-card .wish-total{ margin-top:8px; font-size:11.5px; }
+.msg.wish-card .wish-acts{ gap:10px; margin-top:12px; }
+.msg.wish-card .wish-acts .btn{ padding:9px 0; font-size:13px; font-weight:700; border-radius:999px; box-shadow:0 2px 0 rgba(0,0,0,.07); }
+.msg.wish-card .wish-status{ margin-top:10px; font-size:12px; }
+.ct-lead{ font-size:12px; color:var(--ink-soft); margin:0 0 4px; }
+.ct-row{ display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:7px 0; border-bottom:1px dashed rgba(0,0,0,.09); }
+.ct-row:last-child{ border-bottom:0; }
+.ct-p{ color:var(--rouge); font-weight:700; }
+.ct-skip{ opacity:.6; margin-bottom:2px; }
+.ct-lead + .ct-skip, .ct-rows + .ct-lead{ margin-top:10px; }
+.msg.invite-card-msg .invite-card-inner{ padding:0; }
+.msg.invite-card-msg .invite-card-title{ margin:0; padding:11px 16px; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); font-size:14px; font-weight:800; letter-spacing:1px; }
+.msg.invite-card-msg .invite-card-meta{ padding:12px 16px 0; font-size:12.5px; line-height:1.6; }
+.msg.invite-card-msg .invite-card-status{ margin:10px 16px 12px; padding:5px 12px; font-size:12px; }
+.msg.invite-card-msg .invite-card-actions{ margin:0; padding:0 16px 12px; gap:10px; }
+.msg.invite-card-msg .invite-card-actions .btn{ padding:8px 16px; border-radius:999px; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.07); }
+.msg.invite-card-msg .t{ margin:0 !important; padding:0 16px 10px; }
 </style>
 </body>
 </html>
