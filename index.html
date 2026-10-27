@@ -4102,7 +4102,7 @@ function renderChat(preserveScroll, scrollToId){
       </div>`;
     } else if(m.type==='questionnaire'){
       const qList = m.options||[];
-      const qRow = qList.length <= 4 && qList.every(o=>Array.from(String(o)).length <= 6);
+      const qRow = qList.length <= 4 && qList.reduce((w,o)=>w + Array.from(String(o)).reduce((a,c)=>a + (c.charCodeAt(0) < 128 ? 9 : 15), 0) + 14, 0) + (qList.length-1)*6 <= 195;
       const opts = '<div class="q-opts'+(qRow?' row':'')+'">' + qList.map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
         return `<div class="q-option${chosen?' chosen':''}"><span class="q-dot"></span><span>${escapeHtml(o)}</span></div>`;
@@ -4113,11 +4113,11 @@ function renderChat(preserveScroll, scrollToId){
       } else if(m.scheduledReplyAt){
         let waitTip = '';
         if(m.timeMode === 'fast'){
-          waitTip = 'TA 会在 10 秒内选好';
+          waitTip = '10 秒内选好';
         } else if(m.timeMode === 'slow'){
-          waitTip = 'TA 会在 10~60 秒内选好';
+          waitTip = '10~60 秒内选好';
         } else {
-          waitTip = '大概 ' + new Date(m.scheduledReplyAt).toLocaleString('zh-CN') + ' 前选好';
+          waitTip = new Date(m.scheduledReplyAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) + ' 前选好';
         }
         statusHtml = `<div class="cd-foot"><span class="cd-chip">等待回复中…</span><span class="cd-end cd-soft">${escapeHtml(waitTip)}</span></div>`;
       }
@@ -15025,18 +15025,17 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .cd-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 16px; border-top:1px solid rgba(0,0,0,.06); }
 .cd-chip{ flex:none; font-size:12px; color:var(--ink-soft); background:rgba(0,0,0,.05); border-radius:999px; padding:5px 12px; }
 .cd-end{ font-size:13px; font-weight:800; color:var(--ink); text-align:right; }
-.cd-end.cd-soft{ font-size:11.5px; font-weight:400; color:var(--ink-soft); }
+.cd-end.cd-soft{ font-size:12px; font-weight:400; color:var(--ink-soft); white-space:nowrap; }
 .msg.questionnaire .q-question{ font-size:16px; font-weight:800; line-height:1.5; margin:0 0 14px; word-break:break-word; }
 .msg.questionnaire .q-opts{ display:flex; flex-direction:column; gap:10px; }
-.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:wrap; }
+.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:nowrap; gap:6px; }
 .msg.questionnaire .q-option{ display:flex; align-items:center; gap:10px; border:1.5px solid rgba(0,0,0,.09); border-radius:16px; background:#fff; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.4; box-shadow:0 2px 0 rgba(0,0,0,.07); word-break:break-word; }
-.msg.questionnaire .q-opts.row .q-option{ border-radius:999px; padding:9px 18px; justify-content:center; }
+.msg.questionnaire .q-opts.row .q-option{ flex:1 1 auto; min-width:0; border-radius:999px; padding:9px 4px; justify-content:center; text-align:center; white-space:nowrap; word-break:keep-all; overflow:hidden; text-overflow:ellipsis; }
 .msg.questionnaire .q-dot{ flex:none; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft); box-sizing:border-box; position:relative; }
 .msg.questionnaire .q-opts.row .q-dot{ display:none; }
 .msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); box-shadow:none; }
 .msg.questionnaire .q-option.chosen .q-dot{ border-color:var(--rouge); background:var(--rouge); }
 .msg.questionnaire .q-option.chosen .q-dot::after{ content:''; position:absolute; left:4.5px; top:2px; width:4px; height:7px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
-.msg.questionnaire .q-opts.row .q-option.chosen::before{ content:'✓'; margin-right:6px; }
 .msg.questionnaire .quote-ref{ margin:10px 16px 0; }
 .msg.gift-card .gift-label-top{ padding:11px 16px; margin:0; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); font-size:12.5px; font-weight:700; letter-spacing:.5px; color:var(--ink); }
 .msg.gift-card .gift-inner, .msg.gift-card.bouquet .gift-inner{ padding:14px 16px !important; gap:12px !important; background:none; }
