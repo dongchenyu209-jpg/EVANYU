@@ -6053,10 +6053,10 @@ async function sendQuestionnaire(){
   if(!question){ alert('请填写问题'); return; }
   if(options.length < 2){ alert('至少需要 2 个选项'); return; }
   const timeMode = (_qTimeMode === 'slow') ? 'slow' : 'fast';
-  // fast：1~10 秒随机；slow：10~60 秒随机
+  // fast：固定 10 秒后自动选择；slow：10~60 秒随机
   const delayMs = (timeMode === 'slow')
     ? randomBetween(10 * 1000, 60 * 1000)
-    : randomBetween(1 * 1000, 10 * 1000);
+    : 10 * 1000;
   const scheduledReplyAt = Date.now() + delayMs;
   const msg = {
     id: uid(),
