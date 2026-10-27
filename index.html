@@ -454,17 +454,25 @@
   .msg.wish-card .wish-status{ font-size:11px; color:var(--ink-soft); margin-top:7px; }
   .msg.wish-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
 .msg.questionnaire{
-  background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
+  background:#fff; border:1.5px solid #1a1a1a; border-radius:12px; padding:6px 10px; width:92%; max-width:92%; min-width:85%; box-sizing:border-box; display:grid; grid-template-columns:1fr; row-gap:4px; align-items:center;
 }
-.msg.questionnaire .q-title{ font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:13.5px; color:var(--rouge); margin-bottom:8px; }
-.msg.questionnaire .q-question{ font-size:13.5px; line-height:1.5; margin-bottom:10px; }
+.msg.questionnaire .q-title{ display:flex; align-items:center; gap:8px; font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:11.5px; letter-spacing:2px; color:var(--rouge); margin:0; grid-column:1 / -1; white-space:nowrap; }
+.msg.questionnaire .q-question{ font-size:14px; font-weight:700; line-height:1.4; margin:0; grid-column:1 / -1; word-break:break-word; }
+.msg.questionnaire .q-opts{ display:flex; flex-direction:column; gap:4px; grid-column:1 / -1; }
+.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:wrap; gap:5px; }
 .msg.questionnaire .q-option{
-  display:block; border:1px solid var(--rule); border-radius:10px; padding:7px 10px; margin:5px 0; font-size:12.5px;
-  background:var(--paper-2);
+  display:flex; align-items:center; gap:10px; border:1px solid var(--rule); border-radius:10px; padding:5px 10px; margin:0; font-size:13px; line-height:1.4;
+  background:var(--paper-2); word-break:break-word;
 }
+.msg.questionnaire .q-dot{ flex:none; width:15px; height:15px; border-radius:50%; border:1.5px solid var(--ink-soft); box-sizing:border-box; position:relative; }
+.msg.questionnaire .q-option.chosen .q-dot{ border-color:var(--rouge); background:var(--rouge); }
+.msg.questionnaire .q-option.chosen .q-dot::after{ content:''; position:absolute; left:4px; top:1.5px; width:4px; height:7px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
+.msg.questionnaire .q-opts.row .q-option{ flex:1 1 auto; justify-content:center; text-align:center; padding:5px 12px; }
+.msg.questionnaire .q-opts.row .q-dot{ display:none; }
+.msg.questionnaire .q-opts.row .q-option.chosen::before{ content:'✓'; }
 .msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); font-weight:700; }
-.msg.questionnaire .q-meta{ font-size:11px; color:var(--ink-soft); margin-top:8px; }
-.msg.questionnaire .q-waiting{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; font-style:italic; }
+.msg.questionnaire .q-meta, .msg.questionnaire .q-waiting, .msg.questionnaire .t{ display:none; }
+.msg.questionnaire .quote-ref{ grid-column:1 / -1; }
 
 .typing{ 
   align-self:flex-start; 
@@ -4109,10 +4117,12 @@ function renderChat(preserveScroll, scrollToId){
         <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
-      const opts = (m.options||[]).map((o,i)=>{
+      const qList = m.options||[];
+      const qRow = qList.length <= 4 && qList.every(o=>Array.from(String(o)).length <= 6);
+      const opts = '<div class="q-opts'+(qRow?' row':'')+'">' + qList.map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
-        return `<div class="q-option${chosen?' chosen':''}">${chosen?'✓ ':''}${escapeHtml(o)}</div>`;
-      }).join('');
+        return `<div class="q-option${chosen?' chosen':''}"><span class="q-dot"></span><span>${escapeHtml(o)}</span></div>`;
+      }).join('') + '</div>';
       let statusHtml = '';
       if(m.answered){
         statusHtml = `<div class="q-meta">已选择 · ${formatMsgTime(m.answerTime||m.time)}</div>`;
@@ -13970,9 +13980,9 @@ function mallShowCat(cat, el){
 
   if(cat==='settings'){
     box.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:14px 16px;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.04);">
+      <div class="ml-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <span style="font-size:13px;font-weight:700;">${safeName} 自动买礼物</span>
+          <span style="font-size:14px;font-weight:500;">${safeName} 自动买礼物</span>
           <span class="switch ${mallState.autoBuy!==false?'on':''}" onclick="this.classList.toggle('on');mallSetAutoBuy(this.classList.contains('on'))"><div class="dot"></div></span>
         </div>
         <label class="field" style="margin-top:12px;">自动检查间隔（分钟，最短 ～ 最长）</label>
@@ -13987,7 +13997,7 @@ function mallShowCat(cat, el){
           <span>%</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;">
-          <span style="font-size:13px;font-weight:700;">${safeName}找你帮买</span>
+          <span style="font-size:14px;font-weight:500;">${safeName}找你帮买</span>
           <span class="switch ${mallState.reqEnabled!==false?'on':''}" onclick="this.classList.toggle('on');mallSetReqEnabled(this.classList.contains('on'))"><div class="dot"></div></span>
         </div>
         <label class="field" style="margin-top:12px;">找帮买间隔（分钟，最短 ～ 最长）</label>
@@ -14003,19 +14013,19 @@ function mallShowCat(cat, el){
   if(cat==='cart'){
     const cart = Array.isArray(mallState.cart) ? mallState.cart : [];
     if(!cart.length){
-      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">购物车是空的～去挑几件加进来吧</div>';
+      box.innerHTML = '<div class="ml-empty">购物车是空的～去挑几件加进来吧</div>';
       return;
     }
     const total = cart.reduce((s,x)=>s+(Number(x.price)||0), 0);
     box.innerHTML = `
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">共 ${cart.length} 件 · 合计 ¥${total}</div>
-      ${cart.map((x,i)=>`<div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
-        <div style="font-size:26px;">${x.emoji||'🎁'}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(x.name):x.name}</div>
-          <div style="font-size:12px;color:var(--rouge);">¥${x.price}</div>
+      <div class="ml-hint">共 ${cart.length} 件 · 合计 ¥${total}</div>
+      ${cart.map((x,i)=>`<div class="ml-li">
+        <div class="ml-li-e">${x.emoji||'🎁'}</div>
+        <div class="ml-li-m">
+          <div class="ml-li-n">${(typeof escapeHtml==='function')?escapeHtml(x.name):x.name}</div>
+          <div class="ml-li-s ml-li-p">¥${x.price}</div>
         </div>
-        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallRemoveCart(${i})">移除</div>
+        <div class="btn outline ml-li-b" onclick="mallRemoveCart(${i})">移除</div>
       </div>`).join('')}
       <div class="btn" style="width:100%;text-align:center;margin-top:10px;" onclick="mallSendCartToTa()">把清单发给${safeName}</div>
       <div class="btn outline" style="width:100%;text-align:center;margin-top:8px;color:var(--rouge);" onclick="mallClearCart()">清空购物车</div>
@@ -14024,7 +14034,7 @@ function mallShowCat(cat, el){
   }
   if(cat==='gifts'){
     if(!mallState.gifts.length){
-      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">礼物柜还是空的～去买点礼物吧</div>';
+      box.innerHTML = '<div class="ml-empty">礼物柜还是空的～去买点礼物吧</div>';
       return;
     }
     const sorted = mallState.gifts.slice().sort((a,b)=> (b.time||0)-(a.time||0));
@@ -14032,13 +14042,13 @@ function mallShowCat(cat, el){
       const who = g.from==='me' ? `我 → ${safeName}` : (g.to==='ta' ? `${safeName}给自己` : `${safeName} →我`);
       const d = g.time ? new Date(g.time).toLocaleString() : '';
       const gid = String(g.id||'').replace(/'/g,'');
-      return `<div style="display:flex;align-items:center;gap:12px;background:#ffffff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.04);">
-        <div style="font-size:28px;">${g.emoji||'🎁'}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(g.name):g.name}</div>
-          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${who} · ¥${g.price} · ${d}</div>
+      return `<div class="ml-li">
+        <div class="ml-li-e">${g.emoji||'🎁'}</div>
+        <div class="ml-li-m">
+          <div class="ml-li-n">${(typeof escapeHtml==='function')?escapeHtml(g.name):g.name}</div>
+          <div class="ml-li-s">${who} · ¥${g.price} · ${d}</div>
         </div>
-        <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);border-color:rgba(139,58,86,.35);" onclick="mallDeleteGift('${gid}')">删除</div>
+        <div class="btn outline ml-li-b" onclick="mallDeleteGift('${gid}')">删除</div>
       </div>`;
     }).join('');
     return;
@@ -14046,19 +14056,19 @@ function mallShowCat(cat, el){
 
   if(cat==='ledger'){
     if(!mallState.ledger || !mallState.ledger.length){
-      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:13px;">还没有流水记录</div>';
+      box.innerHTML = '<div class="ml-empty">还没有流水记录</div>';
       return;
     }
     box.innerHTML = mallState.ledger.map(r=>{
       const sign = r.amount >= 0 ? '+' : '';
       const col = r.amount >= 0 ? '#2a7a4b' : 'var(--rouge)';
       const d = r.time ? new Date(r.time).toLocaleString() : '';
-      return `<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
-        <div style="display:flex;justify-content:space-between;gap:8px;">
-          <div style="font-weight:700;font-size:13px;">${mallLedgerText(r, safeName)}</div>
-          <div style="font-weight:700;color:${col};white-space:nowrap;">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
+      return `<div class="ml-led">
+        <div class="ml-led-h">
+          <div class="ml-led-t">${mallLedgerText(r, safeName)}</div>
+          <div class="ml-led-a" style="color:${col};">${sign}¥${Math.abs(Number(r.amount)||0).toFixed(0)}</div>
         </div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">${d}</div>
+        <div class="ml-li-s">${d}</div>
       </div>`;
     }).join('');
     return;
@@ -14067,8 +14077,8 @@ function mallShowCat(cat, el){
   if(cat==='custom'){
     const list = mallState.customItems || [];
     box.innerHTML = `
-      <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(0,0,0,.08);">
-        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">添加自定义商品</div>
+      <div class="ml-panel">
+        <div style="font-weight:500;font-size:14px;margin-bottom:10px;">添加自定义商品</div>
         <label class="field">分类</label>
         <select id="mallCustomCat" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px;">
           <option value="daily">日常用品</option>
@@ -14084,18 +14094,18 @@ function mallShowCat(cat, el){
         <input type="number" id="mallCustomPrice" min="1" value="50" style="width:100%;margin-bottom:10px;">
         <div class="btn" style="width:100%;text-align:center;" onclick="mallAddCustomItem()">添加商品</div>
       </div>
-      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">已添加 ${list.length} 件自定义商品</div>
+      <div class="ml-hint">已添加 ${list.length} 件自定义商品</div>
       ${list.length ? list.map(it=>{
         const cid = String(it.id||'').replace(/'/g,'');
-        return `<div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(0,0,0,.08);">
-          <div style="font-size:26px;">${it.emoji||'🎁'}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:14px;">${(typeof escapeHtml==='function')?escapeHtml(it.name):it.name}</div>
-            <div style="font-size:11px;color:var(--ink-soft);">${MALL_CAT_LABEL[it.cat]||it.cat} · ¥${it.price}</div>
+        return `<div class="ml-li">
+          <div class="ml-li-e">${it.emoji||'🎁'}</div>
+          <div class="ml-li-m">
+            <div class="ml-li-n">${(typeof escapeHtml==='function')?escapeHtml(it.name):it.name}</div>
+            <div class="ml-li-s">${MALL_CAT_LABEL[it.cat]||it.cat} · ¥${it.price}</div>
           </div>
-          <div class="btn outline" style="padding:4px 10px;font-size:11px;color:var(--rouge);" onclick="mallDeleteCustomItem('${cid}')">删除</div>
+          <div class="btn outline ml-li-b" onclick="mallDeleteCustomItem('${cid}')">删除</div>
         </div>`;
-      }).join('') : '<div style="text-align:center;color:var(--ink-soft);padding:16px;font-size:13px;">还没有自定义商品</div>'}
+      }).join('') : '<div class="ml-empty">还没有自定义商品</div>'}
     `;
     return;
   }
@@ -14939,19 +14949,20 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .ml-seg{display:flex;background:#E6EBF0;border-radius:14px;padding:3px;margin-top:4px}
 .ml-seg-i{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7A828C;border-radius:11px}
 .ml-seg-i.on{background:#fff;color:#22262B;font-weight:500;box-shadow:0 2px 8px -4px rgba(60,80,100,.25)}
-.ml-sub{display:flex;gap:22px;margin:18px 2px 4px;overflow-x:auto;scrollbar-width:none}
+.ml-sub{display:flex;gap:24px;margin:16px 2px 2px;overflow-x:auto;scrollbar-width:none}
 .ml-sub::-webkit-scrollbar{display:none}
-#view-mall .ml-sub .mb-tab{flex:0 0 auto;padding:0 0 5px;border:none;border-bottom:1.5px solid transparent;border-radius:0;background:transparent;font-size:13px;font-weight:400;letter-spacing:0;color:#8A929C}
+#view-mall .ml-sub .mb-tab{flex:0 0 auto;padding:0 0 6px;border:none;border-bottom:1.5px solid transparent;border-radius:0;background:transparent;font-size:14px;font-weight:400;letter-spacing:0;color:#8A929C}
 #view-mall .ml-sub .mb-tab.on{background:transparent;color:#22262B;border-bottom-color:#22262B}
-.ml-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.ml-card{background:#fff;border-radius:18px;padding:10px 10px 12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.ml-pic{height:112px;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:44px}
-.ml-name{font-size:13px;margin-top:10px;color:#22262B}
+.ml-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ml-card{display:flex;flex-direction:column;background:#fff;border-radius:18px;padding:10px 10px 12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-pic{aspect-ratio:1/1;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:48px}
+.ml-name{display:flex;align-items:center;min-width:0;font-size:13.5px;font-weight:500;margin-top:10px;color:#22262B;white-space:nowrap}
+.ml-name .ml-tag{flex:none}
 .ml-tag{font-size:10px;color:#8A929C;margin-left:6px}
-.ml-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-.ml-price{font-size:12px;color:#5A626C;letter-spacing:.5px}
-.ml-add{width:26px;height:26px;border-radius:50%;background:#22262B;color:#fff;font-size:16px;line-height:25px;text-align:center}
-.ml-buy{margin-top:10px;padding:7px 0;border-radius:12px;background:#F4F6F8;text-align:center;font-size:12px;color:#5A626C}
+.ml-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:10px}
+.ml-price{font-size:14px;font-weight:600;color:#22262B;letter-spacing:.3px}
+.ml-add{width:28px;height:28px;border-radius:50%;background:#22262B;color:#fff;font-size:17px;line-height:27px;text-align:center;flex:none}
+.ml-buy{margin-top:auto;padding:8px 0;border-radius:12px;background:#F4F6F8;text-align:center;font-size:12px;letter-spacing:1px;color:#5A626C}
 .ml-cartbar{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:448px;margin:0 auto;height:54px;border-radius:27px;background:#22262B;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 22px;font-size:13px;letter-spacing:1px;z-index:30}
 .ml-cartbar.hidden{display:none}
 .ml-cartgo{height:38px;padding:0 20px;border-radius:19px;background:#fff;color:#22262B;line-height:38px}
@@ -14997,6 +15008,20 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .dy-sheet .btn{background:#22262B;color:#fff;border:none;border-radius:22px;box-shadow:none}
 .dy-sheet .btn.outline{background:transparent;color:#5A626C;border:1px solid #D5DCE3}
 .dy-sheet .chip{border-radius:12px}
+.ml-li{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-li-e{flex:none;width:48px;height:48px;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:26px}
+.ml-li-m{flex:1;min-width:0}
+.ml-li-n{font-weight:500;font-size:14px;color:#22262B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml-li-s{font-size:11.5px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
+.ml-li-p{font-size:13px;color:var(--rouge);font-weight:600}
+.ml-li-b{flex:none;padding:5px 12px!important;font-size:11px!important;color:var(--rouge)}
+.ml-hint{font-size:12px;color:var(--ink-soft);margin:4px 2px 10px}
+.ml-empty{text-align:center;color:var(--ink-soft);padding:40px 10px;font-size:13px;line-height:1.8}
+.ml-panel{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-led{background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-led-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ml-led-t{font-weight:500;font-size:13.5px;line-height:1.5;color:#22262B}
+.ml-led-a{font-weight:600;white-space:nowrap;font-size:14px}
 </style>
 </body>
 </html>
