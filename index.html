@@ -453,6 +453,19 @@
   .msg.wish-card .wish-acts .btn{ flex:1; padding:6px 0; font-size:12px; text-align:center; }
   .msg.wish-card .wish-status{ font-size:11px; color:var(--ink-soft); margin-top:7px; }
   .msg.wish-card .t{ padding:2px 10px 8px; font-size:10.5px; color:var(--ink-soft); text-align:center !important; }
+.msg.questionnaire{
+  background:#fff; border:1.5px solid #1a1a1a; border-radius:16px; padding:12px 14px; max-width:92%;
+}
+.msg.questionnaire .q-title{ font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:13.5px; color:var(--rouge); margin-bottom:8px; }
+.msg.questionnaire .q-question{ font-size:13.5px; line-height:1.5; margin-bottom:10px; }
+.msg.questionnaire .q-option{
+  display:block; border:1px solid var(--rule); border-radius:10px; padding:7px 10px; margin:5px 0; font-size:12.5px;
+  background:var(--paper-2);
+}
+.msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); font-weight:700; }
+.msg.questionnaire .q-meta{ font-size:11px; color:var(--ink-soft); margin-top:8px; }
+.msg.questionnaire .q-waiting{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; font-style:italic; }
+
 .typing{ 
   align-self:flex-start; 
   font-size:11.5px; 
@@ -2690,6 +2703,7 @@ async function init(){
     resumeMoyuSchedule();
     resumePendingInviteReplies();
     try{ checkTransferDue(); }catch(e){}
+    try{ checkCheckinDue(); }catch(e){}
     if(typeof resumeCall === 'function'){ resumeCall(); }
     if(typeof tzStart === "function") tzStart();
     if(!hasReplyScheduled()){
@@ -4101,34 +4115,47 @@ function renderChat(preserveScroll, scrollToId){
         <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
-      const qList = m.options||[];
-      const qRow = qList.length <= 4 && qList.reduce((w,o)=>w + Array.from(String(o)).reduce((a,c)=>a + (c.charCodeAt(0) < 128 ? 9 : 15), 0) + 14, 0) + (qList.length-1)*6 <= 195;
-      const opts = '<div class="q-opts'+(qRow?' row':'')+'">' + qList.map((o,i)=>{
+      const opts = (m.options||[]).map((o,i)=>{
         const chosen = m.answered && m.chosenOption === o;
-        return `<div class="q-option${chosen?' chosen':''}"><span class="q-dot"></span><span>${escapeHtml(o)}</span></div>`;
-      }).join('') + '</div>';
+        return `<div class="q-option${chosen?' chosen':''}">${chosen?'✓ ':''}${escapeHtml(o)}</div>`;
+      }).join('');
       let statusHtml = '';
       if(m.answered){
-        statusHtml = `<div class="cd-foot"><span class="cd-chip">已选择</span><span class="cd-end">${formatMsgTime(m.answerTime||m.time)}</span></div>`;
+        statusHtml = `<div class="q-meta">已选择 · ${formatMsgTime(m.answerTime||m.time)}</div>`;
       } else if(m.scheduledReplyAt){
-        let waitTip = '';
         if(m.timeMode === 'fast'){
-          waitTip = '10 秒内选好';
+          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 10 秒内选好</div>`;
         } else if(m.timeMode === 'slow'){
-          waitTip = '10~60 秒内选好';
+          statusHtml = `<div class="q-waiting">等待回复中…TA 会在 10~60 秒内选好</div>`;
         } else {
-          waitTip = new Date(m.scheduledReplyAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) + ' 前选好';
+          const eta = new Date(m.scheduledReplyAt).toLocaleString('zh-CN');
+          statusHtml = `<div class="q-waiting">等待回复中…大概 ${eta} 前会选好</div>`;
         }
-        statusHtml = `<div class="cd-foot"><span class="cd-chip">等待回复中…</span><span class="cd-end cd-soft">${escapeHtml(waitTip)}</span></div>`;
       }
       bubbleHtml = `<div class="msg questionnaire ${m.from}">
         ${quoteRefHtml}
-        <div class="cd-head"><span class="cd-ico">📋</span><b class="cd-title">梦向问卷</b><span class="cd-sub">${qList.length} 个选项</span></div>
-        <div class="cd-body">
-          <div class="q-question">${escapeHtml(m.question||'')}</div>
-          ${opts}
-        </div>
+        <div class="q-title">📋 梦向问卷</div>
+        <div class="q-question">${escapeHtml(m.question||'')}</div>
+        ${opts}
         ${statusHtml}
+        <div class="t">${quoteBtn}</div>
+      </div>`;
+    } else if(m.type==='checkin'){
+      const ckMine = m.from === 'user';
+      const ckName = escapeHtml(chatSettings.companionName || 'TA');
+      let ckFoot = '';
+      if(m.answered){
+        ckFoot = `<div class="cd-foot"><span class="cd-chip">已回复</span><span class="cd-end">${formatMsgTime(m.answerTime||m.time)}</span></div>`;
+      } else if(ckMine){
+        ckFoot = `<div class="cd-foot"><span class="cd-chip">等待回复中…</span><span class="cd-end cd-soft">${m.timeMode==='slow'?'10~60 秒内':'10 秒内'}</span></div>`;
+      } else {
+        ckFoot = `<div class="cd-foot"><span class="cd-chip">等你回复</span><span class="cd-end ck-reply" onclick="setQuoteTarget('${m.id}')">回复</span></div>`;
+      }
+      bubbleHtml = `<div class="msg checkin-card ${m.from}">
+        ${quoteRefHtml}
+        <div class="cd-head"><span class="cd-ico">📍</span><b class="cd-title">查岗</b><span class="cd-sub">${ckMine?('我问 '+ckName):(ckName+' 问我')}</span></div>
+        <div class="cd-body"><div class="ck-q">${escapeHtml(m.question||'')}</div></div>
+        ${ckFoot}
       </div>`;
     } else if(m.type==='weblink'){
       const collapsed = m.collapsed !== undefined ? m.collapsed : true;
@@ -4242,6 +4269,7 @@ function buildQuotePreview(m){
   if(m.type==='image') return '[图片]';
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
+  if(m.type==='checkin') return '[查岗] ' + (m.question||'').slice(0,30);
 
   if(m.type==='pat' || m.type==='gesture') return m.content;
   return (m.content||'').slice(0,40);
@@ -4414,7 +4442,7 @@ async function sendUserMessage(){
     msg = {id:uid(), from:'user', type:'text', content:text, time:Date.now(), read:false};
   }
   clearPendingSticker();
-  if(typeof quoteTarget !== 'undefined' && quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
+  if(typeof quoteTarget !== 'undefined' && quoteTarget){ msg.quoteOf = quoteTarget; markCheckinAnswered(quoteTarget); clearQuoteTarget(); }
   if(!Array.isArray(chatMessages)) chatMessages = [];
   chatMessages.push(msg);
   try{ renderChat(); }catch(e){ console.error('renderChat', e); }
@@ -4812,6 +4840,7 @@ function armAllProactiveTimers(){
    这里比对 next*At 与当前时间，过期了就补发一次（并从现在起重新计时）。 */
 function checkProactiveDue(){
   const now = Date.now();
+  try{ checkCheckinDue(); }catch(e){}
   try{ if(typeof gCheckTaGift==='function') gCheckTaGift().catch(function(){}); }catch(e){}
   ['msg','letter','call','moment'].forEach(function(kind){
     if(kind==='msg' && proactiveMsgSettings.enabled === false) return;
@@ -4838,6 +4867,7 @@ function clearPendingProBurst(){ try{ sSet('pending-pro-burst', {active:false});
 function sendProactiveMessage(){
   // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
   if(Math.random() < 0.10 && maybeBotInviteTogether()) return;
+  if(Math.random() < 0.10){ sendBotCheckin(); return; }
   runProactiveBurst();
 }
 /* 💌 按钮：手动让 TA 主动来一次，走的是同一套逻辑 */
@@ -6107,6 +6137,89 @@ async function answerQuestionnaire(id){
   else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(notifyNameForMsg(replyMsg)+' 发来消息', '[消息]'); }
 }
 
+var _ckTimeMode = 'fast';
+const CHECKIN_PRESETS = ['现在在做什么？', '吃饭了吗？', '到家了吗？', '在哪呢？', '睡了没？', '想我了吗？'];
+function pickCheckinTime(mode){
+  _ckTimeMode = (mode === 'slow') ? 'slow' : 'fast';
+  var f = document.getElementById('ckTimeFast');
+  var l = document.getElementById('ckTimeSlow');
+  if(f) f.classList.toggle('rouge', _ckTimeMode === 'fast');
+  if(l) l.classList.toggle('rouge', _ckTimeMode === 'slow');
+}
+function pickCheckinPreset(i){
+  var t = document.getElementById('ckText');
+  if(t){ t.value = CHECKIN_PRESETS[i] || ''; t.focus(); }
+}
+function openCheckinComposer(){
+  _ckTimeMode = 'fast';
+  openOverlay(`
+    <div class="drawer-head"><h3>📍 查岗</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">问一句想知道的事，会以一张小卡片发给 TA，TA 看到后回你。</p>
+    <label class="field">想问什么</label>
+    <textarea id="ckText" placeholder="例如：现在在做什么？" style="min-height:70px;"></textarea>
+    <div class="ck-chips">${CHECKIN_PRESETS.map((t,i)=>`<span class="ck-chip" onclick="pickCheckinPreset(${i})">${t}</span>`).join('')}</div>
+    <label class="field">回复时间</label>
+    <div class="btn-row">
+      <div class="btn rouge" id="ckTimeFast" style="flex:1;text-align:center;padding:9px 8px;font-size:12.5px;" onclick="pickCheckinTime('fast')">⚡ 10 秒内</div>
+      <div class="btn" id="ckTimeSlow" style="flex:1;text-align:center;padding:9px 8px;font-size:12.5px;" onclick="pickCheckinTime('slow')">⏳ 10~60 秒内</div>
+    </div>
+    <div class="btn-row" style="margin-top:14px;"><div class="btn rouge" onclick="sendCheckin()">发出查岗</div></div>
+  `);
+}
+async function sendCheckin(){
+  const el = document.getElementById('ckText');
+  const question = (el && el.value || '').trim();
+  if(!question){ alert('请填写想问的话'); return; }
+  const timeMode = (_ckTimeMode === 'slow') ? 'slow' : 'fast';
+  const delayMs = (timeMode === 'slow') ? randomBetween(10 * 1000, 60 * 1000) : 10 * 1000;
+  const msg = { id: uid(), from: 'user', type: 'checkin', question, time: Date.now(), read: false, answered: false, answerTime: null, scheduledReplyAt: Date.now() + delayMs, timeMode };
+  if(quoteTarget){ msg.quoteOf = quoteTarget; clearQuoteTarget(); }
+  chatMessages.push(msg);
+  await recPut('chatMessages', msg);
+  renderChat();
+  closeOverlay();
+  setTimeout(function(){ try{ answerCheckin(msg.id); }catch(e){} }, delayMs);
+}
+async function answerCheckin(id){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || m.type !== 'checkin' || m.from !== 'user' || m.answered) return;
+  let text = '';
+  try{ text = getRandomCardText() || ''; }catch(e){}
+  if(!text) text = '刚看到，在呢';
+  m.answered = true;
+  m.answerTime = Date.now();
+  m.read = true;
+  await recPut('chatMessages', m);
+  const replyMsg = { id: uid(), from: 'bot', type: 'text', content: text, time: Date.now(), read: true, quoteOf: { id: m.id, from: 'user', preview: '[查岗] ' + (m.question||'').slice(0,30) } };
+  try{ assignGroupSender(replyMsg); }catch(e){}
+  chatMessages.push(replyMsg);
+  await recPut('chatMessages', replyMsg);
+  if(currentView === 'chat'){ renderChat(); }
+  else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(notifyNameForMsg(replyMsg)+' 发来消息', '[消息]'); }
+}
+function checkCheckinDue(){
+  const now = Date.now();
+  chatMessages.filter(m=>m.type==='checkin' && m.from==='user' && !m.answered && m.scheduledReplyAt && m.scheduledReplyAt <= now).forEach(m=>{ answerCheckin(m.id); });
+}
+function markCheckinAnswered(q){
+  if(!q) return;
+  const c = chatMessages.find(x=>x.id===q.id);
+  if(c && c.type==='checkin' && c.from==='bot' && !c.answered){
+    c.answered = true;
+    c.answerTime = Date.now();
+    recPut('chatMessages', c);
+  }
+}
+async function sendBotCheckin(){
+  const q = CHECKIN_PRESETS[Math.floor(Math.random() * CHECKIN_PRESETS.length)];
+  const msg = { id: uid(), from: 'bot', type: 'checkin', question: q, time: Date.now(), read: true, answered: false };
+  try{ assignGroupSender(msg); }catch(e){}
+  chatMessages.push(msg);
+  await recPut('chatMessages', msg);
+  if(currentView === 'chat'){ renderChat(); }
+  else { chatUnread = true; await sSet('chat-unread', true); renderUnreadDots(); tryBgNotify(notifyNameForMsg(msg)+' 查岗', '[查岗] ' + q); }
+}
+
 /* ============================================================
    LEDGER
    ============================================================ */
@@ -6327,7 +6440,7 @@ async function postMoment(){
 }
 /* ---- 朋友圈"待触发事件"：先决定要不要互动，再随机「什么时候」；
    存时间戳靠轮询检查（跟写信/主动消息同一套思路），不用超长 setTimeout ---- */
-async function addMomentEvent(type, postId, action){
+async function addMomentEvent(type, postId, action, quote){
   // like / comment：默认 1~48 小时，模拟"过一阵子才刷到"；commentReply：默认 1 分钟~12 小时；范围都在传讯设置里可调
   // 调用方已先按设置概率决定要不要互动
   const ms = momentInteractSettings;
@@ -6337,6 +6450,7 @@ async function addMomentEvent(type, postId, action){
   momentEvents.push({
     id:uid(), type, postId,
     action: action || (type==='like'?'like': type==='comment'?'comment': null),
+    quote: quote || undefined,
     dueAt: Date.now() + randomBetween(Math.min(range[0],range[1]), Math.max(range[0],range[1]))
   });
   await sSet('moment-events', momentEvents);
@@ -6377,7 +6491,7 @@ async function checkMomentEvents(){
       const reply = getRandomCardText();
       if(reply){
         if(!post.comments) post.comments = [];
-        post.comments.push({ author:'bot', text:reply, time:Date.now() });
+        post.comments.push({ author:'bot', text:reply, time:Date.now(), quote: e.quote || undefined });
         await recPut('momentsPosts', post);
         changed = true;
       }
@@ -6425,6 +6539,27 @@ async function toggleMomentLike(id){
   renderMoments();
 }
 /* ---- 评论：我可以评论任何一条，TA 要不要回是纯随机的 ---- */
+var _momentQuote = {};
+function _momentQuoteName(a){ return a === 'user' ? (profile.myName || '我') : chatSettings.companionName; }
+function renderMomentQuoteChip(id){
+  const el = document.getElementById('momentQuote_'+id);
+  if(!el) return;
+  const q = _momentQuote[id];
+  el.innerHTML = q ? `<div class="moment-quote-chip"><span>回复 ${escapeHtml(_momentQuoteName(q.author))}：${escapeHtml(String(q.text).slice(0,30))}</span><span class="x" onclick="clearMomentQuote('${id}')">✕</span></div>` : '';
+}
+function setMomentQuote(id, idx){
+  const post = momentsPosts.find(p=>p.id===id);
+  if(!post || !post.comments || !post.comments[idx]) return;
+  const c = post.comments[idx];
+  _momentQuote[id] = { author: c.author, text: c.text };
+  renderMomentQuoteChip(id);
+  const inp = document.getElementById('momentCommentInput_'+id);
+  if(inp) inp.focus();
+}
+function clearMomentQuote(id){
+  delete _momentQuote[id];
+  renderMomentQuoteChip(id);
+}
 async function addMomentComment(id){
   const input = document.getElementById('momentCommentInput_'+id);
   if(!input) return;
@@ -6432,12 +6567,14 @@ async function addMomentComment(id){
   if(!text) return;
   const post = momentsPosts.find(p=>p.id===id); if(!post) return;
   if(!post.comments) post.comments = [];
-  post.comments.push({ author:'user', text, time:Date.now() });
+  const cmt = { author:'user', text, time:Date.now() };
+  if(_momentQuote[id]){ cmt.quote = _momentQuote[id]; delete _momentQuote[id]; }
+  post.comments.push(cmt);
   input.value = '';
   await recPut('momentsPosts', post);
   renderMoments();
   if(Math.random() < ((momentInteractSettings.replyProb||60)/100)){
-    await addMomentEvent('commentReply', post.id);
+    await addMomentEvent('commentReply', post.id, null, { author:'user', text });
   }
 }
 
@@ -6464,7 +6601,7 @@ function renderMoments(){
     const likersLine = p.likedByUser ? `<div class="moment-likes" style="margin-top:6px;">❤️ ${escapeHtml(myName)}</div>` : '';
 
     const thread = (p.comments && p.comments.length)
-      ? `<div class="moment-thread">${p.comments.map(c=>`<div class="moment-comment-line"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${escapeHtml(c.author==='user'?myName:chatSettings.companionName)}：</b>${escapeHtml(c.text)}</div>`).join('')}</div>`
+      ? `<div class="moment-thread">${p.comments.map((c,ci)=>`<div class="moment-comment-line" onclick="setMomentQuote('${p.id}',${ci})"><b style="color:${c.author==='user'?'var(--ink)':'var(--rouge)'};">${escapeHtml(c.author==='user'?myName:chatSettings.companionName)}：</b>${escapeHtml(c.text)}${c.quote?`<div class="moment-quote">${escapeHtml(_momentQuoteName(c.quote.author))}：${escapeHtml(String(c.quote.text).slice(0,40))}</div>`:''}</div>`).join('')}</div>`
       : '';
 
     return `<div class="moment-post">
@@ -6479,6 +6616,7 @@ function renderMoments(){
         ${likersLine}
         ${autoInteractions}
         ${thread}
+        <div id="momentQuote_${p.id}"></div>
         <div class="moment-comment-input-row">
           <input type="text" id="momentCommentInput_${p.id}" placeholder="评论…" onkeydown="if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229)addMomentComment('${p.id}')">
           <span onclick="addMomentComment('${p.id}')">发送</span>
@@ -6486,6 +6624,7 @@ function renderMoments(){
       </div>
     </div>`;
   }).join('') + (!pageState.momentsPosts.exhausted ? `<div class="load-more-bar" onclick="loadMoreMoments()">加载更早的朋友圈 ↓</div>` : '') : '<div class="empty-note">还没有发过朋友圈</div>';
+  Object.keys(_momentQuote).forEach(renderMomentQuoteChip);
 }
 async function loadMoreMoments(){
   const older = await loadOlderPage('momentsPosts', [...momentsPosts].reverse());
@@ -9044,6 +9183,7 @@ function openChatFunctionPanel(){
     '<div class="fn-panel-grid">'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openChatSettings();"><div class="fn-panel-icon">⚙️</div><div class="fn-panel-label">传讯设置</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openQuestionnaireComposer();"><div class="fn-panel-icon">📋</div><div class="fn-panel-label">梦向问卷</div></div>'+
+      '<div class="fn-panel-item" onclick="closeOverlay(); openCheckinComposer();"><div class="fn-panel-icon">📍</div><div class="fn-panel-label">查岗</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openGesturePicker();"><div class="fn-panel-icon">👋</div><div class="fn-panel-label">小动作</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openWebLinkComposer();"><div class="fn-panel-icon">🔗</div><div class="fn-panel-label">网页链接</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openInvitePanel();"><div class="fn-panel-icon">💌</div><div class="fn-panel-label">一起邀请</div></div>'+
@@ -15009,14 +15149,10 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .ml-led-t{font-weight:500;font-size:13.5px;line-height:1.5;color:#22262B}
 .ml-led-a{font-weight:600;white-space:nowrap;font-size:14px}
 
-.msg.questionnaire, .msg.gift-card, .msg.wish-card, .msg.cart-card, .msg.invite-card-msg{
+.msg.gift-card, .msg.wish-card, .msg.cart-card, .msg.invite-card-msg, .msg.checkin-card{
   padding:0; overflow:hidden; background:#fff; color:var(--ink); border:1px solid rgba(0,0,0,.07);
   border-radius:22px; box-shadow:0 8px 24px -12px rgba(60,40,36,.28); white-space:normal;
 }
-.msg.questionnaire, .msg.cart-card{ display:block; width:88%; max-width:360px; min-width:0; }
-.msg.gift-card{ width:220px; max-width:80%; }
-.msg.wish-card{ width:240px; max-width:84%; }
-.msg.invite-card-msg{ width:88%; max-width:360px; }
 .cd-head{ display:flex; align-items:center; gap:10px; padding:11px 16px; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); }
 .cd-ico{ flex:none; width:26px; height:26px; border-radius:8px; background:var(--blush); display:flex; align-items:center; justify-content:center; font-size:14px; line-height:1; }
 .cd-title{ flex:1; min-width:0; font-size:14px; font-weight:800; letter-spacing:1px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -15026,17 +15162,9 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .cd-chip{ flex:none; font-size:12px; color:var(--ink-soft); background:rgba(0,0,0,.05); border-radius:999px; padding:5px 12px; }
 .cd-end{ font-size:13px; font-weight:800; color:var(--ink); text-align:right; }
 .cd-end.cd-soft{ font-size:12px; font-weight:400; color:var(--ink-soft); white-space:nowrap; }
-.msg.questionnaire .q-question{ font-size:16px; font-weight:800; line-height:1.5; margin:0 0 14px; word-break:break-word; }
-.msg.questionnaire .q-opts{ display:flex; flex-direction:column; gap:10px; }
-.msg.questionnaire .q-opts.row{ flex-direction:row; flex-wrap:nowrap; gap:6px; }
-.msg.questionnaire .q-option{ display:flex; align-items:center; gap:10px; border:1.5px solid rgba(0,0,0,.09); border-radius:16px; background:#fff; padding:10px 14px; font-size:14px; font-weight:700; line-height:1.4; box-shadow:0 2px 0 rgba(0,0,0,.07); word-break:break-word; }
-.msg.questionnaire .q-opts.row .q-option{ flex:1 1 auto; min-width:0; border-radius:999px; padding:9px 4px; justify-content:center; text-align:center; white-space:nowrap; word-break:keep-all; overflow:hidden; text-overflow:ellipsis; }
-.msg.questionnaire .q-dot{ flex:none; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft); box-sizing:border-box; position:relative; }
-.msg.questionnaire .q-opts.row .q-dot{ display:none; }
-.msg.questionnaire .q-option.chosen{ border-color:var(--rouge); background:var(--blush); box-shadow:none; }
-.msg.questionnaire .q-option.chosen .q-dot{ border-color:var(--rouge); background:var(--rouge); }
-.msg.questionnaire .q-option.chosen .q-dot::after{ content:''; position:absolute; left:4.5px; top:2px; width:4px; height:7px; border:solid #fff; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
-.msg.questionnaire .quote-ref{ margin:10px 16px 0; }
+.msg.gift-card{ width:220px; max-width:80%; }
+.msg.wish-card{ width:240px; max-width:84%; }
+.msg.invite-card-msg{ width:88%; max-width:360px; }
 .msg.gift-card .gift-label-top{ padding:11px 16px; margin:0; background:rgba(0,0,0,.025); border-bottom:1px solid rgba(0,0,0,.06); font-size:12.5px; font-weight:700; letter-spacing:.5px; color:var(--ink); }
 .msg.gift-card .gift-inner, .msg.gift-card.bouquet .gift-inner{ padding:14px 16px !important; gap:12px !important; background:none; }
 .msg.gift-card .gift-emoji, .msg.gift-card.bouquet .gift-emoji{ flex:none; width:46px; height:46px; border-radius:14px; background:var(--paper-2); display:flex; align-items:center; justify-content:center; font-size:26px !important; }
@@ -15064,6 +15192,17 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .msg.invite-card-msg .invite-card-actions{ margin:0; padding:0 16px 12px; gap:10px; }
 .msg.invite-card-msg .invite-card-actions .btn{ padding:8px 16px; border-radius:999px; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.07); }
 .msg.invite-card-msg .t{ margin:0 !important; padding:0 16px 10px; }
+.msg.cart-card{ display:block; width:88%; max-width:360px; min-width:0; }
+.msg.checkin-card{ display:block; width:80%; max-width:320px; min-width:0; }
+.msg.checkin-card .ck-q{ font-size:15.5px; font-weight:800; line-height:1.5; word-break:break-word; }
+.msg.checkin-card .ck-reply{ cursor:pointer; padding:5px 16px; border-radius:999px; background:var(--ink); color:#fff; font-size:12.5px; }
+.ck-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.ck-chip{ padding:7px 14px; border:1.5px solid var(--rule); border-radius:999px; font-size:12.5px; font-weight:700; background:var(--paper-2); cursor:pointer; }
+.moment-comment-line{ cursor:pointer; }
+.moment-quote{ background:rgba(0,0,0,.05); border-left:2px solid var(--rouge); border-radius:4px; padding:3px 7px; margin:3px 0 2px; font-size:11.5px; color:var(--ink-soft); line-height:1.4; }
+.moment-quote-chip{ display:flex; align-items:center; gap:6px; margin-top:8px; padding:4px 8px; background:rgba(0,0,0,.05); border-left:2px solid var(--rouge); border-radius:4px; font-size:11.5px; color:var(--ink-soft); }
+.moment-quote-chip span:first-child{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.moment-quote-chip .x{ flex:none; cursor:pointer; }
 </style>
 </body>
 </html>
