@@ -5417,6 +5417,22 @@ function openChatSettings(){
     <label class="field">引用概率</label>
     <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="0" max="100" step="1" value="${Math.max(0,Math.min(100,chatSettings.quoteProb!=null?chatSettings.quoteProb:35))}" id="csQuoteProb" style="width:100%;"><span style="font-size:13px;color:var(--ink-soft);">%</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">开启后，TA 每次回复有多大概率引用最近 15 条里的一条</div>
+    <div class="box-title" style="margin-top:14px;">回信（信箱）</div>
+    <label class="field">TA 回信要等多久</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="0.1" max="720" step="0.5" value="${letterReplyCfg().minH}" id="csLetterMinH" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);">~</span>
+      <input type="number" min="0.1" max="720" step="0.5" value="${letterReplyCfg().maxH}" id="csLetterMaxH" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">小时</span>
+    </div>
+    <label class="field" style="margin-top:10px;">一封回信用几张字卡</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" min="1" max="50" step="1" value="${letterReplyCfg().minC}" id="csLetterMinC" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);">~</span>
+      <input type="number" min="1" max="50" step="1" value="${letterReplyCfg().maxC}" id="csLetterMaxC" style="width:100%;">
+      <span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">张</span>
+    </div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">每次回信会在这两个区间里各随机挑一个数；改动只对之后寄出的信生效</div>
     <div class="box-title" style="margin-top:14px;">回复连发</div>
     <label class="field">一次最多连回：<input type="number" id="csReplyMaxCount" min="1" max="20" step="1" value="${Math.max(1,Math.min(20,chatSettings.replyMaxCount||1))}" inputmode="numeric" style="width:70px;text-align:center;"> 条</label>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">TA 回复你时，在 1～该数之间随机挑个条数（填 1 = 只回 1 条，跟以前一样）。最多 20 条。</div>
@@ -5808,6 +5824,8 @@ async function saveChatSettings(){
   if(qpEl){ const qv = parseInt(qpEl.value,10); chatSettings.quoteProb = Number.isFinite(qv) ? Math.max(0, Math.min(100, qv)) : 35; }
   const fmp = document.getElementById('csFavMsgProb');
   if(fmp){ const fv = parseInt(fmp.value,10); chatSettings.favMsgProb = Number.isFinite(fv) ? Math.max(0, Math.min(100, fv)) : 10; }
+  { const g = function(id){ const el = document.getElementById(id); return el ? Number(el.value) : NaN; };
+    chatSettings.letterReply = { minHours: g('csLetterMinH'), maxHours: g('csLetterMaxH'), minCards: g('csLetterMinC'), maxCards: g('csLetterMaxC') }; }
   await sSet('chat-settings', chatSettings);
   const _oldPro = { e: proactiveMsgSettings.enabled !== false, a: proactiveMsgSettings.minSeconds, b: proactiveMsgSettings.intervalMinutes };
   proactiveMsgSettings.enabled = document.getElementById('csProEnabled').classList.contains('on');
@@ -6637,10 +6655,29 @@ async function loadMoreMoments(){
 /* ============================================================
    LETTERS 写信 —— 我写信给TA没有次数/时间限制，TA的回信要等 8~14 小时（随机）
    ============================================================ */
+function letterReplyCfg(){
+  const c = chatSettings.letterReply || {};
+  const nn = function(v, d, lo, hi){ v = Number(v); return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d; };
+  const h1 = nn(c.minHours, 8, 0.1, 720), h2 = nn(c.maxHours, 14, 0.1, 720);
+  const c1 = Math.round(nn(c.minCards, 5, 1, 50)), c2 = Math.round(nn(c.maxCards, 15, 1, 50));
+  return { minH: Math.min(h1,h2), maxH: Math.max(h1,h2), minC: Math.min(c1,c2), maxC: Math.max(c1,c2) };
+}
+function letterReplyHours(){
+  const c = letterReplyCfg();
+  return c.minH + Math.random()*(c.maxH - c.minH);
+}
+function letterReplyLineCount(){
+  const c = letterReplyCfg();
+  return c.minC + Math.floor(Math.random()*(c.maxC - c.minC + 1));
+}
+function letterReplyRangeText(){
+  const c = letterReplyCfg();
+  return (c.minH === c.maxH) ? (c.minH + ' 小时') : (c.minH + '~' + c.maxH + ' 小时');
+}
 async function sendLetter(){
   const text = document.getElementById('letterText').value.trim();
   if(!text) return;
-  const hours = 8 + Math.random()*6; // 8~14 小时随机
+  const hours = letterReplyHours();
   const scheduledReplyAt = Date.now() + hours*3600*1000;
   const letter = { id:uid(), from:'user', content:text, time:Date.now(), replied:false, replyContent:null, replyTime:null, scheduledReplyAt };
   letters.unshift(letter);
@@ -6654,7 +6691,7 @@ function scheduleLetterReply(id, delayMs){
   setTimeout(async ()=>{
     const l = letters.find(x=>x.id===id);
     if(!l || l.replied) return;
-    const lineCount = 5 + Math.floor(Math.random()*11); // 一封回信随机 5~15 句字卡内容
+    const lineCount = letterReplyLineCount();
     const lines = [];
     for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
     if(lines.length===0) return; // 字卡库是空的，先不生成回信
@@ -6755,7 +6792,7 @@ function mbDetail(){
   return html;
 }
 function mbCompose(){
-  return '<div class="mb-compose"><p class="mb-hint">想什么时候写都可以，TA 收到信后大概会花 8~14 小时写回信给你。</p><textarea id="letterText" placeholder="写封信给 '+escapeHtml(mbName())+'…"></textarea><div class="mb-send" onclick="sendLetter()">寄出</div></div>';
+  return '<div class="mb-compose"><p class="mb-hint">想什么时候写都可以，TA 收到信后大概会花 '+letterReplyRangeText()+' 写回信给你。</p><textarea id="letterText" placeholder="写封信给 '+escapeHtml(mbName())+'…"></textarea><div class="mb-send" onclick="sendLetter()">寄出</div></div>';
 }
 function mbStats(){
   const inN = mbItems('in').length, outN = mbItems('sent').length;
@@ -6810,7 +6847,7 @@ async function replyToInboxLetter(id){
   if(!inp) return;
   const text = inp.value.trim();
   if(!text) return;
-  const hours = 8 + Math.random()*6; // 8~14 小时，和写信回信一致
+  const hours = letterReplyHours();
   l.userReply = text;
   l.userReplyTime = Date.now();
   l.botReplied = false;
@@ -6825,7 +6862,7 @@ function scheduleInboxLetterBotReply(id, delayMs){
   setTimeout(async ()=>{
     const l = inboxLetters.find(x=>x.id===id);
     if(!l || l.botReplied || !l.userReply) return;
-    const lineCount = 5 + Math.floor(Math.random()*11); // 再回信随机 5~15 句字卡
+    const lineCount = letterReplyLineCount();
     const lines = [];
     for(let i=0;i<lineCount;i++){ const c = getRandomCardText(); if(c) lines.push(c); }
     if(lines.length===0) return;
@@ -9171,6 +9208,7 @@ function openGameMenu(){
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'match3\')"><i>🍓</i><b>消消乐</b><small>水果连消</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'miner\')"><i>⛏️</i><b>黄金矿工</b><small>双人像素挖金</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'fish\')"><i>🎣</i><b>钓鱼</b><small>双人像素垂钓</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'claw\')"><i>🧸</i><b>抓娃娃</b><small>轮流夹，抢稀有玩偶</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'mem\')"><i>🃏</i><b>翻牌配对</b><small>记忆对碰</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'choice\')"><i>⚖️</i><b>二选一审判</b><small>默契大考验</small></div>'+
     '</div>'
@@ -9214,7 +9252,7 @@ function openInvitePanel(){
         letterActHtml('game','🎮','娱乐','一起玩个小游戏','wide')+
       '</div>'+
       '<div class="letter-games" id="letterGames" style="display:none">'+
-        ['miner','fish','gomoku','ludo','guess','match3','mem','choice'].map(function(g){ return '<span class="lg-chip" id="lg-'+g+'" onclick="selectLetterGame(\''+g+'\')">'+GM_ICONS[g]+' '+gmTitleShort(g)+'</span>'; }).join('')+
+        ['miner','fish','claw','gomoku','ludo','guess','match3','mem','choice'].map(function(g){ return '<span class="lg-chip" id="lg-'+g+'" onclick="selectLetterGame(\''+g+'\')">'+GM_ICONS[g]+' '+gmTitleShort(g)+'</span>'; }).join('')+
       '</div>'+
       '<div class="letter-note">'+
         '<textarea id="letterNote" maxlength="80" placeholder="留一句只给对方的话（可选）" oninput="var n=this.value.length;var e=document.getElementById(\'letterNoteCount\');if(e)e.textContent=n+\'/80\'"></textarea>'+
@@ -11295,8 +11333,8 @@ loadBgSettings();
 
 /* ---------------- 娱乐 v61：抽签定先手，TA 想 0~10 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
-const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', mem:'翻牌配对', choice:'二选一审判', miner:'黄金矿工（双人）', fish:'钓鱼（双人）' };
-const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣' };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', mem:'翻牌配对', choice:'二选一审判', miner:'黄金矿工（双人）', fish:'钓鱼（双人）', claw:'抓娃娃（双人）' };
+const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣', claw:'🧸' };
 function gmTitleShort(n){ return String(GM_TITLES[n] || n).replace(/（.*?）/g,''); }
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
 async function gmEndCards(name, cardId){
@@ -11326,7 +11364,7 @@ function openGame(name, cardId){
   GM = { name:name, t:null, s:null, busy:false, cardId:cardId || null };
   gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
   if(name==='choice'){ gm_choice_init(); return; }
-  if(name==='miner' || name==='fish'){ window['gm_'+name+'_init'](); return; }
+  if(name==='miner' || name==='fish' || name==='claw'){ window['gm_'+name+'_init'](); return; }
   const meFirst = Math.random() < 0.5;
   window['gm_'+name+'_init'](meFirst);
   gmMsg('🪙 抽签结果：<b>'+(meFirst?'你先手':gmName()+' 先手')+'</b>'+(meFirst?'':'<br>'+gmName()+' 思考中…'));
@@ -11808,6 +11846,573 @@ function gm_fish_loop(now){
   gm_fish_draw(); gmPops(s,dt); gmHud(s);
   if(s.left <= 0 && s.pl.every(function(p){ return p.st === 'idle'; })){ gmRtEnd(s); return; }
   GM.raf = requestAnimationFrame(gm_fish_loop);
+}
+
+const CLAW_RARITY = { N:{ n:'普通', c:'#8a9bb0' }, R:{ n:'稀有', c:'#3f8ae0' }, SR:{ n:'超稀有', c:'#a855f7' }, SSR:{ n:'传说', c:'#f59e0b' } };
+const CLAW_RKEYS = ['N','R','SR','SSR'];
+const CLAW_DEF_PLUSH = [
+  {id:'p1',e:'🐻',n:'小熊',r:'N'},{id:'p2',e:'🐰',n:'兔兔',r:'N'},{id:'p3',e:'🐱',n:'猫猫',r:'N'},{id:'p4',e:'🐶',n:'小狗',r:'N'},
+  {id:'p5',e:'🐼',n:'熊猫',r:'N'},{id:'p6',e:'🐸',n:'青蛙',r:'N'},{id:'p7',e:'🐥',n:'小鸡',r:'N'},{id:'p8',e:'🐷',n:'小猪',r:'N'},
+  {id:'p9',e:'🦊',n:'狐狸',r:'R'},{id:'p10',e:'🐨',n:'考拉',r:'R'},{id:'p11',e:'🦁',n:'小狮子',r:'R'},{id:'p12',e:'🐯',n:'小老虎',r:'R'},{id:'p13',e:'🐧',n:'企鹅',r:'R'},
+  {id:'p14',e:'🦄',n:'独角兽',r:'SR'},{id:'p15',e:'🐙',n:'章鱼',r:'SR'},{id:'p16',e:'🦋',n:'蝴蝶',r:'SR'},
+  {id:'p17',e:'🐲',n:'小龙',r:'SSR'},{id:'p18',e:'🦚',n:'孔雀',r:'SSR'},{id:'p19',e:'🦩',n:'火烈鸟',r:'SSR'}
+];
+const CLAW_DEF_RATE = { N:{w:60,c:75}, R:{w:28,c:55}, SR:{w:9,c:35}, SSR:{w:3,c:18} };
+const CLAW_ATTEMPTS = 5;
+let CLAW_CFG = null;
+async function clawLoad(){
+  let v = null;
+  try{ v = await sGet('claw-settings', null); }catch(e){}
+  const rate = {};
+  CLAW_RKEYS.forEach(function(k){
+    const o = (v && v.rate && v.rate[k]) || {};
+    const w = (o.w === undefined) ? NaN : Number(o.w);
+    const c = (o.c === undefined) ? NaN : Number(o.c);
+    rate[k] = { w: Number.isFinite(w) ? Math.max(0, Math.min(100, w)) : CLAW_DEF_RATE[k].w, c: Number.isFinite(c) ? Math.max(0, Math.min(100, c)) : CLAW_DEF_RATE[k].c };
+  });
+  const ag = (v && v.agree !== undefined) ? Number(v.agree) : NaN;
+  CLAW_CFG = {
+    plush: (v && Array.isArray(v.plush) && v.plush.length) ? v.plush : CLAW_DEF_PLUSH.map(function(x){ return Object.assign({}, x); }),
+    rate: rate,
+    agree: Number.isFinite(ag) ? Math.max(0, Math.min(100, ag)) : 60,
+    coll: (v && v.coll) || {}
+  };
+}
+function clawSave(){ try{ sSet('claw-settings', CLAW_CFG); }catch(e){} }
+function clawPickPlush(){
+  const byR = {};
+  CLAW_CFG.plush.forEach(function(p){ if(CLAW_RARITY[p.r]) (byR[p.r] = byR[p.r] || []).push(p); });
+  const ks = CLAW_RKEYS.filter(function(k){ return byR[k] && byR[k].length; });
+  if(!ks.length) return null;
+  const tot = ks.reduce(function(a,k){ return a + CLAW_CFG.rate[k].w; }, 0);
+  let k = ks[Math.floor(Math.random()*ks.length)];
+  if(tot > 0){
+    let r = Math.random()*tot;
+    for(let i=0;i<ks.length;i++){ r -= CLAW_CFG.rate[ks[i]].w; if(r <= 0){ k = ks[i]; break; } }
+  }
+  const arr = byR[k];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function clawWho(w){ return w === 'me' ? '你' : gmName(); }
+function gm_claw_init(){
+  clawLoad().then(function(){ if(GM.name === 'claw') gm_claw_start(); });
+}
+function gm_claw_start(){
+  const s = {
+    round:1, cur:null, left:CLAW_ATTEMPTS, attempt:0, phase:'lot', t:0, L:16, ang:24, cx:0, W:320, H:300,
+    held:null, res:null, fall:null, pile:[], got:{ me:[], ta:[] }, tleft:15, tkey:'', roundGot:[], log:[], last:performance.now(), over:false, btnOn:null,
+    req:{ used:false, taAsked:false, pending:null, nextCur:null, waiting:false }, nextCur:null, inSet:false
+  };
+  GM.s = s;
+  gm_claw_build(true);
+  gmMsg('🪙 抽签中…');
+  GM.t = setTimeout(function(){
+    if(GM.s !== s) return;
+    s.cur = Math.random() < 0.5 ? 'me' : 'ta';
+    gm_claw_say('🪙 抽签结果：<b>' + (s.cur === 'me' ? '你先夹' : gmName() + ' 先夹') + '</b>');
+    gm_claw_nextAttempt();
+    gm_claw_refresh();
+  }, 1200);
+  GM.raf = requestAnimationFrame(gm_claw_loop);
+}
+function gm_claw_build(fresh){
+  const s = GM.s;
+  gmBody(
+    '<div class="cw-wrap">' +
+      '<div class="cw-machine">' +
+        '<div class="cw-top"><i></i><b>🧸 抓 娃 娃</b><i></i></div>' +
+        '<div class="cw-glass" id="cwGlass" onpointerdown="gm_claw_press()">' +
+          '<div class="cw-rail"></div>' +
+          '<div class="cw-floor"></div>' +
+          '<div class="cw-chute"><span>出口</span></div>' +
+          '<div class="cw-claw" id="cwClaw"><div class="cw-rope" id="cwRope"></div><div class="cw-head" id="cwHead"><i class="cw-p l"></i><i class="cw-p r"></i></div></div>' +
+          '<div class="cw-pop" id="cwPop"></div>' +
+        '</div>' +
+        '<div class="cw-timer" id="cwTimer"><div class="cw-bear" id="cwBear">' + gm_claw_bearHtml() + '</div><div class="cw-tl" id="cwTl">抽签中</div><div class="cw-bar" id="cwBar">' + '<i></i>'.repeat(15) + '</div><div class="cw-num" id="cwNum">15</div></div>' +
+        '<div class="cw-panel">' +
+          '<div class="cw-score" id="cwScore"></div>' +
+          '<div class="cw-btn off" id="cwBtn" onpointerdown="event.stopPropagation(); gm_claw_press()">放爪</div>' +
+          '<div class="cw-gear" onclick="gm_claw_settings()">⚙️</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cw-acts" id="cwActs"></div>' +
+    '</div>'
+  );
+  const g = document.getElementById('cwGlass');
+  s.glass = g;
+  s.W = g.clientWidth || 320;
+  s.H = 300;
+  s.chuteX = s.W * 0.1;
+  s.cx = s.chuteX;
+  s.btnOn = null;
+  if(fresh || !s.pile.length){
+    s.pile = [];
+    for(let i=0;i<13;i++) gm_claw_spawn(i === 0 ? true : false);
+  } else {
+    s.pile.forEach(function(p){ gm_claw_mkEl(p); });
+  }
+  s.tkey = '';
+  gm_claw_render();
+  gm_claw_acts();
+  gm_claw_refresh();
+  gm_claw_timerRender();
+}
+function gm_claw_bearHtml(){
+  const rows = ['.AA...AA.','AAAAAAAAA','AAAAAAAAA','AAEAAAEAA','AAAANAAAA','APAAMAAPA','.AAAAAAA.'];
+  const col = { A:'#e0a36b', E:'#3b2530', N:'#5a3a44', P:'#f4a7b0', M:'#5a3a44' };
+  const sh = [];
+  rows.forEach(function(r, y){ for(let x=0;x<r.length;x++){ const ch = r.charAt(x); if(ch !== '.') sh.push((x*3) + 'px ' + (y*3) + 'px 0 ' + col[ch]); } });
+  return '<i style="box-shadow:' + sh.join(',') + '"></i>';
+}
+function gm_claw_timerRender(){
+  const s = GM.s; if(!s) return;
+  const n = Math.max(0, Math.ceil(s.tleft));
+  const key = n + '|' + (s.cur || '') + '|' + s.phase;
+  if(key === s.tkey) return;
+  s.tkey = key;
+  const tm = document.getElementById('cwTimer');
+  if(!tm) return;
+  const live = (s.phase === 'sweep' && !!s.cur);
+  tm.classList.toggle('warn', live && n <= 9 && n > 5);
+  tm.classList.toggle('hurry', live && n <= 5);
+  tm.classList.toggle('idle', !live);
+  const num = document.getElementById('cwNum'); if(num) num.textContent = n;
+  const bar = document.getElementById('cwBar');
+  if(bar){ const c = bar.children; for(let i=0;i<c.length;i++) c[i].classList.toggle('on', i < n); }
+  const tl = document.getElementById('cwTl');
+  if(tl){
+    if(!s.cur) tl.textContent = '抽签中';
+    else if(live) tl.innerHTML = (s.cur === 'me' ? '你的回合' : gmName() + ' 思考中');
+    else tl.innerHTML = (s.cur === 'me' ? '你的爪子' : gmName() + ' 的爪子');
+  }
+}
+function gm_claw_mkEl(p){
+  const s = GM.s, d = p.def, c = CLAW_RARITY[d.r] || CLAW_RARITY.N;
+  const el = document.createElement('div');
+  el.className = 'cw-pl' + ((d.r === 'SR' || d.r === 'SSR') ? ' glow' : '');
+  el.textContent = d.e;
+  el.style.filter = 'drop-shadow(0 0 5px ' + c.c + ')';
+  p.left = p.fx * s.W - 19;
+  p.top = p.fy * s.H - 19;
+  el.style.left = p.left + 'px';
+  el.style.top = p.top + 'px';
+  s.glass.appendChild(el);
+  p.el = el;
+}
+function gm_claw_spawn(wantRare){
+  const s = GM.s;
+  let def = clawPickPlush();
+  if(!def) return null;
+  if(wantRare === true){
+    for(let i=0;i<12;i++){ const d2 = clawPickPlush(); if(d2 && (d2.r === 'SR' || d2.r === 'SSR' || d2.r === 'R')){ def = d2; break; } }
+  }
+  let fx = 0.3 + Math.random()*0.62;
+  for(let t=0;t<16;t++){
+    fx = 0.3 + Math.random()*0.62;
+    if(s.pile.every(function(p){ return Math.abs(p.fx - fx) > 0.06; })) break;
+  }
+  const p = { def:def, fx:fx, fy:0.70 + Math.random()*0.10, held:false };
+  s.pile.push(p);
+  if(s.glass) gm_claw_mkEl(p);
+  return p;
+}
+function gm_claw_say(t){
+  const s = GM.s; if(!s) return;
+  s.log.unshift(t);
+  if(s.log.length > 3) s.log.length = 3;
+  gm_claw_acts();
+}
+function gm_claw_dots(){
+  const s = GM.s; let h = '';
+  for(let i=0;i<CLAW_ATTEMPTS;i++){
+    const used = i < (CLAW_ATTEMPTS - s.left);
+    h += '<i class="cw-dot' + (used ? ' used' : '') + (i === CLAW_ATTEMPTS - s.left && s.phase !== 'roundEnd' ? ' now' : '') + '"></i>';
+  }
+  return h;
+}
+function gm_claw_refresh(){
+  const s = GM.s; if(!s || s.inSet) return;
+  if(s.cur){
+    gmMsg('第 <b>' + s.round + '</b> 局 · 轮到 <b>' + clawWho(s.cur) + '</b>　<span class="cw-dots">' + gm_claw_dots() + '</span>　剩 ' + s.left + '/' + CLAW_ATTEMPTS);
+  }
+  const sc = document.getElementById('cwScore');
+  if(sc){
+    const last = function(a){ return a.slice(-4).map(function(d){ return d.e; }).join(''); };
+    sc.innerHTML = '<div><span style="color:#fff">你 <b>' + s.got.me.length + '</b></span> <em>' + last(s.got.me) + '</em></div><div><span style="color:#fff">' + gmName() + ' <b>' + s.got.ta.length + '</b></span> <em>' + last(s.got.ta) + '</em></div>';
+  }
+}
+function gm_claw_acts(){
+  const s = GM.s; const el = document.getElementById('cwActs');
+  if(!s || !el) return;
+  if(s.phase === 'roundEnd' || s.phase === 'done'){ return; }
+  let h = '';
+  if(s.req.pending === 'ta'){
+    h += '<div class="cw-ask"><b>' + gmName() + '</b> 想玩：下一局让我来夹，好不好？<div class="cw-row"><div class="gm-btn gm-btn-sm" onclick="gm_claw_ans(true)">好呀</div><div class="gm-btn gm-btn-sm gm-btn-alt" onclick="gm_claw_ans(false)">不行</div></div></div>';
+  } else if(s.cur === 'ta'){
+    if(!s.req.used) h += '<div class="gm-btn gm-btn-sm gm-btn-alt cw-req" onclick="gm_claw_request()">🙋 申请下一局我来夹（每局限 1 次）</div>';
+    else h += '<div class="cw-note">' + (s.req.waiting ? '已申请，' + gmName() + ' 在考虑…' : (s.req.nextCur === 'me' ? '✅ 已同意，下一局你来夹' : '❌ 没同意，下一局他继续')) + '</div>';
+  }
+  h += '<div class="cw-log">' + s.log.map(function(x, i){ return '<div style="opacity:' + (1 - i*0.28) + '">' + x + '</div>'; }).join('') + '</div>';
+  el.innerHTML = h;
+}
+function gm_claw_request(){
+  const s = GM.s;
+  if(!s || s.cur !== 'ta' || s.req.used || s.phase === 'roundEnd' || s.phase === 'done') return;
+  s.req.used = true;
+  s.req.waiting = true;
+  gm_claw_say('🙋 你：下一局我来夹，可以吗？');
+  setTimeout(function(){
+    if(GM.s !== s) return;
+    const ok = Math.random()*100 < CLAW_CFG.agree;
+    s.req.waiting = false;
+    s.req.nextCur = ok ? 'me' : 'ta';
+    gm_claw_say(ok ? '✅ ' + gmName() + '：好呀，下一局给你夹' : '❌ ' + gmName() + '：再让我玩一局嘛～下一局我继续');
+    if(s.phase === 'roundEnd') gm_claw_showSummary();
+  }, 1400 + Math.random()*1800);
+  gm_claw_acts();
+}
+function gm_claw_ans(yes){
+  const s = GM.s; if(!s || s.req.pending !== 'ta') return;
+  s.req.pending = null;
+  s.req.nextCur = yes ? 'ta' : 'me';
+  gm_claw_say(yes ? '😆 ' + gmName() + '：谢谢！下一局我来' : '🥺 ' + gmName() + '：好吧…那你继续');
+}
+function gm_claw_press(){
+  const s = GM.s;
+  if(!s || s.over || s.inSet || s.cur !== 'me' || s.phase !== 'sweep') return;
+  try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
+  gm_claw_drop();
+}
+function gm_claw_drop(){
+  const s = GM.s; if(!s || s.phase !== 'sweep') return;
+  s.phase = 'drop';
+}
+function gm_claw_nextAttempt(){
+  const s = GM.s;
+  s.phase = 'sweep'; s.t = 0; s.L = 16; s.ang = 24; s.held = null; s.res = null; s.tleft = 15; s.tkey = '';
+  if(s.cur === 'ta'){
+    const cand = s.pile.filter(function(p){ return !p.held; });
+    const p = cand[Math.floor(Math.random()*cand.length)];
+    s.aiTgt = p ? p.fx * s.W + (Math.random() - 0.5) * 38 : s.W * 0.6;
+    s.aiWait = 1 + Math.random()*14;
+    s.aiPrev = null;
+  } else if(s.cur === 'me' && !s.req.taAsked && s.attempt >= 1 && s.left >= 2 && Math.random() < 0.35){
+    s.req.taAsked = true;
+    s.req.pending = 'ta';
+  }
+  gm_claw_acts();
+}
+function gm_claw_loop(now){
+  const s = GM.s;
+  if(!s || GM.name !== 'claw' || s.over || s.inSet || !document.getElementById('cwGlass')) return;
+  const dt = Math.min(0.05, (now - s.last) / 1000);
+  s.last = now;
+  gm_claw_step(dt);
+  gm_claw_render();
+  gm_claw_timerRender();
+  GM.raf = requestAnimationFrame(gm_claw_loop);
+}
+function gm_claw_step(dt){
+  const s = GM.s, W = s.W, H = s.H, L0 = 16, LMAX = 190;
+  if(s.fall){
+    const f = s.fall, p = f.p;
+    f.vy += 1100*dt;
+    p.top += f.vy*dt;
+    if(p.top >= f.target){
+      p.top = f.target;
+      if(f.kind === 'prize'){ s.fall = null; gm_claw_collect(p); }
+      else if(Math.abs(f.vy) > 150){ f.vy = -f.vy*0.32; }
+      else { s.fall = null; }
+    }
+    p.el.style.top = p.top + 'px';
+    p.el.style.left = p.left + 'px';
+  }
+  switch(s.phase){
+    case 'lot':
+    case 'sweep': {
+      s.t += dt;
+      const period = Math.max(1.5, 2.5 - 0.1*(s.round - 1));
+      const f = 0.5 - 0.5*Math.cos(2*Math.PI*s.t/period);
+      s.cx = (0.12 + f*0.8)*W;
+      if(s.phase === 'sweep' && s.cur){
+        s.tleft = Math.max(0, s.tleft - dt);
+        if(s.tleft <= 0){
+          if(s.cur === 'me') gm_claw_say('⏰ 时间到，自动放爪');
+          gm_claw_drop();
+          break;
+        }
+      }
+      if(s.phase === 'sweep' && s.cur === 'ta'){
+        s.aiWait -= dt;
+        if(s.aiWait <= 0){
+          const d = s.cx - s.aiTgt;
+          if(s.aiPrev === null) s.aiPrev = d;
+          if(Math.abs(d) < 7 || d*s.aiPrev < 0 || s.aiWait < -7){ gm_claw_drop(); }
+          s.aiPrev = d;
+        }
+      }
+      break;
+    }
+    case 'drop':
+      s.L += 190*dt;
+      if(s.L >= LMAX){ s.L = LMAX; s.phase = 'close'; s.pt = 0; }
+      break;
+    case 'close':
+      s.pt += dt;
+      s.ang = 24 - 32*Math.min(1, s.pt/0.5);
+      if(s.pt >= 0.5) gm_claw_decide();
+      break;
+    case 'lift': {
+      s.L -= (s.held ? 150 : 210)*dt;
+      if(s.res === 'slip' && s.held && s.L <= LMAX*0.5){
+        const p = s.held;
+        s.held = null; p.held = false;
+        p.fx = Math.max(0.28, Math.min(0.94, s.cx / W));
+        p.left = p.fx*W - 19;
+        s.fall = { p:p, vy:0, target:p.fy*H - 19, kind:'slip' };
+        s.ang = 24;
+        gm_claw_say('😣 ' + clawWho(s.cur) + '：差一点，掉下去了…');
+      }
+      if(s.L <= L0){
+        s.L = L0;
+        if(s.held){ s.phase = 'move'; } else { s.phase = 'wait'; }
+      }
+      break;
+    }
+    case 'wait':
+      if(!s.fall) gm_claw_attemptDone();
+      break;
+    case 'move': {
+      const dx = s.chuteX - s.cx, st = 150*dt;
+      if(Math.abs(dx) <= st){ s.cx = s.chuteX; s.phase = 'release'; s.pt = 0; }
+      else s.cx += (dx > 0 ? 1 : -1)*st;
+      break;
+    }
+    case 'release':
+      s.pt += dt;
+      s.ang = -8 + 32*Math.min(1, s.pt/0.3);
+      if(s.pt >= 0.3){
+        const p = s.held;
+        s.held = null; p.held = false;
+        p.left = s.chuteX - 19;
+        s.fall = { p:p, vy:0, target:H - 58 + 10, kind:'prize' };
+        s.phase = 'wait';
+      }
+      break;
+  }
+  const on = (s.cur === 'me' && s.phase === 'sweep');
+  if(on !== s.btnOn){
+    s.btnOn = on;
+    const b = document.getElementById('cwBtn');
+    if(b) b.classList.toggle('off', !on);
+  }
+}
+function gm_claw_render(){
+  const s = GM.s; if(!s) return;
+  const cl = document.getElementById('cwClaw'), rope = document.getElementById('cwRope'), head = document.getElementById('cwHead');
+  if(!cl) return;
+  cl.style.transform = 'translateX(' + s.cx.toFixed(1) + 'px)';
+  rope.style.height = s.L.toFixed(1) + 'px';
+  head.style.top = s.L.toFixed(1) + 'px';
+  head.style.setProperty('--a', s.ang.toFixed(1));
+  if(s.held){
+    s.held.left = s.cx - 19;
+    s.held.top = s.L + 17;
+    s.held.el.style.left = s.held.left + 'px';
+    s.held.el.style.top = s.held.top + 'px';
+  }
+}
+function gm_claw_decide(){
+  const s = GM.s, R = 28;
+  let best = null, bd = 1e9;
+  s.pile.forEach(function(p){
+    if(p.held) return;
+    const d = Math.abs(p.fx*s.W - s.cx);
+    if(d <= R && d < bd){ best = p; bd = d; }
+  });
+  s.phase = 'lift';
+  if(!best){
+    s.res = 'miss'; s.ang = 24;
+    gm_claw_say('💨 ' + clawWho(s.cur) + ' 抓空了…');
+    return;
+  }
+  const rate = CLAW_CFG.rate[best.def.r].c / 100;
+  const ok = Math.random() < rate*(1 - 0.35*bd/R);
+  best.held = true;
+  s.held = best;
+  s.res = ok ? 'win' : 'slip';
+}
+function gm_claw_collect(p){
+  const s = GM.s; if(!s) return;
+  const d = p.def;
+  const i = s.pile.indexOf(p);
+  if(i >= 0) s.pile.splice(i, 1);
+  if(p.el){ p.el.classList.add('out'); setTimeout(function(){ if(p.el && p.el.parentNode) p.el.parentNode.removeChild(p.el); }, 400); }
+  s.got[s.cur].push(d);
+  s.roundGot.push(d);
+  if(s.cur === 'me'){ CLAW_CFG.coll[d.id] = (CLAW_CFG.coll[d.id] || 0) + 1; clawSave(); }
+  const c = CLAW_RARITY[d.r] || CLAW_RARITY.N;
+  gm_claw_say((s.cur === 'me' ? '🎉 你夹到了 ' : '🎉 ' + gmName() + ' 夹到了 ') + d.e + ' <b style="color:' + c.c + '">' + escapeHtml(d.n) + '</b>（' + c.n + '）');
+  gm_claw_pop(d, c);
+  setTimeout(function(){ if(GM.s === s && s.glass) gm_claw_spawn(false); }, 700);
+}
+function gm_claw_pop(d, c){
+  const pop = document.getElementById('cwPop'); if(!pop) return;
+  const big = (d.r === 'SR' || d.r === 'SSR');
+  pop.innerHTML = '<div class="cw-pop-in' + (big ? ' big' : '') + '" style="border-color:' + c.c + ';box-shadow:0 10px 30px ' + c.c + '66"><i>' + d.e + '</i><b>' + escapeHtml(d.n) + '</b><small style="color:' + c.c + '">' + c.n + '</small></div>' + (big ? '<div class="cw-spark"><span>✨</span><span>✨</span><span>⭐</span><span>✨</span><span>⭐</span></div>' : '');
+  pop.classList.remove('show'); void pop.offsetWidth; pop.classList.add('show');
+  try{ if(big && navigator.vibrate) navigator.vibrate([30,40,30]); }catch(e){}
+  clearTimeout(pop._t);
+  pop._t = setTimeout(function(){ pop.classList.remove('show'); }, 2000);
+}
+function gm_claw_attemptDone(){
+  const s = GM.s;
+  s.left--; s.attempt++;
+  s.held = null; s.res = null; s.ang = 24; s.L = 16;
+  if(s.left <= 0){ gm_claw_roundEnd(); return; }
+  gm_claw_nextAttempt();
+  gm_claw_refresh();
+}
+function gm_claw_roundEnd(){
+  const s = GM.s;
+  s.phase = 'roundEnd';
+  if(s.req.pending === 'ta'){ s.req.pending = null; }
+  gm_claw_refresh();
+  gmMsg('第 <b>' + s.round + '</b> 局结束');
+  gm_claw_showSummary();
+}
+function gm_claw_showSummary(){
+  const s = GM.s; const el = document.getElementById('cwActs');
+  if(!s || !el || s.phase !== 'roundEnd') return;
+  const list = s.roundGot.length ? s.roundGot.map(function(d){ return d.e; }).join(' ') : '空空如也';
+  const next = s.req.nextCur || s.cur;
+  s.nextCur = next;
+  el.innerHTML =
+    '<div class="cw-sum">' +
+      '<b>第 ' + s.round + ' 局 · ' + clawWho(s.cur) + ' 夹到 ' + s.roundGot.length + ' 个</b>' +
+      '<div class="cw-sum-l">' + list + '</div>' +
+      '<div class="cw-note">' + (s.req.waiting ? gmName() + ' 还在考虑你的申请…' : '下一局：<b>' + clawWho(next) + '</b> 来夹') + '</div>' +
+      '<div class="cw-row"><div class="gm-btn gm-btn-sm' + (s.req.waiting ? ' cw-dis' : '') + '" onclick="gm_claw_next()">下一局</div><div class="gm-btn gm-btn-sm gm-btn-alt" onclick="gm_claw_finish()">结束游戏</div></div>' +
+    '</div>';
+}
+function gm_claw_next(){
+  const s = GM.s;
+  if(!s || s.phase !== 'roundEnd' || s.req.waiting) return;
+  s.round++;
+  s.left = CLAW_ATTEMPTS;
+  s.cur = s.req.nextCur || s.cur;
+  s.req = { used:false, taAsked:false, pending:null, nextCur:null, waiting:false };
+  s.roundGot = [];
+  s.log = [];
+  s.attempt = 0;
+  s.pile.forEach(function(p){ if(p.el && p.el.parentNode) p.el.parentNode.removeChild(p.el); });
+  s.pile = [];
+  for(let i=0;i<13;i++) gm_claw_spawn(i === 0);
+  s.pile.forEach(function(p){
+    p.el.style.opacity = '0';
+    setTimeout(function(){ if(p.el) p.el.style.opacity = '1'; }, 40);
+  });
+  gm_claw_say('🎪 第 ' + s.round + ' 局开始，娃娃重新摆放了，轮到 <b>' + clawWho(s.cur) + '</b>');
+  gm_claw_nextAttempt();
+  gm_claw_refresh();
+}
+function gm_claw_finish(){
+  const s = GM.s; if(!s) return;
+  s.phase = 'done'; s.over = true; GM.over = true;
+  if(GM.raf) cancelAnimationFrame(GM.raf);
+  const a = s.got.me.length, b = s.got.ta.length;
+  const col = function(arr){ return arr.length ? arr.map(function(d){ const c = CLAW_RARITY[d.r] || CLAW_RARITY.N; return '<span class="cw-chip" style="border-color:' + c.c + '">' + d.e + '</span>'; }).join('') : '<small style="color:var(--ink-soft)">还没夹到</small>'; };
+  const verdict = a > b ? '🎉 你夹得更多' : (a < b ? gmName() + ' 夹得更多' : '平局');
+  gmMsg('<b>' + verdict + '</b>');
+  gmBody(
+    '<div class="cw-wrap"><div class="cw-final">' +
+      '<h3>🧸 ' + s.round + ' 局结束</h3>' +
+      '<div class="cw-fr"><b>你 · ' + a + ' 个</b><div>' + col(s.got.me) + '</div></div>' +
+      '<div class="cw-fr"><b>' + gmName() + ' · ' + b + ' 个</b><div>' + col(s.got.ta) + '</div></div>' +
+      '<div class="cw-row" style="margin-top:14px"><div class="gm-btn gm-btn-sm" onclick="openGame(\'claw\')">再来一局</div><div class="gm-btn gm-btn-sm gm-btn-alt" onclick="gm_claw_settings(true)">收藏柜 / 设置</div></div>' +
+    '</div></div>'
+  );
+}
+function gm_claw_settings(fromFinal){
+  const s = GM.s; if(!s) return;
+  if(!fromFinal && s.phase !== 'sweep' && s.phase !== 'roundEnd'){ gm_claw_say('⏳ 等这一爪结束再设置'); return; }
+  s.inSet = true; s.setFinal = !!fromFinal;
+  if(GM.raf) cancelAnimationFrame(GM.raf);
+  gm_claw_setView();
+}
+function gm_claw_setView(){
+  const s = GM.s;
+  const cfg = CLAW_CFG;
+  let coll = '';
+  cfg.plush.forEach(function(p){
+    const n = cfg.coll[p.id] || 0, c = CLAW_RARITY[p.r] || CLAW_RARITY.N;
+    coll += '<div class="cw-ci' + (n ? '' : ' none') + '" style="border-color:' + c.c + '"><span>' + p.e + '</span><small>' + escapeHtml(p.n) + '</small>' + (n ? '<em>×' + n + '</em>' : '') + '<u onclick="gm_claw_del(\'' + p.id + '\')">✕</u></div>';
+  });
+  let rates = '';
+  CLAW_RKEYS.forEach(function(k){
+    rates += '<div class="cw-rr"><span class="cw-badge" style="background:' + CLAW_RARITY[k].c + '">' + CLAW_RARITY[k].n + '</span>' +
+      '<label>出现权重<input type="number" min="0" max="100" id="cwW_' + k + '" value="' + cfg.rate[k].w + '"></label>' +
+      '<label>抓取成功率%<input type="number" min="0" max="100" id="cwC_' + k + '" value="' + cfg.rate[k].c + '"></label></div>';
+  });
+  let opts = '';
+  CLAW_RKEYS.forEach(function(k){ opts += '<option value="' + k + '">' + CLAW_RARITY[k].n + '</option>'; });
+  gmMsg('<b>抓娃娃设置</b>');
+  gmBody(
+    '<div class="cw-wrap cw-set">' +
+      '<h4>🧸 玩偶收藏柜（点 ✕ 可删除，共 ' + cfg.plush.length + ' 个）</h4><div class="cw-cgrid">' + coll + '</div>' +
+      '<h4>➕ 添加玩偶</h4>' +
+      '<div class="cw-add"><input id="cwAddE" maxlength="4" placeholder="表情" style="width:64px"><input id="cwAddN" maxlength="8" placeholder="名字"><select id="cwAddR">' + opts + '</select><div class="gm-btn gm-btn-sm" onclick="gm_claw_add()">添加</div></div>' +
+      '<h4>✨ 稀有度</h4><div class="cw-note" style="text-align:left">出现权重越大越常见；成功率是对准后真正夹起来的概率</div>' + rates +
+      '<h4>🤝 TA 同意你「下一局我来」的概率</h4><div class="cw-rr"><label style="flex:1">同意率%<input type="number" min="0" max="100" id="cwAgree" value="' + cfg.agree + '"></label></div>' +
+      '<div class="cw-row" style="margin-top:14px"><div class="gm-btn gm-btn-sm" onclick="gm_claw_back()">保存并返回</div><div class="gm-btn gm-btn-sm gm-btn-alt" onclick="gm_claw_reset()">恢复默认</div></div>' +
+    '</div>'
+  );
+}
+function gm_claw_read(){
+  const cfg = CLAW_CFG;
+  CLAW_RKEYS.forEach(function(k){
+    const w = document.getElementById('cwW_' + k), c = document.getElementById('cwC_' + k);
+    if(w){ const v = Number(w.value); if(Number.isFinite(v)) cfg.rate[k].w = Math.max(0, Math.min(100, v)); }
+    if(c){ const v = Number(c.value); if(Number.isFinite(v)) cfg.rate[k].c = Math.max(0, Math.min(100, v)); }
+  });
+  const ag = document.getElementById('cwAgree');
+  if(ag){ const v = Number(ag.value); if(Number.isFinite(v)) cfg.agree = Math.max(0, Math.min(100, v)); }
+}
+function gm_claw_add(){
+  gm_claw_read();
+  const e = (document.getElementById('cwAddE').value || '').trim();
+  const n = (document.getElementById('cwAddN').value || '').trim();
+  const r = document.getElementById('cwAddR').value;
+  if(!e || !n){ alert('表情和名字都要填'); return; }
+  CLAW_CFG.plush.push({ id:'c' + Date.now() + Math.floor(Math.random()*100), e:e, n:n, r:CLAW_RARITY[r] ? r : 'N' });
+  clawSave();
+  gm_claw_setView();
+}
+function gm_claw_del(id){
+  gm_claw_read();
+  if(CLAW_CFG.plush.length <= 1){ alert('至少要留一个玩偶'); return; }
+  CLAW_CFG.plush = CLAW_CFG.plush.filter(function(p){ return p.id !== id; });
+  clawSave();
+  gm_claw_setView();
+}
+function gm_claw_reset(){
+  if(!confirm('恢复默认的玩偶、稀有度和同意率？收藏记录会保留。')) return;
+  const coll = CLAW_CFG.coll;
+  CLAW_CFG = { plush: CLAW_DEF_PLUSH.map(function(x){ return Object.assign({}, x); }), rate: JSON.parse(JSON.stringify(CLAW_DEF_RATE)), agree: 60, coll: coll };
+  clawSave();
+  gm_claw_setView();
+}
+function gm_claw_back(){
+  const s = GM.s; if(!s) return;
+  gm_claw_read();
+  clawSave();
+  if(s.setFinal){ gm_claw_finish(); return; }
+  s.inSet = false;
+  s.pile = [];
+  gm_claw_build(true);
+  s.last = performance.now();
+  if(s.phase === 'roundEnd') gm_claw_showSummary();
+  GM.raf = requestAnimationFrame(gm_claw_loop);
 }
 
 function gm_mem_init(me){
@@ -13716,9 +14321,23 @@ async function loadStatusCard(){
 }
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
+function scTodTick(){
+  const c = statusCardData;
+  const now = Date.now();
+  if(c.tod !== 'day' && c.tod !== 'night' || !c.todAt || now >= c.todAt){
+    c.tod = Math.random() < 0.5 ? 'day' : 'night';
+    c.todAt = now + (1 + Math.random()*5)*3600000;
+    saveStatusCard();
+  }
+}
+function scTod(){
+  scTodTick();
+  return statusCardData.tod;
+}
 function scRoll(){
   const c = statusCardData;
   const now = Date.now();
+  scTodTick();
   if(c.st && SC_STATES[c.st.kind] && now < c.st.nextAt) return c.st;
   const kinds = ['online','busy','offline'];
   let quote = '';
@@ -13730,7 +14349,7 @@ function scRoll(){
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
-  c.st = { kind, quote, nextAt: now + (1 + Math.random()*6)*3600000 };
+  c.st = { kind, quote, nextAt: now + (1 + Math.random()*3)*3600000 };
   saveStatusCard();
   return c.st;
 }
@@ -13807,6 +14426,13 @@ function renderStatusCard(){
           ${st.quote ? '<em>“'+escapeHtml(st.quote)+'”</em>' : ''}
         </div>
         <div class="sc-tile">${kd.e}</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-row-m">
+          <small>他的时间</small>
+          <strong class="sc-clock">${scTod()==='night'?'黑夜':'白天'}</strong>
+        </div>
+        <div class="sc-tile sc-tile-t">${scTod()==='night'?'🌙':'☀️'}</div>
       </div>
     </div>`;
 }
@@ -15203,6 +15829,93 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .moment-quote-chip{ display:flex; align-items:center; gap:6px; margin-top:8px; padding:4px 8px; background:rgba(0,0,0,.05); border-left:2px solid var(--rouge); border-radius:4px; font-size:11.5px; color:var(--ink-soft); }
 .moment-quote-chip span:first-child{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .moment-quote-chip .x{ flex:none; cursor:pointer; }
+.sc-row-m strong.sc-clock{font-size:26px;font-weight:500;letter-spacing:2px;}
+.sc-tile-t{background:linear-gradient(135deg,#c9d5e6,#e9d3d0);}
+.cw-wrap{max-width:360px;margin:8px auto 0;}
+.cw-machine{border-radius:26px;padding:10px 10px 12px;background:linear-gradient(160deg,#f7a9b6,#d96b78 55%,#b9475f);box-shadow:0 14px 30px rgba(156,47,59,.32),inset 0 2px 0 rgba(255,255,255,.35);}
+.cw-top{display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:800;letter-spacing:3px;padding:2px 0 8px;font-size:15px;}
+.cw-top i{width:9px;height:9px;border-radius:50%;background:#ffe27a;box-shadow:0 0 8px #ffe27a;animation:cwBlink 1.2s infinite alternate;}
+.cw-top i:last-child{animation-delay:.6s;}
+@keyframes cwBlink{from{opacity:.35}to{opacity:1}}
+.cw-glass{position:relative;height:300px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#fffaf6,#fde8e4);box-shadow:inset 0 0 0 3px rgba(255,255,255,.55),inset 0 8px 18px rgba(156,47,59,.12);touch-action:manipulation;user-select:none;-webkit-user-select:none;}
+.cw-glass::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.38) 0%,rgba(255,255,255,0) 28%);pointer-events:none;z-index:9;}
+.cw-rail{position:absolute;left:6px;right:6px;top:0;height:8px;border-radius:0 0 6px 6px;background:linear-gradient(#c3ccd8,#8e99a8);z-index:4;}
+.cw-floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(#f4cfd0,#e3a3ab);z-index:3;}
+.cw-chute{position:absolute;left:0;bottom:0;width:20%;height:58px;background:linear-gradient(#5a3a44,#3b2530);border-radius:0 14px 0 0;z-index:3;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;color:#ffd9de;font-size:10px;letter-spacing:2px;box-shadow:inset 0 6px 10px rgba(0,0,0,.35);}
+.cw-claw{position:absolute;left:0;top:0;width:0;height:0;z-index:6;will-change:transform;}
+.cw-rope{position:absolute;left:-1.5px;top:0;width:3px;border-radius:2px;background:linear-gradient(90deg,#9aa4b2,#d3dae3);}
+.cw-head{position:absolute;left:-15px;width:30px;height:20px;border-radius:9px 9px 6px 6px;background:linear-gradient(#e9eef5,#a5b0c0);box-shadow:0 3px 6px rgba(0,0,0,.22);}
+.cw-p{position:absolute;top:14px;width:6px;height:28px;border-radius:3px 3px 7px 7px;background:linear-gradient(90deg,#d1d8e2,#8793a5);transform-origin:50% 2px;}
+.cw-p.l{left:2px;transform:rotate(calc(var(--a,24) * 1deg));}
+.cw-p.r{right:2px;transform:rotate(calc(var(--a,24) * -1deg));}
+.cw-pl{position:absolute;width:38px;height:38px;font-size:31px;line-height:38px;text-align:center;z-index:5;pointer-events:none;transition:opacity .35s,transform .35s;}
+.cw-pl.glow{animation:cwGlow 1.6s ease-in-out infinite alternate;}
+.cw-pl.out{opacity:0;transform:scale(.4);}
+@keyframes cwGlow{from{transform:scale(1)}to{transform:scale(1.12)}}
+.cw-timer{display:flex;align-items:center;gap:8px;margin:14px 4px 0;padding:6px 10px;background:#ffeab0;box-shadow:0 -3px 0 0 #3b2530,0 3px 0 0 #3b2530,-3px 0 0 0 #3b2530,3px 0 0 0 #3b2530;image-rendering:pixelated;}
+.cw-bear{flex:none;width:27px;height:21px;position:relative;animation:cwHop 1s steps(2) infinite;}
+.cw-bear i{position:absolute;left:0;top:0;width:3px;height:3px;display:block;}
+@keyframes cwHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.cw-tl{flex:none;font-family:'Courier New',monospace;font-weight:900;font-size:11px;color:#5a3a44;letter-spacing:1px;white-space:nowrap;max-width:84px;overflow:hidden;text-overflow:ellipsis;}
+.cw-bar{flex:1;min-width:0;display:flex;gap:2px;}
+.cw-bar i{flex:1;height:10px;background:#e3c88a;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);}
+.cw-bar i.on{background:#6fcf6f;box-shadow:inset 0 -2px 0 #3f9e3f;}
+.cw-timer.warn .cw-bar i.on{background:#f5c542;box-shadow:inset 0 -2px 0 #c99a1c;}
+.cw-timer.hurry .cw-bar i.on{background:#ef5b5b;box-shadow:inset 0 -2px 0 #b83b3b;}
+.cw-timer.hurry .cw-bear{animation-duration:.3s;}
+.cw-timer.idle .cw-bear{animation:none;}
+.cw-num{flex:none;min-width:28px;text-align:right;font-family:'Courier New',monospace;font-weight:900;font-size:20px;line-height:1;color:#3b2530;text-shadow:2px 2px 0 rgba(255,255,255,.6);}
+.cw-panel{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:16px;background:rgba(0,0,0,.14);}
+.cw-score{flex:1;min-width:0;font-size:12.5px;line-height:1.7;color:#ffe9ec;}
+.cw-score em{font-style:normal;margin-left:4px;letter-spacing:1px;}
+.cw-btn{flex:none;width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;letter-spacing:2px;color:#fff;background:radial-gradient(circle at 35% 30%,#ffd86b,#f0a020 70%);box-shadow:0 6px 0 #b9741a,0 10px 16px rgba(0,0,0,.28);cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .08s,box-shadow .08s,filter .2s;}
+.cw-btn:active{transform:translateY(5px);box-shadow:0 1px 0 #b9741a,0 4px 8px rgba(0,0,0,.25);}
+.cw-btn.off{filter:grayscale(.85) brightness(.9);pointer-events:none;}
+.cw-gear{flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.28);font-size:17px;cursor:pointer;}
+.cw-dots{display:inline-flex;gap:4px;vertical-align:middle;}
+.cw-dot{width:9px;height:9px;border-radius:50%;background:#e9c9cd;display:inline-block;}
+.cw-dot.used{background:#b9475f;}
+.cw-dot.now{background:#f0a020;box-shadow:0 0 0 3px rgba(240,160,32,.3);}
+.cw-acts{margin-top:12px;}
+.cw-log{font-size:12.5px;line-height:1.7;color:var(--ink);padding:2px 4px;}
+.cw-note{font-size:12px;color:var(--ink-soft);text-align:center;margin:4px 0 8px;}
+.cw-req{display:block;text-align:center;margin:0 auto 6px;}
+.cw-row{display:flex;gap:10px;justify-content:center;margin-top:8px;}
+.cw-ask{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:8px;font-size:13px;box-shadow:0 6px 16px rgba(156,47,59,.12);text-align:center;}
+.cw-sum{background:#fff;border-radius:18px;padding:14px;text-align:center;box-shadow:0 8px 20px rgba(156,47,59,.14);}
+.cw-sum-l{font-size:26px;letter-spacing:4px;margin:8px 0 2px;min-height:34px;}
+.cw-dis{opacity:.45;pointer-events:none;}
+.cw-pop{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;}
+.cw-pop.show{animation:cwPop 2s ease forwards;}
+@keyframes cwPop{0%{opacity:0;transform:scale(.6)}12%{opacity:1;transform:scale(1.08)}22%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1)}}
+.cw-pop-in{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 26px;border-radius:22px;background:rgba(255,255,255,.96);border:2px solid #ddd;}
+.cw-pop-in i{font-style:normal;font-size:52px;line-height:1.1;}
+.cw-pop-in b{font-size:15px;letter-spacing:2px;}
+.cw-pop-in small{font-size:12px;font-weight:700;letter-spacing:2px;}
+.cw-pop-in.big{animation:cwShake .5s ease;}
+@keyframes cwShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.cw-spark span{position:absolute;font-size:20px;animation:cwSpark 1.4s ease-out forwards;}
+.cw-spark span:nth-child(1){left:18%;top:30%}.cw-spark span:nth-child(2){left:78%;top:26%;animation-delay:.1s}.cw-spark span:nth-child(3){left:30%;top:68%;animation-delay:.2s}.cw-spark span:nth-child(4){left:70%;top:66%;animation-delay:.15s}.cw-spark span:nth-child(5){left:50%;top:18%;animation-delay:.25s}
+@keyframes cwSpark{0%{opacity:0;transform:scale(.2) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.6) rotate(120deg) translateY(-14px)}}
+.cw-final{background:#fff;border-radius:22px;padding:18px 16px;box-shadow:0 10px 24px rgba(156,47,59,.14);}
+.cw-final h3{margin:0 0 10px;text-align:center;letter-spacing:2px;}
+.cw-fr{margin-top:10px;font-size:13px;}
+.cw-fr div{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;}
+.cw-chip{font-size:22px;border:1.5px solid #ddd;border-radius:12px;padding:2px 6px;background:#fff;}
+.cw-set h4{margin:16px 0 8px;font-size:13px;letter-spacing:1px;}
+.cw-cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.cw-ci{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px 2px 6px;border:1.5px solid #ddd;border-radius:14px;background:#fff;}
+.cw-ci span{font-size:26px;line-height:1.2;}
+.cw-ci small{font-size:10.5px;color:var(--ink-soft);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cw-ci em{position:absolute;right:4px;top:2px;font-style:normal;font-size:10px;font-weight:800;color:var(--rouge);}
+.cw-ci u{position:absolute;left:3px;top:1px;font-size:10px;text-decoration:none;color:var(--ink-soft);padding:2px 3px;}
+.cw-ci.none span{filter:grayscale(1);opacity:.45;}
+.cw-add{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.cw-add input,.cw-add select{flex:1;min-width:70px;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:#fff;font-size:13px;}
+.cw-rr{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.cw-rr label{flex:1;font-size:11px;color:var(--ink-soft);display:flex;flex-direction:column;gap:3px;}
+.cw-rr input{padding:7px 8px;border:1px solid var(--rule);border-radius:10px;background:#fff;font-size:13px;width:100%;box-sizing:border-box;}
+.cw-badge{flex:none;min-width:52px;text-align:center;color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:5px 8px;}
 </style>
 </body>
 </html>
