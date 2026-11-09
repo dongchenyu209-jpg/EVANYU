@@ -824,15 +824,6 @@
 .vinyl-lyrics .ly{ font-size:13px; line-height:1.6; color:var(--ink-soft); opacity:.68; transition:color .2s, opacity .2s, font-size .2s; padding:1px 0; }
 .vinyl-lyrics .ly.on{ color:var(--rouge); opacity:1; font-weight:700; font-size:16px; }
 .vinyl-lyrics .ly-plain{ padding-top:60px; opacity:.8; font-size:13px; }
-.vinyl-lyrics{
-  height:184px; max-width:330px; margin:4px auto 12px; overflow-y:auto;
-  text-align:center; padding:16px 10px; box-sizing:border-box;
-  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
-          mask-image:linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
-}
-.vinyl-lyrics .ly{ font-size:13px; line-height:1.6; color:var(--ink-soft); opacity:.68; transition:color .2s, opacity .2s, font-size .2s; padding:1px 0; }
-.vinyl-lyrics .ly.on{ color:var(--rouge); opacity:1; font-weight:700; font-size:16px; }
-.vinyl-lyrics .ly-plain{ padding-top:60px; opacity:.8; font-size:13px; }
 @keyframes vinylSpin{ to{ transform:rotate(360deg); } }.together-avatars{
   display:flex; align-items:center; justify-content:center; gap:0; margin:8px 0 12px;
 }
@@ -1821,12 +1812,12 @@
   <section id="view-period" class="view hidden">
     <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>月经记录</h2></div>
     <div class="box">
-      <div class="box-title">预测</div>
+      <div class="box-title">下次预测</div>
       <div id="periodPredict" style="font-size:13px;"></div>
     </div>
     <div class="box">
-      <label class="field">开始日期</label><input type="date" id="periodDate">
-      <div class="btn-row"><div class="btn" onclick="addPeriod()">记录一次</div></div>
+      <div class="box-title">记录开始日期</div>
+      <div class="pd-add"><input type="date" id="periodDate"><div class="btn" onclick="addPeriod()">记录一次</div></div>
     </div>
     <div id="periodList"></div>
   </section>
@@ -2062,9 +2053,8 @@
   </section>
 
   <section id="view-mall" class="view hidden">
-    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2>商场</h2></div>
+    <div class="view-head"><div class="icon-btn" onclick="go('home')">←</div><h2 class="ml-title"><small>DREAM MALL · 为 TA 挑一份心意</small><span>商场</span></h2></div>
     <div id="mallBody" style="padding:12px 14px 120px;overflow-y:auto;height:calc(100% - 52px);background:transparent;"></div>
-    <div class="ml-cartbar hidden" id="mallCartBar" onclick="mallShowCat('cart')"><span id="mallCartTxt"></span><span class="ml-cartgo">去结算</span></div>
   </section>
 
   <!-- ============ MOYU 摸鱼小记 ============ -->
@@ -4026,7 +4016,6 @@ function renderChat(preserveScroll, scrollToId){
     }
     const quoteRefHtml = m.quoteOf
       ? `<div class="quote-ref" onclick="jumpToMessage('${m.quoteOf.id}')">${escapeHtml(m.quoteOf.from==='user'?(profile.myName||'我'):chatSettings.companionName)}: ${escapeHtml(m.quoteOf.preview)}</div>` : '';
-    const quoteBtn = '';
       const _isGroup = !!(m.from==='bot' && chatSettings.group && chatSettings.group.enabled);
   const _senderName = _isGroup ? (m.sender || chatSettings.companionName) : null;
   const _senderAvatar = (_isGroup && m.sender && m.senderAvatar && String(m.senderAvatar).startsWith('data:')) ? m.senderAvatar : null;
@@ -4040,9 +4029,9 @@ function renderChat(preserveScroll, scrollToId){
     let bubbleHtml;
     if(m.type==='sticker'){
       const val = m.content.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(m.content)}">` : escapeHtml(m.content);
-      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};">${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg sticker ${m.from}">${quoteRefHtml}${val}<div class="t" style="text-align:${m.from==='user'?'right':'left'};"></div></div>`;
     } else if(m.type==='image'){
-      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg image ${m.from}">${quoteRefHtml}<img loading="lazy" decoding="async" class="chat-image" src="${escapeHtml(m.content)}" onclick="viewChatImage('${m.id}')"><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${(m.from==='user'&&m.read)?'已读':''}</div></div>`;
     } else if(m.type==='transfer'){
       const st = m.status || 'pending';
       const mine = m.from==='user';
@@ -4054,7 +4043,7 @@ function renderChat(preserveScroll, scrollToId){
         ${quoteRefHtml}
         <div class="tf-main"><div class="tf-ico">${stIco}</div><div><div class="tf-amount">¥${Number(m.amount).toFixed(2)}</div><div class="tf-status">${stText}</div></div></div>
         <div class="tf-note">${escapeHtml(m.note||'转账')}</div>
-        <div class="t" style="color:rgba(255,255,255,0.85);">${quoteBtn}</div>
+        <div class="t" style="color:rgba(255,255,255,0.85);"></div>
       </div>`;
     } else if(m.type==='gift'){
       const fromMe = m.from==='user';
@@ -4074,7 +4063,7 @@ function renderChat(preserveScroll, scrollToId){
             ${priceOrNote}
           </div>
         </div>
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}</div>
       </div>`;
     } else if(m.type==='wish'){
       const wItems = (m.items||[]);
@@ -4096,7 +4085,7 @@ function renderChat(preserveScroll, scrollToId){
           <div class="wish-total">共 ${wItems.length}件 · 合计 ¥${Number(m.total||0).toFixed(0)}</div>
           ${wActs}
         </div>
-        <div class="t" style="text-align:center;">${quoteBtn}</div>
+        <div class="t" style="text-align:center;"></div>
       </div>`;
     } else if(m.type==='cart'){
       const fromMe = m.from==='user';
@@ -4112,7 +4101,7 @@ function renderChat(preserveScroll, scrollToId){
           ${skipRows}
         </div>
         <div class="cd-foot"><span class="cd-chip">合计</span><span class="cd-end">¥${Number(m.total||0).toFixed(0)}</span></div>
-        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="text-align:${fromMe?'right':'left'};">${(fromMe&&m.read)?'已读':''}</div>
       </div>`;
     } else if(m.type==='questionnaire'){
       const opts = (m.options||[]).map((o,i)=>{
@@ -4138,7 +4127,7 @@ function renderChat(preserveScroll, scrollToId){
         <div class="q-question">${escapeHtml(m.question||'')}</div>
         ${opts}
         ${statusHtml}
-        <div class="t">${quoteBtn}</div>
+        <div class="t"></div>
       </div>`;
     } else if(m.type==='checkin'){
       const ckMine = m.from === 'user';
@@ -4168,19 +4157,19 @@ function renderChat(preserveScroll, scrollToId){
           <span onclick="event.stopPropagation();toggleWebLinkCollapse('${m.id}')" style="cursor:pointer;padding:2px 4px;" title="展开/收起">${collapsed ? '▾' : '▴'}</span>
         </div>
         ${collapsed ? '' : `<div style="height:420px;background:#000;"><iframe src="${escapeHtml(m.content)}" style="width:100%;height:100%;border:0;"></iframe></div>`}
-        <div class="t" style="padding:4px 12px 8px;">${(m.from==='user'&&m.read)?'已读':''}${quoteBtn}</div>
+        <div class="t" style="padding:4px 12px 8px;">${(m.from==='user'&&m.read)?'已读':''}</div>
       </div>`;
     } else if(m.type==='combo'){
       const stVal = m.sticker || '';
       const stHtml = stVal.startsWith('data:') ? `<img loading="lazy" decoding="async" src="${escapeHtml(stVal)}">` : escapeHtml(stVal);
       const readTag = (m.from==='user' && m.read) ? '已读' : '';
-      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${readTag}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg combo ${m.from} ${m.from==='user'?'message message-sent':'message message-received'}">${quoteRefHtml}<div class="combo-sticker">${stHtml}</div><div class="combo-text">${escapeHtml(m.content||'')}</div><div class="t" style="text-align:${m.from==='user'?'right':'left'};">${readTag}</div></div>`;
     } else if(m.type==='invite'){
       bubbleHtml = renderInviteCardHtml(m, time);
     } else {
       const readTag = (m.from==='user' && m.read) ? '已读' : '';
       const skinClass = m.from==='user' ? 'message message-sent' : 'message message-received';
-      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${readTag}${quoteBtn}</div></div>`;
+      bubbleHtml = `<div class="msg ${m.from} ${skinClass}">${quoteRefHtml}${escapeHtml(m.content)}<div class="t">${readTag}</div></div>`;
     }
       if(typeof bubbleHtml === 'string' && m.from==='user'){ bubbleHtml = bubbleHtml.replace(/(<div class="t"[^>]*>)已读/, '$1已读 · ' + formatMsgTime(m.time)); }
       const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
@@ -6102,10 +6091,9 @@ async function sendQuestionnaire(){
   if(!question){ alert('请填写问题'); return; }
   if(options.length < 2){ alert('至少需要 2 个选项'); return; }
   const timeMode = (_qTimeMode === 'slow') ? 'slow' : 'fast';
-  // fast：固定 10 秒后自动选择；slow：10~60 秒随机
   const delayMs = (timeMode === 'slow')
     ? randomBetween(10 * 1000, 60 * 1000)
-    : 10 * 1000;
+    : randomBetween(1 * 1000, 10 * 1000);
   const scheduledReplyAt = Date.now() + delayMs;
   const msg = {
     id: uid(),
@@ -6369,11 +6357,23 @@ async function deletePeriod(id){
   await sSet('period-entries', periodEntries); renderPeriod();
 }
 function renderPeriod(){
-  [['periodList','periodPredict'],['compPeriodList','compPeriodPredict']].forEach(function(ids){
+  const WD = ['周日','周一','周二','周三','周四','周五','周六'];
+  [['periodList','periodPredict']].forEach(function(ids){
     const wrap = document.getElementById(ids[0]);
-    if(wrap) wrap.innerHTML = periodEntries.length ? [...periodEntries].reverse().map(e=>`
-    <div class="list-item"><div>${e.date}</div><span class="del" onclick="deletePeriod('${e.id}')">✕</span></div>`).join('')
-    : '<div class="empty-note">还没有记录</div>';
+    if(wrap){
+      if(periodEntries.length){
+        const rows = [...periodEntries].reverse().map(function(e){
+          const idx = periodEntries.indexOf(e);
+          const prev = idx > 0 ? periodEntries[idx-1] : null;
+          const gap = prev ? Math.round((new Date(e.date) - new Date(prev.date))/86400000) : null;
+          const wd = WD[new Date(e.date + 'T00:00:00').getDay()] || '';
+          return `<div class="list-item"><div><b>${e.date}</b><div class="meta">${wd}${gap !== null ? ' · 距上次 ' + gap + ' 天' : ' · 首次记录'}</div></div><span class="del" onclick="deletePeriod('${e.id}')">✕</span></div>`;
+        }).join('');
+        wrap.innerHTML = '<div class="pd-h">历史记录<small>共 ' + periodEntries.length + ' 次</small></div>' + rows;
+      } else {
+        wrap.innerHTML = '<div class="empty-note">还没有记录</div>';
+      }
+    }
     const predictBox = document.getElementById(ids[1]);
     if(!predictBox) return;
     if(periodEntries.length < 1){ predictBox.textContent = '记录至少一次开始日期后即可预测'; return; }
@@ -6383,9 +6383,13 @@ function renderPeriod(){
       for(let i=1;i<periodEntries.length;i++){ diffs.push((new Date(periodEntries[i].date)-new Date(periodEntries[i-1].date))/86400000); }
       avgCycle = Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length);
     }
-    const last = new Date(periodEntries[periodEntries.length-1].date);
+    const lastStr = periodEntries[periodEntries.length-1].date;
+    const last = new Date(lastStr);
     const next = new Date(last.getTime() + avgCycle*86400000);
-    predictBox.innerHTML = `平均周期约 <b>${avgCycle}</b> 天，预测下次开始日期：<b style="color:var(--rouge)">${next.toISOString().slice(0,10)}</b>`;
+    const daysLeft = Math.ceil((next.getTime() - Date.now())/86400000);
+    const tip = daysLeft > 0 ? '还有 ' + daysLeft + ' 天' : (daysLeft === 0 ? '就是今天' : '已过 ' + (-daysLeft) + ' 天');
+    predictBox.innerHTML = '<div class="pd-main"><small>预测下次开始</small><b>' + next.toISOString().slice(0,10) + '</b><span>' + tip + '</span></div>' +
+      '<div class="pd-stats"><div><b>' + avgCycle + '</b><small>平均周期（天）</small></div><div><b>' + periodEntries.length + '</b><small>已记录（次）</small></div><div><b>' + lastStr.slice(5) + '</b><small>上次开始</small></div></div>';
   });
 }
 
@@ -8423,23 +8427,43 @@ function renderAnnivPage(){
   }).join('');
 }
 function renderCompanionFavList(){
-  ['compFavList','favsViewList'].forEach(function(id){ const e=document.getElementById(id); if(e) _renderFavInto(e); });
+  ['favsViewList'].forEach(function(id){ const e=document.getElementById(id); if(e) _renderFavInto(e); });
+}
+var _favFilter = 'all';
+function setFavFilter(f){
+  _favFilter = f;
+  renderCompanionFavList();
 }
 function _renderFavInto(el){
-  const list = companionFavorites;
-  if(!list.length){
+  const all = companionFavorites;
+  if(!all.length){
     el.innerHTML = '<div class="empty-note">TA还没有收藏任何东西</div>';
     return;
   }
-  el.innerHTML = list.map(function(f){
+  const songs = all.filter(function(f){ return f.type === 'song'; }).length;
+  const msgs = all.length - songs;
+  const list = all.filter(function(f){
+    if(_favFilter === 'song') return f.type === 'song';
+    if(_favFilter === 'msg') return f.type !== 'song';
+    return true;
+  });
+  const tab = function(k, label, n){ return '<span class="fv-tab' + (_favFilter === k ? ' on' : '') + '" onclick="setFavFilter(\'' + k + '\')">' + label + '<em>' + n + '</em></span>'; };
+  let html = '<div class="fv-tabs">' + tab('all', '全部', all.length) + tab('song', '歌曲', songs) + tab('msg', '消息', msgs) + '</div>';
+  if(!list.length){
+    el.innerHTML = html + '<div class="empty-note">这一类还没有收藏</div>';
+    return;
+  }
+  html += list.map(function(f){
     const dt = formatMsgTime(f.at || Date.now());
+    const note = f.note ? '<div class="fv-n">' + escapeHtml(f.note) + '</div>' : '';
+    const del = '<span class="del" onclick="delCompanionFav(\'' + f.id + '\')">✕</span>';
     if(f.type === 'song'){
-      const sub = escapeHtml(f.artist || '') + ' · ' + dt + (f.note ? ' · ' + escapeHtml(f.note) : '');
-      return '<div class="list-item"><div><b>🎵 ' + escapeHtml(f.name || '未命名') + '</b><div class="meta">' + sub + '</div></div><span class="del" onclick="delCompanionFav(\'' + f.id + '\')">✕</span></div>';
+      return '<div class="fv-item"><div class="fv-ico">🎵</div><div class="fv-main"><div class="fv-t">' + escapeHtml(f.name || '未命名') + '</div><div class="fv-s">' + escapeHtml(f.artist || '未知歌手') + ' · ' + dt + '</div>' + note + '</div>' + del + '</div>';
     }
     const who = f.from === 'me' ? (profile.myName || '我') : (chatSettings.companionName || 'TA');
-    return '<div class="list-item"><div><div style="font-size:12.5px;line-height:1.5;">' + escapeHtml(f.content || '') + '</div><div class="meta">' + escapeHtml(who) + ' · ' + dt + (f.note ? ' · ' + escapeHtml(f.note) : '') + '</div></div><span class="del" onclick="delCompanionFav(\'' + f.id + '\')">✕</span></div>';
+    return '<div class="fv-item"><div class="fv-ico">💬</div><div class="fv-main"><div class="fv-t msg">' + escapeHtml(f.content || '') + '</div><div class="fv-s">' + escapeHtml(who) + ' · ' + dt + '</div>' + note + '</div>' + del + '</div>';
   }).join('');
+  el.innerHTML = html;
 }
 async function delCompanionFav(fid){
   const idx = companionFavorites.findIndex(function(f){ return f.id === fid; });
@@ -9591,50 +9615,57 @@ function openListenTogetherPanel(asInvite){
     : (st.active ? '等待对方回应…' : '粘贴网易云歌单链接，真正导入并播放');
   openOverlay(
     '<div class="drawer-head"><h3>🎵 一起听歌</h3><span class="close-x" onclick="closeOverlay();">✕</span></div>'+
-    '<div class="btn-row" style="justify-content:center;flex-wrap:wrap;margin:2px 0 8px;">'+
-      '<div class="btn outline" onclick="document.getElementById(\'vinylBgFile\').click()">🖼 换背景</div>'+
-      '<div class="btn outline" onclick="clearVinylBg()">默认背景</div>'+
-      '<div class="btn outline" onclick="openPlaylistPanel()">📋 查看歌单</div>'+
-      '<input type="file" id="vinylBgFile" accept="image/*" class="hidden" onchange="onVinylBgFile(event)">'+
-    '</div>'+
-    '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin:0 0 6px;" id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</div>'+
+    '<div class="tg-info"><span>'+statusText+'</span><span id="playlistCount">当前歌单 '+(st.playlistName ? '「'+st.playlistName+'」 ' : '')+st.playlist.length+' 首</span></div>'+
     togetherAvatarHtml()+
-    '<div style="text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:4px;">'+statusText+'</div>'+
     '<div class="vinyl-lyrics" id="vinylLyrics"></div>'+
-    '<div style="text-align:center;">'+
-      '<div style="font-family:\'Songti SC\', STSong, SimSun, \'Noto Serif CJK SC\', serif;font-weight:700;font-size:15px;" id="vinylSongName">'+songName+'</div>'+
-      '<div style="font-size:12px;color:var(--ink-soft);margin-top:4px;" id="vinylArtist">'+(artist||'—')+'</div>'+
-      (song && song.pic ? '<img id="vinylCover" src="'+song.pic+'" alt="" style="width:56px;height:56px;border-radius:6px;object-fit:cover;margin-top:8px;border:1px solid var(--rule);">' : '<div id="vinylCoverWrap"></div>')+
+    '<div class="tg-now">'+
+      (song && song.pic ? '<img id="vinylCover" src="'+song.pic+'" alt="" style="width:56px;height:56px;border-radius:6px;object-fit:cover;border:1px solid var(--rule);">' : '<div id="vinylCoverWrap"></div>')+
+      '<div class="tg-now-t">'+
+        '<div style="font-family:\'Songti SC\', STSong, SimSun, \'Noto Serif CJK SC\', serif;font-weight:700;font-size:16px;" id="vinylSongName">'+songName+'</div>'+
+        '<div style="font-size:12px;color:var(--ink-soft);margin-top:4px;" id="vinylArtist">'+(artist||'—')+'</div>'+
+      '</div>'+
     '</div>'+
     '<div class="song-progress-wrap">'+
       '<div class="song-progress-bar" style="cursor:pointer;" onclick="seekVinyl(event)"><div class="song-progress-fill" id="vinylProgress" style="width:'+pct+'%;"></div></div>'+
       '<div class="song-time-row"><span id="vinylCur">'+formatSongTime(st.progress)+'</span><span id="vinylDur">'+formatSongTime(st.duration)+'</span></div>'+
     '</div>'+
-    '<div class="btn-row" style="justify-content:center;flex-wrap:wrap;">'+
+    '<div class="tg-ctrl">'+
       '<div class="btn outline" onclick="vinylPrev()">⏮</div>'+
       '<div class="btn rouge" id="vinylPlayBtn" onclick="vinylTogglePlay()">'+(st.playing?'⏸ 暂停':'▶ 播放')+'</div>'+
       '<div class="btn outline" onclick="vinylNext()">⏭</div>'+
       '<div class="btn outline" id="vinylShuffleBtn" onclick="toggleVinylShuffle()">🔀 随机：'+(st.shuffle?'开':'关')+'</div>'+
     '</div>'+
     '<div id="vinylLoadTip" style="font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:6px;min-height:16px;"></div>'+
-    '<label class="field" style="margin-top:12px;">网易云歌单链接 / ID</label>'+
-    '<input type="text" id="neteasePlaylistInput" placeholder="例如 https://music.163.com/#/playlist?id=3778678 或直接填 3778678" style="width:100%;">'+
-    '<div class="btn-row" style="margin-top:8px;">'+
-      '<div class="btn rouge" onclick="importNeteasePlaylist()">导入网易云歌单</div>'+
-      ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteListenTogether()">邀请一起听</div>' : '')+
-      (st.active ? '<div class="btn outline" onclick="endListenTogether()">结束</div>' : '')+
+    '<div class="tg-sec"><div class="tg-sec-t">导入歌单</div>'+
+      '<label class="field">网易云歌单链接 / ID</label>'+
+      '<input type="text" id="neteasePlaylistInput" placeholder="例如 https://music.163.com/#/playlist?id=3778678 或直接填 3778678" style="width:100%;">'+
+      '<div class="tg-grid" style="margin-top:8px;">'+
+        '<div class="btn rouge" onclick="importNeteasePlaylist()">导入网易云歌单</div>'+
+        ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteListenTogether()">邀请一起听</div>' : '')+
+        (st.active ? '<div class="btn outline" onclick="endListenTogether()">结束</div>' : '')+
+      '</div>'+
+      '<p class="tg-hint">在网易云打开歌单 → 点分享 → 复制链接，粘贴到上面即可。公开歌单可导入；部分 VIP 歌曲可能无法试听。</p>'+
+      '<details style="margin-top:6px;font-size:12px;color:var(--ink-soft);"><summary style="cursor:pointer;">也可以手动粘贴歌名列表</summary>'+
+        '<textarea id="playlistImport" placeholder="每行：歌名 - 歌手" style="min-height:56px;margin-top:6px;"></textarea>'+
+        '<div class="btn-row"><div class="btn outline" onclick="importPlaylistText()">导入文本</div></div>'+
+      '</details>'+
     '</div>'+
-    '<div class="btn-row" style="margin-top:8px;flex-wrap:wrap;">'+
-      '<div class="btn outline" onclick="screenVinylPlayable()">🔍 筛查不能整曲播放的</div>'+
-      '<div class="btn outline" onclick="refreshVinylCurrentLink()">🔄 重新获取播放链接</div>'+
-      '<div class="btn outline" onclick="refreshAllVinylLinks()">🔄 全部重取链接</div>'+
-    '</div><div id="vinylScreenBox"></div>'+
-    '<div class="btn-row" style="margin-top:8px;">'+
-    '<p style="font-size:11px;color:var(--ink-soft);margin:8px 0 0;">在网易云打开歌单 → 点分享 → 复制链接，粘贴到上面即可。公开歌单可导入；部分 VIP 歌曲可能无法试听。</p>'+
-    '<details style="margin-top:10px;font-size:12px;color:var(--ink-soft);"><summary style="cursor:pointer;">也可以手动粘贴歌名列表</summary>'+
-      '<textarea id="playlistImport" placeholder="每行：歌名 - 歌手" style="min-height:56px;margin-top:6px;"></textarea>'+
-      '<div class="btn-row"><div class="btn outline" onclick="importPlaylistText()">导入文本</div></div>'+
-    '</details>'+
+    '<div class="tg-sec"><div class="tg-sec-t">歌单与背景</div>'+
+      '<div class="tg-grid">'+
+        '<div class="btn outline" onclick="openPlaylistPanel()">📋 查看歌单</div>'+
+        '<div class="btn outline" onclick="document.getElementById(\'vinylBgFile\').click()">🖼 换背景</div>'+
+        '<div class="btn outline" onclick="clearVinylBg()">默认背景</div>'+
+      '</div>'+
+      '<input type="file" id="vinylBgFile" accept="image/*" class="hidden" onchange="onVinylBgFile(event)">'+
+    '</div>'+
+    '<div class="tg-sec"><div class="tg-sec-t">播放工具</div>'+
+      '<div class="tg-grid">'+
+        '<div class="btn outline" onclick="screenVinylPlayable()">🔍 筛查不能整曲播放的</div>'+
+        '<div class="btn outline" onclick="refreshVinylCurrentLink()">🔄 重新获取播放链接</div>'+
+        '<div class="btn outline" onclick="refreshAllVinylLinks()">🔄 全部重取链接</div>'+
+      '</div>'+
+      '<div id="vinylScreenBox"></div>'+
+    '</div>'+
     '<div style="display:none;" id="playlistPreview"></div>'
   );
     renderPlaylistPreview();
@@ -14462,15 +14493,12 @@ const MALL_ITEMS = {
   daily: [
     {id:'d1', name:'洗衣液', emoji:'🧴', price:28},
     {id:'d2', name:'纸巾', emoji:'🧻', price:12},
-    {id:'d3', name:'牙膏', emoji:'🪥', price:15},
     {id:'d4', name:'洗发水', emoji:'🧴', price:45},
-    {id:'d5', name:'毛巾', emoji:'🧺', price:22},
     {id:'d6', name:'充电器', emoji:'🔌', price:39},
     {id:'d7', name:'沐浴露', emoji:'🧼', price:36},
     {id:'d8', name:'护手霜', emoji:'💅', price:29},
     {id:'d9', name:'垃圾袋', emoji:'🗑️', price:9},
     {id:'d10', name:'收纳盒', emoji:'📦', price:25},
-    {id:'d11', name:'拖鞋', emoji:'🩴', price:35},
     {id:'d12', name:'雨伞', emoji:'☂️', price:42},
     {id:'d13', name:'水杯', emoji:'🥤', price:28},
     {id:'d14', name:'充电宝', emoji:'🔋', price:89},
@@ -14491,7 +14519,6 @@ const MALL_ITEMS = {
     {id:'c7', name:'情侣戒指', emoji:'💍', price:299},
     {id:'c8', name:'情侣围巾', emoji:'🧣', price:78},
     {id:'c9', name:'情侣帽子', emoji:'🧢', price:55},
-    {id:'c10', name:'情侣拖鞋', emoji:'🩴', price:68},
     {id:'c11', name:'情侣抱枕', emoji:'🧸', price:89},
     {id:'c12', name:'情侣T恤', emoji:'👕', price:98},
     {id:'c13', name:'情侣手表', emoji:'⌚', price:258},
@@ -14544,10 +14571,94 @@ const MALL_ITEMS = {
 };
 const MALL_CAT_LABEL = { daily:'日常用品', couple:'情侣用品', food:'食物', memorial:'纪念品' };
 
+const MALL_WEEKLY_POOL = {
+  daily: [
+    {id:'wd1', name:'星空投影灯', emoji:'🌌', price:99},
+    {id:'wd2', name:'暖手宝', emoji:'🔥', price:45},
+    {id:'wd3', name:'猫爪杯', emoji:'🐾', price:52},
+    {id:'wd4', name:'迷你加湿器', emoji:'💧', price:59},
+    {id:'wd5', name:'小夜灯', emoji:'🌙', price:39},
+    {id:'wd6', name:'护颈枕', emoji:'😴', price:49},
+    {id:'wd7', name:'泡脚桶', emoji:'🫧', price:68},
+    {id:'wd8', name:'真丝眼罩', emoji:'😪', price:25},
+    {id:'wd9', name:'保温杯', emoji:'🍵', price:58},
+    {id:'wd10', name:'便携小风扇', emoji:'🌀', price:35},
+    {id:'wd11', name:'香薰机', emoji:'💨', price:88},
+    {id:'wd12', name:'懒人沙发垫', emoji:'🛋️', price:79}
+  ],
+  couple: [
+    {id:'wc1', name:'双人拼图', emoji:'🧩', price:68},
+    {id:'wc2', name:'星座项链', emoji:'⭐', price:128},
+    {id:'wc3', name:'约会骰子', emoji:'🎲', price:33},
+    {id:'wc4', name:'恋爱存钱罐', emoji:'🐷', price:56},
+    {id:'wc5', name:'一起种的小盆栽', emoji:'🌱', price:39},
+    {id:'wc6', name:'双人手账本', emoji:'📔', price:42},
+    {id:'wc7', name:'情侣冰箱贴', emoji:'🧲', price:29},
+    {id:'wc8', name:'旋转木马音乐盒', emoji:'🎠', price:108},
+    {id:'wc9', name:'双人电影票', emoji:'🎬', price:90},
+    {id:'wc10', name:'情侣对杯', emoji:'🥂', price:76},
+    {id:'wc11', name:'情侣头像盲盒', emoji:'🎭', price:45},
+    {id:'wc12', name:'情侣挂件', emoji:'🎀', price:32}
+  ],
+  food: [
+    {id:'wf1', name:'糖葫芦', emoji:'🍡', price:12},
+    {id:'wf2', name:'烤红薯', emoji:'🍠', price:14},
+    {id:'wf3', name:'关东煮', emoji:'🍢', price:26},
+    {id:'wf4', name:'章鱼小丸子', emoji:'🐙', price:22},
+    {id:'wf5', name:'提拉米苏', emoji:'🍮', price:38},
+    {id:'wf6', name:'热巧克力', emoji:'☕', price:24},
+    {id:'wf7', name:'螺蛳粉', emoji:'🍜', price:29},
+    {id:'wf8', name:'草莓大福', emoji:'🍓', price:20},
+    {id:'wf9', name:'抹茶千层', emoji:'🍵', price:36},
+    {id:'wf10', name:'桂花糕', emoji:'🌼', price:24},
+    {id:'wf11', name:'麻辣烫', emoji:'🍲', price:32},
+    {id:'wf12', name:'爆米花', emoji:'🍿', price:18}
+  ],
+  memorial: [
+    {id:'wm1', name:'星空许愿瓶', emoji:'🫙', price:59},
+    {id:'wm2', name:'时光胶囊', emoji:'⏳', price:88},
+    {id:'wm3', name:'手写情书套装', emoji:'💌', price:36},
+    {id:'wm4', name:'定制星图', emoji:'🌠', price:168},
+    {id:'wm5', name:'纪念日台历', emoji:'📅', price:49},
+    {id:'wm6', name:'拍立得相纸', emoji:'🖼️', price:45},
+    {id:'wm7', name:'水晶球', emoji:'🔮', price:128},
+    {id:'wm8', name:'许愿卡片', emoji:'🎴', price:18},
+    {id:'wm9', name:'一百件小事清单', emoji:'✅', price:38},
+    {id:'wm10', name:'相册本', emoji:'📖', price:68},
+    {id:'wm11', name:'宝丽来相机', emoji:'📷', price:399},
+    {id:'wm12', name:'情侣签名杯垫', emoji:'🥤', price:32}
+  ]
+};
+function mallWeekSeed(){
+  const d = new Date();
+  const off = (d.getDay() + 6) % 7;
+  const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - off);
+  return mon.getFullYear()*10000 + (mon.getMonth()+1)*100 + mon.getDate();
+}
+function mallSeeded(seed){
+  let a = seed >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function mallWeeklyItems(cat){
+  const key = String(cat || '');
+  const pool = (MALL_WEEKLY_POOL[key] || []).slice();
+  const rnd = mallSeeded(mallWeekSeed() * 31 + key.length * 7 + (key.charCodeAt(0) || 0));
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(rnd() * (i + 1));
+    const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  return pool.slice(0, 6).map(function(x){ return Object.assign({}, x, { weekly:true }); });
+}
 function mallGetItems(cat){
   const base = (MALL_ITEMS[cat] || []).slice();
   const custom = (mallState.customItems || []).filter(x => x.cat === cat);
-  return base.concat(custom);
+  return mallWeeklyItems(cat).concat(base, custom);
 }
 function mallFindItem(itemId, cat){
   if(cat){
@@ -14694,7 +14805,8 @@ function renderMall(initialCat){
 }
 const MALL_GROUPS = [
   { id:'browse', n:'逛', cats:[['daily','日常用品'],['couple','情侣用品'],['food','食物'],['memorial','纪念品']] },
-  { id:'mine', n:'我的', cats:[['cart','购物车'],['gifts','礼物柜'],['ledger','流水']] },
+  { id:'cart', n:'购物车', cats:[['cart','购物车']] },
+  { id:'mine', n:'我的', cats:[['gifts','礼物柜'],['ledger','流水']] },
   { id:'setting', n:'设置', cats:[['custom','自定义商品'],['settings','自动购买']] }
 ];
 function mallGroupOf(cat){ return MALL_GROUPS.find(g=>g.cats.some(c=>c[0]===cat)) || MALL_GROUPS[0]; }
@@ -14702,18 +14814,25 @@ function mallSyncGroup(cat){
   const g = mallGroupOf(cat);
   const seg = document.getElementById('mlSeg');
   const sub = document.getElementById('mlSub');
-  if(seg) seg.innerHTML = MALL_GROUPS.map(x=>`<div class="ml-seg-i${x.id===g.id?' on':''}" onclick="mallShowCat('${x.cats[0][0]}')">${x.n}</div>`).join('');
+  if(seg) seg.innerHTML = MALL_GROUPS.map(x=>`<div class="ml-seg-i${x.id===g.id?' on':''}" onclick="mallShowCat('${x.cats[0][0]}')">${x.n}${x.id==='cart'?mallBadgeHtml():''}</div>`).join('');
+  if(sub) sub.style.display = g.cats.length > 1 ? '' : 'none';
   if(sub) sub.innerHTML = g.cats.map(c=>`<span class="mb-tab ml-sub-i" data-cat="${c[0]}" onclick="mallShowCat('${c[0]}',this)">${c[1]}</span>`).join('');
-  mallUpdateCartBar(g.id);
 }
-function mallUpdateCartBar(gid){
-  const bar = document.getElementById('mallCartBar');
-  if(!bar) return;
-  const n = (mallState && Array.isArray(mallState.cart)) ? mallState.cart.length : 0;
-  const g = gid || mallGroupOf(mallState._lastCat || 'daily').id;
-  bar.classList.toggle('hidden', !(n>0 && g==='browse'));
-  const t = document.getElementById('mallCartTxt');
-  if(t) t.textContent = '购物车 · '+n+' 件';
+function mallCartCount(){
+  return (mallState && Array.isArray(mallState.cart)) ? mallState.cart.length : 0;
+}
+function mallBadgeHtml(){
+  const n = mallCartCount();
+  return '<em class="ml-bdg' + (n > 0 ? '' : ' hidden') + '">' + n + '</em>';
+}
+function mallUpdateCartBar(){
+  const n = mallCartCount();
+  document.querySelectorAll('#view-mall .ml-bdg').forEach(function(e){
+    const changed = e.textContent !== String(n);
+    e.textContent = n;
+    e.classList.toggle('hidden', n <= 0);
+    if(changed && n > 0){ e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); }
+  });
 }
 function mallShowCat(cat, el){
   mallState._lastCat = cat;
@@ -14863,13 +14982,17 @@ function mallShowCat(cat, el){
   }
 
   const items = mallGetItems(cat);
-  box.innerHTML = '<div class="ml-grid">' + items.map(it=>{
+  const catLabel = (typeof MALL_CAT_LABEL !== 'undefined' && MALL_CAT_LABEL[cat]) || '';
+  box.innerHTML = '<div class="ml-shead"><div><b>' + catLabel + '</b><small>' + (items.some(x=>x.weekly) ? '每周一轮换 · 本周上新 ' + items.filter(x=>x.weekly).length + ' 件' : '挑一件，买给 ' + safeName + ' 或先放进购物车') + '</small></div><em>共 ' + items.length + ' 件</em></div><div class="ml-grid">' + items.map(it=>{
     const isCustom = String(it.id||'').startsWith('custom-');
     return `<div class="ml-card">
       <div class="ml-pic">${it.emoji}</div>
-      <div class="ml-name">${it.name}${isCustom?'<span class="ml-tag">自定义</span>':''}</div>
-      <div class="ml-row"><span class="ml-price">¥${it.price}</span><span class="ml-add" onclick="mallAddToCart('${it.id}','${cat}')">+</span></div>
-      <div class="ml-buy" onclick="mallBuy('${it.id}','${cat}','me')">买给${safeName}</div>
+      <div class="ml-name">${it.name}${isCustom?'<span class="ml-tag">自定义</span>':(it.weekly?'<span class="ml-tag wk">本周</span>':'')}</div>
+      <div class="ml-price">¥${it.price}</div>
+      <div class="ml-act">
+        <div class="ml-add" onclick="mallAddToCart('${it.id}','${cat}')">加入购物车</div>
+        <div class="ml-buy" onclick="mallBuy('${it.id}','${cat}','me')">买给${safeName}</div>
+      </div>
     </div>`;
   }).join('') + '</div>';
 }
@@ -14955,7 +15078,7 @@ async function mallAddToCart(itemId, cat){
   }
   mallState.cart.push({name:it.name, emoji:it.emoji, price:it.price});
   await saveMallState();
-  _flashToast('已加入购物车：'+it.name+'（共 '+mallState.cart.length+' 件）', false);
+  _flashToast('已添加一件商品到购物车', false);
   mallUpdateCartBar();
   /* 不再自动跳转购物车：加完留在当前分类，可继续加，之后手动点「购物车」查看 */
 }
@@ -15698,26 +15821,36 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 #view-chat .chat-input-bar .mini-btn:last-child{background:#22262B}
 #view-chat .chat-input-bar .mini-btn:last-child svg{stroke:#fff}
 #view-mall .view-head h2,#view-diary .view-head h2{font-family:inherit;font-weight:500;letter-spacing:2px}
-.ml-seg{display:flex;background:#E6EBF0;border-radius:14px;padding:3px;margin-top:4px}
-.ml-seg-i{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7A828C;border-radius:11px}
-.ml-seg-i.on{background:#fff;color:#22262B;font-weight:500;box-shadow:0 2px 8px -4px rgba(60,80,100,.25)}
-.ml-sub{display:flex;gap:24px;margin:16px 2px 2px;overflow-x:auto;scrollbar-width:none}
+#view-mall .view-head h2.ml-title{flex:1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;line-height:1.15;letter-spacing:1px;font-weight:800;margin:0 0 0 4px;}
+#view-mall .view-head h2.ml-title small{font-family:'Courier New',monospace;font-size:10px;font-weight:400;letter-spacing:2px;color:#8A929C;}
+#view-mall .view-head h2.ml-title span{font-size:22px;color:#22262B;}
+.ml-seg{display:flex;gap:6px;padding:0;margin-top:6px;background:none;}
+.ml-seg-i{flex:1;text-align:center;padding:10px 0;font-size:13.5px;font-weight:600;color:#7A828C;border-radius:14px;background:transparent;}
+.ml-seg-i.on{background:#22262B;color:#fff;box-shadow:0 6px 14px -8px rgba(34,38,43,.45);}
+.ml-shead{display:flex;justify-content:space-between;align-items:flex-end;margin:18px 2px 0;}
+.ml-shead b{display:block;font-size:19px;font-weight:800;color:#22262B;letter-spacing:1px;}
+.ml-shead small{display:block;margin-top:3px;font-size:12px;color:#8A929C;}
+.ml-shead em{font-style:normal;font-size:11.5px;color:#8A929C;}
+.ml-sub{display:flex;gap:8px;margin:14px 0 0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
 .ml-sub::-webkit-scrollbar{display:none}
-#view-mall .ml-sub .mb-tab{flex:0 0 auto;padding:0 0 6px;border:none;border-bottom:1.5px solid transparent;border-radius:0;background:transparent;font-size:14px;font-weight:400;letter-spacing:0;color:#8A929C}
-#view-mall .ml-sub .mb-tab.on{background:transparent;color:#22262B;border-bottom-color:#22262B}
+#view-mall .ml-sub .mb-tab{flex:0 0 auto;padding:8px 16px;border:1.5px solid transparent;border-radius:999px;background:#E6EBF0;font-size:13px;font-weight:600;letter-spacing:.5px;color:#5A626C;}
+#view-mall .ml-sub .mb-tab.on{background:#fff;color:#22262B;border-color:#22262B;}
 .ml-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-.ml-card{display:flex;flex-direction:column;background:#fff;border-radius:18px;padding:10px 10px 12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.ml-pic{aspect-ratio:1/1;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:48px}
-.ml-name{display:flex;align-items:center;min-width:0;font-size:13.5px;font-weight:500;margin-top:10px;color:#22262B;white-space:nowrap}
-.ml-name .ml-tag{flex:none}
-.ml-tag{font-size:10px;color:#8A929C;margin-left:6px}
-.ml-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:10px}
-.ml-price{font-size:14px;font-weight:600;color:#22262B;letter-spacing:.3px}
-.ml-add{width:28px;height:28px;border-radius:50%;background:#22262B;color:#fff;font-size:17px;line-height:27px;text-align:center;flex:none}
-.ml-buy{margin-top:auto;padding:8px 0;border-radius:12px;background:#F4F6F8;text-align:center;font-size:12px;letter-spacing:1px;color:#5A626C}
-.ml-cartbar{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:448px;margin:0 auto;height:54px;border-radius:27px;background:#22262B;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 22px;font-size:13px;letter-spacing:1px;z-index:30}
-.ml-cartbar.hidden{display:none}
-.ml-cartgo{height:38px;padding:0 20px;border-radius:19px;background:#fff;color:#22262B;line-height:38px}
+.ml-card{display:flex;flex-direction:column;background:#fff;border:1px solid rgba(60,80,100,.08);border-radius:20px;padding:10px;box-shadow:0 10px 24px -14px rgba(60,80,100,.2);}
+.ml-pic{height:104px;border-radius:14px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:54px;}
+.ml-name{display:block;text-align:center;min-width:0;font-size:14.5px;font-weight:700;margin-top:10px;color:#22262B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ml-tag{display:inline-block;font-size:10px;font-weight:400;color:#fff;background:#8A929C;border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:2px;}
+.ml-price{text-align:center;font-size:17px;font-weight:800;color:#22262B;margin-top:3px;letter-spacing:.5px;}
+.ml-act{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.ml-add,.ml-buy{height:34px;line-height:34px;border-radius:12px;text-align:center;font-size:12.5px;font-weight:700;letter-spacing:1px;}
+.ml-add{border:1.2px solid #B8C2CE;color:#4A5560;background:#fff;}
+.ml-buy{background:#22262B;color:#fff;box-shadow:0 6px 12px -8px rgba(34,38,43,.4);}
+.ml-add:active,.ml-buy:active{transform:scale(.97);}
+.ml-bdg{display:inline-block;min-width:16px;height:16px;padding:0 4px;margin-left:5px;box-sizing:border-box;border-radius:8px;background:#E5484D;color:#fff;font-size:10px;font-style:normal;font-weight:800;line-height:16px;text-align:center;vertical-align:1px;}
+.ml-bdg.hidden{display:none}
+.ml-bdg.pop{animation:mlPop .32s ease;}
+@keyframes mlPop{0%{transform:scale(.4)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.ml-tag.wk{background:#3E7CB1;}
 .dy-top{display:flex;justify-content:space-between;align-items:baseline;margin:8px 4px 0}
 .dy-month{font-size:30px;font-weight:200;letter-spacing:1px}
 .dy-year{font-size:11px;letter-spacing:2px;color:#8A929C;margin-left:10px}
@@ -15760,19 +15893,19 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .dy-sheet .btn{background:#22262B;color:#fff;border:none;border-radius:22px;box-shadow:none}
 .dy-sheet .btn.outline{background:transparent;color:#5A626C;border:1px solid #D5DCE3}
 .dy-sheet .chip{border-radius:12px}
-.ml-li{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-li{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;border:1px solid rgba(60,80,100,.08);box-shadow:0 10px 24px -14px rgba(60,80,100,.2)}
 .ml-li-e{flex:none;width:48px;height:48px;border-radius:12px;background:#EEF1F4;display:flex;align-items:center;justify-content:center;font-size:26px}
 .ml-li-m{flex:1;min-width:0}
-.ml-li-n{font-weight:500;font-size:14px;color:#22262B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml-li-n{font-weight:700;font-size:14px;color:#22262B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ml-li-s{font-size:11.5px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
 .ml-li-p{font-size:13px;color:var(--rouge);font-weight:600}
 .ml-li-b{flex:none;padding:5px 12px!important;font-size:11px!important;color:var(--rouge)}
 .ml-hint{font-size:12px;color:var(--ink-soft);margin:4px 2px 10px}
 .ml-empty{text-align:center;color:var(--ink-soft);padding:40px 10px;font-size:13px;line-height:1.8}
-.ml-panel{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
-.ml-led{background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;box-shadow:0 8px 24px -12px rgba(60,80,100,.18)}
+.ml-panel{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid rgba(60,80,100,.08);box-shadow:0 10px 24px -14px rgba(60,80,100,.2)}
+.ml-led{background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;border:1px solid rgba(60,80,100,.08);box-shadow:0 10px 24px -14px rgba(60,80,100,.2)}
 .ml-led-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.ml-led-t{font-weight:500;font-size:13.5px;line-height:1.5;color:#22262B}
+.ml-led-t{font-weight:700;font-size:13.5px;line-height:1.5;color:#22262B}
 .ml-led-a{font-weight:600;white-space:nowrap;font-size:14px}
 
 .msg.gift-card, .msg.wish-card, .msg.cart-card, .msg.invite-card-msg, .msg.checkin-card{
@@ -15916,6 +16049,44 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .cw-rr label{flex:1;font-size:11px;color:var(--ink-soft);display:flex;flex-direction:column;gap:3px;}
 .cw-rr input{padding:7px 8px;border:1px solid var(--rule);border-radius:10px;background:#fff;font-size:13px;width:100%;box-sizing:border-box;}
 .cw-badge{flex:none;min-width:52px;text-align:center;color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:5px 8px;}
+.pd-main{padding:4px 0 14px;border-bottom:1px solid var(--rule);margin-bottom:12px;}
+.pd-main small{display:block;font-size:11px;letter-spacing:2px;color:var(--ink-soft);}
+.pd-main b{display:block;font-size:30px;font-weight:700;color:var(--rouge);margin:4px 0 2px;letter-spacing:1px;}
+.pd-main span{font-size:12.5px;color:var(--ink-soft);}
+.pd-stats{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;}
+.pd-stats>div+div{border-left:1px solid var(--rule);}
+.pd-stats b{display:block;font-size:19px;font-weight:700;}
+.pd-stats small{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.pd-h{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 6px;font-size:13px;font-weight:700;letter-spacing:1px;}
+.pd-h small{font-weight:400;font-size:11.5px;color:var(--ink-soft);letter-spacing:0;}
+.pd-add{display:flex;gap:10px;align-items:stretch;}
+.pd-add input{flex:1;min-width:0;}
+.pd-add .btn{flex:none;display:flex;align-items:center;}
+.fv-tabs{display:flex;gap:18px;margin:0 0 4px;border-bottom:1px solid var(--rule);}
+.fv-tab{padding:6px 0 8px;font-size:13px;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.fv-tab em{font-style:normal;font-size:11px;margin-left:4px;opacity:.7;}
+.fv-tab.on{color:var(--ink);font-weight:700;border-bottom-color:var(--rouge);}
+.fv-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--rule);}
+.fv-item:last-child{border-bottom:0;}
+.fv-ico{flex:none;width:28px;text-align:center;font-size:18px;line-height:1.4;}
+.fv-main{flex:1;min-width:0;}
+.fv-t{font-size:14px;font-weight:700;line-height:1.5;word-break:break-word;}
+.fv-t.msg{font-size:13.5px;font-weight:400;}
+.fv-s{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+.fv-n{font-size:12px;color:var(--ink-soft);margin-top:5px;padding-left:8px;border-left:2px solid var(--rule);line-height:1.5;}
+.tg-info{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;color:var(--ink-soft);margin:2px 0 8px;}
+.tg-info span:last-child{flex:none;}
+.tg-now{display:flex;align-items:center;justify-content:center;margin:10px 0 6px;}
+.tg-now img{margin:0 12px 0 0 !important;flex:none;}
+.tg-now-t{min-width:0;text-align:center;}
+.tg-now img + .tg-now-t{text-align:left;}
+.tg-ctrl{display:grid;grid-template-columns:1fr 2fr 1fr 1.6fr;gap:8px;margin-top:10px;}
+.tg-ctrl .btn{display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;padding-left:4px;padding-right:4px;}
+.tg-sec{margin-top:16px;padding-top:12px;border-top:1px solid var(--rule);}
+.tg-sec-t{font-size:11px;letter-spacing:2px;color:var(--ink-soft);margin-bottom:8px;}
+.tg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tg-grid .btn{display:flex;align-items:center;justify-content:center;text-align:center;}
+.tg-hint{font-size:11px;line-height:1.6;color:var(--ink-soft);margin:8px 0 0;}
 </style>
 </body>
 </html>
