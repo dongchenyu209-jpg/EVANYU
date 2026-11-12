@@ -1501,6 +1501,47 @@
   #view-home #homePage1 .pola-fan{--pw:clamp(124px,min(55vw,calc(100cqh - 88px)),190px)!important;}
 }
 
+
+/* ===== DREAM CORNER MODULES ===== */
+.dl-page{padding:12px 14px 100px;overflow-y:auto;height:calc(100% - 52px);}
+.dl-hero{background:linear-gradient(145deg,#1c1b17,#30291d);color:#e8d8a8;border:1px solid #77653c;border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 12px 28px rgba(0,0,0,.12)}
+.dl-hero small{font:10px Georgia,serif;letter-spacing:2px;color:#bda76d}.dl-hero h2{font:22px Georgia,'Songti SC',serif;margin:9px 0 5px;color:#ead9a9}.dl-hero p{font-size:12px;color:#c3b58d;margin:0;line-height:1.6}
+.dl-tabs{display:flex;gap:6px;overflow-x:auto;padding:3px 0 10px;margin-bottom:8px;scrollbar-width:none}.dl-tabs button{border:1px solid var(--rule);background:var(--glass-bg);color:var(--ink-soft);border-radius:999px;padding:7px 13px;white-space:nowrap;font-size:12px}.dl-tabs button.on{background:#29251b;color:#e5d39c;border-color:#9b8350}
+.dl-preferences{display:grid;grid-template-columns:1fr auto;gap:6px;margin:0 0 10px;padding:10px;border:1px solid var(--rule);border-radius:12px;background:var(--glass-bg)}.dl-preferences label{grid-column:1/-1;font-size:11px;font-weight:700}.dl-preferences input{min-width:0;border:1px solid var(--rule);border-radius:8px;padding:8px;background:var(--card-bg);color:var(--ink);font-size:12px}.dl-preferences button{border:0;border-radius:8px;background:#29251b;color:#e8d8a8;padding:0 10px;font-size:11px}.dl-preferences small{grid-column:1/-1;font-size:10px;color:var(--ink-soft)}.dl-add{display:grid;grid-template-columns:1fr;gap:7px;background:var(--card-bg);border:1px solid var(--rule);padding:10px;border-radius:14px;margin-bottom:12px}.dl-add input,.dl-add select{width:100%;border:1px solid var(--rule);background:var(--glass-bg);padding:10px 12px;border-radius:10px;color:var(--ink);font-size:13px}.dl-add button{border:0;border-radius:10px;background:#2a261c;color:#e8d8a8;padding:10px;font-weight:600}
+.dl-player-wrap{background:var(--card-bg);border:1px solid var(--rule);border-radius:16px;padding:10px;margin-bottom:10px}.dl-player-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}.dl-player-title b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dl-player-title a{color:var(--rouge);white-space:nowrap;text-decoration:none}.dl-player{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-radius:10px;overflow:hidden}.dl-player iframe{width:100%;height:100%;border:0}.dl-reaction{padding:11px 13px;border:1px solid rgba(181,153,91,.4);background:rgba(195,171,117,.1);border-radius:12px;margin-bottom:12px}.dl-reaction span{font-size:10px;letter-spacing:1px;color:#9b7f42}.dl-reaction p{font-size:13px;margin:5px 0}.dl-reaction small{font-size:10px;color:var(--ink-soft)}
+.dl-video-card{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule)}.dl-video-cover{width:104px;min-width:104px;aspect-ratio:16/10;background:linear-gradient(145deg,#29251d,#55452c);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#e8d8a8;font-size:24px;position:relative;cursor:pointer}.dl-video-cover small{position:absolute;bottom:5px;left:7px;font-size:9px;color:#e8d8a8}.dl-video-info{min-width:0;flex:1}.dl-video-info>b{font-size:13px;line-height:1.45;display:block}.dl-video-info>small{font-size:10px;color:var(--ink-soft);display:block;margin-top:4px}.dl-video-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.dl-video-actions button{font-size:10px;padding:5px 7px;border-radius:7px;border:1px solid var(--rule);background:var(--glass-bg);color:var(--ink)}.dl-footnote{font-size:10px;line-height:1.6;color:var(--ink-soft);margin:14px 2px}
+.dl-daily-summary{font-size:11px;line-height:1.6;color:var(--ink-soft);padding:9px 11px;background:rgba(181,153,91,.08);border:1px solid rgba(181,153,91,.25);border-radius:11px;margin-bottom:10px}.dl-daily-summary:empty{display:none}.dl-daily-summary b{display:block;color:var(--ink);font-size:11px;margin-bottom:3px}.dl-daily-summary p{margin:0}.dl-upload-btn{width:100%;padding:10px;border-radius:10px;border:1px solid #a58d56;background:rgba(181,153,91,.12);color:var(--ink);font-size:12px;margin:0 0 8px}.dl-empty{padding:24px 14px;text-align:center;color:var(--ink-soft);background:var(--glass-bg);border:1px dashed var(--rule);border-radius:14px;font-size:12px;line-height:1.7}.dl-empty b{font-size:14px;color:var(--ink)}.dl-empty p{margin:7px 0 0}
+/* Status card — pastel personal-file layout inspired by the supplied reference */
+.sc-mask{background:rgba(28,28,25,.30);backdrop-filter:blur(7px);align-items:center;padding:16px 12px}
+.sc-card{position:relative;width:min(100%,620px);max-height:calc(100dvh - 32px);overflow:auto;padding:28px 24px 22px;color:#35423b;border:1px solid rgba(255,255,255,.82);border-radius:30px;background:linear-gradient(135deg,#efd4d8 0%,#eee8d8 47%,#bfd2b8 100%);box-shadow:0 16px 42px rgba(45,55,43,.16)}
+.sc-x{position:absolute;top:18px;right:18px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.48);color:#566258;border:1px solid rgba(100,110,100,.18);border-radius:12px;font-size:21px;cursor:pointer}
+.sc-kicker{font:700 10px Arial,sans-serif;letter-spacing:2px;color:#46544a;margin:0 0 22px}
+.sc-tabs{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 28px;font:700 10px Arial,sans-serif;letter-spacing:1px;color:#69796b}
+.sc-tabs span{padding:9px 11px;border-radius:22px}
+.sc-tabs span:first-child{background:#b97989;color:white;box-shadow:0 3px 10px rgba(120,65,82,.12)}
+.sc-top{display:flex;align-items:center;gap:16px;padding:0 0 20px}
+.sc-av{width:108px;height:108px;flex:0 0 108px;border-radius:24px;background:linear-gradient(145deg,#cbd4df,#929fb3);box-shadow:0 0 0 2px rgba(188,133,151,.55),0 5px 14px rgba(45,55,65,.15);font-size:45px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sc-av img{width:100%;height:100%;object-fit:cover}
+.sc-id{padding:0;min-width:0}
+.sc-en{color:#899087;font:10px Arial,sans-serif;letter-spacing:2px;margin-bottom:9px}
+.sc-name{font-size:25px;font-weight:700;color:#354239;line-height:1.2}
+.sc-name i{color:#b97989;font-style:normal}
+.sc-status-line{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#b36f82}
+.sc-status-line span{color:#718071}
+.sc-row{background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:25px;padding:19px 20px;margin:0 0 15px;color:#39463d;box-shadow:0 5px 18px rgba(70,80,65,.045)}
+.sc-current{display:flex;justify-content:center;text-align:center;min-height:170px;align-items:center}
+.sc-row-m{width:100%}
+.sc-row-m small{display:block;color:#38463c;letter-spacing:1.5px;font-size:11px;font-weight:700}
+.sc-row-m strong{display:block;font-size:16px;color:#4b584d;margin:12px 0}
+.sc-num{font-size:22px;font-weight:700;color:#39463d;margin:5px 0 12px}
+.sc-num span{display:inline-flex;background:#b97989;color:#fff;border-radius:50%;width:29px;height:29px;align-items:center;justify-content:center;font-size:15px;margin-left:5px}
+.sc-bar{height:5px;background:rgba(76,91,79,.15);border-radius:10px;overflow:hidden}
+.sc-bar i{display:block;height:100%;background:#53645a!important;border-radius:10px}
+.sc-away{min-height:145px}
+.sc-away .sc-row-m>b{display:block;font-size:15px;margin:11px 0 8px;color:#3f4c42}
+.sc-row-m em{display:block;color:#4c594f;font-size:14px;line-height:1.9;font-style:normal;white-space:pre-wrap}
+.sc-foot{text-align:center;font-size:11px;color:#778477;letter-spacing:1px;padding:2px 0 0}
+@media(max-width:380px){.sc-card{padding:24px 16px 18px}.sc-tabs{font-size:8px;gap:3px}.sc-tabs span{padding:8px 7px}.sc-av{width:88px;height:88px;flex-basis:88px}.sc-name{font-size:22px}}
 </style>
 
 <style id="ui-followup-only">
@@ -1510,6 +1551,80 @@
 #view-home #homePage1 .anniv-text b{font-size:25px!important;}
 #view-home #homePage1 .anniv-deco{font-size:13px!important;}
 #view-home #homePage1 .anniv-deco.sub{font-size:7px!important;letter-spacing:4px!important;}
+</style>
+
+<style id="home-page2-mobile-fix">
+/* 第二页修复：保留原站灰白毛玻璃配色；仅在内容区内部纵向滚动 */
+#view-home #homePage2{width:100%;min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden!important;}
+#view-home #homePage2 .h2-scroll{
+  display:flex!important;flex:1 1 auto!important;min-height:0!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  justify-content:flex-start!important;gap:10px!important;
+  padding:4px 7px 16px!important;box-sizing:border-box!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
+}
+#view-home #homePage2 .h2-scroll>*{max-width:100%;min-width:0;box-sizing:border-box;}
+#view-home #homePage2 .h2-cols{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;width:100%!important;max-width:100%!important;min-width:0!important;
+  flex:0 0 auto!important;box-sizing:border-box!important;
+}
+#view-home #homePage2 .h2-mini{width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;}
+#view-home #homePage2 .h2-mini .h2-txt{min-width:0!important;flex:1 1 auto!important;}
+#view-home #homePage2 .h2-mini .h2-txt b,#view-home #homePage2 .h2-mini .h2-txt small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#view-home #homePage2 .home-ebook-feature{
+  display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+  flex:0 0 auto!important;margin:2px 0 8px!important;padding:16px 14px 14px!important;
+  border:1px solid rgba(255,255,255,.82)!important;border-radius:24px!important;
+  background:rgba(255,255,255,.62)!important;color:var(--ink)!important;
+  box-shadow:0 6px 22px rgba(90,60,70,.09)!important;
+  -webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+}
+#view-home #homePage2 .home-ebook-feature:before{display:none!important;}
+#view-home #homePage2 .home-ebook-topline{color:var(--ink-soft)!important;letter-spacing:2px!important;}
+#view-home #homePage2 .home-ebook-spark{color:var(--rouge)!important;}
+#view-home #homePage2 .home-ebook-heading{display:flex;gap:10px;align-items:center;min-width:0;}
+#view-home #homePage2 .home-ebook-icon{width:44px!important;height:44px!important;flex:0 0 44px!important;background:rgba(255,255,255,.78)!important;color:var(--ink)!important;box-shadow:0 2px 8px rgba(90,60,70,.1)!important;font-size:24px!important;}
+#view-home #homePage2 .home-ebook-heading-copy{min-width:0!important;flex:1 1 auto!important;}
+#view-home #homePage2 .home-ebook-heading-copy h3{font-family:inherit!important;color:var(--ink)!important;font-size:19px!important;letter-spacing:1px!important;}
+#view-home #homePage2 .home-ebook-heading-copy p{color:var(--ink-soft)!important;letter-spacing:.3px!important;line-height:1.5!important;}
+#view-home #homePage2 .home-ebook-import{max-width:112px!important;padding:8px 10px!important;background:var(--rouge)!important;color:#fff!important;border:0!important;white-space:nowrap!important;}
+#view-home #homePage2 .home-ebook-shelf{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;
+  width:100%!important;min-height:0!important;height:auto!important;margin:13px 0 11px!important;
+  padding:10px!important;border-radius:17px!important;background:rgba(255,255,255,.35)!important;
+  border:1px solid rgba(255,255,255,.72)!important;overflow:visible!important;box-sizing:border-box!important;
+}
+#view-home #homePage2 .home-ebook-shelf:after,#view-home #homePage2 .home-ebook-shelf-deco{display:none!important;}
+#view-home #homePage2 .home-ebook-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:112px;width:100%;text-align:center;color:var(--ink-soft);font-size:13px;}
+#view-home #homePage2 .home-ebook-empty-icon{display:grid;place-items:center;width:34px;height:34px;border:1px dashed rgba(42,36,31,.25);border-radius:50%;font-size:22px;color:var(--ink-soft);}
+#view-home #homePage2 .home-ebook-empty small{font-size:10px;color:var(--ink-soft);}
+#view-home #homePage2 .home-ebook-entry{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:9px;border-radius:13px;background:rgba(255,255,255,.66);border:1px solid rgba(255,255,255,.8);box-sizing:border-box;}
+#view-home #homePage2 .home-ebook-filetype{display:grid;place-items:center;flex:0 0 42px;width:42px;height:48px;border-radius:7px;background:rgba(42,36,31,.07);border:1px solid rgba(42,36,31,.12);color:var(--ink-soft);font:600 9px Georgia,serif;letter-spacing:.3px;}
+#view-home #homePage2 .home-ebook-entry-copy{display:flex;flex-direction:column;gap:3px;flex:1 1 auto;min-width:0;}
+#view-home #homePage2 .home-ebook-entry-copy strong{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#view-home #homePage2 .home-ebook-entry-copy small{font-size:9px;color:var(--ink-soft);}
+#view-home #homePage2 .home-ebook-read,#view-home #homePage2 .home-ebook-invite{flex:0 0 auto;border:0;border-radius:999px;padding:7px 9px;font-size:10px;white-space:nowrap;background:rgba(42,36,31,.07);color:var(--ink);}
+#view-home #homePage2 .home-ebook-invite{background:var(--rouge)!important;color:white!important;}
+#view-home #homePage2 .home-ebook-footer{background:rgba(255,255,255,.5)!important;border:1px solid rgba(255,255,255,.75)!important;}
+#view-home #homePage2 .home-ebook-count strong{color:var(--ink)!important;}
+#view-home #homePage2 .home-ebook-count small,#view-home #homePage2 .home-ebook-note{color:var(--ink-soft)!important;}
+#view-home #homePage2 .home-ebook-open{background:var(--rouge)!important;color:#fff!important;}
+#view-home #homePage2 .home-ebook-note{margin-top:9px!important;}
+@media(max-width:380px){
+ #view-home #homePage2 .h2-scroll{padding-left:5px!important;padding-right:5px!important;gap:8px!important;}
+ #view-home #homePage2 .h2-cols{gap:8px!important;}
+ #view-home #homePage2 .home-ebook-feature{padding:13px 11px!important;}
+ #view-home #homePage2 .home-ebook-heading{gap:7px!important;}
+ #view-home #homePage2 .home-ebook-icon{width:38px!important;height:38px!important;flex-basis:38px!important;}
+ #view-home #homePage2 .home-ebook-heading-copy h3{font-size:17px!important;}
+ #view-home #homePage2 .home-ebook-import{font-size:10px!important;padding:7px 8px!important;}
+ #view-home #homePage2 .home-ebook-entry{gap:6px!important;padding:7px!important;}
+ #view-home #homePage2 .home-ebook-filetype{flex-basis:36px;width:36px;height:42px;}
+ #view-home #homePage2 .home-ebook-read,#view-home #homePage2 .home-ebook-invite{padding:6px 7px!important;font-size:9px!important;}
+}
 </style>
 </head>
 <body>
@@ -1650,8 +1765,7 @@
           </div></div>
         </div>
       </div>
-
-      <div class="h2-cols">
+<div class="h2-cols">
         <div class="h2-card h2-mini" onclick="go('lifephotos')">
           <span class="h2-mi home-svg-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.500A1.500 1.500 0 0 1 5.500 7H8l1.200-2h5.600L16 7h2.500A1.500 1.500 0 0 1 20 8.500v9a1.500 1.500 0 0 1-1.500 1.500h-13A1.500 1.500 0 0 1 4 17.500v-9Z"/><circle cx="12" cy="13" r="3.500"/></svg></span>
           <div class="h2-txt"><b>生活照片</b><small>记录日常</small></div><span class="h2-arrow">›</span>
@@ -1661,6 +1775,24 @@
           <div class="h2-txt"><b>字卡</b><small>一些小语句</small></div><span class="h2-arrow">›</span>
         </div>
       </div>
+
+      <section class="home-ebook-feature" aria-label="电子书库">
+        <div class="home-ebook-topline"><span>OUR LITTLE LIBRARY</span><span class="home-ebook-spark">✦</span></div>
+        <div class="home-ebook-heading">
+          <div class="home-ebook-icon">♧</div>
+          <div class="home-ebook-heading-copy"><h3>电子书库</h3><p>收藏你的书，也邀请梦角共读</p></div>
+          <button class="home-ebook-import" onclick="document.getElementById('homeEbookImportInput').click()">＋ 导入书籍</button>
+        </div>
+        <input id="homeEbookImportInput" type="file" accept=".txt,.bin,text/plain,application/octet-stream" multiple hidden onchange="onEbookImport(event)">
+        <div class="home-ebook-shelf" id="homeEbookShelfItems" aria-live="polite">
+          <div class="home-ebook-empty"><span class="home-ebook-empty-icon">＋</span><span>书架还是空的</span><small>导入后，书名会显示在这里</small></div>
+        </div>
+        <div class="home-ebook-footer">
+          <div class="home-ebook-count"><strong id="homeEbookCount">我的书架</strong><small id="homeEbookSub">把喜欢的故事收进这里</small></div>
+          <button class="home-ebook-open" onclick="openEbookLibrary()">打开书架 <span>↗</span></button>
+        </div>
+        <div class="home-ebook-note"><span>♡</span> 一页一页读，慢慢分享彼此的世界</div>
+      </section>
     </div>
     </div><!-- /homePage2 -->
     </div><!-- /homePager -->
@@ -2167,8 +2299,8 @@ async function idbSet(key,value){
         store.put(value,key);
 
         tx.oncomplete=()=>resolve();
-
-        tx.onerror=()=>reject(tx.error);
+        tx.onerror=()=>reject(tx.error||new Error('IndexedDB transaction error'));
+        tx.onabort=()=>reject(tx.error||new Error('IndexedDB transaction aborted'));
     });
 }
 
@@ -2801,6 +2933,7 @@ function go(name){
   if(bn) bn.textContent = VIEW_TITLES[name] || 'EVAN';
   currentView = name;
   document.body.dataset.view = name;
+  if(name==='home' && typeof renderHomeEbookShelf==='function') renderHomeEbookShelf();
   // 传讯全屏：隐藏底部导航 + 锁住页面滚动（只允许消息列表内部滚）
   const bottomNav = document.querySelector('.bottom-nav');
   if(bottomNav) bottomNav.style.display = (name==='chat') ? 'none' : '';
@@ -2833,6 +2966,7 @@ function go(name){
   if(name==='calls'){ renderCallLog(); }
   if(name==='lifephotos'){ renderLifePhotos(); }
   if(name==='mailbox'){ mailboxSetTab(mailboxState.tab); }
+  if(name==='bili'){ renderBiliPage(); }
   if(name==='pet'){ petUI.page='list'; window.petHomeUnread=false; if(typeof renderUnreadDots==='function') renderUnreadDots(); renderPet(); }
   if(name==='mall'){ renderMall(); }
   if(name==='moments'){
@@ -7545,7 +7679,7 @@ async function exportBackup(){
     profile, chatSettings, chatMessages: fullChat, cardsData, ledgerEntries, periodEntries,
     diaryEntries, momentsPosts: fullMoments, letters, inboxLetters, callLogs, themeSettings, proactiveState,
     lifePhotos: fullPhotos, statusPool, todayStatus, todayStatusHistory, customBubbleCSS, moyuState, proactiveMsgSettings, proactiveLetterSettings, momentInteractSettings, spliceCardsEnabled, spliceCardSettings, petData, statusCardData, mallState, choiceGame: (typeof choiceGame!=='undefined' ? choiceGame : null),
-    todoRemind, companionHabits, companionAnnivs, companionFavorites, bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
+    todoRemind, companionHabits, companionAnnivs, companionFavorites, ebookLibrary: (typeof ebookLibrary!=='undefined'?ebookLibrary:[]), bgSettings: bgForExport, companionRoomBg: compRoomBg, vinylSettings: vinylForExport, momentEvents,
     exportedAt: Date.now()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -7580,6 +7714,7 @@ function onImportBackupFile(e){
     themeSettings = data.themeSettings ? withDefaults('themeSettings', data.themeSettings) : themeSettings;
     proactiveState = data.proactiveState || { nextMsgAt:null, nextLetterAt:null, nextCallAt:null, nextMomentAt:null };
     const importedPhotos = data.lifePhotos || [];
+    if(Array.isArray(data.ebookLibrary)){ ebookLibrary = data.ebookLibrary; await sSet('ebook-library-meta', ebookLibrary); }
     statusPool = data.statusPool || [];
     todayStatus = data.todayStatus || null;
     todayStatusHistory = data.todayStatusHistory || [];
@@ -9150,6 +9285,7 @@ function inviteKindMeta(kind){
     study: { icon:'📚', name:'一起学习' },
     sleep: { icon:'🌙', name:'一起睡觉' },
     watch: { icon:'📺', name:'一起看视频' },
+    ebook: { icon:'📖', name:'一起读书' },
     outing: { icon:'🐾', name:'一起带宠物出门' },
     game: { icon:'🎮', name:'一起玩游戏' }
   };
@@ -9162,8 +9298,10 @@ function renderInviteCardHtml(m, time){
   const meta = inviteKindMeta(m.kind);
   if(m.kind==='game' && m.game){ meta.icon = GM_ICONS[m.game] || meta.icon; meta.name = '一起玩'+gmTitleShort(m.game); }
   const st = m.status || 'pending';
+  const statusText = (m.kind==='ebook' && st==='accepted') ? '共读中' : inviteStatusLabel(st);
   const fromMe = m.from === 'user' || m.inviter === 'user';
   let extra = m.detail || m.content || '';
+  if(m.kind==='ebook' && m.bookTitle) extra += (extra?' · ':'') + '《'+m.bookTitle+'》';
   if(m.kind==='watch'){
     if(m.bvid) extra += (extra?' · ':'') + 'BV '+m.bvid;
     if(m.scheduledAt){
@@ -9180,6 +9318,7 @@ function renderInviteCardHtml(m, time){
       + (m.kind==='watch' ? '<div class="btn outline" onclick="respondInviteCard(\''+m.id+'\',\'reschedule\')">改时间</div>' : '')
       + '</div>';
   }
+  // 共读接受后自动进入阅读器；卡片不再提供重复进入按钮，退出时直接变为已结束。
   if(st==='accepted' && m.kind==='watch' && m.bvid){
     actions += '<div class="invite-card-actions"><div class="btn" onclick="openWatchTogetherPanel(false)">打开一起看</div></div>';
   }
@@ -9193,7 +9332,7 @@ function renderInviteCardHtml(m, time){
   return '<div class="msg invite-card-msg '+m.from+'"><div class="invite-card-inner">'
     + '<div class="invite-card-title">'+meta.icon+' '+meta.name+'</div>'
     + '<div class="invite-card-meta">'+(fromMe?'你发起的邀请':'对方发起的邀请')+(extra?'<br>'+escapeHtml(String(extra)):'')+'</div>'
-    + '<span class="invite-card-status '+st+'">'+inviteStatusLabel(st)+'</span>'
+    + '<span class="invite-card-status '+st+'">'+statusText+'</span>'
     + actions
     + '<div class="t" style="margin-top:8px;">'+time+'</div>'
     + '</div></div>';
@@ -9217,6 +9356,8 @@ async function postTogetherSystemMsg(text, extra){
       note: extra.note || '',
       bvid: extra.bvid || '',
       game: extra.game || '',
+      bookId: extra.bookId || '',
+      bookTitle: extra.bookTitle || '',
       scheduledAt: extra.scheduledAt || null,
       time: Date.now(),
       read: true
@@ -9245,6 +9386,17 @@ async function respondInviteCard(msgId, action){
   const m = chatMessages.find(x=>x.id===msgId);
   if(!m || m.type!=='invite') return;
   const kind = m.kind;
+  if(kind==='ebook' && m.expiresAt && Date.now()>m.expiresAt && m.status==='pending'){
+    await updateInviteCardStatus(msgId, 'ended');
+    return;
+  }
+  if(kind==='ebook' && action==='accept'){
+    try{ await loadEbookLibrary(); }catch(e){}
+    if(!ebookLibrary.find(x=>x.id===m.bookId)){
+      alert('这本书目前不在本机书库中，请先导入对应的电子书文件。');
+      return;
+    }
+  }
   if(action==='accept'){
     await updateInviteCardStatus(msgId, 'accepted');
     if(kind==='watch'){
@@ -9268,6 +9420,14 @@ async function respondInviteCard(msgId, action){
       if(!togetherState.sleep.startedAt) togetherState.sleep.startedAt = Date.now();
       openSleepTogetherPanel(false);
       try{ refreshCompanionFloat(); }catch(e){}
+    } else if(kind==='ebook'){
+      // 接受后直接进入共读阅读器，并把当前邀请卡绑定到本次共读会话。
+      const invitedBook = ebookLibrary.find(x=>x.id===m.bookId);
+      if(invitedBook){
+        openEbookReaderById(invitedBook.id, m.id);
+      }else{
+        alert('这本书目前不在本机书库中，请先导入对应的电子书文件。');
+      }
     }
     saveTogetherState();
   } else if(action==='decline'){
@@ -10502,12 +10662,12 @@ function cancelTogetherReply(kind){
   if(_togetherReplyTimers[kind]){ clearTimeout(_togetherReplyTimers[kind]); delete _togetherReplyTimers[kind]; }
 }
 function scheduleTogetherReply(kind){
-  const delayMs = Math.random()*60000;
+  const delayMs = kind==='ebook' ? (5000 + Math.random()*45000) : Math.random()*60000; // 共读与其他邀请共用 85% 接受概率；共读回应窗口为 5–50 秒，早于 60 秒邀请有效期
   cancelTogetherReply(kind);
   _togetherReplyTimers[kind] = setTimeout(async function(){
     delete _togetherReplyTimers[kind];
     const accept = Math.random() < 0.85;
-    const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user');
+    const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user' && (!m.expiresAt || Date.now()<=m.expiresAt));
     // v63：如果用户已经按了“结束”（不再是“等他回应”），对方就不再回应了
     // v67：只看邀请卡是否仍在“等待回应”（用户按“结束”会把卡置为 ended，lastInvite 就找不到了）。
     // 不再依赖内存里的 togetherState.active/inviter——否则刷新页面后状态被重置，等待中的邀请会永远等不到回应。
@@ -10560,6 +10720,15 @@ function scheduleTogetherReply(kind){
       } else {
         await updateInviteCardStatus(lastInvite.id, 'declined');
         await postTogetherSystemMsg(chatSettings.companionName+' 现在不太想玩'+gname, { kind:'game', status:'declined', inviter:'user', from:'bot', game:lastInvite.game });
+      }
+    } else if(kind==='ebook'){
+      if(accept){
+        await updateInviteCardStatus(lastInvite.id, 'accepted');
+        try{ tryBgNotify(chatSettings.companionName+' 接受了共读邀请', '现在可以一起读《'+(lastInvite.bookTitle||'这本书')+'》了'); }catch(e){}
+        // 对方接受后直接进入共读页面；退出阅读器时原邀请卡自动变为「已结束」。
+        if(lastInvite.bookId){ openEbookReaderById(lastInvite.bookId, lastInvite.id); }
+      } else {
+        await updateInviteCardStatus(lastInvite.id, 'declined');
       }
     } else if(kind==='watch'){
       togetherState.watch.accepted = accept;
@@ -14510,36 +14679,28 @@ function renderStatusCard(){
     : '<span>'+escapeHtml((typeof profile!=='undefined' && profile.avatar) || '🌙')+'</span>';
   const mood = (typeof taMoodFor==='function') ? taMoodFor(todayKey()) : null;
   const moodBadge = (mood && mood.mood) ? '<span class="sc-mood">'+escapeHtml(mood.mood)+'</span>' : '';
-
+  const now = new Date();
+  const clock = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  const awayText = st.quote || '今天有点忙，晚一点再来找你。记得按时吃饭。';
+  const currentText = (typeof todayStatus!=='undefined' && todayStatus && todayStatus.text) ? todayStatus.text : '我们的连接';
   root.innerHTML = `
     <div class="sc-card">
-      <div class="sc-x" onclick="closeStatusCard()">✕</div>
+      <div class="sc-x" onclick="closeStatusCard()">×</div>
+      <div class="sc-kicker">◦ ◦ ◦　CHANNEL / 梦角</div>
+      <div class="sc-tabs"><span>✦ LOCAL ONLY</span><span>PERSONAL FILE / 01</span><span>PERSONAL FILE + ✧</span></div>
       <div class="sc-top">
         <div class="sc-av">${av}</div>
         <div class="sc-id">
+          <div class="sc-en">A LITTLE WINDOW INTO YOUR DAY</div>
           <div class="sc-name">${escapeHtml(name)} <i>✦</i></div>
-          <div class="sc-en">Only for you.</div>
-          <div class="sc-conn-l">连接状态</div>
-          <div class="sc-bar"><i style="width:${v}%;background:${tier.color};"></i></div>
-          <div class="sc-num">${v} <small>/ 100</small></div>
-          <div class="sc-tier"><b style="background:${tier.color};"></b>${tier.label}</div>
+          <div class="sc-status-line"><b>● ${kd.label}</b><span>${scTod()==='night'?'夜间':'白天'} · ${clock}</span>${moodBadge}</div>
         </div>
       </div>
-      <div class="sc-row">
-        <div class="sc-row-m">
-          <small>当前状态</small>
-          <strong>${kd.label}${moodBadge}</strong>
-          ${st.quote ? '<em>“'+escapeHtml(st.quote)+'”</em>' : ''}
-        </div>
-        <div class="sc-tile">${kd.e}</div>
+      <div class="sc-row sc-current">
+        <div class="sc-row-m"><small>✦ CURRENT STATUS</small><strong>${escapeHtml(currentText)}</strong><div class="sc-num">${v}% <span>✧</span></div><div class="sc-bar"><i style="width:${v}%;"></i></div><div style="font-size:11px;color:#788477;margin-top:10px;">${escapeHtml(tier.label)}</div></div>
       </div>
-      <div class="sc-row">
-        <div class="sc-row-m">
-          <small>他的时间</small>
-          <strong class="sc-clock">${scTod()==='night'?'黑夜':'白天'}</strong>
-        </div>
-        <div class="sc-tile sc-tile-t">${scTod()==='night'?'🌙':'☀️'}</div>
-      </div>
+      <div class="sc-row sc-away"><div class="sc-row-m"><small>✦ A LITTLE NOTE FOR YOU</small><b>此刻留给你</b><em>${escapeHtml(awayText)}</em></div></div>
+      <div class="sc-foot">${moodBadge ? '今日心情 · '+escapeHtml(mood.mood) : 'A LITTLE WINDOW INTO YOUR DAY'}</div>
     </div>`;
 }
 loadStatusCard();
@@ -16171,5 +16332,1121 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .tg-grid .btn{display:flex;align-items:center;justify-content:center;text-align:center;}
 .tg-hint{font-size:11px;line-height:1.6;color:var(--ink-soft);margin:8px 0 0;}
 </style>
+
+<style id="ebook-library-styles">
+.ebook-overlay{position:fixed;inset:0;z-index:9500;background:var(--paper);display:flex;flex-direction:column;overflow:hidden}
+.ebook-head{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;border-bottom:1px solid var(--rule);background:rgba(255,255,255,.35)}
+.ebook-head strong{font-size:17px;letter-spacing:1px}
+.ebook-head button,.ebook-action{border:1px solid var(--rule);background:rgba(255,255,255,.55);color:var(--ink);border-radius:20px;padding:8px 13px;font-size:12px}
+.ebook-body{padding:14px 14px calc(24px + env(safe-area-inset-bottom,0px));overflow:auto;flex:1}
+.ebook-intro{padding:17px;border-radius:20px;background:linear-gradient(130deg,#efd5da,#eee9dc 55%,#c9d8c3);margin-bottom:14px;color:#39463d}
+.ebook-intro small{letter-spacing:2px;color:#748174}.ebook-intro h3{margin:7px 0;font-size:20px}
+.ebook-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ebook-item{background:rgba(255,255,255,.65);border:1px solid rgba(150,160,145,.25);border-radius:16px;padding:13px;min-width:0}
+.ebook-cover{height:105px;border-radius:10px;background:linear-gradient(145deg,#e8cbd2,#d9e1d1);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:9px}
+.ebook-title{font-weight:700;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.ebook-meta{font-size:10px;color:var(--ink-soft);margin:5px 0 9px}
+.ebook-actions{display:flex;gap:5px;flex-wrap:wrap}.ebook-actions button{font-size:11px;padding:6px 8px;border-radius:9px}
+.ebook-empty{text-align:center;color:var(--ink-soft);padding:38px 10px;border:1px dashed var(--rule);border-radius:16px;grid-column:1/-1}
+.ebook-reader{position:fixed;inset:0;z-index:9600;background:#f5f1e8;display:flex;flex-direction:column}
+.ebook-reader-bar{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;border-bottom:1px solid #ddd5c8}
+.ebook-reader-bar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.ebook-reader-content{flex:1;min-height:0;overflow:auto;padding:16px;line-height:1.85;color:#332f2a}
+.ebook-reader-content iframe{width:100%;height:100%;min-height:70vh;border:0;background:#fff}
+.ebook-reader-content pre{white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.9 Georgia,serif}
+.ebook-reader-content #ebookEpubView{height:100%;min-height:75vh;background:#fff}
+.ebook-reader-actions{display:flex;gap:7px;align-items:center}
+.ebook-reader-actions button{border:1px solid #d8d0c4;background:#fff;border-radius:18px;padding:7px 10px;font-size:11px}
+
+/* ===== 第二页重新排版：纵向可滚动 + 书库主视觉 ===== */
+#view-home #homePage2.home-page{justify-content:flex-start!important;overflow:hidden!important;}
+#view-home #homePage2 .h2-scroll{overflow-y:auto!important;overflow-x:hidden!important;justify-content:flex-start!important;gap:13px!important;padding:8px 7px 18px!important;touch-action:pan-y!important;}
+#view-home #homePage2 .h2-scroll::-webkit-scrollbar{display:none!important;}
+#view-home #homePage2 .h2-search{min-height:48px;flex:0 0 auto!important;border-radius:999px!important;padding:8px 9px 8px 15px!important;background:rgba(255,250,247,.78)!important;border-color:rgba(255,255,255,.9)!important;box-shadow:0 5px 18px rgba(95,58,62,.07)!important;}
+#view-home #homePage2 .h2-status{min-height:78px!important;display:flex;align-items:center!important;border-radius:23px!important;padding:13px 16px!important;background:linear-gradient(110deg,rgba(255,249,246,.88),rgba(242,225,220,.7))!important;}
+#view-home #homePage2 .h2-squares{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;align-items:stretch!important;}
+#view-home #homePage2 .h2-sq{min-height:174px!important;border-radius:23px!important;padding:15px!important;background:rgba(255,250,247,.73)!important;box-shadow:0 8px 22px rgba(95,58,62,.07)!important;}
+#view-home #homePage2 .h2-sqhead{margin-bottom:10px!important;}
+#view-home #homePage2 .h2-mini{min-height:76px!important;border-radius:21px!important;padding:12px 15px!important;gap:12px!important;background:linear-gradient(110deg,rgba(255,251,248,.88),rgba(244,232,225,.76))!important;}
+#view-home #homePage2 .h2-mini .h2-mi{width:43px!important;height:43px!important;display:grid!important;place-items:center!important;border-radius:50%!important;background:rgba(255,255,255,.78)!important;box-shadow:0 4px 14px rgba(90,60,60,.08)!important;flex:0 0 43px!important;}
+#view-home #homePage2 .h2-mini .h2-txt b{font-family:Georgia,'Noto Serif SC',serif!important;font-size:16px!important;letter-spacing:1px!important;}
+#view-home #homePage2 .h2-mini .h2-txt small{font-size:11px!important;letter-spacing:1px!important;color:#9a8179!important;}
+#view-home #homePage2 .h2-mini .h2-arrow{font-size:23px!important;color:#a58a80!important;}
+#view-home #homePage2 .home-ebook-feature{position:relative;isolation:isolate;overflow:hidden;flex:0 0 auto;margin:2px 1px 8px;padding:17px 16px 14px;border:1px solid rgba(255,255,255,.9);border-radius:27px;background:linear-gradient(145deg,rgba(247,224,218,.96),rgba(239,225,215,.94) 53%,rgba(224,225,208,.94));box-shadow:0 12px 28px rgba(103,66,66,.12);color:#473a35;}
+#view-home #homePage2 .home-ebook-feature:before{content:'';position:absolute;z-index:-1;width:220px;height:220px;right:-78px;top:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.62),rgba(255,255,255,0) 70%);}
+#view-home #homePage2 .home-ebook-topline{display:flex;align-items:center;justify-content:space-between;font:10px Georgia,serif;letter-spacing:3px;color:#987b70;margin:0 2px 10px;}
+#view-home #homePage2 .home-ebook-spark{font-size:17px;color:#a44c5a;}
+#view-home #homePage2 .home-ebook-heading{display:flex;align-items:center;gap:11px;}
+#view-home #homePage2 .home-ebook-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#b56d75,#8f4652);color:#fff;font-size:28px;box-shadow:0 6px 15px rgba(127,64,74,.2);}
+#view-home #homePage2 .home-ebook-heading-copy{min-width:0;flex:1;}
+#view-home #homePage2 .home-ebook-heading-copy h3{font:600 21px Georgia,'Noto Serif SC',serif;letter-spacing:2px;margin:0 0 4px;color:#453732;}
+#view-home #homePage2 .home-ebook-heading-copy p{font-size:11px;letter-spacing:1px;color:#92796f;margin:0;}
+#view-home #homePage2 .home-ebook-import{flex:0 0 auto;border:1px solid rgba(255,255,255,.9);border-radius:999px;padding:8px 11px;background:rgba(160,82,91,.9);color:white;font-size:11px;letter-spacing:1px;}
+#view-home #homePage2 .home-ebook-shelf{position:relative;display:flex;align-items:flex-end;gap:9px;min-height:155px;margin:15px 0 12px;padding:12px 11px 10px;border-radius:19px;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.65);overflow:hidden;}
+#view-home #homePage2 .home-ebook-book{position:relative;z-index:1;display:flex;flex:1 1 0;min-width:0;height:126px;max-width:92px;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 6px 9px;border-radius:7px 10px 10px 7px;box-shadow:3px 5px 10px rgba(70,48,43,.18),inset 4px 0 5px rgba(255,255,255,.22);color:#fff;text-align:center;}
+#view-home #homePage2 .home-ebook-book span{font:600 16px/1.35 Georgia,'Noto Serif SC',serif;letter-spacing:1px;margin:auto 0;}
+#view-home #homePage2 .home-ebook-book small{font-size:9px;line-height:1.3;letter-spacing:.5px;}
+#view-home #homePage2 .home-book-one{background:linear-gradient(150deg,#59666c,#263d48 75%);}
+#view-home #homePage2 .home-book-two{background:linear-gradient(150deg,#d6a48e,#8c625b 85%);}
+#view-home #homePage2 .home-book-three{background:linear-gradient(150deg,#b8a98c,#6e7865 85%);}
+#view-home #homePage2 .home-ebook-book.home-book-add{height:112px;background:rgba(255,250,246,.68);border:1px dashed rgba(155,112,104,.55);box-shadow:none;color:#997c72;cursor:pointer;}
+#view-home #homePage2 .home-book-add b{font:300 30px Georgia,serif;margin:auto 0 0;}
+#view-home #homePage2 .home-book-add small{margin:0 0 8px;}
+#view-home #homePage2 .home-ebook-shelf:after{content:'';position:absolute;bottom:7px;left:8px;right:8px;height:5px;border-radius:5px;background:linear-gradient(90deg,rgba(163,115,101,.12),rgba(130,91,77,.34),rgba(163,115,101,.12));}
+#view-home #homePage2 .home-ebook-shelf-deco{position:absolute;right:8px;top:5px;color:rgba(153,91,87,.3);font-size:48px;transform:rotate(18deg);}
+#view-home #homePage2 .home-ebook-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-radius:16px;background:rgba(255,250,246,.64);border:1px solid rgba(255,255,255,.7);}
+#view-home #homePage2 .home-ebook-count{display:flex;flex-direction:column;gap:3px;min-width:0;}
+#view-home #homePage2 .home-ebook-count strong{font:600 14px Georgia,'Noto Serif SC',serif;letter-spacing:1px;color:#57443e;}
+#view-home #homePage2 .home-ebook-count small{font-size:10px;color:#9a8076;}
+#view-home #homePage2 .home-ebook-open{border:0;border-radius:999px;padding:9px 14px;background:#9c4d59;color:white;font-size:11px;letter-spacing:1px;white-space:nowrap;}
+#view-home #homePage2 .home-ebook-open span{margin-left:7px;font-size:14px;}
+#view-home #homePage2 .home-ebook-note{text-align:center;margin-top:11px;color:#987c72;font-size:10px;letter-spacing:1px;}
+#view-home #homePage2 .home-ebook-note span{color:#a44c5a;margin-right:4px;}
+@media(min-width:600px){#view-home #homePage2 .home-ebook-feature{padding:22px 24px;}#view-home #homePage2 .home-ebook-shelf{min-height:185px;}#view-home #homePage2 .home-ebook-book{height:150px;}}
+@media(max-height:700px){#view-home #homePage2 .h2-scroll{gap:9px!important;}#view-home #homePage2 .h2-sq{min-height:145px!important;}#view-home #homePage2 .home-ebook-shelf{min-height:130px;}#view-home #homePage2 .home-ebook-book{height:105px;}}
+
+</style>
+<script id="ebook-library-script">
+let ebookLibrary = [];
+let ebookCurrentId = null;
+let ebookReaderObjectUrl = null;
+// 仅在通过共读邀请进入阅读器时记录邀请卡片；普通阅读不影响邀请状态。
+let ebookActiveInviteId = null;
+async function loadEbookLibrary(){
+  try{ const v=await sGet('ebook-library-meta',[]); ebookLibrary=Array.isArray(v)?v:[]; }catch(e){ ebookLibrary=[]; }
+}
+async function saveEbookLibrary(){ try{ await sSet('ebook-library-meta',ebookLibrary.map(({id,title,name,size,type,addedAt,author,pct})=>({id,title,name,size,type,addedAt,author,pct}))); }catch(e){} }
+function ebookBytes(n){ if(!n)return '—'; const u=['B','KB','MB','GB']; let i=0; while(n>=1024&&i<u.length-1){n/=1024;i++;} return n.toFixed(i?1:0)+' '+u[i]; }
+async function renderHomeEbookShelf(){
+  const countEl=document.getElementById('homeEbookCount');
+  const subEl=document.getElementById('homeEbookSub');
+  const shelfEl=document.getElementById('homeEbookShelfItems');
+  if(!countEl||!subEl||!shelfEl)return;
+  try{await loadEbookLibrary();}catch(e){}
+  try{await ebookSweepExpiredInvites();}catch(e){}
+  const books=Array.isArray(ebookLibrary)?ebookLibrary:[];
+  const n=books.length;
+  countEl.textContent=n?`我的书架 · ${n} 本`:'我的书架 · 还没有藏书';
+  subEl.textContent=n?'以下仅显示你实际导入的文件':'导入第一本书后，会在这里显示真实文件名';
+  if(!n){
+    shelfEl.innerHTML='<div class="home-ebook-empty"><span class="home-ebook-empty-icon">＋</span><span>书架还是空的</span><small>尚未导入电子书，不会显示示例封面或书名</small></div>';
+    return;
+  }
+  const iconForType=t=>({txt:'TXT',bin:'BIN'}[(t||'').toLowerCase()]||'FILE');
+  shelfEl.innerHTML=books.map(b=>{
+    const title=String(b.title||b.name||'').trim();
+    const shownTitle=title?escapeHtml(title):'文件名未记录';
+    const type=String(b.type||'').toUpperCase();
+    const id=String(b.id||'');
+    return `<article class="home-ebook-entry"><div class="home-ebook-filetype">${iconForType(b.type)}</div><div class="home-ebook-entry-copy"><strong>${shownTitle}</strong><small>${type}${b.size?' · '+ebookBytes(b.size):''}${b.pct?' · 读到 '+b.pct+'%':''}</small></div><button type="button" class="home-ebook-read" onclick="openEbookReaderById('${id}')">阅读</button><button type="button" class="home-ebook-invite" onclick="inviteEbookTogether('${id}')">共读</button></article>`;
+  }).join('');
+}
+
+function openEbookLibrary(){
+  closeEbookLibrary();
+  const root=document.createElement('div'); root.id='ebookLibraryRoot'; root.className='ebook-overlay';
+  root.innerHTML=`<div class="ebook-head"><button onclick="closeEbookLibrary()">← 返回</button><strong>电子书库</strong><button onclick="document.getElementById('ebookImportInput').click()">＋ 导入</button></div>
+  <div class="ebook-body"><div class="ebook-intro"><small>OUR LITTLE LIBRARY</small><h3>留一页时间，和你一起读</h3><div style="font-size:12px;line-height:1.7">支持导入 TXT 和 BIN。打开书籍后，可以邀请梦角在一分钟内回应共读邀请。</div></div>
+  <input id="ebookImportInput" type="file" accept=".txt,.bin,text/plain,application/octet-stream" multiple hidden onchange="onEbookImport(event)">
+  <div id="ebookList" class="ebook-list"></div></div>`;
+  document.body.appendChild(root); renderEbookList();
+}
+function closeEbookLibrary(){const r=document.getElementById('ebookLibraryRoot');if(r)r.remove();}
+async function renderEbookList(){
+  const el=document.getElementById('ebookList');if(!el)return;
+  await loadEbookLibrary();
+  if(!ebookLibrary.length){el.innerHTML='<div class="ebook-empty">📚<br><br>书架还是空的<br><small>点击右上角「导入」，把喜欢的书放进来</small></div>';return;}
+  el.innerHTML=ebookLibrary.map(b=>`<article class="ebook-item"><div class="ebook-cover er-cover" style="${ebookCoverStyle(b)}"><b>${escapeHtml(b.title||b.name)}</b>${b.author?'<small>'+escapeHtml(b.author)+'</small>':''}</div><div class="ebook-meta">${String(b.type||'').toUpperCase()} · ${ebookBytes(b.size)}${b.pct?' · 读到 '+b.pct+'%':''}</div><div class="ebook-actions"><button class="btn" onclick="openEbookReaderById('${b.id}')">阅读</button><button class="btn outline" onclick="inviteEbookTogether('${b.id}')">♡ 共读</button><button class="btn outline" onclick="deleteEbook('${b.id}')">删除</button></div></article>`).join('');
+}
+async function onEbookImport(e){
+  const files=Array.from(e.target.files||[]);e.target.value='';
+  for(const file of files){
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    if(!['txt','bin'].includes(ext)){alert('目前电子书库仅支持 TXT 和 BIN 格式。');continue;}
+    if(file.size>35*1024*1024){alert('单本电子书请控制在 35MB 以内。');continue;}
+    const id='book_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+    try{
+      // 直接保存原始 Blob，避免 DataURL/Base64 带来的约 33% 体积膨胀。
+      const blob=file.slice(0,file.size,file.type||'application/octet-stream');
+      await idbSet('EVAN:ebook-file:'+id,blob);
+      let displayTitle=file.name.replace(/\.[^.]+$/,''),displayAuthor='';
+      try{const meta=ebookExtractMeta(await ebookDecodeBookText(blob));if(meta.title)displayTitle=meta.title;if(meta.author)displayAuthor=meta.author;}catch(err){}
+      ebookLibrary.push({id,title:displayTitle,name:file.name,size:file.size,type:ext,addedAt:Date.now(),author:displayAuthor});
+    }catch(err){
+      const reason=err&&((err.name||'')+': '+(err.message||''));
+      alert('保存《'+file.name+'》失败。'+(reason?'\n原因：'+reason:'')+'\n请检查浏览器存储权限或可用空间后重试。');
+    }
+  }
+  await saveEbookLibrary();renderEbookList();renderHomeEbookShelf();
+}
+async function getEbookData(id){try{return await idbGet('EVAN:ebook-file:'+id);}catch(e){return null;}}
+async function ebookDecodeBookText(data){
+  if(data instanceof Blob){
+    const buffer=await data.arrayBuffer();
+    try{return new TextDecoder('utf-8',{fatal:true}).decode(buffer).replace(/^\uFEFF/,'');}
+    catch(e){try{return new TextDecoder('gb18030').decode(buffer).replace(/^\uFEFF/,'');}catch(e2){return new TextDecoder('utf-8').decode(buffer).replace(/^\uFEFF/,'');}}
+  }
+  // 兼容升级前已经保存为 DataURL 的旧 TXT/BIN 文件。
+  return ebookDecodeDataUrl(data);
+}
+function downloadEbookOriginal(data, filename){
+  try{
+    const a=document.createElement('a');
+    let url=data, revoke=false;
+    if(data instanceof Blob){url=URL.createObjectURL(data);revoke=true;}
+    a.href=url;a.download=filename||'ebook.bin';
+    document.body.appendChild(a);a.click();a.remove();
+    if(revoke)setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }catch(err){alert('原文件下载失败，请返回书架后重试。');}
+}
+function decodeEbookDataUrlText(data){
+  try{
+    const raw=atob(String(data).split(',')[1]||'');
+    const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));
+    return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  }catch(e){return null;}
+}
+function looksLikeReadableText(text){
+  if(typeof text!=='string'||!text.length)return false;
+  let odd=0, sample=text.slice(0,12000);
+  for(let i=0;i<sample.length;i++){
+    const c=sample.charCodeAt(i);
+    if((c<32 && c!==9 && c!==10 && c!==13) || (c>=0xD800&&c<=0xDFFF)) odd++;
+  }
+  return odd/Math.max(1,sample.length)<0.015;
+}
+async function deleteEbook(id){
+  const b=ebookLibrary.find(x=>x.id===id);if(!b||!confirm('确定从书架删除《'+b.title+'》吗？'))return;
+  try{await idbSet('EVAN:ebook-file:'+id,null);}catch(e){}
+  try{await sSet('ebook-progress:'+id,null);}catch(e){}
+  ebookLibrary=ebookLibrary.filter(x=>x.id!==id);await saveEbookLibrary();renderEbookList();renderHomeEbookShelf();
+}
+const ER_FONTS={
+  serif:'"Songti SC","Noto Serif SC","Source Han Serif SC","STSong",Georgia,serif',
+  sans:'-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',
+  kai:'"Kaiti SC","STKaiti","KaiTi","Noto Serif SC",serif'
+};
+const ER_THEMES=[
+  {id:'paper',name:'纸灰',bg:'#eeeeed',ink:'#2e2e2e'},
+  {id:'white',name:'纯白',bg:'#ffffff',ink:'#222222'},
+  {id:'sepia',name:'米黄',bg:'#f4ecd8',ink:'#5b4636'},
+  {id:'green',name:'护眼',bg:'#cfe8d2',ink:'#2d3b2f'},
+  {id:'night',name:'夜间',bg:'#17181a',ink:'#a9a9a4'}
+];
+const ER_COVERS=[['#5d6b73','#26363f'],['#c79a86','#8a5f58'],['#a99f84','#68725f'],['#8b7fa3','#4b4466'],['#7fa39a','#3e6159'],['#b8838d','#703f4b']];
+const ER_UNIT_MAX=90000;
+const ER_SENT_END=/[。！？!?”’」』…；;，,]$/;
+let erPrefs={theme:'paper',size:18,lh:1.9,font:'serif'};
+let ER=null;
+let erSaveTimer=null;
+let erRelayTimer=null;
+
+function ebookDecodeDataUrl(data){
+  const raw=atob(String(data).split(',')[1]||'');
+  const bytes=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  let text;
+  try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
+  catch(e){
+    try{text=new TextDecoder('gb18030').decode(bytes);}
+    catch(e2){text=new TextDecoder('utf-8').decode(bytes);}
+  }
+  return text.replace(/^\uFEFF/,'');
+}
+function ebookExtractMeta(text){
+  const head=String(text||'').slice(0,6000);
+  const pick=k=>{
+    const m=head.match(new RegExp('^[ \\t\\u3000]*'+k+'[ \\t]*[：:][ \\t]*(.+)$','m'));
+    return m?m[1].trim().replace(/^《|》$/g,''):'';
+  };
+  return {title:pick('书名'),author:pick('作者')};
+}
+function ebookCoverStyle(b){
+  let h=0;
+  const s=String(b.title||b.name||'');
+  for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  const c=ER_COVERS[h%ER_COVERS.length];
+  return 'background:linear-gradient(150deg,'+c[0]+','+c[1]+')';
+}
+
+function erNorm(s){
+  return String(s||'').replace(/[\s\u3000\-—–·•.。:：、，,《》「」『』"'“”‘’()（）\[\]【】*#]/g,'').toLowerCase();
+}
+function erIsSep(s){
+  return /^([*＊·•]\s*){2,}$/.test(s)||/^[-–—_=~]{3,}$/.test(s);
+}
+function erFindToc(lines){
+  const limit=Math.min(lines.length,400);
+  let at=-1;
+  for(let i=0;i<limit;i++){
+    if(/^(目\s*录|contents|table of contents)$/i.test(lines[i])){at=i;break;}
+  }
+  if(at<0)return null;
+  const entries=[];
+  let blanks=0,end=at;
+  for(let i=at+1;i<lines.length;i++){
+    const v=lines[i];
+    if(!v){
+      blanks++;
+      if(entries.length&&blanks>=3)break;
+      if(!entries.length&&blanks>8)break;
+      continue;
+    }
+    blanks=0;
+    if(v.length>40||ER_SENT_END.test(v)||/^(书名|作者|译者|出版社|出版日期|ISBN|版权)/.test(v)){
+      if(entries.length)break;
+      continue;
+    }
+    const title=v.replace(/[.·…\s]*\d+\s*$/,'').replace(/[.·…]{2,}$/,'').trim();
+    if(title){entries.push({title,idx:i});end=i;}
+  }
+  return entries.length?{at,end,entries}:null;
+}
+function erLocateHeads(lines,entries,from){
+  const found=[];
+  let cursor=from;
+  for(const e of entries){
+    const key=erNorm(e.title);
+    if(!key)continue;
+    let hit=-1;
+    for(let i=cursor;i<lines.length;i++){
+      const v=lines[i];
+      if(!v||v.length>e.title.length+10||ER_SENT_END.test(v))continue;
+      const k=erNorm(v);
+      if(k===key||(k.length>=2&&key.length>=2&&(k.startsWith(key)||key.startsWith(k))&&Math.abs(k.length-key.length)<=3)){hit=i;break;}
+    }
+    if(hit>=0){found.push({title:e.title,line:hit});cursor=hit+1;}
+  }
+  return found;
+}
+function erDetectHeads(lines,md){
+  const out=[];
+  const pats=[
+    /^第[零〇一二三四五六七八九十百千两\d]+[章节回卷部篇集幕]([\s：:、.\-—].{0,30})?$/,
+    /^(序|序言|序章|前言|引言|引子|楔子|自序|代序|尾声|后记|后序|跋|终章|致谢|附录.{0,12}|番外.{0,12})$/,
+    /^(chapter|part|book)\s+[0-9ivxlc]+([\s:.\-—].{0,40})?$/i,
+    /^卷[零〇一二三四五六七八九十百\d]+([\s：:、.\-—].{0,30})?$/
+  ];
+  for(let i=0;i<lines.length;i++){
+    const v=lines[i];
+    if(!v)continue;
+    if(md){
+      const m=v.match(/^(#{1,2})\s+(.+)$/);
+      if(m)out.push({title:m[2].trim(),line:i});
+      continue;
+    }
+    if(v.length>36||ER_SENT_END.test(v))continue;
+    if(pats.some(r=>r.test(v)))out.push({title:v,line:i});
+  }
+  return out;
+}
+function erToBlocks(lines,front,md){
+  const blocks=[];
+  for(const raw of lines){
+    if(!raw)continue;
+    let text=raw,t='p';
+    if(md)text=text.replace(/\*\*(.+?)\*\*/g,'$1').replace(/^>\s?/,'');
+    if(erIsSep(text))t='sep';
+    else if(/^\[\d{1,3}\]\s*\S/.test(text))t='fn';
+    else if(/^——/.test(text))t='quote';
+    else if(front&&(/^(书名|作者|译者|出版社|出版日期|出版时间|ISBN|出品|责任编辑)[^，。]{0,6}[：:]/.test(text)||/^(版权所有|本书由)/.test(text)))t='meta';
+    blocks.push({t,text,o:0});
+  }
+  return blocks;
+}
+function ebookParseText(text,fallbackTitle,mdHint){
+  const lines=String(text||'').replace(/\r\n?/g,'\n').split('\n').map(s=>s.trim());
+  const md=!!mdHint||lines.filter(l=>/^#{1,2}\s+\S/.test(l)).length>=2;
+  let toc=md?null:erFindToc(lines);
+  let heads=[];
+  const skip=new Set();
+  if(toc){
+    heads=erLocateHeads(lines,toc.entries,toc.end+1);
+    if(heads.length>=2){for(let i=toc.at;i<=toc.end;i++)skip.add(i);}
+    else{heads=[];toc=null;}
+  }
+  if(!toc)heads=erDetectHeads(lines,md);
+  const sections=[];
+  if(!heads.length){
+    const body=lines.filter((l,i)=>!skip.has(i));
+    sections.push({title:fallbackTitle||'正文',blocks:erToBlocks(body,false,md)});
+  }else{
+    const pre=[];
+    for(let i=0;i<heads[0].line;i++){if(!skip.has(i)&&lines[i])pre.push(lines[i]);}
+    if(pre.length){
+      let title='卷首';
+      if(pre[0].length<=12&&!ER_SENT_END.test(pre[0])&&!erIsSep(pre[0])){title=pre.shift();}
+      sections.push({title,blocks:erToBlocks(pre,true,md)});
+    }
+    heads.forEach((h,k)=>{
+      const to=k+1<heads.length?heads[k+1].line:lines.length;
+      sections.push({title:h.title,blocks:erToBlocks(lines.slice(h.line+1,to),false,md)});
+    });
+  }
+  const units=[];
+  let total=0;
+  sections.forEach((s,ci)=>{
+    let cur=[],size=0,first=true;
+    const push=()=>{
+      const chars=cur.reduce((a,b)=>a+b.text.length+1,0);
+      units.push({ch:ci,title:s.title,first,blocks:cur,start:total,chars});
+      total+=chars;cur=[];size=0;first=false;
+    };
+    s.blocks.forEach(b=>{
+      if(size>=ER_UNIT_MAX&&b.t==='p')push();
+      b.o=size;
+      cur.push(b);
+      size+=b.text.length+1;
+    });
+    if(cur.length||first)push();
+  });
+  const chapters=sections.map((s,ci)=>({title:s.title,unit:units.findIndex(u=>u.ch===ci)}));
+  return {units,chapters,total};
+}
+function erInline(s){
+  return escapeHtml(s).replace(/(\s*)\[(\d{1,3})\](\s*)/g,(m,a,n,b,off,str)=>{
+    const prev=str.charAt(off-1)||'',next=str.charAt(off+m.length)||'';
+    const sp=(/[A-Za-z0-9]/.test(prev)&&/[A-Za-z0-9]/.test(next))?' ':'';
+    return '<sup class="er-ref">'+n+'</sup>'+sp;
+  });
+}
+function erUnitHtml(u){
+  let h='';
+  if(u.first)h+='<h1 class="er-ch-title">'+escapeHtml(u.title)+'</h1>';
+  const bl=u.blocks;
+  for(let i=0;i<bl.length;i++){
+    const b=bl[i];
+    if(b.t==='sep'){
+      const nextFn=bl[i+1]&&bl[i+1].t==='fn';
+      h+=nextFn?'<div class="er-fn-rule"></div>':'<div class="er-sep"><i></i><i></i><i></i></div>';
+      continue;
+    }
+    const attr=' data-o="'+b.o+'"';
+    if(b.t==='fn'){
+      const m=b.text.match(/^\[(\d{1,3})\]\s*(.*)$/);
+      h+='<p class="er-fn"'+attr+'><b>'+m[1]+'</b>'+erInline(m[2])+'</p>';
+      continue;
+    }
+    h+='<p class="er-'+b.t+'"'+attr+'>'+erInline(b.text)+'</p>';
+  }
+  return h;
+}
+
+async function erLoadPrefs(){
+  try{
+    const v=await sGet('ebook-reader-prefs',null);
+    if(v&&typeof v==='object')erPrefs=Object.assign({},erPrefs,v);
+  }catch(e){}
+}
+function erSavePrefs(){try{sSet('ebook-reader-prefs',erPrefs);}catch(e){}}
+function erRoot(){return document.getElementById('ebookReaderRoot');}
+function erApplyPrefs(){
+  const r=erRoot();if(!r)return;
+  r.dataset.theme=erPrefs.theme;
+  r.style.setProperty('--er-fs',erPrefs.size+'px');
+  r.style.setProperty('--er-lh',String(erPrefs.lh));
+  r.style.setProperty('--er-ff',ER_FONTS[erPrefs.font]||ER_FONTS.serif);
+  if(ER&&ER.kind==='epub')erEpubApplyStyle();
+}
+function erEpubApplyStyle(){
+  if(!ER||!ER.rendition)return;
+  const t=ER_THEMES.find(x=>x.id===erPrefs.theme)||ER_THEMES[0];
+  const ff=ER_FONTS[erPrefs.font]||ER_FONTS.serif;
+  try{
+    ER.rendition.themes.register('er',{
+      'html':{'background':t.bg+' !important'},
+      'body':{'color':t.ink+' !important','background':t.bg+' !important','line-height':erPrefs.lh+' !important','font-family':ff+' !important'},
+      'p':{'line-height':erPrefs.lh+' !important'},
+      'a':{'color':'inherit !important'}
+    });
+    ER.rendition.themes.select('er');
+    ER.rendition.themes.fontSize(erPrefs.size+'px');
+  }catch(e){}
+}
+
+function erMeasure(){
+  const vp=document.getElementById('erViewport'),flow=document.getElementById('erFlow');
+  if(!vp||!flow||!ER||!ER.unit)return;
+  const vw=vp.clientWidth,vh=vp.clientHeight;
+  const padX=Math.max(18,Math.min(36,Math.round(vw*0.065)));
+  const W=Math.max(120,vw-padX*2);
+  flow.style.left=padX+'px';
+  flow.style.width=W+'px';
+  flow.style.height=vh+'px';
+  flow.style.columnWidth=W+'px';
+  flow.style.columnGap=(padX*2)+'px';
+  ER.stride=W+padX*2;
+  ER.vw=vw;ER.vh=vh;
+  const fl=flow.getBoundingClientRect().left;
+  const byScroll=Math.round((flow.scrollWidth+padX*2)/ER.stride);
+  const tail=flow.lastElementChild;
+  const byTail=tail?Math.ceil((tail.getBoundingClientRect().right-fl+1)/ER.stride):1;
+  ER.pages=Math.max(1,byScroll,byTail);
+  ER.marks=Array.from(flow.querySelectorAll('[data-o]')).map(el=>({
+    o:+el.dataset.o,
+    page:Math.max(0,Math.min(ER.pages-1,Math.floor((el.getBoundingClientRect().left-fl+2)/ER.stride)))
+  }));
+}
+function erPageForOffset(o){
+  let page=0;
+  for(const m of ER.marks){if(m.o<=o)page=m.page;else break;}
+  return page;
+}
+function erCurrentAnchor(){
+  if(!ER||!ER.marks)return 0;
+  const here=ER.marks.filter(m=>m.page===ER.page);
+  if(here.length)return here[0].o;
+  let last=0;
+  for(const m of ER.marks){if(m.page<ER.page)last=m.o;}
+  return last;
+}
+function erLoadUnit(idx,opts){
+  const flow=document.getElementById('erFlow');
+  if(!flow||!ER)return;
+  const u=ER.book.units[idx];
+  if(!u)return;
+  ER.ui=idx;ER.unit=u;
+  flow.style.transition='none';
+  flow.style.transform='translate3d(0,0,0)';
+  flow.innerHTML=erUnitHtml(u);
+  ER.page=0;
+  erMeasure();
+  let page=0;
+  if(opts&&opts.page==='last')page=ER.pages-1;
+  else if(opts&&opts.anchor!=null)page=erPageForOffset(opts.anchor);
+  erSetPage(page,false);
+}
+function erFade(){
+  const flow=document.getElementById('erFlow');
+  try{flow.animate([{opacity:0},{opacity:1}],{duration:240,easing:'ease-out'});}catch(e){}
+}
+function erSetPage(p,animate){
+  const flow=document.getElementById('erFlow');
+  if(!flow||!ER)return;
+  ER.page=Math.max(0,Math.min(ER.pages-1,p));
+  flow.style.transition=animate?'transform .3s cubic-bezier(.22,.8,.3,1)':'none';
+  flow.style.transform='translate3d('+(-ER.page*ER.stride)+'px,0,0)';
+  erUpdateChrome();
+  erSaveProgressSoon();
+}
+function erRelayout(){
+  if(!ER||ER.kind!=='text'||!ER.unit)return;
+  const anchor=erCurrentAnchor();
+  erMeasure();
+  erSetPage(erPageForOffset(anchor),false);
+}
+function erNext(){
+  if(ER.page<ER.pages-1)erSetPage(ER.page+1,true);
+  else if(ER.ui<ER.book.units.length-1){erLoadUnit(ER.ui+1,{page:0});erFade();}
+  else{erSetPage(ER.page,true);ebookToast('已经读到最后一页');}
+}
+function erPrev(){
+  if(ER.page>0)erSetPage(ER.page-1,true);
+  else if(ER.ui>0){erLoadUnit(ER.ui-1,{page:'last'});erFade();}
+  else{erSetPage(ER.page,true);ebookToast('已经是第一页');}
+}
+function erStep(d){
+  if(!ER)return;
+  if(ER.kind==='text'){d>0?erNext():erPrev();}
+  else if(ER.kind==='epub'&&ER.rendition){try{d>0?ER.rendition.next():ER.rendition.prev();}catch(e){}}
+}
+function erSetBars(v){
+  if(!ER)return;
+  ER.bars=!!v;
+  const r=erRoot();
+  if(r)r.classList.toggle('er-bars',ER.bars);
+}
+function erTap(x,w){
+  if(!ER)return;
+  if(ER.bars){erSetBars(false);return;}
+  const stage=document.getElementById('erStage');
+  const width=w||(stage?stage.clientWidth:window.innerWidth);
+  if(x<width*0.3)erStep(-1);
+  else if(x>width*0.7)erStep(1);
+  else erSetBars(true);
+}
+function erBindGestures(stage){
+  const flow=document.getElementById('erFlow');
+  let st=null;
+  stage.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    st={x:e.clientX,y:e.clientY,t:Date.now(),dx:0,drag:false,id:e.pointerId};
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!st||e.pointerId!==st.id)return;
+    const dx=e.clientX-st.x,dy=e.clientY-st.y;
+    if(!st.drag){
+      if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){
+        st.drag=true;
+        try{stage.setPointerCapture(e.pointerId);}catch(_){}
+        if(ER.bars)erSetBars(false);
+      }else return;
+    }
+    st.dx=dx;
+    const atStart=ER.page===0&&ER.ui===0,atEnd=ER.page===ER.pages-1&&ER.ui===ER.book.units.length-1;
+    const eff=((dx>0&&atStart)||(dx<0&&atEnd))?dx*0.25:dx;
+    flow.style.transition='none';
+    flow.style.transform='translate3d('+(-ER.page*ER.stride+eff)+'px,0,0)';
+  });
+  const end=e=>{
+    if(!st||e.pointerId!==st.id)return;
+    const s=st;st=null;
+    if(s.drag){
+      const v=Math.abs(s.dx)/Math.max(1,Date.now()-s.t);
+      const go=Math.abs(s.dx)>ER.stride*0.18||v>0.45;
+      if(go&&s.dx<0)erNext();
+      else if(go&&s.dx>0)erPrev();
+      else erSetPage(ER.page,true);
+      return;
+    }
+    if(e.type==='pointercancel')return;
+    if(Math.abs(e.clientX-s.x)<10&&Math.abs(e.clientY-s.y)<10&&Date.now()-s.t<500)erTap(e.clientX);
+  };
+  stage.addEventListener('pointerup',end);
+  stage.addEventListener('pointercancel',end);
+}
+
+function erPercent(){
+  if(!ER||!ER.book||!ER.unit||!ER.book.total)return 0;
+  const frac=ER.pages>1?ER.page/ER.pages:0;
+  return Math.max(0,Math.min(1,(ER.unit.start+ER.unit.chars*frac)/ER.book.total));
+}
+function erUpdateChrome(){
+  if(!ER||ER.kind!=='text')return;
+  const pct=erPercent();
+  const slider=document.getElementById('erSlider');
+  if(slider&&!ER.sliding){
+    slider.value=Math.round(pct*1000);
+    slider.style.setProperty('--p',(pct*100)+'%');
+  }
+  const rem=ER.pages-ER.page-1;
+  const label=document.getElementById('erLabel');
+  if(label)label.textContent=rem>0?'第 '+(ER.page+1)+' 页 · 剩 '+rem+' 页本章':'第 '+(ER.page+1)+' 页 · 本章最后一页';
+  const run=document.getElementById('erRunning');
+  if(run)run.textContent=ER.unit.title;
+  const fl=document.getElementById('erFootL'),fr=document.getElementById('erFootR');
+  if(fl)fl.textContent=(pct*100).toFixed(1)+'%';
+  if(fr)fr.textContent=(ER.page+1)+' / '+ER.pages;
+  const prev=document.getElementById('erChPrev'),next=document.getElementById('erChNext');
+  const ch=ER.unit.ch;
+  if(prev)prev.disabled=ch<=0;
+  if(next)next.disabled=ch>=ER.book.chapters.length-1;
+}
+function erLocatePct(pct){
+  const units=ER.book.units,tgt=pct*ER.book.total;
+  let idx=0;
+  for(let i=0;i<units.length;i++){if(units[i].start<=tgt)idx=i;else break;}
+  return {idx,off:Math.max(0,tgt-units[idx].start)};
+}
+function erBindSlider(){
+  const s=document.getElementById('erSlider'),bub=document.getElementById('erBubble');
+  if(!s)return;
+  const preview=()=>{
+    const pct=s.value/1000;
+    s.style.setProperty('--p',(pct*100)+'%');
+    const t=erLocatePct(pct);
+    bub.textContent=(pct*100).toFixed(1)+'% · '+ER.book.units[t.idx].title;
+    bub.style.left=Math.max(12,Math.min(88,pct*100))+'%';
+    bub.classList.add('show');
+  };
+  s.addEventListener('input',()=>{ER.sliding=true;preview();});
+  s.addEventListener('change',()=>{
+    const t=erLocatePct(s.value/1000);
+    ER.sliding=false;
+    bub.classList.remove('show');
+    erLoadUnit(t.idx,{anchor:t.off});
+    erFade();
+  });
+  const stop=()=>{ER.sliding=false;bub.classList.remove('show');};
+  s.addEventListener('pointerup',stop);
+  s.addEventListener('pointercancel',stop);
+}
+function erChapterStep(d){
+  if(!ER)return;
+  if(ER.kind==='epub'){erStep(d);return;}
+  const to=ER.unit.ch+d;
+  if(to<0||to>=ER.book.chapters.length)return;
+  erLoadUnit(ER.book.chapters[to].unit,{page:0});
+  erFade();
+}
+
+function erCloseSheet(){const s=document.getElementById('erSheet');if(s)s.remove();}
+function erOpenSheet(html,after){
+  erCloseSheet();
+  const r=erRoot();if(!r)return null;
+  const sheet=document.createElement('div');
+  sheet.id='erSheet';sheet.className='er-sheet';
+  sheet.innerHTML='<div class="er-card">'+html+'</div>';
+  sheet.addEventListener('click',e=>{if(e.target===sheet)erCloseSheet();});
+  r.appendChild(sheet);
+  if(after)after(sheet);
+  return sheet;
+}
+function erTocRowsHtml(items,cur){
+  return items.map((c,i)=>'<button type="button" class="er-toc-row'+(i===cur?' on':'')+'" style="padding-left:'+(16+(c.depth||0)*16)+'px" onclick="erTocGo('+i+')">'+escapeHtml(c.title)+'</button>').join('');
+}
+function erOpenToc(){
+  if(!ER)return;
+  if(document.getElementById('erSheet')){erCloseSheet();return;}
+  const items=ER.kind==='epub'?(ER.epubToc||[]).map(t=>({title:t.label,depth:t.depth})):ER.book.chapters;
+  const cur=ER.kind==='epub'?(ER.epubCur==null?-1:ER.epubCur):ER.unit.ch;
+  const body=items.length?erTocRowsHtml(items,cur):'<p class="er-empty">这本书没有可用的目录。</p>';
+  erOpenSheet('<h3>章节目录</h3><div class="er-toc-list" id="erTocList">'+body+'</div><button type="button" class="er-close" onclick="erCloseSheet()">关闭</button>',sheet=>{
+    const list=sheet.querySelector('#erTocList'),row=list&&list.querySelector('.on');
+    if(row)list.scrollTop=row.offsetTop-list.clientHeight/2+row.offsetHeight/2;
+  });
+}
+function erTocGo(i){
+  if(!ER)return;
+  erCloseSheet();
+  erSetBars(false);
+  if(ER.kind==='epub'){
+    const t=(ER.epubToc||[])[i];
+    if(t&&ER.rendition){try{ER.rendition.display(t.href);}catch(e){}}
+    return;
+  }
+  const c=ER.book.chapters[i];
+  if(!c)return;
+  erLoadUnit(c.unit,{page:0});
+  erFade();
+}
+function erSettingsHtml(){
+  const lh=[['紧凑',1.65],['标准',1.9],['宽松',2.2]].map(x=>'<button type="button" class="er-chip" data-k="lh" data-v="'+x[1]+'" onclick="erSet(\'lh\','+x[1]+')">'+x[0]+'</button>').join('');
+  const ff=[['宋体','serif'],['黑体','sans'],['楷体','kai']].map(x=>'<button type="button" class="er-chip" data-k="font" data-v="'+x[1]+'" onclick="erSet(\'font\',\''+x[1]+'\')">'+x[0]+'</button>').join('');
+  const th=ER_THEMES.map(t=>'<button type="button" class="er-sw" data-k="theme" data-v="'+t.id+'" style="background:'+t.bg+';color:'+t.ink+'" onclick="erSet(\'theme\',\''+t.id+'\')" aria-label="'+t.name+'"><span>'+t.name+'</span></button>').join('');
+  return '<h3>阅读设置</h3>'
+    +'<div class="er-row"><label>字号</label><div class="er-size"><button type="button" class="er-step" onclick="erSet(\'size\','+'Math.max(14,erPrefs.size-1))">A-</button><input type="range" id="erSizeRange" min="14" max="28" step="1" value="'+erPrefs.size+'" oninput="erSet(\'size\',+this.value)"><button type="button" class="er-step" onclick="erSet(\'size\',Math.min(28,erPrefs.size+1))">A+</button></div></div>'
+    +(ER.kind==='epub'?'':'<div class="er-row"><label>行距</label><div class="er-chips">'+lh+'</div></div><div class="er-row"><label>字体</label><div class="er-chips">'+ff+'</div></div>')
+    +'<div class="er-row"><label>背景</label><div class="er-sws">'+th+'</div></div>'
+    +'<button type="button" class="er-close" onclick="erCloseSheet()">完成</button>';
+}
+function erSyncSettings(){
+  const s=document.getElementById('erSheet');if(!s)return;
+  s.querySelectorAll('[data-k]').forEach(el=>el.classList.toggle('on',String(erPrefs[el.dataset.k])===el.dataset.v));
+  const rg=s.querySelector('#erSizeRange');if(rg)rg.value=erPrefs.size;
+}
+function erOpenSettings(){
+  if(!ER)return;
+  if(document.getElementById('erSheet')){erCloseSheet();return;}
+  erOpenSheet(erSettingsHtml(),()=>erSyncSettings());
+}
+function erSet(k,v){
+  erPrefs[k]=v;
+  erSavePrefs();
+  erApplyPrefs();
+  erSyncSettings();
+  if(ER&&ER.kind==='text'&&(k==='size'||k==='lh'||k==='font')){
+    clearTimeout(erRelayTimer);
+    erRelayTimer=setTimeout(erRelayout,90);
+  }
+}
+
+function erSaveProgressSoon(){
+  clearTimeout(erSaveTimer);
+  erSaveTimer=setTimeout(erSaveProgress,1500);
+}
+async function erSaveProgress(){
+  clearTimeout(erSaveTimer);
+  if(!ER)return;
+  const id=ER.id;
+  let rec=null,pct=null;
+  if(ER.kind==='text'&&ER.unit){rec={u:ER.ui,o:erCurrentAnchor()};pct=erPercent();}
+  else if(ER.kind==='epub'&&ER.epubLoc){
+    rec={cfi:ER.epubLoc.start.cfi};
+    pct=typeof ER.epubLoc.start.percentage==='number'?ER.epubLoc.start.percentage:null;
+  }
+  if(!rec)return;
+  try{await sSet('ebook-progress:'+id,rec);}catch(e){}
+  const b=ebookLibrary.find(x=>x.id===id);
+  if(b&&pct!=null){b.pct=Math.round(pct*1000)/10;try{await saveEbookLibrary();}catch(e){}}
+}
+
+function ebookToast(msg){
+  let t=document.getElementById('ebookToast');
+  if(!t){t=document.createElement('div');t.id='ebookToast';t.className='ebook-toast';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function erFlattenToc(list,depth,out){
+  out=out||[];
+  (list||[]).forEach(t=>{
+    out.push({i:out.length,label:String(t.label||'章节').trim(),href:t.href,depth});
+    if(t.subitems&&t.subitems.length)erFlattenToc(t.subitems,depth+1,out);
+  });
+  return out;
+}
+function erEpubRelocated(loc){
+  if(!ER||ER.kind!=='epub')return;
+  ER.epubLoc=loc;
+  const href=String((loc.start&&loc.start.href)||'').split('#')[0];
+  const hit=(ER.epubToc||[]).filter(t=>String(t.href||'').split('#')[0]===href).pop();
+  if(hit)ER.epubCur=hit.i;
+  const label=document.getElementById('erLabel');
+  if(label)label.textContent=hit?hit.label:'';
+  erSaveProgressSoon();
+}
+async function erInitEpub(root,data,b){
+  const box=root.querySelector('#erEpub');
+  await loadEpubEngine();
+  if(typeof ePub!=='function'){
+    box.innerHTML='<div class="er-loading">EPUB 阅读组件暂时无法加载，请联网后重试。</div>';
+    erSetBars(true);
+    return;
+  }
+  const buf=await (await fetch(data)).arrayBuffer();
+  if(!ER||ER.id!==b.id)return;
+  const book=ePub(buf);
+  const rend=book.renderTo(box,{width:'100%',height:'100%',flow:'paginated',spread:'none'});
+  ER.epub=book;
+  ER.rendition=rend;
+  erEpubApplyStyle();
+  rend.on('click',e=>erTap(e.clientX,window.innerWidth));
+  rend.on('relocated',loc=>erEpubRelocated(loc));
+  let sx=0;
+  rend.on('touchstart',e=>{sx=e.changedTouches[0].screenX;});
+  rend.on('touchend',e=>{
+    const dx=e.changedTouches[0].screenX-sx;
+    if(Math.abs(dx)>50){erSetBars(false);dx<0?rend.next():rend.prev();}
+  });
+  const prog=await sGet('ebook-progress:'+b.id,null);
+  try{await rend.display(prog&&prog.cfi?prog.cfi:undefined);}catch(e){try{await rend.display();}catch(e2){}}
+  try{
+    const nav=await book.loaded.navigation;
+    ER.epubToc=erFlattenToc(nav.toc||[],0);
+  }catch(e){ER.epubToc=[];}
+}
+
+async function openEbookReaderById(id, inviteMsgId){
+  try{await loadEbookLibrary();}catch(e){}
+  const b=ebookLibrary.find(x=>x.id===id);
+  if(!b)return alert('这本书不在当前设备的书库中，请先导入原文件。');
+  const data=await getEbookData(id);
+  if(!data)return alert('没有找到这本书的本地文件，请重新导入。');
+  try{await ebookSweepExpiredInvites();}catch(e){}
+  closeEbookLibrary();
+  closeEbookReader();
+  ebookActiveInviteId = inviteMsgId || null;
+  await erLoadPrefs();
+  const kind=['txt','bin'].includes(String(b.type||'').toLowerCase())?'text':'unsupported';
+  if(kind==='unsupported'){alert('该书籍格式已不再支持，请导入 TXT 或 BIN 文件。');return;}
+  ER={id,kind,bars:false,page:0,pages:1,stride:1,marks:[],ui:0,unit:null,book:null,sliding:false};
+  let title=b.title||b.name||'未命名书籍';
+  let text='';
+  if(kind==='text'){
+    try{text=await ebookDecodeBookText(data);}catch(e){text='';}
+    if(!looksLikeReadableText(text)){
+      ER=null;
+      if(confirm('这个文件无法作为文本阅读，是否下载原文件？'))downloadEbookOriginal(data,b.name);
+      return;
+    }
+    const meta=ebookExtractMeta(text);
+    let dirty=false;
+    if(meta.title&&meta.title!==b.title){b.title=meta.title;title=meta.title;dirty=true;}
+    if(meta.author&&meta.author!==b.author){b.author=meta.author;dirty=true;}
+    if(dirty)await saveEbookLibrary();
+  }
+  const root=document.createElement('div');
+  root.id='ebookReaderRoot';
+  root.className='er-reader';
+  root.dataset.kind=kind;
+  const content=kind==='text'
+    ?'<div class="er-stage" id="erStage"><div class="er-running" id="erRunning"></div><div class="er-viewport" id="erViewport"><div class="er-flow" id="erFlow"></div></div><div class="er-foot"><span id="erFootL"></span><span id="erFootR"></span></div></div>'
+    :(kind==='epub'?'<div class="er-epub" id="erEpub"></div>':'<div class="er-pdf"><iframe title="PDF"></iframe></div>');
+  root.innerHTML=content
+    +'<header class="er-topbar"><button type="button" class="er-tb" onclick="closeEbookReader()">返回</button><div class="er-tb-title">'+escapeHtml(title)+'</div><button type="button" class="er-tb er-npdf" onclick="erOpenToc()">目录</button><button type="button" class="er-tb er-npdf" onclick="erOpenSettings()">Aa</button><button type="button" class="er-tb er-tb-invite" onclick="inviteEbookTogether(\''+b.id+'\')">共读</button></header>'
+    +'<footer class="er-bottombar"><button type="button" class="er-chbtn" id="erChPrev" onclick="erChapterStep(-1)" aria-label="上一章">‹</button><div class="er-slider-wrap"><input type="range" id="erSlider" min="0" max="1000" value="0"><div class="er-bubble" id="erBubble"></div></div><span class="er-pagelabel" id="erLabel"></span><button type="button" class="er-chbtn" id="erChNext" onclick="erChapterStep(1)" aria-label="下一章">›</button></footer>';
+  document.body.appendChild(root);
+  ebookCurrentId=id;
+  erApplyPrefs();
+  ER.keyHandler=e=>{
+    if(!ER)return;
+    const tag=e.target&&e.target.tagName;
+    if(tag==='INPUT'&&e.target.type!=='range'||tag==='TEXTAREA')return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();erStep(1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();erStep(-1);}
+    else if(e.key==='Escape'){
+      if(document.getElementById('erSheet'))erCloseSheet();
+      else if(ER.bars&&kind!=='pdf')erSetBars(false);
+      else closeEbookReader();
+    }
+  };
+  document.addEventListener('keydown',ER.keyHandler);
+  ER.onHide=()=>{if(document.hidden)erSaveProgress();};
+  document.addEventListener('visibilitychange',ER.onHide);
+  if(kind==='text'){
+    ER.book=ebookParseText(text,title,false);
+    const prog=await sGet('ebook-progress:'+id,null);
+    let start=0,anchor=0;
+    if(prog&&typeof prog.u==='number'&&ER.book.units[prog.u]){start=prog.u;anchor=prog.o||0;}
+    erLoadUnit(start,{anchor});
+    erBindGestures(document.getElementById('erStage'));
+    erBindSlider();
+    let lastW=0,lastH=0,t=null;
+    ER.ro=new ResizeObserver(()=>{
+      const vp=document.getElementById('erViewport');
+      if(!vp||(vp.clientWidth===lastW&&vp.clientHeight===lastH))return;
+      lastW=vp.clientWidth;lastH=vp.clientHeight;
+      clearTimeout(t);
+      t=setTimeout(erRelayout,120);
+    });
+    ER.ro.observe(document.getElementById('erViewport'));
+    erFade();
+  }else if(kind==='pdf'){
+    root.classList.add('er-pinned');
+    const blob=await (await fetch(data)).blob();
+    ebookReaderObjectUrl=URL.createObjectURL(blob);
+    root.querySelector('iframe').src=ebookReaderObjectUrl;
+  }else if(kind==='epub'){
+    await erInitEpub(root,data,b);
+  }
+}
+function closeEbookReader(){
+  const r=erRoot();
+  if(ER){
+    erSaveProgress();
+    document.removeEventListener('keydown',ER.keyHandler);
+    document.removeEventListener('visibilitychange',ER.onHide);
+    if(ER.ro)ER.ro.disconnect();
+    try{if(ER.rendition)ER.rendition.destroy();}catch(e){}
+    try{if(ER.epub)ER.epub.destroy();}catch(e){}
+  }
+  clearTimeout(erRelayTimer);
+  if(r)r.remove();
+  if(ebookReaderObjectUrl){URL.revokeObjectURL(ebookReaderObjectUrl);ebookReaderObjectUrl=null;}
+  ER=null;
+  ebookCurrentId=null;
+  // 用户退出共读阅读器时，只结束本次对应的邀请卡；普通阅读不会改动卡片。
+  const finishedInviteId = ebookActiveInviteId;
+  ebookActiveInviteId = null;
+  if(finishedInviteId){
+    Promise.resolve(updateInviteCardStatus(finishedInviteId, 'ended')).catch(e=>console.warn('结束共读卡片失败',e));
+  }
+}
+
+async function ebookSweepExpiredInvites(){
+  try{
+    if(!Array.isArray(chatMessages))return;
+    const now=Date.now();
+    for(const m of chatMessages.slice()){
+      if(m&&m.type==='invite'&&m.kind==='ebook'&&m.status==='pending'&&m.inviter==='user'&&m.expiresAt&&now>m.expiresAt){
+        await updateInviteCardStatus(m.id,'ended');
+      }
+    }
+  }catch(e){}
+}
+async function inviteEbookTogether(id){
+  try{await loadEbookLibrary();}catch(e){}
+  const b=ebookLibrary.find(x=>x.id===id);
+  if(!b)return;
+  await ebookSweepExpiredInvites();
+  const dup=(Array.isArray(chatMessages)?chatMessages:[]).find(m=>m.type==='invite'&&m.kind==='ebook'&&m.inviter==='user'&&m.status==='pending'&&m.bookId===id&&(!m.expiresAt||Date.now()<=m.expiresAt));
+  if(dup){
+    ebookToast('邀请已经发出，请等对方回应');
+    if(!erRoot()){closeEbookLibrary();openEbookReaderById(id);}
+    return;
+  }
+  const msg=await postTogetherSystemMsg('邀请你一起读《'+b.title+'》',{kind:'ebook',status:'pending',inviter:'user',from:'user',bookId:b.id,bookTitle:b.title,detail:'一起读《'+b.title+'》'});
+  if(!msg)return;
+  msg.bookId=b.id;msg.bookTitle=b.title;msg.expiresAt=Date.now()+60000;
+  try{await recPut('chatMessages',msg);}catch(e){}
+  const readerOpen=!!erRoot();
+  closeEbookLibrary();
+  // 从书库发出邀请时先不提前打开阅读器；对方真正接受后才进入共读页面。
+  // 如果用户本来就在阅读器里发起邀请，则保留当前页面等待回应。
+  try{scheduleTogetherReply('ebook');}catch(e){}
+  setTimeout(async()=>{
+    const latest=chatMessages.find(x=>x.id===msg.id);
+    if(latest&&latest.status==='pending'&&Date.now()>=latest.expiresAt){
+      await updateInviteCardStatus(latest.id,'ended');
+      try{postTogetherSystemMsg('共读邀请已过期',{kind:'ebook',status:'ended',inviter:'user',from:'system',bookId:b.id,bookTitle:b.title});}catch(e){}
+    }
+  },60050);
+  ebookToast('共读邀请已发送，等待对方在 1 分钟内回应');
+}
+</script>
+
+
+<style id="restore-original-page2-visual">
+/* 第二页视觉恢复：严格沿用原始灰白毛玻璃卡片的颜色、尺寸和比例 */
+#view-home #homePage2 .h2-cols{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+#view-home #homePage2 .h2-card,
+#view-home #homePage2 .h2-search,
+#view-home #homePage2 .home-ebook-feature{
+  background:rgba(255,255,255,.62)!important;
+  border:1px solid rgba(255,255,255,.75)!important;
+  border-radius:20px!important;
+  box-shadow:0 6px 22px rgba(90,60,70,.09)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  backdrop-filter:blur(10px)!important;
+  color:var(--ink)!important;
+}
+#view-home #homePage2 .h2-card{padding:12px 14px!important;box-sizing:border-box!important;}
+#view-home #homePage2 .h2-mini{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  min-height:74px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+#view-home #homePage2 .h2-mi{
+  width:42px!important;height:42px!important;flex:0 0 42px!important;
+  padding:9px!important;border-radius:50%!important;
+  background:rgba(255,255,255,.8)!important;
+  box-shadow:0 2px 8px rgba(90,60,70,.1)!important;
+  color:var(--ink)!important;
+}
+#view-home #homePage2 .h2-mini .h2-txt{flex:1 1 auto!important;min-width:0!important;}
+#view-home #homePage2 .h2-mini .h2-txt b,
+#view-home #homePage2 .h2-mini .h2-txt small{
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+#view-home #homePage2 .h2-mini .h2-arrow{position:static!important;margin-left:auto!important;flex:0 0 auto!important;}
+#view-home #homePage2 .home-ebook-feature{
+  display:block!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  flex:0 0 auto!important;
+  margin:2px 0 8px!important;
+  padding:14px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+#view-home #homePage2 .home-ebook-feature:before{display:none!important;}
+#view-home #homePage2 .home-ebook-topline{color:var(--ink-soft)!important;}
+#view-home #homePage2 .home-ebook-spark{color:var(--rouge)!important;}
+#view-home #homePage2 .home-ebook-heading{display:flex!important;align-items:center!important;gap:10px!important;min-width:0!important;}
+#view-home #homePage2 .home-ebook-icon{
+  width:42px!important;height:42px!important;flex:0 0 42px!important;
+  background:rgba(255,255,255,.8)!important;color:var(--ink)!important;
+  box-shadow:0 2px 8px rgba(90,60,70,.1)!important;
+}
+#view-home #homePage2 .home-ebook-heading-copy{flex:1 1 auto!important;min-width:0!important;}
+#view-home #homePage2 .home-ebook-heading-copy h3{color:var(--ink)!important;font-size:19px!important;}
+#view-home #homePage2 .home-ebook-heading-copy p{color:var(--ink-soft)!important;}
+#view-home #homePage2 .home-ebook-import,
+#view-home #homePage2 .home-ebook-open{
+  background:var(--rouge)!important;color:#fff!important;
+}
+#view-home #homePage2 .home-ebook-shelf{
+  width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  background:rgba(255,255,255,.35)!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+}
+#view-home #homePage2 .home-ebook-footer{
+  background:rgba(255,255,255,.5)!important;
+  border:1px solid rgba(255,255,255,.75)!important;
+}
+@media(max-width:380px){
+  #view-home #homePage2 .h2-cols{gap:8px!important;}
+  #view-home #homePage2 .h2-mini{gap:7px!important;padding:9px 8px!important;min-height:70px!important;}
+  #view-home #homePage2 .h2-mi{width:36px!important;height:36px!important;flex-basis:36px!important;padding:7px!important;}
+  #view-home #homePage2 .home-ebook-feature{padding:12px!important;}
+  #view-home #homePage2 .home-ebook-heading{gap:7px!important;}
+  #view-home #homePage2 .home-ebook-icon{width:36px!important;height:36px!important;flex-basis:36px!important;}
+  #view-home #homePage2 .home-ebook-heading-copy h3{font-size:17px!important;}
+  #view-home #homePage2 .home-ebook-import{font-size:10px!important;padding:7px 8px!important;}
+}
+</style>
+
+
+<style id="ebook-weread-reader-design">
+.er-reader{position:fixed;inset:0;z-index:9600;overflow:hidden;background-color:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;--bg:#eeeeed;--ink:#2e2e2e;--soft:#9b9b98;--bar:rgba(247,247,246,.97);--barink:#4a4a48;--line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.16);--card:#f1f1f0;--hl:#dededc;--accent:#8e4a56;--dots:rgba(0,0,0,.05);--er-fs:18px;--er-lh:1.9;--er-ff:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong",Georgia,serif}
+.er-reader[data-theme="paper"]{background-image:radial-gradient(var(--dots) 1px,transparent 1.3px);background-size:15px 15px}
+.er-reader[data-theme="white"]{--bg:#ffffff;--ink:#222222;--soft:#a3a3a3;--bar:rgba(250,250,250,.98);--card:#f6f6f6;--hl:#e8e8e8}
+.er-reader[data-theme="sepia"]{--bg:#f4ecd8;--ink:#5b4636;--soft:#a8957c;--bar:rgba(245,238,221,.98);--barink:#6b5644;--line:rgba(91,70,54,.14);--line2:rgba(91,70,54,.24);--card:#f7f0de;--hl:#e8dcc0;--accent:#9a5a3c}
+.er-reader[data-theme="green"]{--bg:#cfe8d2;--ink:#2d3b2f;--soft:#7a937d;--bar:rgba(214,235,217,.98);--barink:#3b4f3d;--line:rgba(45,59,47,.13);--line2:rgba(45,59,47,.22);--card:#d8eddb;--hl:#bfdcc3;--accent:#3d7a4d}
+.er-reader[data-theme="night"]{--bg:#17181a;--ink:#a9a9a4;--soft:#6c6c68;--bar:rgba(28,29,32,.98);--barink:#c4c4bf;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--card:#232427;--hl:#34353a;--accent:#c9808c}
+.er-stage{position:absolute;inset:0;touch-action:none}
+.er-viewport{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 38px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);overflow:hidden}
+.er-flow{position:absolute;top:0;left:0;column-fill:auto;will-change:transform;font-family:var(--er-ff);font-size:var(--er-fs);line-height:var(--er-lh);color:var(--ink);text-align:justify;text-justify:inter-ideograph;overflow-wrap:break-word;line-break:strict;hyphens:auto}
+.er-flow p{margin:0 0 .55em;text-indent:2em;orphans:2;widows:2}
+.er-ch-title{margin:.9em 0 1.2em;font-size:1.55em;line-height:1.4;font-weight:700;text-align:left;break-after:avoid;break-inside:avoid}
+.er-ch-title:after{content:"";display:block;width:30px;height:3px;margin-top:.55em;border-radius:2px;background:var(--accent);opacity:.85}
+.er-flow .er-meta{text-indent:0;text-align:left;color:var(--soft);font-size:.92em;margin-bottom:.4em}
+.er-flow .er-quote{text-indent:0;text-align:right;color:var(--soft);font-size:.95em;margin:-.1em 0 .9em}
+.er-flow .er-fn{position:relative;padding-left:2.4em;text-indent:0;text-align:left;font-size:.78em;line-height:1.7;color:var(--soft);margin:0 0 .4em}
+.er-flow .er-fn b{position:absolute;left:0;font-weight:500}
+.er-flow .er-fn b:before{content:"["}
+.er-flow .er-fn b:after{content:"]"}
+.er-sep{margin:1.3em 0;text-align:center;color:var(--soft);break-inside:avoid}
+.er-sep i{display:inline-block;width:4px;height:4px;margin:0 6px;border-radius:50%;background:currentColor;opacity:.65}
+.er-fn-rule{width:3.2em;margin:1.5em 0 .9em;border-top:1px solid var(--line2);break-inside:avoid}
+sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-weight:600;color:var(--accent)}
+.er-running{position:absolute;left:26px;right:26px;top:calc(env(safe-area-inset-top,0px) + 12px);font-size:11px;letter-spacing:.5px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.er-foot{position:absolute;left:26px;right:26px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;justify-content:space-between;font-size:11px;color:var(--soft);font-variant-numeric:tabular-nums;pointer-events:none}
+.er-topbar{position:absolute;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:4px;min-height:58px;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;background:var(--bar);border-bottom:1px solid var(--line);color:var(--barink);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transform:translateY(-104%);transition:transform .26s cubic-bezier(.3,.8,.3,1)}
+.er-bottombar{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 16px);background:var(--bar);border-top:1px solid var(--line);color:var(--barink);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transform:translateY(104%);transition:transform .26s cubic-bezier(.3,.8,.3,1)}
+.er-bars .er-topbar,.er-bars .er-bottombar,.er-pinned .er-topbar{transform:none}
+.er-tb{flex:0 0 auto;border:0;background:transparent;color:inherit;font-size:15px;line-height:1;padding:10px;border-radius:10px}
+.er-tb:active{background:var(--hl)}
+.er-tb-title{flex:1;min-width:0;padding:0 4px;text-align:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-tb-invite{color:var(--accent);font-weight:600}
+.er-chbtn{flex:0 0 auto;border:0;background:transparent;color:var(--barink);font-size:32px;line-height:1;padding:0 6px 4px}
+.er-chbtn:disabled{opacity:.28}
+.er-slider-wrap{position:relative;flex:1;min-width:0}
+#erSlider{display:block;width:100%;height:30px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;outline:none}
+#erSlider::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:linear-gradient(to right,var(--barink) var(--p,0%),var(--line2) var(--p,0%))}
+#erSlider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8.5px;border-radius:50%;background:var(--barink);border:3px solid var(--bar);box-shadow:0 1px 5px rgba(0,0,0,.28)}
+#erSlider::-moz-range-track{height:5px;border-radius:3px;background:var(--line2)}
+#erSlider::-moz-range-progress{height:5px;border-radius:3px;background:var(--barink)}
+#erSlider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--barink);border:3px solid var(--bar)}
+.er-bubble{position:absolute;bottom:38px;left:0;transform:translateX(-50%);max-width:240px;padding:7px 12px;border-radius:10px;background:var(--barink);color:var(--bar);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .15s}
+.er-bubble.show{opacity:1}
+.er-pagelabel{flex:0 0 auto;font-size:12px;color:var(--soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+.er-epub{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px)}
+.er-pdf{position:absolute;left:0;right:0;bottom:0;top:calc(env(safe-area-inset-top,0px) + 58px)}
+.er-pdf iframe{width:100%;height:100%;border:0;background:#fff}
+.er-reader[data-kind="epub"] .er-slider-wrap{display:none}
+.er-reader[data-kind="epub"] .er-pagelabel{flex:1;text-align:center}
+.er-reader[data-kind="pdf"] .er-npdf,.er-reader[data-kind="pdf"] .er-bottombar{display:none}
+.er-loading{position:absolute;left:0;right:0;top:45%;text-align:center;color:var(--soft);font-size:14px}
+.er-sheet{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;padding:0 3.5vw calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(0,0,0,.32);animation:erFadeIn .2s ease-out}
+.er-card{display:flex;flex-direction:column;width:100%;max-width:560px;max-height:64vh;padding:22px 20px 16px;border-radius:24px;background:var(--card);color:var(--ink);box-shadow:0 12px 44px rgba(0,0,0,.22);animation:erUp .28s cubic-bezier(.2,.9,.3,1)}
+.er-card h3{margin:0 0 12px 4px;font-size:21px;font-weight:700;letter-spacing:.5px}
+.er-toc-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:2px 4px}
+.er-toc-row{display:block;width:100%;margin:0 0 6px;padding:14px 16px;border:0;border-radius:14px;background:transparent;color:var(--ink);font-size:15.5px;line-height:1.55;text-align:left}
+.er-toc-row.on{background:var(--hl);font-weight:700}
+.er-toc-row:active{background:var(--hl)}
+.er-empty{margin:18px 6px;color:var(--soft);font-size:14px}
+.er-close{margin-top:12px;width:100%;padding:14px;border:1px solid var(--line2);border-radius:16px;background:transparent;color:var(--ink);font-size:16px}
+.er-close:active{background:var(--hl)}
+.er-row{display:flex;align-items:center;gap:14px;margin:0 0 16px}
+.er-row label{flex:0 0 40px;font-size:14px;color:var(--soft)}
+.er-size{flex:1;display:flex;align-items:center;gap:10px}
+.er-size input{flex:1;accent-color:var(--accent)}
+.er-step{flex:0 0 auto;min-width:44px;padding:9px 0;border:1px solid var(--line2);border-radius:12px;background:transparent;color:var(--ink);font-size:14px}
+.er-chips{flex:1;display:flex;gap:8px}
+.er-chip{flex:1;padding:10px 0;border:1px solid var(--line2);border-radius:12px;background:transparent;color:var(--ink);font-size:14px}
+.er-chip.on{border-color:var(--accent);background:rgba(142,74,86,.09);color:var(--accent);font-weight:600}
+.er-sws{flex:1;display:flex;gap:10px;justify-content:space-between}
+.er-sw{position:relative;flex:1;max-width:58px;height:42px;padding:0;border:2px solid transparent;border-radius:13px;box-shadow:0 0 0 1px var(--line2);font-size:11px}
+.er-sw.on{border-color:var(--accent)}
+.er-sw span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ebook-toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:9950;max-width:80vw;padding:10px 16px;border-radius:999px;background:rgba(40,36,34,.9);color:#fff;font-size:13px;text-align:center;opacity:0;pointer-events:none;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
+.ebook-toast.show{opacity:1;transform:translate(-50%,0)}
+.ebook-cover.er-cover{flex-direction:column;gap:8px;padding:12px 10px;color:#fff;text-align:center;font-size:inherit}
+.ebook-cover.er-cover b{font:600 15px/1.4 Georgia,"Noto Serif SC",serif;letter-spacing:1px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.ebook-cover.er-cover small{font-size:10px;opacity:.82;letter-spacing:.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes erFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes erUp{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:390px){.er-tb{padding:10px 7px;font-size:14px}.er-pagelabel{font-size:11px}.er-card{padding:20px 16px 14px}}
+</style>
+
 </body>
 </html>
