@@ -11385,19 +11385,25 @@ function parseBilibiliBvid(input){
   const m = s.match(/BV[a-zA-Z0-9]+/);
   return m ? m[0] : (s.startsWith('BV') ? s : '');
 }
+/* 根据页面上下文生成 B 站播放器地址 */
+function watchFrameSrc(bvid){
+  if(!bvid) return '';
+  return 'https://player.bilibili.com/player.html?bvid='+encodeURIComponent(bvid)+'&high_quality=1&danmaku=0';
+}
 function openWatchTogetherPanel(asInvite){
   const st = togetherState.watch;
   asInvite = !!asInvite;
+  document.body.dataset.watchInvite = asInvite ? '1' : '0';
   openOverlay(
     '<div class="drawer-head"><h3>📺 一起看</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">导入 B 站 BV 号，邀请对方一起看；播放时仍可回到传讯聊天。</p>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">导入 B 站 BV 号或链接，两人同步观看。</p>'+
     '<label class="field">BV 号或视频链接</label>'+
     '<input type="text" id="watchBvidInput" placeholder="例如 BV1xx411c7mD" value="'+(st.bvid||'')+'">'+
     '<label class="field">约定时间（可选）</label>'+
     '<input type="datetime-local" id="watchTimeInput">'+
     '<label class="field">想说的话（可选）</label>'+
     '<input type="text" id="watchNoteInput" placeholder="今晚一起看这个？" value="'+(st.note||'')+'">'+
-    (st.bvid ? ('<div class="watch-frame-wrap" style="margin-top:12px;"><iframe src="https://player.bilibili.com/player.html?bvid='+encodeURIComponent(st.bvid)+'&high_quality=1&danmaku=0" allowfullscreen="allowfullscreen" scrolling="no" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe></div><p class="watch-chat-hint">播放中可关掉此面板，回传讯继续聊。</p>') : '')+
+    (st.bvid ? ('<div class="watch-frame-wrap" style="margin-top:12px;"><iframe src="'+watchFrameSrc(st.bvid)+'" allowfullscreen="allowfullscreen" scrolling="no" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe></div><p class="watch-chat-hint">播放中可关掉此面板，回传讯继续聊。</p>' ) : '')+
     '<div class="btn-row" style="margin-top:12px;flex-wrap:wrap;gap:8px;">'+
       '<div class="btn" onclick="loadWatchBilibili()">加载视频</div>'+
       ((asInvite || !st.active) ? '<div class="btn outline" onclick="inviteWatchTogether()">发出邀请</div>' : '')+
@@ -14754,6 +14760,12 @@ function renderStatusCard(){
           ${moodBadge ? `<div class="sc-mood-line"><span>心情</span>${moodBadge}</div>` : ''}
         </div>
       </div>
+      <div class="sc-conn">
+        <div class="sc-conn-l">连接强度 · LINK STRENGTH</div>
+        <div class="sc-bar"><i style="width:${v}%;background:${tier.color}"></i></div>
+        <div class="sc-num">${v}<small>%</small></div>
+        <div class="sc-tier"><b style="background:${tier.color}"></b>${tier.label} · ${tier.en}</div>
+      </div>
       <div class="sc-daynight ${scTod()==='night'?'is-night':'is-day'}">
         <span class="sc-dn-icon">${scTod()==='night'?'🌙':'☀️'}</span>
         <span class="sc-dn-copy"><small>HIS WORLD · 他那边的时间</small><strong>${scTod()==='night'?'夜晚':'白天'}</strong></span>
@@ -15976,6 +15988,7 @@ html:has(#view-home:not(.hidden)) .shell{min-height:0!important;height:100dvh;pa
 .sc-num small{font-size:14px;color:var(--ink-soft);}
 .sc-tier{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);margin-top:2px;}
 .sc-tier b{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.sc-conn{margin:2px 0 14px;}
 .sc-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.75);border:1px solid rgba(210,178,168,.45);border-radius:18px;padding:12px 14px;margin-bottom:10px;}
 .sc-row-m{flex:1;min-width:0;}
 .sc-row-m small{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:2px;}
@@ -17355,7 +17368,119 @@ function erTextSelectAt(x,y){
   ER._textLongPressReady=true;
   if(ER.selectionHandler)ER.selectionHandler();
 }
+function erExpandSelection(dir){
+  if(!ER||!ER.pendingSelection)return;
+  const isEpub=ER.kind==='epub';
+  if(!isEpub&&ER.kind!=='text')return;
+  const flow=isEpub?(ER.rendition&&ER.rendition.getContents&&ER.rendition.getContents()[0]):document.getElementById('erFlow');
+  if(!flow)return;
+  const doc=isEpub?flow.document:document;
+  const container=isEpub?flow.document.body:flow;
+  const sel=isEpub?(doc.getSelection&&doc.getSelection()):window.getSelection();
+  if(!sel||!sel.rangeCount)return;
+  let rg=sel.getRangeAt(0);
+  if(rg.collapsed)return;
+  const STOPS='。！？!?；;…\n';
+  const TAIL='”’」』）)》〉】';
+  const isStop=ch=>STOPS.indexOf(ch)>=0;
+
+  function prevTextNode(node,rootNode){
+    const walker=doc.createTreeWalker(rootNode,NodeFilter.SHOW_TEXT);
+    let last=null,n;
+    while((n=walker.nextNode())){
+      if(n.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_FOLLOWING)last=n;else break;
+    }
+    return last;
+  }
+  function nextTextNode(node,rootNode){
+    const walker=doc.createTreeWalker(rootNode,NodeFilter.SHOW_TEXT);
+    let n;
+    while((n=walker.nextNode())){
+      if(n.compareDocumentPosition(node)&Node.DOCUMENT_POSITION_PRECEDING)return n;
+    }
+    return null;
+  }
+
+  if(dir>0){
+    // 向右：吞掉当前句尾标点，再取到下一个句末标点（含）
+    let node=rg.endContainer,off=rg.endOffset;
+    if(node.nodeType!==3){node=nextTextNode(node,container)||node;}
+    let guard=0;
+    while(node&&node.nodeType===3&&guard<400){
+      guard++;
+      const t=node.nodeValue;
+      let i=off;
+      while(i<t.length&&isStop(t.charAt(i)))i++;
+      while(i<t.length&&TAIL.indexOf(t.charAt(i))>=0)i++;
+      if(i>=t.length){node=nextTextNode(node,container);off=0;if(node&&node.nodeType===3){continue;}}
+      else{
+        let j=i;
+        while(j<t.length){
+          const ch=t.charAt(j);
+          if(isStop(ch)){let k=j+1;while(k<t.length&&TAIL.indexOf(t.charAt(k))>=0)k++;if(k>=t.length){/* 句末在节点末尾，先延伸到本节点末，再跨节点补 */ j=k;break;}j=k;break;}
+          j++;
+        }
+        if(j>=t.length){
+          // 标点落在节点末尾，继续用下一节点看是否有右引号
+          let nn=nextTextNode(node,container);
+          if(nn&&nn.nodeType===3){let k=0;while(k<nn.nodeValue.length&&TAIL.indexOf(nn.nodeValue.charAt(k))>=0)k++;if(k>0){rg.setEnd(nn,k);}else{rg.setEnd(node,t.length);}}
+          else rg.setEnd(node,t.length);
+        }else{
+          rg.setEnd(node,j);
+        }
+        break;
+      }
+    }
+  }else{
+    // 向左：取到上一个句末标点之后（含左侧右引号处理）
+    let node=rg.startContainer,off=rg.startOffset;
+    if(node.nodeType!==3){node=prevTextNode(node,container)||node;if(node&&node.nodeType===3)off=node.nodeValue.length;}
+    let guard=0;
+    while(node&&node.nodeType===3&&guard<400){
+      guard++;
+      const t=node.nodeValue;
+      let i=off;
+      while(i>0&&TAIL.indexOf(t.charAt(i-1))>=0)i--;
+      if(i<=0){node=prevTextNode(node,container);off=node&&node.nodeType===3?node.nodeValue.length:0;continue;}
+      let j=i-1,moved=false;
+      while(j>=0){
+        const ch=t.charAt(j);
+        if(isStop(ch)){
+          let k=j+1;
+          while(k<t.length&&TAIL.indexOf(t.charAt(k))>=0)k++;
+          rg.setStart(node,k);moved=true;break;
+        }
+        j--;
+      }
+      if(moved)break;
+      // 本节点没找到，继续上一个节点
+      if(j<0){let nn=prevTextNode(node,container);if(!nn)break;node=nn;off=nn.nodeValue.length;continue;}
+    }
+  }
+
+  try{
+    sel.removeAllRanges();sel.addRange(rg);
+  }catch(e){return;}
+  const text=String(rg.toString()).trim();
+  if(!text)return;
+  if(isEpub){
+    const rect=rg.getBoundingClientRect();
+    let left=rect.left,top=rect.top;
+    const frame=flow.document&&flow.document.defaultView&&flow.document.defaultView.frameElement;
+    if(frame){const fr=frame.getBoundingClientRect();left+=fr.left;top+=fr.top;}
+    let cfi=null;
+    try{cfi=ER.rendition&&ER.rendition.getContents&&ER.rendition.cfiFromRange&&ER.rendition.cfiFromRange(rg);}catch(e){}
+    const contents=ER.rendition&&ER.rendition.getContents&&ER.rendition.getContents()[0];
+    if(!cfi&&contents&&contents.cfiFromRange){try{cfi=contents.cfiFromRange(rg);}catch(e){}}
+    erSelectionMenuShow(text,{left,top,width:rect.width,height:rect.height},'epub',{cfi},erEpubHitIds(rg,cfi));
+  }else{
+    const rect=rg.getBoundingClientRect();
+    const info=erTextRangeOffsets(rg,flow);
+    erSelectionMenuShow(text,{left:rect.left,top:rect.top,width:rect.width,height:rect.height},'text',info,info?erTextHitIds(info):[]);
+  }
+}
 function erEpubSelectAt(contents,x,y){
+
   if(!ER||ER.kind!=='epub')return;
   const doc=contents.document;
   doc.body.classList.add('er-sel-on');
@@ -17462,10 +17587,20 @@ function erApplyTextAnnotations(){
 }
 async function erBindAnnotations(root){
   const menu=root.querySelector('#erSelectionMenu');
+  if(menu&&!menu.querySelector('button[data-er-action="expandL"]')){
+    const copyBtn=menu.querySelector('button[data-er-action="copy"]');
+    const html='<button type="button" data-er-action="expandL" title="向左扩大选区">◀扩</button><button type="button" data-er-action="expandR" title="向右扩大选区">扩▶</button>';
+    if(copyBtn)copyBtn.insertAdjacentHTML('beforebegin',html);
+    else menu.insertAdjacentHTML('afterbegin',html);
+  }
   menu.addEventListener('click',async e=>{
     const btn=e.target.closest('button[data-er-action]');if(!btn||!ER||!ER.pendingSelection)return;
     const action=btn.dataset.erAction,p=ER.pendingSelection;
     if(action==='close'){erSelectionMenuHide();return;}
+    if(action==='expandL'||action==='expandR'){
+      erExpandSelection(action==='expandR'?1:-1);
+      return;
+    }
     if(action==='copy'){
       const copied=await erCopyText(p.text);
       ebookToast(copied?'已复制':'复制失败：请允许剪贴板权限');
