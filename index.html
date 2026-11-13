@@ -1530,8 +1530,8 @@
 .sc-status-line span{color:#718071}
 .sc-mood-line{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:12px;color:#8b7180}
 .sc-mood-line .sc-mood{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:25px;padding:3px 9px;border:1px solid rgba(185,121,137,.22);border-radius:10px;background:rgba(255,255,255,.48);font-size:17px;line-height:1}
-.sc-mood-line .sc-mood{max-width:220px;overflow-wrap:anywhere;font-size:13px;line-height:1.4}
-.sc-mood-line .sc-mood-empty{color:#8b9189;font-size:11px}
+.sc-mood-line>span:first-child{flex:none;white-space:nowrap}
+.sc-mood-line .sc-mood.sc-mood-text{justify-content:flex-start;min-width:0;max-width:100%;font-size:13px;line-height:1.45;text-align:left;word-break:break-all}
 .sc-daynight{display:flex;align-items:center;justify-content:center;gap:13px;margin:4px 0 4px;padding:18px 16px;border:1px solid rgba(255,255,255,.78);border-radius:22px;background:rgba(255,255,255,.62);box-shadow:0 5px 18px rgba(70,80,65,.06);color:#39463d}
 .sc-daynight .sc-dn-icon{font-size:35px;line-height:1}
 .sc-daynight .sc-dn-copy{display:flex;flex-direction:column;gap:4px}
@@ -1625,6 +1625,12 @@
  #view-home #homePage2 .home-ebook-read,#view-home #homePage2 .home-ebook-invite{padding:6px 7px!important;font-size:9px!important;}
 }
 </style>
+<script>
+  // 禁止浏览器原生右键/长按菜单（包括“用 Google 搜索”）；不阻止事件传播，保留网页自定义菜单。
+  document.addEventListener('contextmenu', function (event) {
+    event.preventDefault();
+  }, true);
+</script>
 </head>
 <body>
 <div class="shell">
@@ -2569,6 +2575,12 @@ let chatSettings = { companionName:'陆沉', delayMin:30, delayMax:300, readNoRe
 ]};
 let chatMessages = [];
 let cardsData = { groups:{} };
+const CARDS_MOOD_GROUP = '心情状态';
+function ensureMoodGroup(){
+  if(!cardsData || typeof cardsData!=='object') cardsData = {groups:{}};
+  if(!cardsData.groups || typeof cardsData.groups!=='object') cardsData.groups = {};
+  if(!Array.isArray(cardsData.groups[CARDS_MOOD_GROUP])) cardsData.groups[CARDS_MOOD_GROUP] = [];
+}
 let ledgerEntries = [];
 let periodEntries = [];
 let diaryEntries = [];
@@ -2755,9 +2767,7 @@ async function init(){
   ]);
   chatMessages = _chatMessages;
   cardsData = (_cardsData && typeof _cardsData==='object' && _cardsData.groups && typeof _cardsData.groups==='object') ? _cardsData : {groups:{}};
-  // 固定分组：状态卡心情只从这里抽取，不混入普通字卡池
-  const _hadFixedMoodGroup = Array.isArray(cardsData.groups['心情状态']);
-  if(!_hadFixedMoodGroup) cardsData.groups['心情状态'] = [];
+  ensureMoodGroup();
   ledgerEntries = Array.isArray(_ledgerEntries) ? _ledgerEntries : [];
   periodEntries = Array.isArray(_periodEntries) ? _periodEntries : [];
   diaryEntries = Array.isArray(_diaryEntries) ? _diaryEntries : [];
@@ -2773,8 +2783,6 @@ async function init(){
   inboxLetterUnread = _inboxLetterUnread;
   momentsUnread = _momentsUnread;
   lifePhotos = _lifePhotos.slice().reverse();
-  // 仅在旧数据缺少固定分组时补存，避免每次启动都写入整份字卡库
-  if(!_hadFixedMoodGroup){ try{ await sSet('cards-data', cardsData); }catch(e){} }
   statusPool = Array.isArray(_statusPool) ? _statusPool : [];
   todayStatus = _todayStatus;
   todayStatusHistory = _todayStatusHistory || [];
@@ -3542,7 +3550,7 @@ function normalizeCardsJson(raw){
 }
 function exportCardsFile(){
   const groups = (cardsData && cardsData.groups) || {};
-  if(Object.keys(groups).length===0){ alert('字卡库还是空的，没什么可导出的'); return; }
+  if(!Object.values(groups).some(g=>Array.isArray(g)&&g.length)){ alert('字卡库还是空的，没什么可导出的'); return; }
   const blob = new Blob([JSON.stringify(groups, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3589,7 +3597,6 @@ async function applyImport(mode){
   if(mode==='replace'){
     const keepPats = getPatList();
     cardsData = normalized;
-    if(!Array.isArray(cardsData.groups['心情状态'])) cardsData.groups['心情状态'] = [];
     if(keepPats.length && !Array.isArray(cardsData.pats)) cardsData.pats = keepPats;
   } else {
     Object.keys(normalized.groups).forEach(g=>{
@@ -3597,6 +3604,7 @@ async function applyImport(mode){
       normalized.groups[g].forEach(c=>{ if(!cardsData.groups[g].includes(c)) cardsData.groups[g].push(c); });
     });
   }
+  ensureMoodGroup();
   await sSet('cards-data', cardsData);
   renderCardsView();
   closeOverlay();
@@ -3710,7 +3718,7 @@ function renderCardsStrip(){
   const el = document.getElementById('cardsGroupStrip');
   if(!el) return;
   const groups = Object.keys(cardsData.groups||{});
-  if(!cardsActiveGroup || !groups.includes(cardsActiveGroup)) cardsActiveGroup = groups[0] || null;
+  if(!cardsActiveGroup || !groups.includes(cardsActiveGroup)) cardsActiveGroup = groups.find(g=>g!==CARDS_MOOD_GROUP) || null;
   const head = `<div class="cards-sidebar-head"><span>字卡分组</span></div>`;
   if(groups.length===0){
     el.innerHTML = head + `<div class="group-chip add-chip" onclick="openAddGroupOverlay()"><span>新分:</span><span class="plus">+</span></div>`;
@@ -3745,7 +3753,7 @@ function renderCardsMain(){
   const wrap = document.getElementById('cardsGroupsList');
   const groups = Object.keys(cardsData.groups||{});
 
-  if(groups.length===0){
+  if(groups.length===0 || (!cardsActiveGroup && !cardsSearchKeyword)){
     wrap.innerHTML = `<div class="box">
       <div class="box-title">导入字卡 JSON <span class="stamp-tag">IMPORT</span></div>
       <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">支持分组格式，会自动按你文件里的分组归类。</p>
@@ -3772,17 +3780,14 @@ function renderCardsMain(){
       <span class="gcount">${list.length} 条匹配</span>
     </div>`;
   } else {
-    const isFixedMoodGroup = cardsActiveGroup === '心情状态';
-    const groupActions = isFixedMoodGroup
-      ? `<div style="font-size:11px;color:var(--ink-soft);margin:0 0 10px;line-height:1.6;">固定分组 · 状态卡只会从这里随机抽取心情，不会抽取其他分组的字卡</div>`
-      : `<div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;gap:8px;">
-          <span class="del-group-btn" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span>
-          <span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>
-        </div>`;
     headHtml = `<div class="cards-main-head">
       <span class="gname">${escapeHtml(cardsActiveGroup||'')}</span>
       <span class="gcount">${list.length} 条字卡</span>
-    </div>${groupActions}`;
+    </div>
+    <div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;gap:8px;">
+      ${cardsActiveGroup===CARDS_MOOD_GROUP ? '<span class="del-group-btn" style="opacity:.55;pointer-events:none;">固定分组 · 状态卡片心情只从这里抽</span>' : `<span class="del-group-btn" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span>
+      <span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>`}
+    </div>`;
   }
 
   // 添加区
@@ -3918,7 +3923,6 @@ async function deleteSelectedCards(){
 }
 function moveSelectedCardsInline(){
   if(selectedCardIdx.size===0){ alert('先选几张字卡'); return; }
-  if(selectedCardItems().some(x=>x.group==='心情状态')){ alert('「心情状态」是固定分组，里面的心情字卡不能移动到其他分组。'); return; }
   const sel = document.getElementById('moveTargetSelect');
   if(!sel || !sel.value){ alert('请选择要移动到的分组'); return; }
   if(sel.value === '__new__'){ openMoveToNewGroupOverlay(); return; }
@@ -3936,7 +3940,6 @@ function openMoveToNewGroupOverlay(){
 }
 async function moveSelectedCardsTo(targetGroup){
   const items = selectedCardItems();
-  if(items.some(x=>x.group==='心情状态')){ alert('「心情状态」是固定分组，里面的心情字卡不能移动到其他分组。'); return; }
   items.forEach(({group,text})=>{
     if(group===targetGroup) return;
     if(cardsData.groups[group]) cardsData.groups[group] = cardsData.groups[group].filter(c=>c!==text);
@@ -3959,36 +3962,39 @@ async function moveSelectedCardsToNew(){
 async function dedupCardsInGroup(){
   const groups = cardsData.groups || {};
   const seen = new Set();
+  const next = {};
   let removed = 0;
   Object.keys(groups).forEach(name=>{
     const arr = groups[name] || [];
+    if(name===CARDS_MOOD_GROUP){ next[name] = arr.slice(); return; }
     const kept = [];
     arr.forEach(c=>{
       const key = String(c).trim();
       if(seen.has(key)){ removed++; } else { seen.add(key); kept.push(c); }
     });
-    groups[name] = kept;
+    if(kept.length) next[name] = kept;
   });
-  Object.keys(groups).forEach(name=>{ if(name!=='心情状态' && (groups[name]||[]).length===0) delete groups[name]; });
   if(removed===0){ alert("所有字卡里没有发现重复～"); return; }
   if(!confirm("发现 " + removed + " 条重复字卡（跨分组），确定去重吗？")) return;
+  cardsData.groups = next;
+  ensureMoodGroup();
   await sSet("cards-data", cardsData);
   renderCardsView();
 }
 /* 放进 onclick="fn('…')" 这种「HTML 属性里的 JS 字符串」用：先按 JS 字符串转义，再按 HTML 转义 */
 function escAttr(s){
-  const js = String(s==null?'':s).replace(/\\/g,'\\\').replace(/'/g,"\'").replace(/\r/g,'\\r').replace(/\n/g,'\\n').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  const js = String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'\\r').replace(/\n/g,'\\n').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
   return escapeHtml(js);
 }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function deleteGroup(g){
-  if(g==='心情状态'){ alert('「心情状态」是固定分组，不能删除；可以单独删除里面的字卡。'); return; }
+  if(g===CARDS_MOOD_GROUP){ alert('「'+CARDS_MOOD_GROUP+'」是固定分组，不能删除'); return; }
   const n = (cardsData.groups[g]||[]).length;
   if(!confirm('确定删除分组「'+g+'」和里面的 '+n+' 张字卡吗？删除后无法恢复。')) return;
   delete cardsData.groups[g]; await sSet('cards-data', cardsData); renderCardsView();
 }
 async function renameGroup(oldName){
-  if(oldName==='心情状态'){ alert('「心情状态」是固定分组，不能重命名。'); return; }
+  if(oldName===CARDS_MOOD_GROUP){ alert('「'+CARDS_MOOD_GROUP+'」是固定分组，不能重命名'); return; }
   if(!cardsData.groups || !cardsData.groups[oldName]) return;
   openOverlay(`
     <div class="drawer-head"><h3>修改分组名称</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
@@ -4739,7 +4745,7 @@ function syncTypingIndicatorDOM(scrollAfter){
 /* ---- 字卡自由挑选：不按用户说了什么去限定分组或回复内容，只在全部字卡里随机挑一条 ---- */
 function getRandomCardText(){
   const groups = cardsData.groups||{};
-  const groupNames = Object.keys(groups).filter(g=>g!=='心情状态');
+  const groupNames = Object.keys(groups);
   let pool = [];
   groupNames.forEach(g=> (groups[g]||[]).forEach(card=>{ if(!isGestureCard(card)) pool.push({group:g, card}); })); // 旧的动作卡不参与抽选
   if(pool.length===0) return null;
@@ -4779,7 +4785,7 @@ function displayCardText(text){
 function getTextCardPool(){
   const groups = cardsData.groups||{};
   let pool = [];
-  Object.keys(groups).filter(g=>g!=='心情状态').forEach(g=> (groups[g]||[]).forEach(card=>{
+  Object.keys(groups).forEach(g=> (groups[g]||[]).forEach(card=>{
     if(!isGestureCard(card)) pool.push(card);
   }));
   return pool;
@@ -6069,8 +6075,8 @@ function applyChatBackground(){
 
 /* ---- card picker (send from 字卡库 directly in chat) ---- */
 function openCardPicker(){
-  const groups = Object.keys(cardsData.groups||{}).filter(g=>g!=='心情状态');
-  if(groups.length===0 || !groups.some(g=>(cardsData.groups[g]||[]).length)){
+  const groups = Object.keys(cardsData.groups||{});
+  if(groups.length===0){
     openOverlay(`<div class="drawer-head"><h3>字卡库是空的</h3><span class="close-x" onclick="closeOverlay()">✕</span></div><div class="empty-note">去「字卡」页面导入或添加一些字卡吧。</div>`);
     return;
   }
@@ -7715,6 +7721,7 @@ function onImportBackupFile(e){
     chatSettings = data.chatSettings ? withDefaults('chatSettings', data.chatSettings) : chatSettings;
     const importedChat = data.chatMessages || [];
     cardsData = data.cardsData || {groups:{}};
+    ensureMoodGroup();
     ledgerEntries = data.ledgerEntries || [];
     periodEntries = data.periodEntries || [];
     diaryEntries = data.diaryEntries || [];
@@ -14615,32 +14622,6 @@ async function loadStatusCard(){
 }
 async function saveStatusCard(){ try{ await sSet('status-card', statusCardData); }catch(e){} }
 
-const SC_MOOD_GROUP = '心情状态';
-function scMoodPool(){
-  const arr = cardsData && cardsData.groups && Array.isArray(cardsData.groups[SC_MOOD_GROUP]) ? cardsData.groups[SC_MOOD_GROUP] : [];
-  return arr.map(x=>String(x||'').trim()).filter(Boolean);
-}
-function scMoodTick(){
-  const c = statusCardData, now = Date.now(), pool = scMoodPool();
-  if(!pool.length){
-    c.mood = '';
-    c.moodNextAt = null;
-    return '';
-  }
-  if(!c.mood || !c.moodNextAt || now >= c.moodNextAt){
-    let next = pool[Math.floor(Math.random()*pool.length)];
-    if(pool.length>1 && next===c.mood){
-      const alternatives = pool.filter(x=>x!==c.mood);
-      if(alternatives.length) next = alternatives[Math.floor(Math.random()*alternatives.length)];
-    }
-    c.mood = next;
-    // 0~3小时随机变化；最短间隔设为1秒，避免抽到0时连续重抽
-    c.moodNextAt = now + 1000 + Math.random()*3*60*60*1000;
-    saveStatusCard();
-  }
-  return c.mood;
-}
-
 function scTodTick(){
   const c = statusCardData;
   const now = Date.now();
@@ -14665,7 +14646,7 @@ function scRoll(){
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
-  c.st = { kind, nextAt: now + (1 + Math.random()*3)*3600000 };
+  c.st = { kind, nextAt: now + Math.random()*3*3600000 };
   saveStatusCard();
   return c.st;
 }
@@ -14691,9 +14672,27 @@ function scStatusLabel(){
     return (SC_STATES[st.kind] || SC_STATES.online).label;
   }catch(e){ return '在线'; }
 }
+function scMoodPool(){
+  const g = cardsData && cardsData.groups && cardsData.groups[CARDS_MOOD_GROUP];
+  if(!Array.isArray(g)) return [];
+  return g.map(x=>String(x).trim()).filter(x=>x && !isGestureCard(x));
+}
+function scMoodValue(){
+  const c = statusCardData;
+  const now = Date.now();
+  const pool = scMoodPool();
+  if(!pool.length) return null;
+  const m = c.mood;
+  if(m && typeof m.text==='string' && pool.includes(m.text) && now < m.nextAt) return m.text;
+  const prev = m && m.text;
+  const choices = pool.length>1 ? pool.filter(x=>x!==prev) : pool;
+  const text = choices[Math.floor(Math.random()*choices.length)];
+  c.mood = { text, nextAt: now + Math.random()*3*3600000 };
+  saveStatusCard();
+  return text;
+}
 function scTier(v){ return SC_TIERS.find(t=>v >= t.min) || SC_TIERS[SC_TIERS.length-1]; }
 
-let _scMoodTimer = null;
 async function openStatusCard(){
   await loadStatusCard();
   closeStatusCard();
@@ -14702,20 +14701,11 @@ async function openStatusCard(){
   root.className = 'sc-mask';
   root.onclick = function(e){ if(e.target===root) closeStatusCard(); };
   document.body.appendChild(root);
-  scMoodTick();
   renderStatusCard();
-  if(_scMoodTimer) clearInterval(_scMoodTimer);
-  _scMoodTimer = setInterval(()=>{
-    if(!document.getElementById('scRoot')) return;
-    const before = statusCardData.mood;
-    const after = scMoodTick();
-    if(before !== after) renderStatusCard();
-  }, 15000);
 }
 function closeStatusCard(){
   const r = document.getElementById('scRoot');
   if(r) r.remove();
-  if(_scMoodTimer){ clearInterval(_scMoodTimer); _scMoodTimer=null; }
 }
 function renderStatusCard(){
   const root = document.getElementById('scRoot');
@@ -14728,8 +14718,11 @@ function renderStatusCard(){
   const av = (typeof profile!=='undefined' && profile.avatar && String(profile.avatar).startsWith('data:'))
     ? '<img src="'+profile.avatar+'" alt="">'
     : '<span>'+escapeHtml((typeof profile!=='undefined' && profile.avatar) || '🌙')+'</span>';
-  const moodText = scMoodTick();
-  const moodBadge = moodText ? '<span class="sc-mood">'+escapeHtml(moodText)+'</span>' : '<span class="sc-mood sc-mood-empty">未添加心情</span>';
+  const mood = (typeof taMoodFor==='function') ? taMoodFor(todayKey()) : null;
+  const moodText = scMoodValue();
+  const moodBadge = moodText
+    ? '<span class="sc-mood sc-mood-text">'+escapeHtml(moodText)+'</span>'
+    : ((mood && mood.mood) ? '<span class="sc-mood">'+escapeHtml(mood.mood)+'</span>' : '');
   root.innerHTML = `
     <div class="sc-card">
       <div class="sc-x" onclick="closeStatusCard()">×</div>
@@ -16844,7 +16837,7 @@ function erEpubApplyStyle(){
       'html':{'background':t.bg+' !important'},
       'body':{'color':t.ink+' !important','background':t.bg+' !important','line-height':erPrefs.lh+' !important','font-family':ff+' !important'},
       'p':{'line-height':erPrefs.lh+' !important'},
-      'body *':{'color':'inherit !important','-webkit-user-select':'text !important','user-select':'text !important','-webkit-touch-callout':'default !important'},
+      'body *':{'color':'inherit !important','-webkit-user-select':'text !important','user-select':'text !important','-webkit-touch-callout':'none !important'},
       'a':{'color':'inherit !important'}
     });
     ER.rendition.themes.select('er');
@@ -16913,9 +16906,11 @@ function erSetPage(p,animate){
   erSelectionMenuHide();
   const flow=document.getElementById('erFlow');
   if(!flow||!ER)return;
+  const previousPage=ER.page;
   ER.page=Math.max(0,Math.min(ER.pages-1,p));
   flow.style.transition=animate?'transform .3s cubic-bezier(.22,.8,.3,1)':'none';
   flow.style.transform='translate3d('+(-ER.page*ER.stride)+'px,0,0)';
+  if(previousPage!==ER.page&&erTogetherActive())erTaExcerpt('text:'+ER.ui+':'+ER.page);
   erUpdateChrome();
   erSaveProgressSoon();
 }
@@ -16946,14 +16941,10 @@ function erSetBars(v){
   const r=erRoot();
   if(r)r.classList.toggle('er-bars',ER.bars);
 }
-function erTap(x,w){
+function erTap(){
   if(!ER)return;
-  if(ER.bars){erSetBars(false);return;}
-  const stage=document.getElementById('erStage');
-  const width=w||(stage?stage.clientWidth:window.innerWidth);
-  if(x<width*0.3)erStep(-1);
-  else if(x>width*0.7)erStep(1);
-  else erSetBars(true);
+  // 点击只显示/隐藏工具栏，不再通过点击屏幕边缘翻页。
+  erSetBars(!ER.bars);
 }
 function erBindGestures(stage){
   const flow=document.getElementById('erFlow');
@@ -16990,7 +16981,9 @@ function erBindGestures(stage){
       return;
     }
     if(e.type==='pointercancel')return;
-    if(Math.abs(e.clientX-s.x)<10&&Math.abs(e.clientY-s.y)<10&&Date.now()-s.t<500)erTap(e.clientX);
+    const selection=window.getSelection();
+    if(selection&&!selection.isCollapsed)return;
+    if(Math.abs(e.clientX-s.x)<10&&Math.abs(e.clientY-s.y)<10&&Date.now()-s.t<500)erTap();
   };
   stage.addEventListener('pointerup',end);
   stage.addEventListener('pointercancel',end);
@@ -17126,7 +17119,7 @@ async function erOpenNotes(){
   const rows=list.slice().reverse().map(a=>{
     const quote=escapeHtml(a.text||'');
     const note=a.note?'<p class="er-note-text">'+escapeHtml(a.note)+'</p>':'';
-    return '<article class="er-note-item"><div class="er-note-kind">'+(a.kind==='note'?'批注':'划线')+'</div><blockquote>'+quote+'</blockquote>'+note+'<button type="button" class="er-note-delete" onclick="erDeleteAnnotation(\''+a.id+'\')">删除</button></article>';
+    return '<article class="er-note-item"><div class="er-note-kind">'+(a.kind==='note'?'批注':(a.kind==='excerpt'?escapeHtml(erTaName())+' 的摘录':'划线'))+'</div><blockquote>'+quote+'</blockquote>'+note+'<button type="button" class="er-note-delete" onclick="erDeleteAnnotation(\''+a.id+'\')">删除</button></article>';
   }).join('');
   erOpenSheet('<h3>我的笔记</h3><div class="er-toc-list er-notes-list">'+rows+'</div><button type="button" class="er-close" onclick="erCloseSheet()">完成</button>');
 }
@@ -17134,7 +17127,7 @@ async function erDeleteAnnotation(id){
   if(!ER)return;
   const list=await erGetAnnotations();
   const item=list.find(a=>a.id===id);
-  if(item&&item.cfi&&ER.rendition){try{ER.rendition.annotations.remove(item.cfi,'highlight');}catch(e){}}
+  if(item&&item.cfi&&ER.rendition){try{ER.rendition.annotations.remove(item.cfi,item.kind==='note'?'underline':'highlight');}catch(e){}}
   ER.annotations=list.filter(a=>a.id!==id);
   await erSaveAnnotations(ER.annotations);
   if(ER.kind==='text'){const anchor=erCurrentAnchor();erLoadUnit(ER.ui,{anchor});}
@@ -17176,13 +17169,98 @@ async function erSaveProgress(){
   if(b&&pct!=null){b.pct=Math.round(pct*1000)/10;try{await saveEbookLibrary();}catch(e){}}
 }
 
+function erTaName(){return (typeof chatSettings!=='undefined'&&chatSettings&&chatSettings.companionName)||'TA';}
+function erTogetherActive(){return !!(ER&&Array.isArray(ER.cardIds)&&ER.cardIds.length);}
+function erTogetherNotice(){
+  if(!ER)return;
+  const b=(typeof ebookLibrary!=='undefined'?ebookLibrary:[]).find(x=>x.id===ER.id);
+  ebookToast(erTaName()+' 已进入共读'+(b&&b.title?'，一起读《'+b.title+'》':''),3800);
+}
+function erRefreshTogetherUi(){
+  const btn=document.querySelector('#ebookReaderRoot .er-tb-invite');
+  const on=erTogetherActive();
+  if(btn){btn.textContent=on?'共读中':'共读';btn.classList.toggle('on',on);}
+  erTogetherTimerSync();
+}
+function erTogetherButton(id){
+  if(ER&&erTogetherActive()){erEndTogether();return;}
+  inviteEbookTogether(id);
+}
+function erEndTogether(){
+  if(!ER||!erTogetherActive())return;
+  if(!confirm('结束和 '+erTaName()+' 的共读吗？'))return;
+  const ids=ER.cardIds.slice();
+  ER.cardIds=[];
+  ids.forEach(cid=>{try{Promise.resolve(updateInviteCardStatus(cid,'ended')).catch(()=>{});}catch(e){}});
+  erRefreshTogetherUi();
+  ebookToast('已结束共读');
+}
+function erTogetherTimerSync(){
+  if(!ER)return;
+  clearTimeout(ER.excerptTimer);
+  ER.excerptTimer=null;
+}
+function erVisibleText(){
+  if(!ER)return '';
+  if(ER.kind==='text'){
+    const vp=document.getElementById('erViewport'),flow=document.getElementById('erFlow');
+    if(!vp||!flow)return '';
+    const vr=vp.getBoundingClientRect();
+    const out=[];
+    flow.querySelectorAll('p').forEach(p=>{
+      const hit=Array.from(p.getClientRects()).some(r=>r.right>vr.left+4&&r.left<vr.right-4&&r.bottom>vr.top&&r.top<vr.bottom);
+      if(hit)out.push(p.textContent);
+    });
+    return out.join('\n');
+  }
+  if(ER.kind==='epub'&&ER.rendition){
+    try{
+      const c=ER.epubLoc;
+      const r1=ER.rendition.getRange(c.start.cfi),r2=ER.rendition.getRange(c.end.cfi);
+      if(r1&&r2){const r=r1.cloneRange();r.setEnd(r2.endContainer,r2.endOffset);const t=r.toString();if(t.trim())return t;}
+    }catch(e){}
+    try{const cs=ER.rendition.getContents();if(cs&&cs[0])return cs[0].document.body.textContent||'';}catch(e){}
+  }
+  return '';
+}
+function erPickExcerpt(existing){
+  const parts=erVisibleText().replace(/\s+/g,' ').split(/(?<=[。！？!?；;…]["”’」』）)]?)/);
+  const pool=parts.map(x=>x.trim()).filter(x=>x.length>=8&&x.length<=120&&/[\u4e00-\u9fa5A-Za-z]{6}/.test(x)&&!existing.has(x));
+  if(!pool.length)return [];
+  const first=pool[Math.floor(Math.random()*pool.length)];
+  const rest=pool.filter(x=>x!==first);
+  return Math.random()<0.5||!rest.length?[first]:[first,rest[Math.floor(Math.random()*rest.length)]];
+}
+async function erTaExcerpt(pageKey){
+  if(!ER||!erTogetherActive()||ER.kind==='pdf')return;
+  const id=ER.id;
+  if(!ER.excerptedPages)ER.excerptedPages=new Set();
+  if(ER.excerptedPages.has(pageKey))return;
+  ER.excerptedPages.add(pageKey);
+  try{
+    if(!document.hidden&&Math.random()<0.16){
+      const list=await erGetAnnotations();
+      if(!ER||ER.id!==id)return;
+      const excerpts=erPickExcerpt(new Set(list.map(a=>a.text)));
+      if(excerpts.length){
+        excerpts.forEach((sentence,i)=>list.push({id:'a'+Date.now()+'t'+i,kind:'excerpt',by:'ta',text:sentence,createdAt:Date.now()}));
+        ER.annotations=list;
+        await erSaveAnnotations(list);
+        ebookToast(erTaName()+' 摘录了'+excerpts.length+'句，已放进笔记');
+        if(document.querySelector('#erSheet .er-notes-list'))erOpenNotes();
+      }
+    }
+  }catch(e){}
+}
 function ebookEnterTogether(bookId,cardIds){
   const ids=(cardIds||[]).filter(Boolean);
-  if(ER&&ER.id===bookId){ER.cardIds=(ER.cardIds||[]).concat(ids);return;}
+  if(ER&&ER.id===bookId){ER.cardIds=(ER.cardIds||[]).concat(ids);erRefreshTogetherUi();erTogetherNotice();return;}
   openEbookReaderById(bookId,{cardIds:ids});
 }
 
 // ===== 阅读批注：长按/选中文字后，可划线、写批注或复制 =====
+const ER_EPUB_NOTE_STYLE={stroke:'#8e4a56','stroke-opacity':'0.85','stroke-width':'1.5','mix-blend-mode':'multiply','pointer-events':'none'};
+const ER_EPUB_HL_STYLE={fill:'rgba(247,211,104,.48)','fill-opacity':'0.55','mix-blend-mode':'multiply','pointer-events':'none'};
 function erAnnotationKey(){return ER?'ebook-annotations:'+ER.id:null;}
 async function erGetAnnotations(){
   if(!ER)return [];
@@ -17196,33 +17274,45 @@ function erSelectionText(){
   const sel=window.getSelection&&window.getSelection();
   return sel&&String(sel.toString()).trim()?String(sel.toString()).trim():'';
 }
+function erClearSelection(){
+  try{const s=window.getSelection&&window.getSelection();if(s)s.removeAllRanges();}catch(e){}
+  try{if(ER&&ER.rendition&&ER.rendition.getContents)ER.rendition.getContents().forEach(c=>{try{c.window.getSelection().removeAllRanges();}catch(e){}});}catch(e){}
+}
 function erSelectionMenuHide(){
   const m=document.getElementById('erSelectionMenu');
   if(m)m.classList.remove('show');
-  if(ER)ER.pendingSelection=null;
+  if(ER){ER.pendingSelection=null;erClearSelection();}
 }
-function erSelectionHasHighlight(p,list){
-  const records=(list||ER&&ER.annotations||[]).filter(a=>a.kind==='highlight');
-  if(p.source==='epub'){
-    return records.find(a=>a.cfi && p.rangeInfo && (a.cfi===p.rangeInfo.cfi || a.text===p.text)) || null;
-  }
-  if(p.source==='text' && p.rangeInfo){
-    const r=p.rangeInfo;
-    return records.find(a=>a.unit===r.unit && a.start<r.end && a.end>r.start) || null;
-  }
-  return null;
-}
-function erSelectionMenuShow(selection,rect,source,rangeInfo){
+function erSelectionMenuShow(selection,rect,source,rangeInfo,hits){
   if(!ER||!selection||!String(selection).trim())return;
   const menu=document.getElementById('erSelectionMenu');
   if(!menu)return;
-  ER.pendingSelection={text:String(selection).trim(),source,rangeInfo};
-  const highlightBtn=menu.querySelector('[data-er-action="highlight"]');
-  if(highlightBtn) highlightBtn.textContent=erSelectionHasHighlight(ER.pendingSelection)?'取消划线':'划线';
-  const x=Math.max(12,Math.min(window.innerWidth-250,rect.left+(rect.width/2)-115));
+  const hitIds=Array.isArray(hits)?hits:[];
+  ER.pendingSelection={text:String(selection).trim(),source,rangeInfo,hits:hitIds};
+  const un=menu.querySelector('[data-er-action="unhighlight"]');
+  if(un)un.hidden=!hitIds.length;
+  menu.classList.add('show');
+  const w=menu.offsetWidth||250;
+  const x=Math.max(12,Math.min(window.innerWidth-w-12,rect.left+(rect.width/2)-w/2));
   const y=Math.max(70,Math.min(window.innerHeight-64,rect.top-54));
   menu.style.left=x+'px';menu.style.top=y+'px';
-  menu.classList.add('show');
+}
+function erTextHitIds(info){
+  if(!ER||!info)return [];
+  return (ER.annotations||[]).filter(a=>a.kind==='highlight'&&a.unit===info.unit&&a.start<info.end&&a.end>info.start).map(a=>a.id);
+}
+function erEpubHitIds(range,cfi){
+  if(!ER||!ER.rendition)return [];
+  const ids=[];
+  (ER.annotations||[]).forEach(a=>{
+    if(a.kind!=='highlight'||!a.cfi)return;
+    if(cfi&&a.cfi===cfi){ids.push(a.id);return;}
+    try{
+      const r=range&&ER.rendition.getRange(a.cfi);
+      if(r&&range.compareBoundaryPoints(3,r)<0&&range.compareBoundaryPoints(1,r)>0)ids.push(a.id);
+    }catch(e){}
+  });
+  return ids;
 }
 function erTextRangeOffsets(range,container){
   try{
@@ -17244,7 +17334,7 @@ function erRangeFromTextOffsets(container,start,end){
   if(!startNode||!endNode)return null;
   const r=document.createRange();r.setStart(startNode,startOff);r.setEnd(endNode,endOff);return r;
 }
-function erWrapTextRange(container,start,end,id){
+function erWrapTextRange(container,start,end,id,cls){
   const walker=document.createTreeWalker(container,NodeFilter.SHOW_TEXT),nodes=[];
   let node,at=0;
   while((node=walker.nextNode())){
@@ -17257,16 +17347,25 @@ function erWrapTextRange(container,start,end,id){
     try{
       const selected=item.from?item.node.splitText(item.from):item.node;
       if(item.to-item.from<selected.nodeValue.length)selected.splitText(item.to-item.from);
-      const mark=document.createElement('mark');mark.className='er-user-highlight';mark.dataset.annotationId=id;
+      const mark=document.createElement('mark');mark.className=cls||'er-user-highlight';mark.dataset.annotationId=id;
       selected.parentNode.replaceChild(mark,selected);mark.appendChild(selected);
     }catch(e){}
   }
 }
+function erClearTextMarks(flow){
+  flow.querySelectorAll('mark.er-user-highlight,mark.er-user-note').forEach(m=>{
+    const parent=m.parentNode;if(!parent)return;
+    while(m.firstChild)parent.insertBefore(m.firstChild,m);
+    parent.removeChild(m);
+  });
+  flow.normalize();
+}
 function erApplyTextAnnotations(){
   if(!ER||ER.kind!=='text'||!ER.unit)return;
   const flow=document.getElementById('erFlow');if(!flow)return;
-  const records=(ER.annotations||[]).filter(a=>a.kind==='highlight'&&a.unit===ER.ui).sort((a,b)=>b.start-a.start);
-  records.forEach(a=>erWrapTextRange(flow,a.start,a.end,a.id));
+  erClearTextMarks(flow);
+  const records=(ER.annotations||[]).filter(a=>(a.kind==='highlight'||a.kind==='note')&&a.unit===ER.ui&&typeof a.start==='number').sort((a,b)=>b.start-a.start);
+  records.forEach(a=>erWrapTextRange(flow,a.start,a.end,a.id,a.kind==='note'?'er-user-note':'er-user-highlight'));
 }
 async function erBindAnnotations(root){
   const menu=root.querySelector('#erSelectionMenu');
@@ -17279,28 +17378,25 @@ async function erBindAnnotations(root){
       catch(e){ebookToast('复制失败：请允许剪贴板权限');}
       erSelectionMenuHide();return;
     }
+    if(action==='unhighlight'){
+      const ids=new Set(p.hits||[]);
+      if(!ids.size){erSelectionMenuHide();return;}
+      const list=await erGetAnnotations();
+      if(ER.rendition)list.filter(a=>ids.has(a.id)&&a.cfi).forEach(a=>{try{ER.rendition.annotations.remove(a.cfi,'highlight');}catch(e){}});
+      ER.annotations=list.filter(a=>!ids.has(a.id));
+      await erSaveAnnotations(ER.annotations);
+      if(ER.kind==='text')erApplyTextAnnotations();
+      erSelectionMenuHide();ebookToast('已取消划线');return;
+    }
     if(action==='highlight'){
       const list=await erGetAnnotations();
-      const existing=erSelectionHasHighlight(p,list);
-      if(existing){
-        if(existing.cfi && ER.rendition){
-          try{ER.rendition.annotations.remove(existing.cfi,'highlight');}catch(err){}
-        }
-        const updated=list.filter(a=>a.id!==existing.id);
-        ER.annotations=updated;
-        await erSaveAnnotations(updated);
-        if(ER.kind==='text'){
-          const anchor=erCurrentAnchor();
-          erLoadUnit(ER.ui,{anchor});
-        }
-        ebookToast('已取消划线');
-      }else if(p.source==='epub'&&p.rangeInfo&&ER.rendition){
+      if(p.source==='epub'&&p.rangeInfo&&ER.rendition){
         const a={id:'a'+Date.now(),kind:'highlight',text:p.text,cfi:p.rangeInfo.cfi,createdAt:Date.now()};
-        try{ER.rendition.annotations.highlight(a.cfi,{annotationId:a.id},null,'er-epub-highlight',{fill:'rgba(247,211,104,.48)','fill-opacity':'0.55','mix-blend-mode':'multiply'});list.push(a);ER.annotations=list;await erSaveAnnotations(list);ebookToast('已添加划线');}
+        try{ER.rendition.annotations.highlight(a.cfi,{annotationId:a.id},null,'er-epub-highlight',ER_EPUB_HL_STYLE);list.push(a);ER.annotations=list;await erSaveAnnotations(list);ebookToast('已添加划线');}
         catch(err){ebookToast('这段文字暂时无法划线');}
       }else if(p.source==='text'&&p.rangeInfo){
         const a={id:'a'+Date.now(),kind:'highlight',text:p.text,unit:p.rangeInfo.unit,start:p.rangeInfo.start,end:p.rangeInfo.end,createdAt:Date.now()};
-        list.push(a);ER.annotations=list;await erSaveAnnotations(list);erLoadUnit(ER.ui,{anchor:erCurrentAnchor()});ebookToast('已添加划线');
+        list.push(a);ER.annotations=list;erApplyTextAnnotations();await erSaveAnnotations(list);ebookToast('已添加划线');
       }
       erSelectionMenuHide();return;
     }
@@ -17311,7 +17407,10 @@ async function erBindAnnotations(root){
         const a={id:'a'+Date.now(),kind:'note',text:p.text,note:note.trim(),createdAt:Date.now()};
         if(p.source==='epub'&&p.rangeInfo)a.cfi=p.rangeInfo.cfi;
         if(p.source==='text'&&p.rangeInfo)Object.assign(a,p.rangeInfo);
-        list.push(a);ER.annotations=list;await erSaveAnnotations(list);ebookToast('批注已保存');
+        list.push(a);ER.annotations=list;
+        if(a.kind==='note'&&a.cfi&&ER.rendition){try{ER.rendition.annotations.underline(a.cfi,{annotationId:a.id},null,'er-epub-note',ER_EPUB_NOTE_STYLE);}catch(err){}}
+        if(ER.kind==='text')erApplyTextAnnotations();
+        await erSaveAnnotations(list);ebookToast('批注已保存');
       }
       erSelectionMenuHide();return;
     }
@@ -17332,19 +17431,19 @@ function erBindEpubSelection(contents){
       if(frame){const fr=frame.getBoundingClientRect();left+=fr.left;top+=fr.top;}
       let cfi=null;
       try{cfi=contents.cfiFromRange(range);}catch(e){}
-      erSelectionMenuShow(sel.toString(),{left,top,width:rect.width,height:rect.height},'epub',{cfi});
+      erSelectionMenuShow(sel.toString(),{left,top,width:rect.width,height:rect.height},'epub',{cfi},erEpubHitIds(range,cfi));
     });
     doc.addEventListener('touchstart',()=>{if(ER)ER._selectionTouchAt=Date.now();},{passive:true});
   }catch(e){}
 }
 
-function ebookToast(msg){
+function ebookToast(msg,ms){
   let t=document.getElementById('ebookToast');
   if(!t){t=document.createElement('div');t.id='ebookToast';t.className='ebook-toast';document.body.appendChild(t);}
   t.textContent=msg;
   t.classList.add('show');
   clearTimeout(t._h);
-  t._h=setTimeout(()=>t.classList.remove('show'),2200);
+  t._h=setTimeout(()=>t.classList.remove('show'),ms||2200);
 }
 
 function erFlattenToc(list,depth,out){
@@ -17357,6 +17456,10 @@ function erFlattenToc(list,depth,out){
 }
 function erEpubRelocated(loc){
   if(!ER||ER.kind!=='epub')return;
+  const pageKey=loc&&loc.start&&loc.start.cfi?String(loc.start.cfi):'';
+  const previousKey=ER._excerptEpubPageKey;
+  ER._excerptEpubPageKey=pageKey;
+  if(previousKey&&pageKey&&previousKey!==pageKey&&erTogetherActive())erTaExcerpt('epub:'+pageKey);
   ER.epubLoc=loc;
   const href=String((loc.start&&loc.start.href)||'').split('#')[0];
   const hit=(ER.epubToc||[]).filter(t=>String(t.href||'').split('#')[0]===href).pop();
@@ -17437,7 +17540,10 @@ async function erInitEpubCore(root,data,b){
   rend.on('touchstart',e=>{sx=e.changedTouches[0].screenX;});
   rend.on('touchend',e=>{
     const dx=e.changedTouches[0].screenX-sx;
-    if(Math.abs(dx)>50){erSetBars(false);dx<0?rend.next():rend.prev();}
+    if(Math.abs(dx)>50){
+      erSetBars(false);
+      dx<0?rend.next():rend.prev();
+    }
   });
   const prog=await sGet('ebook-progress:'+b.id,null);
   try{await rend.display(prog&&prog.cfi?prog.cfi:undefined);}catch(e){try{await rend.display();}catch(e2){}}
@@ -17446,8 +17552,11 @@ async function erInitEpubCore(root,data,b){
     ER.epubToc=erFlattenToc(nav.toc||[],0);
   }catch(e){ER.epubToc=[];}
   ER.annotations=await erGetAnnotations();
-  (ER.annotations||[]).filter(a=>a.kind==='highlight'&&a.cfi).forEach(a=>{
-    try{rend.annotations.highlight(a.cfi,{annotationId:a.id},null,'er-epub-highlight',{fill:'rgba(247,211,104,.48)','fill-opacity':'0.55','mix-blend-mode':'multiply'});}catch(e){}
+  (ER.annotations||[]).filter(a=>a.cfi&&(a.kind==='highlight'||a.kind==='note')).forEach(a=>{
+    try{
+      if(a.kind==='note')rend.annotations.underline(a.cfi,{annotationId:a.id},null,'er-epub-note',ER_EPUB_NOTE_STYLE);
+      else rend.annotations.highlight(a.cfi,{annotationId:a.id},null,'er-epub-highlight',ER_EPUB_HL_STYLE);
+    }catch(e){}
   });
 }
 
@@ -17486,7 +17595,7 @@ async function openEbookReaderById(id,opts){
     ?'<div class="er-stage" id="erStage"><div class="er-running" id="erRunning"></div><div class="er-viewport" id="erViewport"><div class="er-flow" id="erFlow"></div></div><div class="er-foot"><span id="erFootL"></span><span id="erFootR"></span></div></div>'
     :(kind==='epub'?'<div class="er-epub" id="erEpub"></div>':'<div class="er-pdf"><iframe title="PDF"></iframe></div>');
   root.innerHTML=content
-    +'<header class="er-topbar"><button type="button" class="er-tb" onclick="closeEbookReader()">返回</button><div class="er-tb-title">'+escapeHtml(title)+'</div><button type="button" class="er-tb er-npdf" onclick="erOpenToc()">目录</button><button type="button" class="er-tb er-npdf" onclick="erOpenSettings()">Aa</button><button type="button" class="er-tb er-npdf" onclick="erOpenNotes()">笔记</button><button type="button" class="er-tb er-tb-invite" onclick="inviteEbookTogether(\''+b.id+'\')">共读</button></header>'
+    +'<header class="er-topbar"><button type="button" class="er-tb" onclick="closeEbookReader()">返回</button><div class="er-tb-title">'+escapeHtml(title)+'</div><button type="button" class="er-tb er-npdf" onclick="erOpenToc()">目录</button><button type="button" class="er-tb er-npdf" onclick="erOpenSettings()">Aa</button><button type="button" class="er-tb er-npdf" onclick="erOpenNotes()">笔记</button><button type="button" class="er-tb er-tb-invite" onclick="erTogetherButton(\''+b.id+'\')">共读</button></header>'
     +'<footer class="er-bottombar"><button type="button" class="er-chbtn" id="erChPrev" onclick="erChapterStep(-1)" aria-label="上一章">‹</button><div class="er-slider-wrap"><input type="range" id="erSlider" min="0" max="1000" value="0"><div class="er-bubble" id="erBubble"></div></div><span class="er-pagelabel" id="erLabel"></span><button type="button" class="er-chbtn" id="erChNext" onclick="erChapterStep(1)" aria-label="下一章">›</button></footer>';
   root.addEventListener('contextmenu',e=>e.preventDefault());
   root.addEventListener('touchstart',()=>{if(ER)ER._selectionTouchAt=Date.now();},{passive:true});
@@ -17495,13 +17604,17 @@ async function openEbookReaderById(id,opts){
     const sel=window.getSelection();if(!sel||sel.isCollapsed||!String(sel.toString()).trim())return;
     const range=sel.getRangeAt(0),rect=range.getBoundingClientRect(),flow=document.getElementById('erFlow');
     if(!flow||!flow.contains(range.commonAncestorContainer))return;
-    erSelectionMenuShow(sel.toString(),rect,'text',erTextRangeOffsets(range,flow));
+    const info=erTextRangeOffsets(range,flow);
+    erSelectionMenuShow(sel.toString(),rect,'text',info,erTextHitIds(info));
   };
   document.addEventListener('selectionchange',ER.selectionHandler);
   root.addEventListener('mouseup',ER.selectionHandler);
   document.body.appendChild(root);
-  root.insertAdjacentHTML('beforeend','<div class="er-selection-menu" id="erSelectionMenu" role="toolbar" aria-label="文本操作"><button type="button" data-er-action="highlight">划线</button><button type="button" data-er-action="note">写批注</button><button type="button" data-er-action="copy">复制</button><button type="button" data-er-action="close" aria-label="关闭">×</button></div>');
+  if(kind==='text')root.addEventListener('scroll',e=>{const t=e.target;if(t&&t.nodeType===1&&(t.scrollLeft||t.scrollTop)){t.scrollLeft=0;t.scrollTop=0;}},true);
+  root.insertAdjacentHTML('beforeend','<div class="er-selection-menu" id="erSelectionMenu" role="toolbar" aria-label="文本操作"><button type="button" data-er-action="highlight">划线</button><button type="button" data-er-action="unhighlight" hidden>取消划线</button><button type="button" data-er-action="note">写批注</button><button type="button" data-er-action="copy">复制</button><button type="button" data-er-action="close" aria-label="关闭">×</button></div>');
   erBindAnnotations(root);
+  erRefreshTogetherUi();
+  if(erTogetherActive())erTogetherNotice();
   ebookCurrentId=id;
   erApplyPrefs();
   ER.keyHandler=e=>{
@@ -17705,14 +17818,16 @@ async function inviteEbookTogether(id){
 
 
 <style id="ebook-weread-reader-design">
-.er-reader{position:fixed;inset:0;z-index:9600;overflow:hidden;background-color:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;--bg:#eeeeed;--ink:#2e2e2e;--soft:#9b9b98;--bar:rgba(247,247,246,.97);--barink:#4a4a48;--line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.16);--card:#f1f1f0;--hl:#dededc;--accent:#8e4a56;--dots:rgba(0,0,0,.05);--er-fs:18px;--er-lh:1.9;--er-ff:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong",Georgia,serif}
+.er-reader{position:fixed;inset:0;z-index:9600;overflow:hidden;overflow:clip;background-color:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;--bg:#eeeeed;--ink:#2e2e2e;--soft:#9b9b98;--bar:rgba(247,247,246,.97);--barink:#4a4a48;--line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.16);--card:#f1f1f0;--hl:#dededc;--accent:#8e4a56;--dots:rgba(0,0,0,.05);--er-fs:18px;--er-lh:1.9;--er-ff:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong",Georgia,serif}
 .er-reader[data-theme="paper"]{background-image:radial-gradient(var(--dots) 1px,transparent 1.3px);background-size:15px 15px}
 .er-reader[data-theme="white"]{--bg:#ffffff;--ink:#222222;--soft:#a3a3a3;--bar:rgba(250,250,250,.98);--card:#f6f6f6;--hl:#e8e8e8}
 .er-reader[data-theme="sepia"]{--bg:#f4ecd8;--ink:#5b4636;--soft:#a8957c;--bar:rgba(245,238,221,.98);--barink:#6b5644;--line:rgba(91,70,54,.14);--line2:rgba(91,70,54,.24);--card:#f7f0de;--hl:#e8dcc0;--accent:#9a5a3c}
 .er-reader[data-theme="green"]{--bg:#cfe8d2;--ink:#2d3b2f;--soft:#7a937d;--bar:rgba(214,235,217,.98);--barink:#3b4f3d;--line:rgba(45,59,47,.13);--line2:rgba(45,59,47,.22);--card:#d8eddb;--hl:#bfdcc3;--accent:#3d7a4d}
 .er-reader[data-theme="night"]{--bg:#17181a;--ink:#a9a9a4;--soft:#6c6c68;--bar:rgba(28,29,32,.98);--barink:#c4c4bf;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--card:#232427;--hl:#34353a;--accent:#c9808c}
-.er-stage{position:absolute;inset:0;touch-action:none}
-.er-viewport{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 38px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);overflow:hidden}
+.er-stage{position:absolute;inset:0;touch-action:none;overflow:clip}
+.er-viewport{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 38px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);overflow:hidden;overflow:clip}
+
+
 .er-flow{position:absolute;top:0;left:0;column-fill:auto;will-change:transform;font-family:var(--er-ff);font-size:var(--er-fs);line-height:var(--er-lh);color:var(--ink);text-align:justify;text-justify:inter-ideograph;overflow-wrap:break-word;line-break:strict;hyphens:auto}
 .er-flow p{margin:0 0 .55em;text-indent:2em;orphans:2;widows:2}
 .er-ch-title{margin:.9em 0 1.2em;font-size:1.55em;line-height:1.4;font-weight:700;text-align:left;break-after:avoid;break-inside:avoid}
@@ -17736,6 +17851,7 @@ sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-
 .er-tb:active{background:var(--hl)}
 .er-tb-title{flex:1;min-width:0;padding:0 4px;text-align:center;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .er-tb-invite{color:var(--accent);font-weight:600}
+.er-tb-invite.on{background:var(--accent);color:#fff;font-size:13px;padding:8px 11px}
 .er-chbtn{flex:0 0 auto;border:0;background:transparent;color:var(--barink);font-size:32px;line-height:1;padding:0 6px 4px}
 .er-chbtn:disabled{opacity:.28}
 .er-slider-wrap{position:relative;flex:1;min-width:0}
@@ -17793,9 +17909,11 @@ sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-
 .er-selection-menu button[data-er-action="close"]{font-size:17px;padding:6px 8px;color:rgba(255,255,255,.7)}
 .er-user-highlight{background:rgba(247,211,104,.55);color:inherit;border-radius:2px}
 .er-epub-highlight{background:rgba(247,211,104,.48)}
-#ebookReaderRoot .er-flow{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important; }
-#ebookReaderRoot .er-flow ::selection{background:rgba(247,211,104,.58)!important;color:inherit!important}
-#ebookReaderRoot[data-kind="epub"] iframe{ -webkit-user-select:text!important;user-select:text!important; }
+.er-user-note{background:transparent;color:inherit;text-decoration:underline wavy rgba(142,74,86,.85);text-underline-offset:3px}
+#ebookReaderRoot .er-stage,#ebookReaderRoot #erFlow{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important;touch-action:pan-y!important; }
+#ebookReaderRoot[data-kind="epub"] iframe{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important; }
+#ebookReaderRoot .er-stage *,#ebookReaderRoot #erFlow *{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important; }
+#ebookReaderRoot .er-flow ::selection{ background:rgba(142,74,86,.28); }
 .ebook-toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:9950;max-width:80vw;padding:10px 16px;border-radius:999px;background:rgba(40,36,34,.9);color:#fff;font-size:13px;text-align:center;opacity:0;pointer-events:none;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
 .ebook-toast.show{opacity:1;transform:translate(-50%,0)}
 .ebook-cover.er-cover{flex-direction:column;gap:8px;padding:12px 10px;color:#fff;text-align:center;font-size:inherit}
