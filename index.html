@@ -1624,6 +1624,19 @@
  #view-home #homePage2 .home-ebook-filetype{flex-basis:36px;width:36px;height:42px;}
  #view-home #homePage2 .home-ebook-read,#view-home #homePage2 .home-ebook-invite{padding:6px 7px!important;font-size:9px!important;}
 }
+.lk-toggle{margin:3px 4px 0;font-size:10.5px;color:var(--ink-soft);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.lk-card{margin-top:6px;width:min(260px,70vw);padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.07);box-shadow:0 4px 14px rgba(42,36,31,.08);font-size:12px;color:var(--ink);}
+.lk-card[hidden]{display:none;}
+.lk-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;}
+.lk-row span{color:var(--ink-soft);}
+.lk-row b{font-weight:600;}
+.lk-head{margin-top:0;}
+.lk-head span{color:var(--ink);}
+.lk-segs{display:flex;gap:4px;margin:6px 0 2px;}
+.lk-segs i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.1);}
+.lk-segs i.on{background:var(--ink);}
+.lk-bar{height:4px;border-radius:2px;background:rgba(0,0,0,.08);margin-top:5px;overflow:hidden;}
+.lk-bar i{display:block;height:100%;border-radius:2px;background:var(--ink);}
 </style>
 <script>
   // 禁止浏览器原生右键/长按菜单（包括“用 Google 搜索”）；不阻止事件传播，保留网页自定义菜单。
@@ -4326,7 +4339,8 @@ function renderChat(preserveScroll, scrollToId){
     }
       if(typeof bubbleHtml === 'string' && m.from==='user'){ bubbleHtml = bubbleHtml.replace(/(<div class="t"[^>]*>)已读/, '$1已读 · ' + formatMsgTime(m.time)); }
       const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
-  const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}</div>` : bubbleHtml;
+  const _linkHtml = renderLinkHtml(m);
+  const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}${_linkHtml}</div>` : (_linkHtml ? `<div class="msg-body">${bubbleHtml}${_linkHtml}</div>` : bubbleHtml);
   return `<div id="msg-${m.id}" class="msg-row ${m.from}" data-mid="${m.id}" ontouchstart="lpStart(event, this)" ontouchend="lpEnd(event)" ontouchmove="lpCancel()" oncontextmenu="lpMenu(event, this)">${avatarHtml}${_rowInner}</div>`;
   };
   wrap.innerHTML = loadMoreHtml + chatMessages.map((m,i)=>msgTimeDivider(m, chatMessages[i-1]) + _renderOne(m)).join('');
@@ -4659,6 +4673,7 @@ function runReplyBatch(userText, total, startFrom){
       reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
     }
     const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
+    if(newMsg.type==='text' || newMsg.type==='combo') newMsg.link = linkStatsFor(newMsg, userText, { followup: i>0 });
     try{ assignGroupSender(newMsg); }catch(e){}
     if(!Array.isArray(chatMessages)) chatMessages = [];
     chatMessages.push(newMsg);
@@ -4836,6 +4851,70 @@ function getSplicedCardText(){
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
 
+const LK_SKIP = new Set('的了我你是不在有就也都和很吗呢吧啊嗯哦呀'.split(''));
+const LK_LEVELS = ['信号很弱','断断续续','基本清楚','清晰传达'];
+const _linkOpen = new Set();
+function lkChars(s){
+  return new Set(Array.from(String(s||'')).filter(c=>/[\u4e00-\u9fa5A-Za-z0-9]/.test(c) && !LK_SKIP.has(c)));
+}
+function lkOverlap(text, user){
+  const a = lkChars(text), b = lkChars(user);
+  if(!a.size || !b.size) return 0;
+  let hit = 0;
+  a.forEach(c=>{ if(b.has(c)) hit++; });
+  return hit / a.size;
+}
+function lkClamp(v){ return Math.max(0, Math.min(10, Math.round(v))); }
+function linkStatsFor(msg, userText, opts){
+  opts = opts || {};
+  const raw = String(msg.content || '');
+  const text = raw.replace(/\s+/g, '');
+  const src = msg.src || 'single';
+  const proactive = !String(userText || '').trim();
+  const ov = proactive ? 0 : lkOverlap(text, userText);
+  const complete = /[。！？…!?~」”）)]$/.test(text);
+  const lines = raw.split('\n').filter(x=>x.trim()).length;
+  let noise = src==='free' ? 7 : (src==='splice' ? 4 + Math.min(3, lines-1) : 2);
+  if(!complete) noise += 1;
+  if(Array.from(text).length <= 2) noise += 1;
+  if(ov >= 0.3) noise -= 2; else if(ov >= 0.1) noise -= 1;
+  let act = proactive ? 8 : 4;
+  if(!proactive){
+    if(ov < 0.1) act += 1; else if(ov >= 0.3) act -= 2;
+    if(msg.quoteOf) act -= 1;
+  }
+  if(opts.followup) act += 1;
+  act += complete ? 1 : -1;
+  let conn = 70;
+  try{ conn = scConnValue(); }catch(e){}
+  noise = lkClamp(noise);
+  act = lkClamp(act);
+  const score = (10 - noise) / 10 * 0.6 + conn / 100 * 0.4;
+  const level = score >= 0.75 ? 4 : (score >= 0.55 ? 3 : (score >= 0.35 ? 2 : 1));
+  return { act, noise, level, conn };
+}
+function renderLinkHtml(m){
+  const k = m.link;
+  if(!k || m.from !== 'bot' || (m.type !== 'text' && m.type !== 'combo')) return '';
+  const open = _linkOpen.has(m.id);
+  const segs = [1,2,3,4].map(i=>'<i class="'+(i<=k.level?'on':'')+'"></i>').join('');
+  const row = (label, v)=>'<div class="lk-row"><span>'+label+'</span><b>'+v+' / 10</b></div><div class="lk-bar"><i style="width:'+(v*10)+'%"></i></div>';
+  return '<div class="lk-toggle" onclick="event.stopPropagation();toggleMsgLink(\''+m.id+'\')"><span id="lkt-'+m.id+'">◇ '+(open?'收起':'连接')+'</span></div>'
+    + '<div class="lk-card" id="lk-'+m.id+'"'+(open?'':' hidden')+'>'
+    + '<div class="lk-row lk-head"><span>连接清晰度</span><b>'+LK_LEVELS[k.level-1]+'</b></div>'
+    + '<div class="lk-segs">'+segs+'</div>'
+    + row('他的主动表达', k.act)
+    + row('随机噪音', k.noise)
+    + '</div>';
+}
+function toggleMsgLink(id){
+  const card = document.getElementById('lk-'+id), t = document.getElementById('lkt-'+id);
+  if(!card) return;
+  const willOpen = card.hasAttribute('hidden');
+  if(willOpen){ card.removeAttribute('hidden'); _linkOpen.add(id); } else { card.setAttribute('hidden',''); _linkOpen.delete(id); }
+  if(t) t.textContent = '◇ ' + (willOpen ? '收起' : '连接');
+}
+
 const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
@@ -4867,20 +4946,23 @@ function pickReplyFor(userText, opts){
   }
   // 拼字卡 / 自由拼句 互相独立
   let text = null;
+  let src = 'single';
   const freeOn = !!(spliceCardSettings && spliceCardSettings.freeEnabled !== false);
   const freeProb = freeOn ? (((typeof spliceCardSettings.freeProb === 'number') ? spliceCardSettings.freeProb : 30) / 100) : 0;
   // 1) 自由拼句：独立开关 + 概率
   if(freeOn && Math.random() < freeProb){
     text = getFreeSplicedText();
+    if(text) src = 'free';
   }
   // 2) 拼字卡：独立开关，约一半几率多张换行拼
   if(!text && spliceCardsEnabled && Math.random() < 0.5){
     text = getSplicedCardText();
+    if(text) src = 'splice';
   }
   if(!text) text = getRandomCardText();
   if(!text) return null;
   const quoteOf = maybeQuoteMessage();
-  return quoteOf ? { type:'text', content:text, quoteOf } : { type:'text', content:text };
+  return quoteOf ? { type:'text', content:text, src, quoteOf } : { type:'text', content:text, src };
 }
 
 /* ============================================================
@@ -5009,7 +5091,7 @@ function savePendingProBurst(o){ try{ sSet('pending-pro-burst', o); }catch(e){} 
 function clearPendingProBurst(){ try{ sSet('pending-pro-burst', {active:false}); }catch(e){} }
 function sendProactiveMessage(){
   // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
-  if(Math.random() < 0.10 && maybeBotInviteTogether()) return;
+  if(Math.random() < 0.15 && maybeBotInviteTogether()) return;
   if(Math.random() < 0.10){ sendBotCheckin(); return; }
   runProactiveBurst();
 }
@@ -5027,6 +5109,7 @@ function runProBurst(total, startFrom){
     showTyping(false);
     if(!reply){ _proMsgBusy = false; clearPendingProBurst(); return; }
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
+    if(newMsg.type==='text' || newMsg.type==='combo') newMsg.link = linkStatsFor(newMsg, '', { followup: i>0 });
     try{ assignGroupSender(newMsg); }catch(e){}
     chatMessages.push(newMsg);
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
@@ -5613,9 +5696,9 @@ function openChatSettings(){
     <div class="box-title" style="margin-top:14px;">主动写信给我</div>
     <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;">TA 隔一段时间会主动写一封信塞进信箱。这里设最短 / 最长间隔，实际在两者之间随机挑一个点。</div>
     <label class="field">写信最短间隔</label>
-    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="14400" step="1" value="${proactiveLetterSettings.minMinutes||60}" id="csLetterMinH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="14400" step="1" value="${proactiveLetterSettings.minMinutes||60}" id="csProLetterMinM" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">分钟</span></div>
     <label class="field">写信最长间隔</label>
-    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}" id="csLetterMaxH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">小时</span></div>
+    <div style="display:flex;align-items:center;gap:8px;"><input type="number" min="1" max="240" step="1" value="${Math.min(240, Math.max(1, proactiveLetterSettings.maxH||240))}" id="csProLetterMaxH" style="width:100%;"><span style="font-size:12px;color:var(--ink-soft);white-space:nowrap;">小时</span></div>
     <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">最短填分钟，最长 1~240 小时（最多 10 天）。保存后按新间隔重新排下一封信。</div>
     <div class="box-title" style="margin-top:14px;">拼字卡</div>
     <div class="switch-row">
@@ -6003,8 +6086,8 @@ async function saveChatSettings(){
   // 写信间隔：区间变了就按新区间重排下一封信
   const _oldLet = { a: proactiveLetterSettings.minMinutes, b: proactiveLetterSettings.maxH };
   {
-    proactiveLetterSettings.minMinutes = Math.max(1, Math.min(14400, parseInt(document.getElementById('csLetterMinH').value,10) || 60));
-    proactiveLetterSettings.maxH = Math.max(1, Math.min(240, parseInt(document.getElementById('csLetterMaxH').value,10) || 240));
+    proactiveLetterSettings.minMinutes = Math.max(1, Math.min(14400, parseInt(document.getElementById('csProLetterMinM').value,10) || 60));
+    proactiveLetterSettings.maxH = Math.max(1, Math.min(240, parseInt(document.getElementById('csProLetterMaxH').value,10) || 240));
   }
   await sSet('proactive-letter-settings', proactiveLetterSettings);
   if(_oldLet.a !== proactiveLetterSettings.minMinutes || _oldLet.b !== proactiveLetterSettings.maxH || !proactiveState.nextLetterAt) scheduleNextProactiveLetter();
@@ -9496,7 +9579,7 @@ function openGameMenu(){
 function openChatFunctionPanel(){
   openOverlay(
     '<div class="drawer-head"><h3>✨ 功能</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>'+
-    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">一起听 / 学 / 睡 / 玩游戏可以互相邀请；发出后，对方会按「传讯设置」里的回复时长随机回应（约 85% 接受）。</p>'+
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">一起听 / 学 / 睡 / 玩游戏可以互相邀请；发出后，对方会按「传讯设置」里的回复时长随机回应（约 80% 接受）。</p>'+
     '<div class="fn-panel-grid">'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openQuestionnaireComposer();"><div class="fn-panel-icon">📋</div><div class="fn-panel-label">梦向问卷</div></div>'+
       '<div class="fn-panel-item" onclick="closeOverlay(); openCheckinComposer();"><div class="fn-panel-icon">📍</div><div class="fn-panel-label">查岗</div></div>'+
@@ -10681,16 +10764,19 @@ function cancelTogetherReply(kind){
   if(_togetherReplyTimers[kind]){ clearTimeout(_togetherReplyTimers[kind]); delete _togetherReplyTimers[kind]; }
 }
 function scheduleTogetherReply(kind){
-  const delayMs = kind==='ebook' ? (5000 + Math.random()*45000) : Math.random()*60000; // 共读与其他邀请共用 85% 接受概率；共读回应窗口为 5–50 秒，早于 60 秒邀请有效期
+  const delayMs = kind==='ebook' ? (5000 + Math.random()*45000) : Math.random()*60000;
   cancelTogetherReply(kind);
   _togetherReplyTimers[kind] = setTimeout(async function(){
     delete _togetherReplyTimers[kind];
-    const accept = Math.random() < 0.85;
+    const accept = Math.random() < 0.80;
     const lastInvite = [...chatMessages].reverse().find(m=>m.type==='invite' && m.kind===kind && m.status==='pending' && m.inviter==='user' && (!m.expiresAt || Date.now()<=m.expiresAt));
     // v63：如果用户已经按了“结束”（不再是“等他回应”），对方就不再回应了
     // v67：只看邀请卡是否仍在“等待回应”（用户按“结束”会把卡置为 ended，lastInvite 就找不到了）。
     // 不再依赖内存里的 togetherState.active/inviter——否则刷新页面后状态被重置，等待中的邀请会永远等不到回应。
-    if(!lastInvite){ return; }
+    if(!lastInvite){
+      if(kind==='ebook'){ try{ await ebookSweepExpiredInvites(); if(currentView==='chat') renderChat(); }catch(e){} }
+      return;
+    }
     if(kind==='music'){
       togetherState.music.accepted = accept;
       if(accept){
@@ -11453,11 +11539,17 @@ async function endWatchTogether(){
 function maybeBotInviteTogether(){
   // 返回 true = 真的安排了一次邀请；false = 现在不适合（正在一起做别的），调用方照常发普通消息
   if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return false;
-  const kinds = ['music','study','sleep','watch'];
-  const kind = kinds[Math.floor(Math.random()*kinds.length)];
+  const kinds = ['music','study','sleep','watch','ebook'];
+  const kind0 = kinds[Math.floor(Math.random()*kinds.length)];
   const delayMs = getReplyDelayMs();
   setTimeout(async function(){
     if(togetherState.music.active || togetherState.study.active || togetherState.sleep.active || (togetherState.watch&&togetherState.watch.active)) return;
+    let kind = kind0;
+    if(kind==='ebook'){
+      try{ await loadEbookLibrary(); }catch(e){}
+      const pendingBook = chatMessages.some(m=>m.type==='invite' && m.kind==='ebook' && m.inviter==='bot' && m.status==='pending');
+      if(!ebookLibrary.length || pendingBook || erTogetherActive()) kind = ['music','study','sleep','watch'][Math.floor(Math.random()*4)];
+    }
     var text = '';
     if(kind==='music'){
       togetherState.music.active = true; togetherState.music.accepted = false; togetherState.music.inviter = 'bot';
@@ -11475,6 +11567,11 @@ function maybeBotInviteTogether(){
       togetherState.sleep.active = true; togetherState.sleep.accepted = false; togetherState.sleep.inviter = 'bot';
       text = chatSettings.companionName+' 邀请你一起睡觉';
       await postTogetherSystemMsg(text, { kind:'sleep', status:'pending', inviter:'bot', from:'bot' });
+    } else if(kind==='ebook'){
+      const book = ebookLibrary[Math.floor(Math.random()*ebookLibrary.length)];
+      const bookTitle = book.title || book.name || '这本书';
+      text = chatSettings.companionName+' 邀请你一起读《'+bookTitle+'》';
+      await postTogetherSystemMsg(text, { kind:'ebook', status:'pending', inviter:'bot', from:'bot', bookId:book.id, bookTitle:bookTitle, detail:'一起读《'+bookTitle+'》' });
     } else {
       togetherState.watch.active = true; togetherState.watch.accepted = false; togetherState.watch.inviter = 'bot';
       togetherState.watch.bvid = togetherState.watch.bvid || 'BV1GJ411x7h7';
@@ -11490,6 +11587,7 @@ function maybeBotInviteTogether(){
 }
 /* 重启后：还在"等待回应"的、我发出的邀请，补排一次对方的回复（以前定时器丢了，卡片会永远停在等待中）*/
 function resumePendingInviteReplies(){
+  try{ ebookSweepExpiredInvites(); }catch(e){}
   const kinds = new Set();
   chatMessages.forEach(m=>{ if(m.type==='invite' && m.status==='pending' && m.inviter==='user') kinds.add(m.kind); });
   kinds.forEach(k=>{ try{ scheduleTogetherReply(k); }catch(e){ console.warn(e); } });
@@ -13888,7 +13986,7 @@ async function petCheckInvites(){
       const inv = p.outingInvite;
       if(!inv || Date.now() < inv.replyAt) continue;
       delete p.outingInvite;
-      const accept = Math.random() < 0.85;
+      const accept = Math.random() < 0.80;
       const name = pPn();
       const together = inv.companion === 'together';
       try{ await updateInviteCardStatus(inv.cardId, accept ? 'accepted' : 'declined'); }catch(e){}
@@ -14646,10 +14744,12 @@ function scRoll(){
   if(prev.kind && prev.kind !== kind){
     c.connNextAt = now + Math.random()*120000;
   }
-  c.st = { kind, nextAt: now + Math.random()*3*3600000 };
+  c.st = { kind, nextAt: now + SC_ST_MIN_MS + Math.random()*(SC_ST_MAX_MS-SC_ST_MIN_MS) };
   saveStatusCard();
   return c.st;
 }
+const SC_ST_MIN_MS = 5*60*1000;
+const SC_ST_MAX_MS = 3*3600*1000;
 const SC_CONN_RANGES = { online:[50,100], busy:[10,75], offline:[10,75] };
 function scConnDraw(kind){
   const r = SC_CONN_RANGES[kind] || [0,100];
@@ -14744,6 +14844,7 @@ function renderStatusCard(){
     </div>`;
 }
 loadStatusCard();
+setInterval(()=>{ try{ const el=document.getElementById('chatCStat'); if(el && currentView==='chat') el.textContent=scStatusLabel(); }catch(e){} }, 30000);
 
 
 let mallState = {
@@ -16837,7 +16938,8 @@ function erEpubApplyStyle(){
       'html':{'background':t.bg+' !important'},
       'body':{'color':t.ink+' !important','background':t.bg+' !important','line-height':erPrefs.lh+' !important','font-family':ff+' !important'},
       'p':{'line-height':erPrefs.lh+' !important'},
-      'body *':{'color':'inherit !important','-webkit-user-select':'text !important','user-select':'text !important','-webkit-touch-callout':'none !important'},
+      'body *':{'color':'inherit !important','-webkit-user-select':'none !important','user-select':'none !important','-webkit-touch-callout':'none !important'},
+      'body.er-sel-on *':{'-webkit-user-select':'text !important','user-select':'text !important'},
       'a':{'color':'inherit !important'}
     });
     ER.rendition.themes.select('er');
@@ -16951,12 +17053,20 @@ function erBindGestures(stage){
   let st=null;
   stage.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    st={x:e.clientX,y:e.clientY,t:Date.now(),dx:0,drag:false,id:e.pointerId};
+    clearTimeout(ER._textLongPressTimer);
+    ER._textLongPressReady=false;
+    st={x:e.clientX,y:e.clientY,t:Date.now(),dx:0,drag:false,id:e.pointerId,lp:false};
+    ER._textLongPressTimer=setTimeout(()=>{
+      if(!ER||ER.kind!=='text'||!st||st.drag)return;
+      st.lp=true;
+      erTextSelectAt(st.x,st.y);
+    },1000);
   });
   stage.addEventListener('pointermove',e=>{
     if(!st||e.pointerId!==st.id)return;
     const dx=e.clientX-st.x,dy=e.clientY-st.y;
     if(!st.drag){
+      if(Math.abs(dx)>10||Math.abs(dy)>10)clearTimeout(ER._textLongPressTimer);
       if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){
         st.drag=true;
         try{stage.setPointerCapture(e.pointerId);}catch(_){}
@@ -16972,6 +17082,7 @@ function erBindGestures(stage){
   const end=e=>{
     if(!st||e.pointerId!==st.id)return;
     const s=st;st=null;
+    clearTimeout(ER._textLongPressTimer);
     if(s.drag){
       const v=Math.abs(s.dx)/Math.max(1,Date.now()-s.t);
       const go=Math.abs(s.dx)>ER.stride*0.18||v>0.45;
@@ -16981,8 +17092,9 @@ function erBindGestures(stage){
       return;
     }
     if(e.type==='pointercancel')return;
-    const selection=window.getSelection();
-    if(selection&&!selection.isCollapsed)return;
+    if(s.lp)return;
+    const menuEl=document.getElementById('erSelectionMenu');
+    if(menuEl&&menuEl.classList.contains('show')){erSelectionMenuHide();return;}
     if(Math.abs(e.clientX-s.x)<10&&Math.abs(e.clientY-s.y)<10&&Date.now()-s.t<500)erTap();
   };
   stage.addEventListener('pointerup',end);
@@ -17281,7 +17393,71 @@ function erClearSelection(){
 function erSelectionMenuHide(){
   const m=document.getElementById('erSelectionMenu');
   if(m)m.classList.remove('show');
-  if(ER){ER.pendingSelection=null;erClearSelection();}
+  if(ER){
+    ER.pendingSelection=null;
+    erClearSelection();
+    const r=erRoot();if(r)r.classList.remove('er-selecting');
+    try{if(ER.rendition&&ER.rendition.getContents)ER.rendition.getContents().forEach(c=>{try{c.document.body.classList.remove('er-sel-on');}catch(_){}});}catch(e){}
+  }
+}
+function erSentenceRange(doc,x,y,scope){
+  let c=null;
+  try{
+    if(doc.caretRangeFromPoint)c=doc.caretRangeFromPoint(x,y);
+    else if(doc.caretPositionFromPoint){const p=doc.caretPositionFromPoint(x,y);if(p){c=doc.createRange();c.setStart(p.offsetNode,p.offset);c.collapse(true);}}
+  }catch(e){}
+  if(!c||c.startContainer.nodeType!==3)return null;
+  if(scope&&!scope.contains(c.startContainer))return null;
+  const node=c.startContainer,txt=node.nodeValue,off=Math.min(c.startOffset,txt.length);
+  if(!txt.length)return null;
+  const at=Math.max(0,Math.min(off,txt.length-1));
+  const probe=doc.createRange();probe.setStart(node,at);probe.setEnd(node,at+1);
+  const hit=Array.from(probe.getClientRects()).some(r=>x>=r.left-24&&x<=r.right+24&&y>=r.top-12&&y<=r.bottom+12);
+  if(!hit)return null;
+  const stops='。！？!?；;…\n';
+  let s=off,e=off;
+  while(s>0&&!stops.includes(txt[s-1]))s--;
+  while(e<txt.length&&!stops.includes(txt[e]))e++;
+  if(e<txt.length)e++;
+  while(e<txt.length&&'”’」』）)"\''.includes(txt[e]))e++;
+  while(s<e&&/\s/.test(txt[s]))s++;
+  while(e>s&&/\s/.test(txt[e-1]))e--;
+  if(e-s<1)return null;
+  const rg=doc.createRange();rg.setStart(node,s);rg.setEnd(node,e);return rg;
+}
+function erTextSelectAt(x,y){
+  if(!ER||ER.kind!=='text')return;
+  const root=erRoot(),flow=document.getElementById('erFlow');
+  if(!root||!flow)return;
+  root.classList.add('er-selecting');
+  void flow.offsetWidth;
+  const rg=erSentenceRange(document,x,y,flow);
+  if(!rg){root.classList.remove('er-selecting');return;}
+  const sel=window.getSelection();
+  sel.removeAllRanges();sel.addRange(rg);
+  ER._textLongPressReady=true;
+  if(ER.selectionHandler)ER.selectionHandler();
+}
+function erEpubSelectAt(contents,x,y){
+  if(!ER||ER.kind!=='epub')return;
+  const doc=contents.document;
+  doc.body.classList.add('er-sel-on');
+  void doc.body.offsetWidth;
+  const rg=erSentenceRange(doc,x,y,doc.body);
+  if(!rg){doc.body.classList.remove('er-sel-on');return;}
+  const sel=doc.getSelection();
+  sel.removeAllRanges();sel.addRange(rg);
+  erShowEpubSelection(contents);
+}
+async function erCopyText(text){
+  try{await navigator.clipboard.writeText(text);return true;}catch(e){}
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);
+    const ok=document.execCommand('copy');ta.remove();return ok;
+  }catch(e){return false;}
 }
 function erSelectionMenuShow(selection,rect,source,rangeInfo,hits){
   if(!ER||!selection||!String(selection).trim())return;
@@ -17374,8 +17550,8 @@ async function erBindAnnotations(root){
     const action=btn.dataset.erAction,p=ER.pendingSelection;
     if(action==='close'){erSelectionMenuHide();return;}
     if(action==='copy'){
-      try{await navigator.clipboard.writeText(p.text);ebookToast('已复制');}
-      catch(e){ebookToast('复制失败：请允许剪贴板权限');}
+      const copied=await erCopyText(p.text);
+      ebookToast(copied?'已复制':'复制失败：请允许剪贴板权限');
       erSelectionMenuHide();return;
     }
     if(action==='unhighlight'){
@@ -17418,22 +17594,46 @@ async function erBindAnnotations(root){
   ER.annotations=await erGetAnnotations();
   if(ER.kind==='text')erApplyTextAnnotations();
 }
+function erShowEpubSelection(contents){
+  if(!ER||ER.kind!=='epub')return;
+  const doc=contents.document;
+  const sel=doc.getSelection&&doc.getSelection();
+  if(!sel||sel.isCollapsed||!String(sel.toString()).trim())return;
+  const range=sel.getRangeAt(0),rect=range.getBoundingClientRect();
+  let left=rect.left,top=rect.top;
+  const frame=doc.defaultView&&doc.defaultView.frameElement;
+  if(frame){const fr=frame.getBoundingClientRect();left+=fr.left;top+=fr.top;}
+  let cfi=null;
+  try{cfi=contents.cfiFromRange(range);}catch(e){}
+  erSelectionMenuShow(sel.toString(),{left,top,width:rect.width,height:rect.height},'epub',{cfi},erEpubHitIds(range,cfi));
+}
 function erBindEpubSelection(contents){
   try{
     const doc=contents.document;
-    doc.addEventListener('selectionchange',()=>{
+    let timer=null,sx=0,sy=0,fired=false,pid=null;
+    const clear=()=>{clearTimeout(timer);timer=null;};
+    doc.addEventListener('pointerdown',e=>{
       if(!ER||ER.kind!=='epub')return;
-      const sel=doc.getSelection&&doc.getSelection();
-      if(!sel||sel.isCollapsed||!String(sel.toString()).trim())return;
-      const range=sel.getRangeAt(0),rect=range.getBoundingClientRect();
-      let left=rect.left,top=rect.top;
-      const frame=doc.defaultView&&doc.defaultView.frameElement;
-      if(frame){const fr=frame.getBoundingClientRect();left+=fr.left;top+=fr.top;}
-      let cfi=null;
-      try{cfi=contents.cfiFromRange(range);}catch(e){}
-      erSelectionMenuShow(sel.toString(),{left,top,width:rect.width,height:rect.height},'epub',{cfi},erEpubHitIds(range,cfi));
-    });
-    doc.addEventListener('touchstart',()=>{if(ER)ER._selectionTouchAt=Date.now();},{passive:true});
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      clear();fired=false;pid=e.pointerId;sx=e.clientX;sy=e.clientY;
+      timer=setTimeout(()=>{
+        timer=null;
+        if(!ER||ER.kind!=='epub')return;
+        fired=true;
+        erEpubSelectAt(contents,sx,sy);
+      },1000);
+    },{passive:true});
+    doc.addEventListener('pointermove',e=>{
+      if(e.pointerId!==pid||!timer)return;
+      if(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)clear();
+    },{passive:true});
+    doc.addEventListener('pointerup',clear,{passive:true});
+    doc.addEventListener('pointercancel',clear,{passive:true});
+    doc.addEventListener('click',()=>{
+      if(fired){fired=false;return;}
+      const m=document.getElementById('erSelectionMenu');
+      if(m&&m.classList.contains('show'))erSelectionMenuHide();
+    },true);
   }catch(e){}
 }
 
@@ -17604,6 +17804,9 @@ async function openEbookReaderById(id,opts){
     const sel=window.getSelection();if(!sel||sel.isCollapsed||!String(sel.toString()).trim())return;
     const range=sel.getRangeAt(0),rect=range.getBoundingClientRect(),flow=document.getElementById('erFlow');
     if(!flow||!flow.contains(range.commonAncestorContainer))return;
+    ER._textSelectionPending=true;
+    if(!ER._textLongPressReady)return;
+    ER._textLongPressReady=false;
     const info=erTextRangeOffsets(range,flow);
     erSelectionMenuShow(sel.toString(),rect,'text',info,erTextHitIds(info));
   };
@@ -17910,9 +18113,10 @@ sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-
 .er-user-highlight{background:rgba(247,211,104,.55);color:inherit;border-radius:2px}
 .er-epub-highlight{background:rgba(247,211,104,.48)}
 .er-user-note{background:transparent;color:inherit;text-decoration:underline wavy rgba(142,74,86,.85);text-underline-offset:3px}
-#ebookReaderRoot .er-stage,#ebookReaderRoot #erFlow{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important;touch-action:pan-y!important; }
-#ebookReaderRoot[data-kind="epub"] iframe{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important; }
-#ebookReaderRoot .er-stage *,#ebookReaderRoot #erFlow *{ -webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:none!important; }
+#ebookReaderRoot .er-stage,#ebookReaderRoot #erFlow{ -webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;touch-action:pan-y!important; }
+#ebookReaderRoot[data-kind="epub"] iframe{ -webkit-touch-callout:none!important; }
+#ebookReaderRoot .er-stage *,#ebookReaderRoot #erFlow *{ -webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important; }
+#ebookReaderRoot.er-selecting .er-flow,#ebookReaderRoot.er-selecting .er-flow *{ -webkit-user-select:text!important;user-select:text!important; }
 #ebookReaderRoot .er-flow ::selection{ background:rgba(142,74,86,.28); }
 .ebook-toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:9950;max-width:80vw;padding:10px 16px;border-radius:999px;background:rgba(40,36,34,.9);color:#fff;font-size:13px;text-align:center;opacity:0;pointer-events:none;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
 .ebook-toast.show{opacity:1;transform:translate(-50%,0)}
