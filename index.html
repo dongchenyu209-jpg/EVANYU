@@ -1624,19 +1624,6 @@
  #view-home #homePage2 .home-ebook-filetype{flex-basis:36px;width:36px;height:42px;}
  #view-home #homePage2 .home-ebook-read,#view-home #homePage2 .home-ebook-invite{padding:6px 7px!important;font-size:9px!important;}
 }
-.lk-toggle{margin:3px 4px 0;font-size:10.5px;color:var(--ink-soft);cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.lk-card{margin-top:6px;width:min(260px,70vw);padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.07);box-shadow:0 4px 14px rgba(42,36,31,.08);font-size:12px;color:var(--ink);}
-.lk-card[hidden]{display:none;}
-.lk-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;}
-.lk-row span{color:var(--ink-soft);}
-.lk-row b{font-weight:600;}
-.lk-head{margin-top:0;}
-.lk-head span{color:var(--ink);}
-.lk-segs{display:flex;gap:4px;margin:6px 0 2px;}
-.lk-segs i{flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.1);}
-.lk-segs i.on{background:var(--ink);}
-.lk-bar{height:4px;border-radius:2px;background:rgba(0,0,0,.08);margin-top:5px;overflow:hidden;}
-.lk-bar i{display:block;height:100%;border-radius:2px;background:var(--ink);}
 </style>
 <script>
   // 禁止浏览器原生右键/长按菜单（包括“用 Google 搜索”）；不阻止事件传播，保留网页自定义菜单。
@@ -4339,8 +4326,7 @@ function renderChat(preserveScroll, scrollToId){
     }
       if(typeof bubbleHtml === 'string' && m.from==='user'){ bubbleHtml = bubbleHtml.replace(/(<div class="t"[^>]*>)已读/, '$1已读 · ' + formatMsgTime(m.time)); }
       const _gnameTag = (_isGroup && chatSettings.group.showName!==false) ? `<div class="gname-tag">${escapeHtml(_senderName||chatSettings.companionName)}</div>` : '';
-  const _linkHtml = renderLinkHtml(m);
-  const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}${_linkHtml}</div>` : (_linkHtml ? `<div class="msg-body">${bubbleHtml}${_linkHtml}</div>` : bubbleHtml);
+  const _rowInner = _isGroup ? `<div class="msg-body">${_gnameTag}${bubbleHtml}</div>` : bubbleHtml;
   return `<div id="msg-${m.id}" class="msg-row ${m.from}" data-mid="${m.id}" ontouchstart="lpStart(event, this)" ontouchend="lpEnd(event)" ontouchmove="lpCancel()" oncontextmenu="lpMenu(event, this)">${avatarHtml}${_rowInner}</div>`;
   };
   wrap.innerHTML = loadMoreHtml + chatMessages.map((m,i)=>msgTimeDivider(m, chatMessages[i-1]) + _renderOne(m)).join('');
@@ -4673,7 +4659,6 @@ function runReplyBatch(userText, total, startFrom){
       reply = { type:'text', content: (typeof getRandomCardText==='function' && getRandomCardText()) || '嗯，我在听。' };
     }
     const newMsg = {id:uid(), from:'bot', time:Date.now(), read:true, ...reply};
-    if(newMsg.type==='text' || newMsg.type==='combo') newMsg.link = linkStatsFor(newMsg, userText, { followup: i>0 });
     try{ assignGroupSender(newMsg); }catch(e){}
     if(!Array.isArray(chatMessages)) chatMessages = [];
     chatMessages.push(newMsg);
@@ -4851,70 +4836,6 @@ function getSplicedCardText(){
   return shuffled.slice(0, Math.max(1, n)).join('\n');
 }
 
-const LK_SKIP = new Set('的了我你是不在有就也都和很吗呢吧啊嗯哦呀'.split(''));
-const LK_LEVELS = ['信号很弱','断断续续','基本清楚','清晰传达'];
-const _linkOpen = new Set();
-function lkChars(s){
-  return new Set(Array.from(String(s||'')).filter(c=>/[\u4e00-\u9fa5A-Za-z0-9]/.test(c) && !LK_SKIP.has(c)));
-}
-function lkOverlap(text, user){
-  const a = lkChars(text), b = lkChars(user);
-  if(!a.size || !b.size) return 0;
-  let hit = 0;
-  a.forEach(c=>{ if(b.has(c)) hit++; });
-  return hit / a.size;
-}
-function lkClamp(v){ return Math.max(0, Math.min(10, Math.round(v))); }
-function linkStatsFor(msg, userText, opts){
-  opts = opts || {};
-  const raw = String(msg.content || '');
-  const text = raw.replace(/\s+/g, '');
-  const src = msg.src || 'single';
-  const proactive = !String(userText || '').trim();
-  const ov = proactive ? 0 : lkOverlap(text, userText);
-  const complete = /[。！？…!?~」”）)]$/.test(text);
-  const lines = raw.split('\n').filter(x=>x.trim()).length;
-  let noise = src==='free' ? 7 : (src==='splice' ? 4 + Math.min(3, lines-1) : 2);
-  if(!complete) noise += 1;
-  if(Array.from(text).length <= 2) noise += 1;
-  if(ov >= 0.3) noise -= 2; else if(ov >= 0.1) noise -= 1;
-  let act = proactive ? 8 : 4;
-  if(!proactive){
-    if(ov < 0.1) act += 1; else if(ov >= 0.3) act -= 2;
-    if(msg.quoteOf) act -= 1;
-  }
-  if(opts.followup) act += 1;
-  act += complete ? 1 : -1;
-  let conn = 70;
-  try{ conn = scConnValue(); }catch(e){}
-  noise = lkClamp(noise);
-  act = lkClamp(act);
-  const score = (10 - noise) / 10 * 0.6 + conn / 100 * 0.4;
-  const level = score >= 0.75 ? 4 : (score >= 0.55 ? 3 : (score >= 0.35 ? 2 : 1));
-  return { act, noise, level, conn };
-}
-function renderLinkHtml(m){
-  const k = m.link;
-  if(!k || m.from !== 'bot' || (m.type !== 'text' && m.type !== 'combo')) return '';
-  const open = _linkOpen.has(m.id);
-  const segs = [1,2,3,4].map(i=>'<i class="'+(i<=k.level?'on':'')+'"></i>').join('');
-  const row = (label, v)=>'<div class="lk-row"><span>'+label+'</span><b>'+v+' / 10</b></div><div class="lk-bar"><i style="width:'+(v*10)+'%"></i></div>';
-  return '<div class="lk-toggle" onclick="event.stopPropagation();toggleMsgLink(\''+m.id+'\')"><span id="lkt-'+m.id+'">◇ '+(open?'收起':'连接')+'</span></div>'
-    + '<div class="lk-card" id="lk-'+m.id+'"'+(open?'':' hidden')+'>'
-    + '<div class="lk-row lk-head"><span>连接清晰度</span><b>'+LK_LEVELS[k.level-1]+'</b></div>'
-    + '<div class="lk-segs">'+segs+'</div>'
-    + row('他的主动表达', k.act)
-    + row('随机噪音', k.noise)
-    + '</div>';
-}
-function toggleMsgLink(id){
-  const card = document.getElementById('lk-'+id), t = document.getElementById('lkt-'+id);
-  if(!card) return;
-  const willOpen = card.hasAttribute('hidden');
-  if(willOpen){ card.removeAttribute('hidden'); _linkOpen.add(id); } else { card.setAttribute('hidden',''); _linkOpen.delete(id); }
-  if(t) t.textContent = '◇ ' + (willOpen ? '收起' : '连接');
-}
-
 const TRANSFER_NOTES = ['给你买奶茶','拿去花','爱你的转账','小心心','今天辛苦了'];
 function pickReplyFor(userText, opts){
   opts = opts || {};
@@ -4946,23 +4867,20 @@ function pickReplyFor(userText, opts){
   }
   // 拼字卡 / 自由拼句 互相独立
   let text = null;
-  let src = 'single';
   const freeOn = !!(spliceCardSettings && spliceCardSettings.freeEnabled !== false);
   const freeProb = freeOn ? (((typeof spliceCardSettings.freeProb === 'number') ? spliceCardSettings.freeProb : 30) / 100) : 0;
   // 1) 自由拼句：独立开关 + 概率
   if(freeOn && Math.random() < freeProb){
     text = getFreeSplicedText();
-    if(text) src = 'free';
   }
   // 2) 拼字卡：独立开关，约一半几率多张换行拼
   if(!text && spliceCardsEnabled && Math.random() < 0.5){
     text = getSplicedCardText();
-    if(text) src = 'splice';
   }
   if(!text) text = getRandomCardText();
   if(!text) return null;
   const quoteOf = maybeQuoteMessage();
-  return quoteOf ? { type:'text', content:text, src, quoteOf } : { type:'text', content:text, src };
+  return quoteOf ? { type:'text', content:text, quoteOf } : { type:'text', content:text };
 }
 
 /* ============================================================
@@ -5109,7 +5027,6 @@ function runProBurst(total, startFrom){
     showTyping(false);
     if(!reply){ _proMsgBusy = false; clearPendingProBurst(); return; }
     const newMsg = { id:uid(), from:'bot', time:Date.now(), read:true, ...reply };
-    if(newMsg.type==='text' || newMsg.type==='combo') newMsg.link = linkStatsFor(newMsg, '', { followup: i>0 });
     try{ assignGroupSender(newMsg); }catch(e){}
     chatMessages.push(newMsg);
     try{ await recPut('chatMessages', newMsg); }catch(e){ console.warn('recPut fail', e); }
