@@ -18360,6 +18360,27 @@ sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-
 @keyframes erUp{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
 @media(max-width:390px){.er-tb{padding:10px 7px;font-size:14px}.er-pagelabel{font-size:11px}.er-card{padding:20px 16px 14px}}
 </style>
+<style id="daily-label-size">
+/* Daily 图标下的文字：按你的要求设为 10px */
+#view-home #homePage2 .h2-d em{
+  font-size:10px!important;
+  letter-spacing:0px!important;
+  line-height:1.15!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+/* 图标与文字之间稍微留一点呼吸，避免放大后贴住图标 */
+#view-home #homePage2 .h2-d{gap:3px!important;}
+/* Daily 那条分隔横线往上提一点：压缩标题下边距、横线上再加一点小间距 */
+#view-home #homePage2 .h2-sq.h2-daily{padding-top:12px!important;}
+#view-home #homePage2 .h2-sq.h2-daily .h2-sqhead{margin-bottom:5px!important;}
+#view-home #homePage2 .h2-dview{margin-top:-2px!important;}
+/* 小屏再退半档，确保绝不会越界 */
+@media (max-width:360px){
+  #view-home #homePage2 .h2-d em{font-size:10px!important;}
+}
+</style>
 
 </body>
 </html>
