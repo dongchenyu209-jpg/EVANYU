@@ -97,7 +97,7 @@
   .topbar .tb-left{ display:flex; align-items:center; gap:8px; }
   .icon-btn{
     width:36px;height:36px;border-radius:50%;
-    border:1.5px solid var(--ink); background:transparent;
+    border:1px solid var(--rule); background:rgba(255,255,255,.7);
     display:flex;align-items:center;justify-content:center;
     cursor:pointer; font-size:16px; color:var(--ink);
     box-shadow: none;
@@ -206,7 +206,7 @@
   .gm-m3{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;width:min(100%,420px);margin:0 auto;}
   .gm-m3 div{aspect-ratio:1;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:min(7vw,28px);background:var(--paper-2);cursor:pointer;}
   .gm-m3 div.sel{background:var(--blush);outline:2px solid var(--rouge);}
-  .gm-btn{display:block;margin:10px auto 0;padding:10px 26px;border:1.5px solid var(--ink);background:var(--paper-2);cursor:pointer;font-size:14px;text-align:center;}
+  .gm-btn{display:block;margin:10px auto 0;padding:11px 28px;border:none;border-radius:999px;background:var(--ink);color:var(--paper);cursor:pointer;font-size:14px;font-weight:600;text-align:center;}
   .gm-btn.off{opacity:.4;pointer-events:none;}
   .letter-act.wide{grid-column:1 / -1;}
   .letter-games{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px;position:relative;}
@@ -224,35 +224,37 @@
   }
 
   /* generic card/list */
-  .box{ border:1.5px solid var(--ink); background:var(--glass-bg); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); padding:14px; margin-bottom:14px; box-shadow: none; }
+  .box{ border:1px solid var(--rule); border-radius:18px; background:rgba(255,255,255,.55); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); padding:16px; margin-bottom:14px; box-shadow: none; }
   .box-title{ font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif; font-weight:700; font-size:14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;}
   label.field{ display:block; font-size:12px; color:var(--ink-soft); margin:10px 0 4px; }
   input[type=text], input[type=number], input[type=date], select, textarea{
-    width:100%; border:1px solid var(--ink); background:transparent; padding:8px 10px; font-size:13.5px; color:var(--ink); font-family:inherit; outline:none;
-    transition: box-shadow .15s;
+    width:100%; border:1px solid var(--rule); border-radius:12px; background:rgba(255,255,255,.7); padding:10px 12px; font-size:13.5px; color:var(--ink); font-family:inherit; outline:none;
+    transition: border-color .15s, background-color .15s;
   }
   input[type=text]:focus, input[type=number]:focus, input[type=date]:focus, select:focus, textarea:focus{
-    box-shadow: 0 0 0 2px var(--blush);
+    border-color:var(--rouge); background:#fff; box-shadow:none;
   }
   textarea{ resize:vertical; min-height:56px; }
   .btn{
-    border:1.5px solid var(--ink); background:var(--ink); color:var(--paper); padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:1px;
-    box-shadow: 0 3px 8px -3px rgba(42,36,31,0.4), inset 0 1px 0 rgba(255,255,255,0.12); transition: transform .1s, box-shadow .1s;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    border:none; border-radius:999px; background:var(--ink); color:var(--paper);
+    padding:10px 20px; font-size:13px; font-weight:600; letter-spacing:.6px; line-height:1.3; cursor:pointer;
+    box-shadow:none; transition: transform .12s, opacity .12s, background-color .15s;
   }
-  .btn.outline{ background:transparent; color:var(--ink); box-shadow:none; }
-  .btn.rouge{ background:var(--rouge); border-color:var(--rouge-deep); color:#fff; box-shadow: 0 3px 8px -3px rgba(122,37,48,0.5); }
-  .btn:active{ transform:scale(0.97); box-shadow:none; }
+  .btn.outline{ background:rgba(233,207,199,.55); color:var(--ink); box-shadow:none; }
+  .btn.rouge{ background:var(--rouge); color:#fff; box-shadow:none; }
+  .btn:active{ transform:scale(0.96); opacity:.85; box-shadow:none; }
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .chip{
-    display:inline-flex; align-items:center; gap:6px; border:1px solid var(--ink); padding:4px 10px; font-size:12px; margin:3px 4px 3px 0; background:transparent; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; border:none; border-radius:999px; padding:6px 12px; font-size:12px; margin:3px 4px 3px 0; background:rgba(233,207,199,.5); cursor:pointer;
   }
   .chip .x{ color:var(--rouge); font-weight:900; }
   .switch-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
-  .switch{ position:relative; width:42px; height:24px; border:1.5px solid var(--ink); border-radius:14px; cursor:pointer; background:transparent; flex-shrink:0;}
-  .switch .dot{ position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--ink); transition:left .15s; }
-  .switch.on{ background:var(--blush); }
-  .switch.on .dot{ left:22px; background:var(--rouge); }
-  .empty-note{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:18px 0; border:1px dashed var(--rule); }
+  .switch{ position:relative; width:46px; height:28px; border:none; border-radius:999px; cursor:pointer; background:rgba(117,105,91,.3); flex-shrink:0; transition:background-color .2s; }
+  .switch .dot{ position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .2s; }
+  .switch.on{ background:var(--rouge); }
+  .switch.on .dot{ left:21px; background:#fff; }
+  .empty-note{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:18px 0; border:1px dashed var(--rule); border-radius:14px; }
   .load-more-bar{ text-align:center; font-size:12px; color:var(--ink-soft); padding:10px 0; cursor:pointer; letter-spacing:1px; transition:color .15s; }
   .load-more-bar:active{ color:var(--rouge); }
 
@@ -309,7 +311,7 @@
   /* bottom nav */
   .bottom-nav{
     z-index:50;
-    position:fixed; bottom:0; left:0; right:0; background:transparent; border-top:1.5px solid var(--ink);
+    position:fixed; bottom:0; left:0; right:0; background:rgba(243,238,227,.92); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-top:1px solid var(--rule);
     box-shadow: none;
     display:flex; align-items:center; justify-content:space-between; padding:10px 16px; max-width:480px; margin:0 auto;
   }
@@ -480,7 +482,7 @@
 }
 .chat-input-bar{ display:flex; align-items:center; gap:0; padding:8px 4px; border-top:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.55); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); position:relative; bottom:0; z-index:6; flex-shrink:0; }
   .chat-input-bar input{ flex:1; min-width:0; }
-  .mini-btn{ border:1px solid var(--ink); background:transparent; width:36px; height:36px; border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0; transition: transform .1s, background .1s;}
+  .mini-btn{ border:1px solid var(--rule); background:rgba(255,255,255,.7); width:36px; height:36px; border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:16px; cursor:pointer; flex-shrink:0; transition: transform .1s, background .1s;}
   .mini-btn:active{ transform:scale(0.9); background:var(--blush); }
 
   /* modal / drawer */
@@ -493,7 +495,7 @@
 
   .group-block{ margin-bottom:14px; border:1px solid var(--rule); padding:8px 10px; }
   .group-name{ font-weight:700; font-size:12.5px; color:var(--rouge); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;}
-  .card-pill{ display:inline-block; border:1px solid var(--ink); background:var(--paper-2); padding:5px 10px; font-size:12px; margin:3px 4px 3px 0; cursor:pointer; }
+  .card-pill{ display:inline-block; border:1px solid transparent; border-radius:999px; background:rgba(233,207,199,.5); padding:6px 12px; font-size:12px; margin:3px 4px 3px 0; cursor:pointer; }
   .card-pill.selected{ background:var(--blush); border-color:var(--rouge); }
   .card-pill:active{ background:var(--blush); }
 
@@ -572,12 +574,12 @@
   .card-add-area textarea::placeholder{ color:rgba(117,105,91,0.55); }
   .card-toolbar{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; align-items:center; }
   .card-toolbar .btn-add{
-    background:#5C3A2E; color:#F8F4EC; border:none; border-radius:8px;
-    padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+    background:#5C3A2E; color:#F8F4EC; border:none; border-radius:999px;
+    padding:8px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
   }
   .card-toolbar .btn-light{
     background:#F8F4EC; color:var(--ink); border:1px solid var(--rule);
-    border-radius:8px; padding:7px 10px; font-size:12.5px; cursor:pointer; white-space:nowrap;
+    border-radius:999px; padding:8px 14px; font-size:12.5px; cursor:pointer; white-space:nowrap;
   }
   .card-toolbar .btn-light:active, .card-toolbar .btn-add:active{ opacity:.85; }
   .cards-search-bar{
@@ -596,11 +598,11 @@
   .card-select-bar .move-label{ color:var(--ink-soft); }
   .card-select-bar select{
     border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
-    padding:6px 10px; border-radius:8px; font-size:12.5px; min-width:100px;
+    padding:7px 12px; border-radius:999px; font-size:12.5px; min-width:100px;
   }
   .card-select-bar .btn-move, .card-select-bar .btn-batch-del{
     border:1px solid var(--rule); background:#F8F4EC; color:var(--ink);
-    border-radius:8px; padding:6px 12px; font-size:12.5px; cursor:pointer;
+    border-radius:999px; padding:7px 14px; font-size:12.5px; cursor:pointer;
   }
   .card-select-bar .btn-batch-del{ color:var(--rouge); border-color:var(--rouge); }
   .card-row{
@@ -933,13 +935,13 @@
 }
 .letter-actions{ display:flex; gap:8px; position:relative; }
 .letter-actions .btn-ghost{
-  flex:0 0 auto; padding:10px 12px; border-radius:12px; border:1px solid rgba(120,70,90,0.2);
+  flex:0 0 auto; padding:10px 16px; border-radius:999px; border:1px solid rgba(120,70,90,0.2);
   background:rgba(255,255,255,0.7); font-size:12px; cursor:pointer; color:#6b4555;
 }
 .letter-actions .btn-send{
-  flex:1; padding:12px; border-radius:12px; border:none; cursor:pointer;
-  background:linear-gradient(135deg, #8b3a56, #6b2d44); color:#fff; font-size:14px; font-weight:600;
-  letter-spacing:1px; box-shadow:0 6px 18px rgba(100,40,60,0.28);
+  flex:1; padding:12px; border-radius:999px; border:none; cursor:pointer;
+  background:#8b3a56; color:#fff; font-size:14px; font-weight:600;
+  letter-spacing:1px;
 }
 
 
@@ -2610,12 +2612,11 @@ const TA_MOOD_DEFAULTS = [
 ];
 let taMoodPool = [];
 let taDiaryMoods = {};
-// 摸鱼：活动/地点字卡 + 自动生成的时间线记录
+// 摸鱼：活动字卡 + 自动生成的时间线记录
 let moyuState = {
   enabled: false,
   showDetails: true,   // 是否显示具体信息
   activities: [],      // 摸鱼活动
-  locations: [],       // 工作地点
   // 当前这一班：地点 + 上班时长 + 活动时间线
   currentSession: null, // { id, location, startTime, workMs, records:[{id,text,time}] }
   history: [],          // 已结束的班次
@@ -2856,7 +2857,6 @@ init().catch(function(e){ console.error('init 失败', e); });
 /* moyu / 主动消息 / 朋友圈互动 设置的规范化（启动和导入备份后都会调用）*/
 function normalizeLoadedSettings(){
   if(!Array.isArray(moyuState.activities)) moyuState.activities = [];
-  if(!Array.isArray(moyuState.locations)) moyuState.locations = [];
   if(!Array.isArray(moyuState.history)) moyuState.history = [];
   if(moyuState.history.length > 3) moyuState.history = moyuState.history.slice(0,3);
   if(typeof moyuState.showDetails !== 'boolean') moyuState.showDetails = true;
@@ -5640,7 +5640,7 @@ function openChatSettings(){
       <span>是否显示具体信息</span>
       <div class="switch ${moyuState.showDetails!==false?'on':''}" id="csMoyuDetails" onclick="this.classList.toggle('on')"><div class="dot"></div></div>
     </div>
-    <div class="btn-row" style="margin-top:8px;"><div class="btn outline" onclick="closeOverlay(); openMoyuManagePanel();">🐟 管理摸鱼活动 / 工作地点</div></div>
+    <div class="btn-row" style="margin-top:8px;"><div class="btn outline" onclick="closeOverlay(); openMoyuManagePanel();">🐟 管理摸鱼活动</div></div>
     <div class="box-title" style="margin-top:14px;">聊天背景</div>
     <div class="btn-row">
       <div class="btn outline" onclick="document.getElementById('chatBgFileInput').click()">🖼 更换背景图</div>
@@ -8070,7 +8070,7 @@ function applyCustomBubbleCSSToPage(){
 }
 
 /* ============================================================
-   摸鱼小记：活动 / 地点字卡 + 随机时间线（当前班次 + 历史）
+   摸鱼小记：活动字卡 + 随机时间线（当前班次 + 历史）
    ============================================================ */
 function renderMoyuHome(){
   const el = document.getElementById('moyuLatestText');
@@ -8139,11 +8139,6 @@ function pickMoyuActivity(){
   if(!acts.length) return null;
   return acts[Math.floor(Math.random()*acts.length)];
 }
-function pickMoyuLocation(){
-  const locs = moyuState.locations || [];
-  if(!locs.length) return '未知地点';
-  return locs[Math.floor(Math.random()*locs.length)];
-}
 function formatDurationShort(ms){
   const h = Math.floor(ms/3600000);
   const m = Math.floor((ms%3600000)/60000);
@@ -8179,10 +8174,7 @@ function scheduleNextSession(){
 }
 async function startMoyuSession(){
   if(!moyuState.enabled) return;
-  const hasActs = (moyuState.activities||[]).length > 0;
-  const hasLocs = (moyuState.locations||[]).length > 0;
-  // 照抄 ZY3：工作地点与活动两个库都非空才生成
-  if(!hasActs || !hasLocs) return;
+  if(!(moyuState.activities||[]).length) return;
   // 先把上一班归档
   if(moyuState.currentSession){
     archiveMoyuSession(moyuState.currentSession);
@@ -8190,7 +8182,6 @@ async function startMoyuSession(){
   const workMs = Math.floor(Math.random()*8*60*60*1000);
   moyuState.currentSession = {
     id: uid(),
-    location: pickMoyuLocation(),
     startTime: Date.now(),
     workMs,
     records: []
@@ -8206,8 +8197,7 @@ async function startMoyuSession(){
 }
 async function generateMoyuRecord(){
   if(!moyuState.enabled) return;
-  if(!(moyuState.activities||[]).length || !(moyuState.locations||[]).length){
-    // 照抄 ZY3：两个库任一为空则不生成
+  if(!(moyuState.activities||[]).length){
     scheduleNextMoyu();
     await sSet('moyu-state', moyuState);
     return;
@@ -8242,7 +8232,7 @@ function resumeMoyuSchedule(){
   const sess = moyuState.currentSession;
   if(!sess){
     // 照抄 ZY3：没有当前班次时，不立即开班；仅在首次（无 nextAt 且无历史）才立即开班。
-    const hasLib = (moyuState.activities||[]).length > 0 && (moyuState.locations||[]).length > 0;
+    const hasLib = (moyuState.activities||[]).length > 0;
     const hasHistory = Array.isArray(moyuState.history) && moyuState.history.length > 0;
     if(!moyuState.nextAt && !hasHistory){
       if(hasLib) startMoyuSession();
@@ -8294,6 +8284,7 @@ function renderSessionCard(sess, isCurrent, histIndex){
   const dateStr = new Date(sess.startTime).toLocaleDateString('zh-CN');
   const remain = isCurrent ? (sess.workMs - (Date.now()-sess.startTime)) : 0;
   const badge = formatDurationShort(sess.workMs);
+  const startStr = new Date(sess.startTime).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
   let recordsHtml = '';
   if(show){
     const list = (sess.records||[]).slice().reverse();
@@ -8313,7 +8304,7 @@ function renderSessionCard(sess, isCurrent, histIndex){
   }
   return `<div class="box" style="margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">📍 ${escapeHtml(sess.location||'未知地点')}</div>
+      <div style="font-family:'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', serif;font-weight:700;font-size:15px;">🐟 ${startStr} 开班</div>
       <span class="stamp-tag" style="transform:none;">🕐 ${badge}</span>
     </div>
     <div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;">📅 ${dateStr}</div>
@@ -8333,9 +8324,9 @@ function renderMoyuNotePanelBody(tab){
       <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay(); openChatSettings();">去传讯设置</div></div>`;
     return;
   }
-  const emptyCards = !(moyuState.activities||[]).length && !(moyuState.locations||[]).length;
+  const emptyCards = !(moyuState.activities||[]).length;
   if(emptyCards){
-    body.innerHTML = `<div class="empty-note">还没有摸鱼活动 / 工作地点字卡<br><span style="font-size:11.5px;">先去管理里添加，系统才会自动生成记录</span></div>
+    body.innerHTML = `<div class="empty-note">还没有摸鱼活动字卡<br><span style="font-size:11.5px;">先去管理里添加，系统才会自动生成记录</span></div>
       <div class="btn-row" style="margin-top:12px;"><div class="btn" onclick="closeOverlay(); openMoyuManagePanel();">去添加字卡</div></div>`;
     return;
   }
@@ -8401,25 +8392,12 @@ function openMoyuManagePanel(){
   _moyuGroupFilter = '';
   openOverlay(`
     <div class="drawer-head"><h3>🐟 摸鱼管理</h3><span class="close-x" onclick="closeOverlay()">✕</span></div>
-    <div class="btn-row" style="margin-bottom:10px;">
-      <div class="btn" id="moyuMTabAct" onclick="switchMoyuManageTab('activities')">摸鱼活动</div>
-      <div class="btn outline" id="moyuMTabLoc" onclick="switchMoyuManageTab('locations')">工作地点</div>
-    </div>
     <div id="moyuManageBody"></div>
   `);
   renderMoyuManageBody();
 }
-function switchMoyuManageTab(tab){
-  _moyuManageTab = tab;
-  _moyuGroupFilter = '';
-  const a = document.getElementById('moyuMTabAct');
-  const l = document.getElementById('moyuMTabLoc');
-  if(a) a.className = 'btn' + (tab==='activities'?'':' outline');
-  if(l) l.className = 'btn' + (tab==='locations'?'':' outline');
-  renderMoyuManageBody();
-}
 let _moyuGroupFilter = '';
-function moyuCardKey(){ return _moyuManageTab === 'activities' ? 'activities' : 'locations'; }
+function moyuCardKey(){ return 'activities'; }
 function moyuGroupStore(key){
   if(!moyuState.cardGroups || typeof moyuState.cardGroups !== 'object') moyuState.cardGroups = {};
   if(!moyuState.cardGroups[key] || typeof moyuState.cardGroups[key] !== 'object') moyuState.cardGroups[key] = { names:[], map:{} };
@@ -8501,11 +8479,10 @@ function renderMoyuManageBody(){
   const body = document.getElementById('moyuManageBody');
   if(!body) return;
   const key = moyuCardKey();
-  const isAct = key === 'activities';
   const list = moyuState[key] || [];
   const g = moyuGroupStore(key);
   if(_moyuGroupFilter && _moyuGroupFilter !== '__none' && !g.names.includes(_moyuGroupFilter)) _moyuGroupFilter = '';
-  const label = isAct ? '摸鱼活动' : '工作地点';
+  const label = '摸鱼活动';
   const groupOf = (t)=> (g.map[t] && g.names.includes(g.map[t])) ? g.map[t] : '';
   const shown = list.map((t,i)=>({t,i})).filter(o=>{
     if(!_moyuGroupFilter) return true;
@@ -8524,7 +8501,7 @@ function renderMoyuManageBody(){
     <div class="btn-row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px;">${chips}</div>
     ${inGroup ? `<div class="btn-row" style="margin-bottom:8px;"><div class="btn outline" style="padding:6px 12px;font-size:12.5px;" onclick="renameMoyuGroup()">改名</div><div class="btn outline" style="padding:6px 12px;font-size:12.5px;" onclick="deleteMoyuGroup()">删除分组</div></div>` : ''}
     <label class="field">批量添加（每行一条${inGroup ? '，会加入当前分组' : ''}）</label>
-    <textarea id="moyuBulkInput" placeholder="${isAct ? '超市扫荡&#10;陪你&#10;边工作边想你' : '花店&#10;咖啡馆'}" style="min-height:80px;"></textarea>
+    <textarea id="moyuBulkInput" placeholder="超市扫荡&#10;陪你&#10;边工作边想你" style="min-height:80px;"></textarea>
     <div class="btn-row">
       <div class="btn" onclick="addMoyuBulk()">添加</div>
       <div class="btn outline" onclick="document.getElementById('moyuFileInput').click()">📁 导入文件</div>
@@ -8544,7 +8521,7 @@ async function addMoyuBulk(){
   if(!raw) return;
   const lines = raw.value.split('\n').map(l=>l.trim()).filter(Boolean);
   if(!lines.length) return;
-  const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
+  const key = 'activities';
   if(!moyuState[key]) moyuState[key] = [];
   lines.forEach(l=>moyuAddCard(key, l));
   raw.value = '';
@@ -8556,7 +8533,7 @@ async function addMoyuSingle(){
   if(!inp) return;
   const val = inp.value.trim();
   if(!val) return;
-  const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
+  const key = 'activities';
   if(!moyuState[key]) moyuState[key] = [];
   moyuAddCard(key, val);
   inp.value = '';
@@ -8564,7 +8541,7 @@ async function addMoyuSingle(){
   renderMoyuManageBody();
 }
 async function deleteMoyuItem(i){
-  const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
+  const key = 'activities';
   if(!moyuState[key]) return;
   const removed = moyuState[key].splice(i, 1)[0];
   const gs = moyuGroupStore(key);
@@ -8588,7 +8565,7 @@ function onMoyuFile(e){
       lines = String(reader.result).split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
     }
     if(!lines.length){ alert('没有识别到内容'); return; }
-    const key = _moyuManageTab === 'activities' ? 'activities' : 'locations';
+    const key = 'activities';
     if(!moyuState[key]) moyuState[key] = [];
     lines.forEach(l=>moyuAddCard(key, l));
     await sSet('moyu-state', moyuState);
@@ -16133,7 +16110,7 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 #view-mall .view-head h2.ml-title span{font-size:22px;color:#22262B;}
 .ml-seg{display:flex;gap:6px;padding:0;margin-top:6px;background:none;}
 .ml-seg-i{flex:1;text-align:center;padding:10px 0;font-size:13.5px;font-weight:600;color:#7A828C;border-radius:14px;background:transparent;}
-.ml-seg-i.on{background:#22262B;color:#fff;box-shadow:0 6px 14px -8px rgba(34,38,43,.45);}
+.ml-seg-i.on{background:#22262B;color:#fff;}
 .ml-shead{display:flex;justify-content:space-between;align-items:flex-end;margin:18px 2px 0;}
 .ml-shead b{display:block;font-size:19px;font-weight:800;color:#22262B;letter-spacing:1px;}
 .ml-shead small{display:block;margin-top:3px;font-size:12px;color:#8A929C;}
@@ -16151,7 +16128,7 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .ml-act{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
 .ml-add,.ml-buy{height:34px;line-height:34px;border-radius:12px;text-align:center;font-size:12.5px;font-weight:700;letter-spacing:1px;}
 .ml-add{border:1.2px solid #B8C2CE;color:#4A5560;background:#fff;}
-.ml-buy{background:#22262B;color:#fff;box-shadow:0 6px 12px -8px rgba(34,38,43,.4);}
+.ml-buy{background:#22262B;color:#fff;}
 .ml-add:active,.ml-buy:active{transform:scale(.97);}
 .ml-bdg{display:inline-block;min-width:16px;height:16px;padding:0 4px;margin-left:5px;box-sizing:border-box;border-radius:8px;background:#E5484D;color:#fff;font-size:10px;font-style:normal;font-weight:800;line-height:16px;text-align:center;vertical-align:1px;}
 .ml-bdg.hidden{display:none}
@@ -16243,7 +16220,7 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .msg.wish-card .wish-row{ font-size:13px; padding:7px 0; border-bottom:1px dashed rgba(0,0,0,.09); }
 .msg.wish-card .wish-total{ margin-top:8px; font-size:11.5px; }
 .msg.wish-card .wish-acts{ gap:10px; margin-top:12px; }
-.msg.wish-card .wish-acts .btn{ padding:9px 0; font-size:13px; font-weight:700; border-radius:999px; box-shadow:0 2px 0 rgba(0,0,0,.07); }
+.msg.wish-card .wish-acts .btn{ padding:9px 0; font-size:13px; font-weight:700; border-radius:999px; }
 .msg.wish-card .wish-status{ margin-top:10px; font-size:12px; }
 .ct-lead{ font-size:12px; color:var(--ink-soft); margin:0 0 4px; }
 .ct-row{ display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:7px 0; border-bottom:1px dashed rgba(0,0,0,.09); }
@@ -16256,7 +16233,7 @@ body[data-view="chat"],body[data-view="mall"],body[data-view="diary"]{background
 .msg.invite-card-msg .invite-card-meta{ padding:12px 16px 0; font-size:12.5px; line-height:1.6; }
 .msg.invite-card-msg .invite-card-status{ margin:10px 16px 12px; padding:5px 12px; font-size:12px; }
 .msg.invite-card-msg .invite-card-actions{ margin:0; padding:0 16px 12px; gap:10px; }
-.msg.invite-card-msg .invite-card-actions .btn{ padding:8px 16px; border-radius:999px; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.07); }
+.msg.invite-card-msg .invite-card-actions .btn{ padding:8px 16px; border-radius:999px; font-weight:700; }
 .msg.invite-card-msg .t{ margin:0 !important; padding:0 16px 10px; }
 .msg.cart-card{ display:block; width:88%; max-width:360px; min-width:0; }
 .msg.checkin-card{ display:block; width:80%; max-width:320px; min-width:0; }
