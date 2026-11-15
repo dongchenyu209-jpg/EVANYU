@@ -5028,7 +5028,7 @@ function clearPendingProBurst(){ try{ sSet('pending-pro-burst', {active:false});
 function sendProactiveMessage(){
   // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
   if(Math.random() < 0.15 && maybeBotInviteTogether()) return;
-  if(Math.random() < 0.10){ sendBotCheckin(); return; }
+  if(Math.random() < 0.06){ sendBotCheckin(); return; }
   runProactiveBurst();
 }
 /* 💌 按钮：手动让 TA 主动来一次，走的是同一套逻辑 */
@@ -17123,7 +17123,7 @@ function erSetPage(p,animate){
   ER.page=Math.max(0,Math.min(ER.pages-1,p));
   flow.style.transition=animate?'transform .3s cubic-bezier(.22,.8,.3,1)':'none';
   flow.style.transform='translate3d('+(-ER.page*ER.stride)+'px,0,0)';
-  if(previousPage!==ER.page&&erTogetherActive())erTaExcerpt('text:'+ER.ui+':'+ER.page);
+  if(previousPage!==ER.page){erTogetherTimerSync();if(erTogetherActive())erTaExcerpt('text:'+ER.ui+':'+ER.page);}
   erUpdateChrome();
   erSaveProgressSoon();
 }
@@ -17454,26 +17454,32 @@ function erPickExcerpt(existing){
   const rest=pool.filter(x=>x!==first);
   return Math.random()<0.5||!rest.length?[first]:[first,rest[Math.floor(Math.random()*rest.length)]];
 }
-async function erTaExcerpt(pageKey){
+function erTaExcerpt(pageKey){
   if(!ER||!erTogetherActive()||ER.kind==='pdf')return;
   const id=ER.id;
+  clearTimeout(ER.excerptTimer);
+  ER.excerptTimer=null;
   if(!ER.excerptedPages)ER.excerptedPages=new Set();
   if(ER.excerptedPages.has(pageKey))return;
-  ER.excerptedPages.add(pageKey);
-  try{
-    if(!document.hidden&&Math.random()<0.16){
-      const list=await erGetAnnotations();
-      if(!ER||ER.id!==id)return;
-      const excerpts=erPickExcerpt(new Set(list.map(a=>a.text)));
-      if(excerpts.length){
-        excerpts.forEach((sentence,i)=>list.push({id:'a'+Date.now()+'t'+i,kind:'excerpt',by:'ta',text:sentence,createdAt:Date.now()}));
-        ER.annotations=list;
-        await erSaveAnnotations(list);
-        ebookToast(erTaName()+' 摘录了'+excerpts.length+'句，已放进笔记');
-        if(document.querySelector('#erSheet .er-notes-list'))erOpenNotes();
+  ER.excerptTimer=setTimeout(async()=>{
+    if(!ER||ER.id!==id||!erTogetherActive())return;
+    ER.excerptTimer=null;
+    ER.excerptedPages.add(pageKey);
+    try{
+      if(!document.hidden&&Math.random()<0.12){
+        const list=await erGetAnnotations();
+        if(!ER||ER.id!==id)return;
+        const excerpts=erPickExcerpt(new Set(list.map(a=>a.text)));
+        if(excerpts.length){
+          excerpts.forEach((sentence,i)=>list.push({id:'a'+Date.now()+'t'+i,kind:'excerpt',by:'ta',text:sentence,createdAt:Date.now()}));
+          ER.annotations=list;
+          await erSaveAnnotations(list);
+          ebookToast(erTaName()+' 摘录了'+excerpts.length+'句，已放进笔记');
+          if(document.querySelector('#erSheet .er-notes-list'))erOpenNotes();
+        }
       }
-    }
-  }catch(e){}
+    }catch(e){}
+  },15000+Math.random()*35000);
 }
 function ebookEnterTogether(bookId,cardIds){
   const ids=(cardIds||[]).filter(Boolean);
@@ -17892,7 +17898,7 @@ function erEpubRelocated(loc){
   const pageKey=loc&&loc.start&&loc.start.cfi?String(loc.start.cfi):'';
   const previousKey=ER._excerptEpubPageKey;
   ER._excerptEpubPageKey=pageKey;
-  if(previousKey&&pageKey&&previousKey!==pageKey&&erTogetherActive())erTaExcerpt('epub:'+pageKey);
+  if(previousKey&&pageKey&&previousKey!==pageKey){erTogetherTimerSync();if(erTogetherActive())erTaExcerpt('epub:'+pageKey);}
   ER.epubLoc=loc;
   const href=String((loc.start&&loc.start.href)||'').split('#')[0];
   const hit=(ER.epubToc||[]).filter(t=>String(t.href||'').split('#')[0]===href).pop();
