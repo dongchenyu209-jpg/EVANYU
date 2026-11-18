@@ -2586,11 +2586,17 @@ let chatSettings = { companionName:'陆沉', delayMin:30, delayMax:300, readNoRe
 ]};
 let chatMessages = [];
 let cardsData = { groups:{} };
-const CARDS_MOOD_GROUP = '心情状态';
+const CARDS_MOOD_GROUP = '状态';
+const CARDS_MOOD_GROUP_OLD = '心情状态';
 function ensureMoodGroup(){
   if(!cardsData || typeof cardsData!=='object') cardsData = {groups:{}};
   if(!cardsData.groups || typeof cardsData.groups!=='object') cardsData.groups = {};
   if(!Array.isArray(cardsData.groups[CARDS_MOOD_GROUP])) cardsData.groups[CARDS_MOOD_GROUP] = [];
+  if(Array.isArray(cardsData.groups[CARDS_MOOD_GROUP_OLD])){
+    const cur = cardsData.groups[CARDS_MOOD_GROUP];
+    cardsData.groups[CARDS_MOOD_GROUP_OLD].forEach(c=>{ if(!cur.includes(c)) cur.push(c); });
+    delete cardsData.groups[CARDS_MOOD_GROUP_OLD];
+  }
 }
 let ledgerEntries = [];
 let periodEntries = [];
@@ -3803,7 +3809,7 @@ function renderCardsMain(){
       <span class="gcount">${list.length} 条字卡</span>
     </div>
     <div class="head-actions" style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;gap:8px;">
-      ${cardsActiveGroup===CARDS_MOOD_GROUP ? '<span class="del-group-btn" style="opacity:.55;pointer-events:none;">固定分组 · 状态卡片心情只从这里抽</span>' : `<span class="del-group-btn" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span>
+      ${cardsActiveGroup===CARDS_MOOD_GROUP ? '<span class="del-group-btn" style="opacity:.55;pointer-events:none;">固定分组 · 状态卡片的状态只从这里抽</span>' : `<span class="del-group-btn" onclick="renameGroup('${escAttr(cardsActiveGroup)}')">重命名分组</span>
       <span class="del-group-btn" onclick="deleteGroup('${escAttr(cardsActiveGroup)}')">删除分组</span>`}
     </div>`;
   }
@@ -14935,7 +14941,7 @@ function renderStatusCard(){
           <div class="sc-en">RIGHT NOW</div>
           <div class="sc-name">${escapeHtml(name)} <i>✦</i></div>
           <div class="sc-status-line"><b>● ${kd.label}</b></div>
-          ${moodBadge ? `<div class="sc-mood-line"><span>心情</span>${moodBadge}</div>` : ''}
+          ${moodBadge ? `<div class="sc-mood-line"><span>状态</span>${moodBadge}</div>` : ''}
         </div>
       </div>
       <div class="sc-conn">
