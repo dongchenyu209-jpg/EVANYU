@@ -4323,6 +4323,23 @@ function renderChat(preserveScroll, scrollToId){
         <div class="cd-body"><div class="ck-q">${escapeHtml(m.question||'')}</div></div>
         ${ckFoot}
       </div>`;
+    } else if(m.type==='dish'){
+      const dsName = escapeHtml(chatSettings.companionName || 'TA');
+      const dd = m.dish || {};
+      const dsSub = m.raid ? (dsName+' 偷吃了冰箱') : (m.cook ? (dsName+' 做给你的') : (m.from==='user' ? ('我做给 '+dsName) : ''));
+      const dsFoot = m.cook
+        ? (m.taken
+          ? `<div class="cd-foot"><span class="cd-chip">${m.taken==='fridge'?'已放进冰箱':'已吃掉'}</span></div>`
+          : `<div class="cd-foot"><button type="button" class="cd-chip" style="border:0;cursor:pointer" onclick="cookTake('${m.id}','eat')">🍽 吃掉</button><button type="button" class="cd-chip" style="border:0;cursor:pointer" onclick="cookTake('${m.id}','fridge')">🧊 放进冰箱</button></div>`)
+        : m.review
+        ? `<div class="cd-foot"><span class="cd-chip">已品尝</span><span class="cd-end">${formatMsgTime(m.reviewTime||m.time)}</span></div>`
+        : `<div class="cd-foot"><span class="cd-chip">等 TA 品尝中…</span></div>`;
+      bubbleHtml = `<div class="msg checkin-card ${m.from}">
+        ${quoteRefHtml}
+        <div class="cd-head"><span class="cd-ico">🍽️</span><b class="cd-title">菜品</b><span class="cd-sub">${dsSub}</span></div>
+        <div class="cd-body"><div class="ck-q">${escapeHtml(dd.e||'')} ${escapeHtml(dd.n||'')} · ${COOK_Q[dd.q]||''}</div>${m.review?`<div class="ck-q" style="margin-top:6px;opacity:.85">${escapeHtml(m.review)}</div>`:''}${m.cook&&m.note?`<div class="ck-q" style="margin-top:6px;opacity:.85">${escapeHtml(m.note)}</div>`:''}</div>
+        ${dsFoot}
+      </div>`;
     } else if(m.type==='weblink'){
       const collapsed = m.collapsed !== undefined ? m.collapsed : true;
       const host = getUrlHost(m.content);
@@ -4437,6 +4454,7 @@ function buildQuotePreview(m){
   if(m.type==='weblink') return '[网页链接]';
   if(m.type==='questionnaire') return '[问卷] ' + (m.question||'').slice(0,30);
   if(m.type==='checkin') return '[查岗] ' + (m.question||'').slice(0,30);
+  if(m.type==='dish') return '[菜品] ' + ((m.dish&&m.dish.n)||'');
 
   if(m.type==='pat' || m.type==='gesture') return m.content;
   return (m.content||'').slice(0,40);
@@ -5032,9 +5050,16 @@ let _proMsgBusy = false;
 function savePendingProBurst(o){ try{ sSet('pending-pro-burst', o); }catch(e){} }
 function clearPendingProBurst(){ try{ sSet('pending-pro-burst', {active:false}); }catch(e){} }
 function sendProactiveMessage(){
-  // 偶尔改成主动邀请一起听/学/睡/看，而不是普通消息；邀请没发成（比如正在一起做别的）就照常发消息
-  if(Math.random() < 0.15 && maybeBotInviteTogether()) return;
-  if(Math.random() < 0.06){ sendBotCheckin(); return; }
+  // 使用一次抽签分配互斥行为，确保各项概率为实际目标概率
+  const roll = Math.random();
+  if(roll < 0.13){
+    // 邀请没发成（例如正在一起做别的）时，回退为普通主动消息
+    if(!maybeBotInviteTogether()) runProactiveBurst();
+    return;
+  }
+  if(roll < 0.18){ cookRaid().then(ok=>{ if(!ok) runProactiveBurst(); }).catch(()=>{}); return; }
+  if(roll < 0.23){ cookTreat().catch(()=>{}); return; }
+  if(roll < 0.28){ sendBotCheckin(); return; }
   runProactiveBurst();
 }
 /* 💌 按钮：手动让 TA 主动来一次，走的是同一套逻辑 */
@@ -9539,6 +9564,7 @@ function openGameMenu(){
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'claw\')"><i>🧸</i><b>抓娃娃</b><small>轮流夹，抢稀有玩偶</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'mem\')"><i>🃏</i><b>翻牌配对</b><small>记忆对碰</small></div>'+
       '<div class="gm-mi" onclick="closeOverlay(); openGame(\'choice\')"><i>⚖️</i><b>二选一审判</b><small>默契大考验</small></div>'+
+      '<div class="gm-mi" onclick="closeOverlay(); openGame(\'cook\')"><i>🍳</i><b>烹饪</b><small>做菜、冰箱、送给 TA</small></div>'+
     '</div>'
   );
 }
@@ -11839,8 +11865,8 @@ loadBgSettings();
 
 /* ---------------- 娱乐 v61：抽签定先手，TA 想 0~10 秒后出手（仅五子棋加了基础 AI） ---------------- */
 let GM = { name:null, t:null, s:null, busy:false };
-const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', mem:'翻牌配对', choice:'二选一审判', miner:'黄金矿工（双人）', fish:'钓鱼（双人）', claw:'抓娃娃（双人）' };
-const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣', claw:'🧸' };
+const GM_TITLES = { ludo:'飞行棋（简化版）', gomoku:'五子棋', guess:'猜数字', match3:'消消乐', mem:'翻牌配对', choice:'二选一审判', miner:'黄金矿工（双人）', fish:'钓鱼（双人）', claw:'抓娃娃（双人）', cook:'烹饪' };
+const GM_ICONS = { ludo:'🎲', gomoku:'⚫', guess:'🔢', match3:'🍓', mem:'🃏', choice:'⚖️', miner:'⛏️', fish:'🎣', claw:'🧸', cook:'🍳' };
 function gmTitleShort(n){ return String(GM_TITLES[n] || n).replace(/（.*?）/g,''); }
 function gmRoot(){ let r = document.getElementById('gameRoot'); if(!r){ r = document.createElement('div'); r.id = 'gameRoot'; document.body.appendChild(r); } return r; }
 async function gmEndCards(name, cardId){
@@ -11870,7 +11896,7 @@ function openGame(name, cardId){
   GM = { name:name, t:null, s:null, busy:false, cardId:cardId || null };
   gmRoot().innerHTML = '<div class="gm"><div class="gm-top"><span onclick="closeGame()">←</span><b>'+GM_TITLES[name]+'</b><span onclick="openGame(\''+name+'\')">↻</span></div><div class="gm-msg" id="gmMsg"></div><div id="gmBody"></div></div>';
   if(name==='choice'){ gm_choice_init(); return; }
-  if(name==='miner' || name==='fish' || name==='claw'){ window['gm_'+name+'_init'](); return; }
+  if(name==='miner' || name==='fish' || name==='claw' || name==='cook'){ window['gm_'+name+'_init'](); return; }
   const meFirst = Math.random() < 0.5;
   window['gm_'+name+'_init'](meFirst);
   gmMsg('🪙 抽签结果：<b>'+(meFirst?'你先手':gmName()+' 先手')+'</b>'+(meFirst?'':'<br>'+gmName()+' 思考中…'));
@@ -11878,6 +11904,424 @@ function openGame(name, cardId){
 }
 function gmOver(text){ GM.over = true; gmMsg('<b>'+text+'</b>'); const b = document.getElementById('gmBody'); if(b) b.insertAdjacentHTML('beforeend','<div class="gm-btn" onclick="openGame(\''+GM.name+'\')">再来一局</div>'); }
 function gmThinking(){ gmMsg(gmName()+' 思考中…'); }
+
+/* ---- 烹饪 + 冰箱 ---- */
+const COOK_Q = ['成功','有点糊','翻车'];
+const COOK_QE = ['✨','😅','💥'];
+const COOK_FRIDGE_MAX = 6;
+const COOK_DISHES = [
+  { n:'番茄炒蛋', e:'🍅', s:[{t:'切番茄',i:'🍅',k:'board'},{t:'打蛋',i:'🥚',k:'bowl'},{t:'下锅翻炒',i:'🍅🥚',k:'pan'},{t:'加盐',i:'🧂',k:'season'}] },
+  { n:'煮面', e:'🍜', s:[{t:'烧水',i:'💧',k:'pot'},{t:'下面',i:'🍜',k:'pot'},{t:'加调料',i:'🧂',k:'season'}] },
+  { n:'蛋炒饭', e:'🍳', s:[{t:'打蛋',i:'🥚',k:'bowl'},{t:'倒入米饭',i:'🍚',k:'pan'},{t:'翻炒',i:'🍳',k:'pan'},{t:'撒葱花',i:'🌿',k:'season'}] },
+  { n:'红烧肉', e:'🍖', s:[{t:'切肉',i:'🥩',k:'board'},{t:'焯水',i:'🥩',k:'pot'},{t:'上色',i:'🥩',k:'pan'},{t:'收汁',i:'🍖',k:'pan'}] },
+  { n:'饺子', e:'🥟', s:[{t:'包馅',i:'🥟',k:'board'},{t:'下锅',i:'🥟',k:'pot'},{t:'捞出',i:'🥟',k:'pot'}] },
+  { n:'小蛋糕', e:'🧁', s:[{t:'打发鸡蛋',i:'🥚',k:'bowl'},{t:'拌面糊',i:'🥣',k:'bowl'},{t:'入烤箱',i:'🧁',k:'oven'},{t:'装饰水果',i:'🍓',k:'board'}] },
+  { n:'煎蛋', e:'🍳', s:[{t:'倒油',i:'🫒',k:'pan'},{t:'打蛋入锅',i:'🥚',k:'pan'},{t:'翻面',i:'🍳',k:'pan'},{t:'撒盐',i:'🧂',k:'season'}] },
+  { n:'披萨', e:'🍕', s:[{t:'揉面团',i:'🫓',k:'board'},{t:'铺上配料',i:'🧀',k:'board'},{t:'入烤箱',i:'🍕',k:'oven'},{t:'切块',i:'🍕',k:'board'}] },
+  { n:'咖喱饭', e:'🍛', s:[{t:'切土豆',i:'🥔',k:'board'},{t:'炒香洋葱',i:'🧅',k:'pan'},{t:'加水慢煮',i:'🥘',k:'pot'},{t:'放咖喱块',i:'🍛',k:'season'}] },
+  { n:'烤鸡翅', e:'🍗', s:[{t:'腌制鸡翅',i:'🍗',k:'bowl'},{t:'入烤箱',i:'🍗',k:'oven'},{t:'刷上蜂蜜',i:'🍯',k:'season'}] }
+];
+const COOK_REVIEWS = [
+  ['味道很好。比我预想的好。','火候正合适。小姑娘真棒','吃完了。好吃的。','……很好吃。'],
+  ['边缘有点焦，但我吃完了。下次火小一点就好。','焦了一点。但没关系。','火候差一点。我不介意，你下次再试试。'],
+  ['……味道很特别。我吃完了，不用担心。','这次不太顺。但是你做的。','翻车了。没关系，下次我陪你一起做。','咸了点。我多喝了两杯水。']
+];
+function cookPick(a){ return a[Math.floor(Math.random()*a.length)]; }
+async function cookBookAdd(entry){
+  const book = await sGet('cook-book', []);
+  book.unshift(entry);
+  await sSet('cook-book', book.slice(0,30));
+}
+function cookFxStyle(){
+  if(document.getElementById('ckFxStyle')) return;
+  const st = document.createElement('style');
+  st.id = 'ckFxStyle';
+  st.textContent = `
+.ck{max-width:430px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:10px}
+.ck-hud{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.85);border:1px solid rgba(210,178,168,.45);border-radius:16px;padding:8px 12px;box-shadow:0 6px 16px rgba(156,47,59,.08)}
+.ck-hud .em{font-size:28px}.ck-hud b{font-size:14px}.ck-hud small{display:block;font-size:11px;opacity:.65;margin-top:1px}
+.ck-steps{display:flex;gap:5px;margin-left:auto}
+.ck-sp{width:26px;height:26px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.55}
+.ck-sp.on{background:#fff3d6;opacity:1;box-shadow:0 0 0 2px #e8a33d}
+.ck-sp.ok{background:#d9efd0;opacity:1}.ck-sp.mid{background:#fbe9c4;opacity:1}.ck-sp.bad{background:#f6d4d0;opacity:1}
+.ck-kt{position:relative;height:236px;border-radius:20px;overflow:hidden;background:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0) 45%),repeating-linear-gradient(0deg,transparent 0 33px,rgba(120,90,60,.13) 33px 34px),repeating-linear-gradient(90deg,transparent 0 33px,rgba(120,90,60,.13) 33px 34px),#f3e4cf;box-shadow:0 10px 24px rgba(90,60,30,.25),inset 0 0 0 2px rgba(255,255,255,.55)}
+.ck-kt:after{content:"";position:absolute;left:0;right:0;bottom:0;height:58px;background:linear-gradient(#d7a76a,#b5834a);box-shadow:inset 0 3px 0 rgba(255,255,255,.4)}
+.ck-kt>*{z-index:2}
+.ck-shelf{position:absolute;left:12px;right:12px;top:8px;text-align:center;font-size:18px;letter-spacing:12px;padding-bottom:2px;border-bottom:4px solid #b9895a;opacity:.95}
+.ck-tray{position:absolute;left:12px;top:44px;font-size:17px;letter-spacing:2px;background:rgba(255,255,255,.7);border-radius:12px;padding:2px 8px;min-height:24px;min-width:24px}
+.ck-board{position:absolute;left:50%;bottom:46px;width:200px;height:56px;margin-left:-100px;background:linear-gradient(#dcaa6b,#b8823e);border-radius:12px;box-shadow:0 6px 0 #8c5f2c,0 14px 14px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:5px}
+.ck-ing{font-size:36px;display:inline-block}
+.ck-pc{display:inline-block;animation:ckPop .4s backwards;transform:rotate(var(--r)) translateY(var(--y))}
+.ck-knife{position:absolute;left:50%;bottom:96px;margin-left:-8px;font-size:36px;transform-origin:85% 85%;animation:ckChop .38s infinite}
+.ck-knife.off{animation:none;transform:rotate(-55deg) translateX(50px)}
+.ck-stove{position:absolute;left:50%;bottom:30px;width:240px;height:56px;margin-left:-120px;background:linear-gradient(#3d4047,#24262b);border-radius:12px;box-shadow:0 6px 0 #14151a,0 14px 14px rgba(0,0,0,.25)}
+.ck-ring{position:absolute;left:50%;top:6px;width:160px;height:24px;margin-left:-80px;border-radius:50%;background:radial-gradient(#ff9a4d,#8a2a10);opacity:.5;transition:opacity .2s,box-shadow .2s}
+.ck-ring.hot{opacity:1;box-shadow:0 0 22px 8px rgba(255,120,40,.7)}
+.ck-pan{position:absolute;left:50%;bottom:76px;width:156px;height:32px;margin-left:-78px;background:linear-gradient(#62656e,#2a2c31);border-radius:6px 6px 78px 78px;box-shadow:inset 0 3px 0 rgba(255,255,255,.22)}
+.ck-pan:after{content:"";position:absolute;left:100%;top:4px;width:58px;height:10px;background:linear-gradient(#6b4a36,#4a3226);border-radius:0 6px 6px 0}
+.ck-pot{position:absolute;left:50%;bottom:76px;width:130px;height:62px;margin-left:-65px;background:linear-gradient(90deg,#9aa3ae,#c8cfd8 40%,#8a929d);border-radius:6px 6px 24px 24px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.ck-pot:before{content:"";position:absolute;left:6px;right:6px;top:8px;height:16px;border-radius:50%;background:#7fc3e8;box-shadow:inset 0 2px 4px rgba(255,255,255,.5)}
+.ck-bowl{position:absolute;left:50%;bottom:46px;width:156px;height:64px;margin-left:-78px;background:linear-gradient(#fbf7f0,#e6dccb);border-radius:6px 6px 78px 78px;box-shadow:inset 0 -6px 0 #d8ccb6,0 8px 0 #b9a98c}
+.ck-bowl:before{content:"";position:absolute;left:8px;right:8px;top:6px;height:16px;border-radius:50%;background:#f1d98a}
+.ck-oven{position:absolute;left:50%;bottom:22px;width:210px;height:128px;margin-left:-105px;background:linear-gradient(#bcc2cc,#8d939d);border-radius:14px;box-shadow:0 6px 0 #62666e,0 14px 14px rgba(0,0,0,.25)}
+.ck-ovtop{position:absolute;left:12px;right:12px;top:7px;height:18px;display:flex;align-items:center;gap:8px}
+.ck-ovtop i{width:14px;height:14px;border-radius:50%;background:radial-gradient(#e8ebf0,#5a5f68)}
+.ck-ovtop span{margin-left:auto;font:700 11px/16px monospace;color:#ffb347;background:#1d1f23;border-radius:4px;padding:0 6px}
+.ck-win{position:absolute;left:14px;right:14px;top:32px;bottom:14px;border-radius:8px;background:linear-gradient(#ffb347,#ff7a29);box-shadow:inset 0 0 0 4px #4b4f57;animation:ckGlow 1s ease-in-out infinite alternate;overflow:hidden;transition:filter .2s}
+.ck-win.hot{filter:brightness(1.35) saturate(1.2)}
+.ck-food{position:absolute;left:0;right:0;text-align:center;bottom:20px;font-size:32px;animation:ckToss .5s infinite;transition:filter .6s}
+.ck-food.pot{bottom:34px;animation:ckBob 1.2s infinite}
+.ck-food.bowlf{bottom:20px;animation:ckSwirl 1.1s linear infinite}
+.ck-food.oven{bottom:6px;animation:ckPuffUp 2.2s ease-in-out infinite alternate}
+.ck-food.slow{animation-duration:1.8s}
+.ck-food.oven.slow{animation:none}
+.ck-whisk{position:absolute;left:50%;bottom:92px;margin-left:-14px;font-size:36px;animation:ckStir .6s linear infinite}
+.ck-whisk.off{animation:none;transform:rotate(30deg) translate(50px,-6px)}
+.ck-shaker{position:absolute;left:50%;bottom:140px;margin-left:-10px;font-size:32px;transform-origin:50% 100%;animation:ckTilt .7s ease-in-out infinite alternate}
+.ck-shaker.off{animation:none;transform:rotate(0)}
+.ck-g{position:absolute;width:4px;height:4px;border-radius:50%;background:#fffdf4;pointer-events:none;animation:ckFall .55s linear forwards}
+.ck-p{position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.75);filter:blur(2px);pointer-events:none;animation:ckRise 1.6s ease-out forwards}
+.ck-plate{position:absolute;left:50%;bottom:34px;width:170px;height:44px;margin-left:-85px;border-radius:50%;background:radial-gradient(#fff,#ebe4d8);box-shadow:0 6px 0 #cfc6ba,0 12px 14px rgba(0,0,0,.2)}
+.ck-dish{position:absolute;left:0;right:0;text-align:center;bottom:52px;font-size:62px;animation:ckPop .5s}
+.ck-ctl{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.88);border-radius:20px;padding:12px 14px;box-shadow:0 8px 20px rgba(156,47,59,.1)}
+.ck-gauge{flex:1}
+.ck-gl{font-size:12px;opacity:.7;margin-bottom:7px;display:flex;justify-content:space-between}
+.ck-bar{position:relative;height:24px;border-radius:12px;background:#ebe3d6;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.18)}
+.ck-bar:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9.5%,rgba(0,0,0,.09) 9.5% 10%)}
+.ck-z1{position:absolute;top:0;bottom:0;background:#f3e3a6}
+.ck-z2{position:absolute;top:0;bottom:0;background:#8fd081;box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+.ck-mk{position:absolute;top:0;bottom:0;width:8px;border-radius:4px;background:#d9674b;box-shadow:0 0 0 2px #fff}
+.ck-go{width:80px;height:80px;border-radius:50%;border:none;flex-shrink:0;background:linear-gradient(135deg,#f08a5d,#d9534a);color:#fff;font-size:16px;font-weight:700;letter-spacing:1px;box-shadow:0 7px 0 #a83a33,0 12px 20px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s}
+.ck-go:active{transform:translateY(5px);box-shadow:0 2px 0 #a83a33}
+.ck-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ck-card{background:#fff;border-radius:18px;padding:12px 6px 10px;text-align:center;box-shadow:0 6px 14px rgba(120,70,50,.12);cursor:pointer}
+.ck-card .em{font-size:34px;width:58px;height:58px;border-radius:50%;background:linear-gradient(#fff3e2,#ffe4c2);display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.ck-card b{font-size:14px}.ck-card small{display:block;font-size:11px;opacity:.6;margin-top:2px}
+.ck-card.fr{grid-column:1/3;background:linear-gradient(#e9f1f6,#cfdde7);display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:600}
+.ck-res{background:#fff;border-radius:22px;padding:14px;text-align:center;box-shadow:0 8px 20px rgba(120,70,50,.12)}
+.ck-star{font-size:30px;letter-spacing:6px;color:#ddd}.ck-star i{font-style:normal;color:#f2b632}
+.ck-chips{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 2px}
+.ck-chip{font-size:11.5px;padding:3px 9px;border-radius:999px;background:#f4eee6}
+.ck-chip.ok{background:#d9efd0}.ck-chip.mid{background:#fbe9c4}.ck-chip.bad{background:#f6d4d0}
+.ck-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ck-act{padding:12px 6px;border-radius:16px;background:#fff;text-align:center;font-size:13.5px;font-weight:600;box-shadow:0 5px 12px rgba(120,70,50,.12);cursor:pointer}
+.ck-act.main{background:linear-gradient(135deg,#d96b78,var(--rouge));color:#fff}
+.ck-fr{background:linear-gradient(#eef4f8,#cfdde7);border-radius:22px;padding:12px 14px;box-shadow:inset 0 0 0 3px #fff,0 10px 24px rgba(60,90,110,.25)}
+.ck-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 0;border-bottom:4px solid #aebfcc}
+.ck-row:last-child{border-bottom:none}
+.ck-slot{height:96px;border-radius:12px;background:rgba(255,255,255,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px}
+.ck-slot.empty{border:2px dashed #b7c7d3;background:transparent}
+.ck-slot .e{font-size:28px}
+.ck-slot .bt{display:flex;gap:6px;margin-top:2px}
+.ck-slot .bt span{width:26px;height:26px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 5px rgba(0,0,0,.15);cursor:pointer}
+.ck-book{background:rgba(255,255,255,.85);border-radius:18px;padding:10px 14px;font-size:12.5px}
+.ck-book div{padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+@keyframes ckChop{0%,100%{transform:rotate(-35deg) translateY(0)}50%{transform:rotate(5deg) translateY(10px)}}
+@keyframes ckToss{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-14px) rotate(10deg)}}
+@keyframes ckBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes ckPop{0%{transform:scale(.2)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes ckRise{0%{opacity:.8;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-70px) scale(1.5)}}
+@keyframes ckSwirl{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes ckStir{0%{transform:translate(-24px,0)}25%{transform:translate(0,9px)}50%{transform:translate(24px,0)}75%{transform:translate(0,-9px)}100%{transform:translate(-24px,0)}}
+@keyframes ckGlow{from{opacity:.85}to{opacity:1}}
+@keyframes ckPuffUp{from{transform:scale(.85)}to{transform:scale(1.2)}}
+@keyframes ckTilt{from{transform:rotate(-25deg)}to{transform:rotate(55deg)}}
+@keyframes ckFall{from{opacity:1;transform:translateY(0)}to{opacity:.2;transform:translateY(34px)}}`;
+  document.head.appendChild(st);
+}
+const COOK_KIND = { board:['切菜节奏','切！'], pan:['火候','起锅'], pot:['水温','捞出'], oven:['烤箱温度','取出'], bowl:['搅拌力度','停手'], season:['调料量','够了'] };
+function cookHud(s, st){
+  const steps = s.dish.s.map((x,i)=>{
+    const r = s.res[i];
+    const c = i===s.step ? 'on' : (r===2 ? 'ok' : (r===1 ? 'mid' : (r===0 ? 'bad' : '')));
+    return '<span class="ck-sp '+c+'">'+(r===undefined ? Array.from(x.i)[0] : (r===2 ? '✔' : (r===1 ? '◐' : '✘')))+'</span>';
+  }).join('');
+  return '<div class="ck-hud"><span class="em">'+s.dish.e+'</span><div><b>'+s.dish.n+'</b><small>第 '+(s.step+1)+' / '+s.dish.s.length+' 步 · '+st.t+'</small></div><div class="ck-steps">'+steps+'</div></div>';
+}
+function cookScene(st, tray){
+  const ing = '<span class="ck-ing" id="ckIng">'+st.i+'</span>';
+  const stove = '<div class="ck-stove"><i class="ck-ring" id="ckFlame"></i></div>';
+  let sc;
+  if(st.k==='board') sc = '<div class="ck-board">'+ing+'</div><span class="ck-knife" id="ckKnife">🔪</span>';
+  else if(st.k==='bowl') sc = '<div class="ck-bowl"><span class="ck-food bowlf" id="ckIng">'+st.i+'</span></div><span class="ck-whisk" id="ckWhisk">🥄</span>';
+  else if(st.k==='oven') sc = '<div class="ck-oven"><div class="ck-ovtop"><i></i><i></i><span id="ckTemp">180°C</span></div><div class="ck-win" id="ckFlame"><span class="ck-food oven" id="ckIng">'+st.i+'</span></div></div>';
+  else if(st.k==='pot') sc = stove+'<div class="ck-pot"><span class="ck-food pot" id="ckIng">'+st.i+'</span></div>';
+  else sc = stove+'<div class="ck-pan"><span class="ck-food" id="ckIng">'+st.i+'</span></div>'+(st.k==='season' ? '<span class="ck-shaker" id="ckShaker">🧂</span>' : '');
+  return '<div class="ck-kt" id="ckStage"><div class="ck-shelf">🫙 🧂 🫒 🍯 🥄</div><div class="ck-tray">'+(tray||'')+'</div>'+sc+'</div>';
+}
+function cookPuff(bottom){
+  const stg = document.getElementById('ckStage');
+  if(!stg) return;
+  const i = document.createElement('i');
+  i.className = 'ck-p';
+  i.style.left = (40+Math.random()*20)+'%';
+  i.style.bottom = bottom+'px';
+  stg.appendChild(i);
+  setTimeout(()=>i.remove(), 1600);
+}
+function cookGrain(){
+  const stg = document.getElementById('ckStage');
+  if(!stg) return;
+  const i = document.createElement('i');
+  i.className = 'ck-g';
+  i.style.left = (47+Math.random()*6)+'%';
+  i.style.bottom = '136px';
+  stg.appendChild(i);
+  setTimeout(()=>i.remove(), 600);
+}
+function cookStepResult(st, pts){
+  const ing = document.getElementById('ckIng');
+  if(!ing) return;
+  if(st.k==='board'){
+    const kn = document.getElementById('ckKnife');
+    if(kn) kn.classList.add('off');
+    const rnd = (a,b)=>a+Math.random()*(b-a);
+    let h = '';
+    for(let n=0;n<4;n++){
+      const r = pts===2 ? 0 : (pts===1 ? rnd(-14,14) : rnd(-40,40));
+      const y = pts===2 ? 0 : (pts===1 ? rnd(-4,4) : rnd(-10,10));
+      const fs = pts===2 ? 24 : (pts===1 ? rnd(19,26) : rnd(12,30));
+      h += '<span class="ck-pc" style="--r:'+r+'deg;--y:'+y+'px;font-size:'+fs+'px">'+st.i+'</span>';
+    }
+    ing.parentNode.innerHTML = h;
+  } else if(st.k==='bowl'){
+    const wh = document.getElementById('ckWhisk');
+    if(wh) wh.classList.add('off');
+    ing.style.animation = 'none';
+    ing.style.filter = pts===2 ? 'saturate(1.3)' : (pts===1 ? 'none' : 'brightness(.75) sepia(.4)');
+    ing.style.transform = pts===2 ? 'scale(1.25)' : (pts===1 ? 'scale(1)' : 'scale(.8) rotate(25deg)');
+  } else {
+    const sk = document.getElementById('ckShaker');
+    if(sk) sk.classList.add('off');
+    ing.classList.add('slow');
+    ing.style.filter = pts===2 ? 'sepia(.35) saturate(1.3)' : (pts===1 ? 'sepia(.6) brightness(.8)' : 'brightness(.4) sepia(.8)');
+  }
+}
+function gm_cook_init(){
+  GM.s = { dish:null, step:0, score:0, out:null };
+  cookFxStyle();
+  gmMsg('今天做什么？');
+  gmBody('<div class="ck"><div class="ck-menu">'+COOK_DISHES.map((d,i)=>'<div class="ck-card" onclick="gm_cook_pick('+i+')"><div class="em">'+d.e+'</div><b>'+d.n+'</b><small>'+d.s.length+' 步 · '+(d.s.length>3?'★★':'★')+'</small></div>').join('')+'<div class="ck-card fr" onclick="gm_cook_fridge()">🧊 打开冰箱</div></div></div>');
+}
+function gm_cook_pick(i){ GM.s = { dish:COOK_DISHES[i], step:0, score:0, out:null, tray:'', res:[] }; gm_cook_step(); }
+function gm_cook_step(){
+  const s = GM.s;
+  if(s.step >= s.dish.s.length){ gm_cook_finish(); return; }
+  const st = s.dish.s[s.step];
+  const hw = 9 + Math.random()*4;
+  s.center = 28 + Math.random()*44;
+  s.hw = hw;
+  s.locked = false;
+  const lab = COOK_KIND[st.k] || COOK_KIND.pan;
+  gmMsg('');
+  gmBody('<div class="ck">'+cookHud(s, st)+cookScene(st, s.tray)+
+    '<div class="ck-ctl"><div class="ck-gauge"><div class="ck-gl"><span>'+lab[0]+'</span><span>对准绿色区域</span></div><div class="ck-bar"><div class="ck-z1" style="left:'+(s.center-hw-12)+'%;width:'+(hw*2+24)+'%"></div><div class="ck-z2" style="left:'+(s.center-hw)+'%;width:'+(hw*2)+'%"></div><div class="ck-mk" id="ckMark"></div></div></div><button class="ck-go" onclick="gm_cook_stop()">'+lab[1]+'</button></div></div>');
+  const dur = 900 + Math.random()*700;
+  const t0 = performance.now();
+  const loop = now=>{
+    const el = document.getElementById('ckMark');
+    if(!el || !GM.s || GM.s!==s || s.locked) return;
+    const tri = ((now-t0)/dur) % 2;
+    s.pos = (tri<1 ? tri : 2-tri) * 100;
+    el.style.left = 'calc('+s.pos+'% - '+(s.pos*0.08)+'px)';
+    const hot = Math.abs(s.pos - s.center) <= s.hw;
+    const fl = document.getElementById('ckFlame');
+    if(fl) fl.classList.toggle('hot', hot);
+    const tp = document.getElementById('ckTemp');
+    if(tp) tp.textContent = Math.round(120 + s.pos*1.2)+'°C';
+    if(['pan','pot','season'].includes(st.k) && now-(s.lastPuff||0) > (hot?160:380)){ s.lastPuff = now; cookPuff(st.k==='pot' ? 150 : 118); }
+    if(st.k==='season' && now-(s.lastGrain||0) > 90){ s.lastGrain = now; cookGrain(); }
+    GM.raf = requestAnimationFrame(loop);
+  };
+  GM.raf = requestAnimationFrame(loop);
+}
+function gm_cook_stop(){
+  const s = GM.s;
+  if(!s || s.locked || !s.dish) return;
+  s.locked = true;
+  if(GM.raf) cancelAnimationFrame(GM.raf);
+  const d = Math.abs((s.pos||0) - s.center);
+  const pts = d <= s.hw ? 2 : (d <= s.hw+12 ? 1 : 0);
+  s.score += pts;
+  const st = s.dish.s[s.step];
+  cookStepResult(st, pts);
+  s.tray += st.i;
+  s.res[s.step] = pts;
+  gmMsg(pts===2 ? '漂亮，火候刚好' : (pts===1 ? '差一点点，还不错' : '手滑了……'));
+  s.step++;
+  clearTimeout(GM.t);
+  GM.t = setTimeout(()=>{ if(GM.s===s) gm_cook_step(); }, 1000);
+}
+function gm_cook_finish(){
+  const s = GM.s;
+  const max = s.dish.s.length * 2;
+  const q = s.score >= max-1 ? 0 : (s.score >= Math.ceil(max/2) ? 1 : 2);
+  s.q = q;
+  s.out = { id:uid(), n:s.dish.n, e:s.dish.e, q:q, time:Date.now() };
+  gm_cook_done(true);
+}
+function gm_cook_done(fx){
+  const s = GM.s;
+  cookFxStyle();
+  const q = s.q || 0;
+  const flt = ['','sepia(.5) brightness(.85)','brightness(.45) sepia(.7)'][q];
+  const stars = 3 - q;
+  const chips = s.dish.s.map((x,i)=>{ const r = (s.res||[])[i]; return '<span class="ck-chip '+(r===2?'ok':(r===1?'mid':'bad'))+'">'+x.t+(r===2?' ✔':(r===1?' ◐':' ✘'))+'</span>'; }).join('');
+  gmMsg(s.dish.e+' '+s.dish.n+' 出锅了：<b>'+COOK_Q[q]+'</b>');
+  gmBody('<div class="ck"><div class="ck-kt" id="ckStage"><div class="ck-shelf">🫙 🧂 🫒 🍯 🥄</div><div class="ck-plate"></div><span class="ck-dish" style="filter:'+flt+'">'+s.dish.e+'</span></div>'+
+    '<div class="ck-res"><div class="ck-star"><i>'+'★'.repeat(stars)+'</i>'+'★'.repeat(3-stars)+'</div><div class="ck-chips">'+chips+'</div></div>'+
+    '<div class="ck-acts">'+(s.out ? '<div class="ck-act main" onclick="gm_cook_store()">🧊 放进冰箱</div><div class="ck-act main" onclick="gm_cook_send()">💌 送给 TA</div>' : '')+
+    '<div class="ck-act" onclick="openGame(\'cook\')">再做一道</div><div class="ck-act" onclick="gm_cook_fridge()">🧊 冰箱</div></div></div>');
+  if(fx && q!==2){ [0,300,650].forEach(t=>setTimeout(()=>{ if(GM.s===s) cookPuff(96); }, t)); }
+}
+async function gm_cook_store(){
+  const s = GM.s;
+  if(!s || !s.out) return;
+  const fridge = await sGet('cook-fridge', []);
+  if(fridge.length >= COOK_FRIDGE_MAX){ alert('冰箱满了，先去冰箱里处理一道吧'); return; }
+  fridge.push(s.out);
+  await sSet('cook-fridge', fridge);
+  s.out = null;
+  gm_cook_done();
+  gmMsg('已放进冰箱 🧊（'+fridge.length+'/'+COOK_FRIDGE_MAX+'）');
+}
+async function gm_cook_send(){
+  const s = GM.s;
+  if(!s || !s.out) return;
+  const dish = s.out;
+  s.out = null;
+  await cookSendDish(dish);
+  gm_cook_done();
+  gmMsg('已经送给 '+gmName()+' 啦，等 TA 品尝～');
+}
+async function cookSendDish(dish){
+  const delay = randomBetween(10*1000, 60*1000);
+  const msg = { id:uid(), from:'user', type:'dish', dish:dish, time:Date.now(), read:false, scheduledReplyAt:Date.now()+delay };
+  chatMessages.push(msg);
+  await recPut('chatMessages', msg);
+  if(currentView==='chat'){ try{ renderChat(); }catch(e){} }
+  setTimeout(()=>{ cookResolve(msg.id); }, delay);
+}
+async function cookNotifyBot(text, title){
+  const inChat = (currentView==='chat' || roomIsOpen());
+  if(inChat){ try{ renderChat(); }catch(e){} }
+  else { chatUnread = true; try{ await sSet('chat-unread', true); }catch(e){} renderUnreadDots(); }
+  if(!inChat || document.visibilityState!=='visible'){ try{ tryBgNotify((chatSettings.companionName||'TA')+' '+title, text); }catch(e){} }
+}
+async function cookResolve(id){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || m.type!=='dish' || m.review) return;
+  m.review = cookPick(COOK_REVIEWS[m.dish.q] || COOK_REVIEWS[0]);
+  m.reviewTime = Date.now();
+  m.read = true;
+  await recPut('chatMessages', m);
+  await cookBookAdd({ n:m.dish.n, e:m.dish.e, q:m.dish.q, review:m.review, how:'送的', time:Date.now() });
+  await cookNotifyBot(m.review, '品尝了你的菜');
+}
+function cookResolvePending(){
+  const now = Date.now();
+  chatMessages.filter(m=>m.type==='dish' && m.from==='user' && !m.review && m.scheduledReplyAt && m.scheduledReplyAt<=now).forEach(m=>{ cookResolve(m.id); });
+}
+const COOK_TREAT_NOTES = [
+  [
+    '做好了，趁热吃。',
+    '今天试着做了这个。味道应该不错。',
+    '刚出锅。你尝尝。',
+    '做好了。今天的时间刚好，趁热尝尝。',
+    '特意给你留了一份。看看合不合你的口味。',
+    '今天难得有些空闲，便想着做点东西给你。',
+    '我尝过了，味道不错。剩下的时间，交给你来评价。',
+    '小羽，过来尝尝。希望今天这道菜能合你的心意。'
+  ],
+  [
+    '火候稍微过了一点。你要是不介意，尝尝看。',
+    '小羽尝尝我的手艺。今天应该不会让你失望。',
+    '和预想的稍有出入，不过味道应该还不错。',
+    '卖相差了些，倒不影响味道。要不要替我尝尝？'
+  ],
+  [
+    '……这次没做好。不过还是想让你看看。',
+    '看来今天的发挥不够理想。抱歉，让你久等了。',
+    '这次是我判断失误了。放心，我会重新准备。',
+    '看来还需要再练习一下。下次再把满意的成果带给你。'
+  ]
+];
+async function cookTreat(){
+  const d0 = cookPick(COOK_DISHES);
+  const r = Math.random();
+  const q = r<0.45 ? 0 : (r<0.775 ? 1 : 2); // 成功45%，普通32.5%，失败22.5%
+  const dish = { id:uid(), n:d0.n, e:d0.e, q:q, time:Date.now() };
+  const msg = { id:uid(), from:'bot', type:'dish', cook:true, dish:dish, note:cookPick(COOK_TREAT_NOTES[q]), time:Date.now(), read:true };
+  try{ assignGroupSender(msg); }catch(e){}
+  chatMessages.push(msg);
+  await recPut('chatMessages', msg);
+  await cookNotifyBot(msg.note, '做了'+dish.n+'给你');
+}
+async function cookTake(id, mode){
+  const m = chatMessages.find(x=>x.id===id);
+  if(!m || !m.cook || m.taken) return;
+  if(mode==='fridge'){
+    const fridge = await sGet('cook-fridge', []);
+    if(fridge.length >= COOK_FRIDGE_MAX){ alert('冰箱满了，先去烹饪里的冰箱处理一道吧'); return; }
+    fridge.push({ id:uid(), n:m.dish.n, e:m.dish.e, q:m.dish.q, time:Date.now() });
+    await sSet('cook-fridge', fridge);
+    m.taken = 'fridge';
+  } else {
+    m.taken = 'eat';
+    await cookBookAdd({ n:m.dish.n, e:m.dish.e, q:m.dish.q, review:m.note||'', how:'TA做的', time:Date.now() });
+  }
+  await recPut('chatMessages', m);
+  try{ renderChat(); }catch(e){}
+  ebookToast(mode==='fridge' ? '已放进冰箱 🧊' : '吃掉了 🍽');
+}
+async function cookRaid(){
+  const fridge = await sGet('cook-fridge', []);
+  if(!fridge.length) return false;
+  const dish = fridge.splice(Math.floor(Math.random()*fridge.length), 1)[0];
+  await sSet('cook-fridge', fridge);
+  const msg = { id:uid(), from:'bot', type:'dish', raid:true, dish:dish, review:cookPick(COOK_REVIEWS[dish.q] || COOK_REVIEWS[0]), time:Date.now(), read:true };
+  try{ assignGroupSender(msg); }catch(e){}
+  chatMessages.push(msg);
+  await recPut('chatMessages', msg);
+  await cookBookAdd({ n:dish.n, e:dish.e, q:dish.q, review:msg.review, how:'偷吃的', time:Date.now() });
+  await cookNotifyBot(msg.review, '偷吃了冰箱里的'+dish.n);
+  return true;
+}
+async function gm_cook_fridge(){
+  if(GM.raf) cancelAnimationFrame(GM.raf);
+  clearTimeout(GM.t);
+  cookFxStyle();
+  const fridge = await sGet('cook-fridge', []);
+  const book = await sGet('cook-book', []);
+  if(GM.name!=='cook') return;
+  let rows = '';
+  for(let r=0;r<2;r++){
+    let cells = '';
+    for(let c=0;c<3;c++){
+      const d = fridge[r*3+c];
+      cells += d ? '<div class="ck-slot"><span class="e">'+d.e+'</span><b>'+escapeHtml(d.n)+'</b><span>'+COOK_Q[d.q]+'</span><div class="bt"><span onclick="gm_cook_fsend(\''+d.id+'\')">💌</span><span onclick="gm_cook_ftrash(\''+d.id+'\')">🗑</span></div></div>' : '<div class="ck-slot empty"></div>';
+    }
+    rows += '<div class="ck-row">'+cells+'</div>';
+  }
+  const bk = book.slice(0,10).map(b=>'<div>'+b.e+' '+escapeHtml(b.n)+' · '+COOK_Q[b.q]+'（'+b.how+'）<br><span style="opacity:.65">'+escapeHtml(b.review)+'</span></div>').join('') || '<div style="opacity:.6">还没有被品尝过的菜。</div>';
+  gmMsg('🧊 冰箱 '+fridge.length+'/'+COOK_FRIDGE_MAX+'　💌 送给 TA　🗑 丢掉');
+  gmBody('<div class="ck"><div class="ck-fr">'+rows+'</div><div class="ck-book"><b>菜谱本</b>'+bk+'</div><div class="ck-acts"><div class="ck-act main" onclick="openGame(\'cook\')">← 回去做菜</div></div></div>');
+}
+async function gm_cook_fsend(id){
+  const fridge = await sGet('cook-fridge', []);
+  const i = fridge.findIndex(d=>d.id===id);
+  if(i<0) return;
+  const dish = fridge.splice(i,1)[0];
+  await sSet('cook-fridge', fridge);
+  await cookSendDish(dish);
+  await gm_cook_fridge();
+  gmMsg('已送给 '+gmName()+' 🍽️　冰箱 '+fridge.length+'/'+COOK_FRIDGE_MAX);
+}
+async function gm_cook_ftrash(id){
+  const fridge = await sGet('cook-fridge', []);
+  await sSet('cook-fridge', fridge.filter(d=>d.id!==id));
+  await gm_cook_fridge();
+}
 
 /* ---- 五子棋 ---- */
 function gm_gomoku_init(me){ GM.s = { b:new Array(225).fill(0), turn: me?1:2, last:-1 }; gm_gomoku_draw(); }
@@ -14957,7 +15401,8 @@ function renderStatusCard(){
     </div>`;
 }
 loadStatusCard();
-setInterval(()=>{ try{ const el=document.getElementById('chatCStat'); if(el && currentView==='chat') el.textContent=scStatusLabel(); }catch(e){} }, 30000);
+setInterval(()=>{ try{ const label=scStatusLabel(); const el=document.getElementById('chatCStat'); if(el && currentView==='chat') el.textContent=label; }catch(e){} }, 30000);
+setInterval(()=>{ try{ scMoodValue(); cookResolvePending(); }catch(e){} }, 30000);
 
 
 let mallState = {
@@ -16684,10 +17129,13 @@ async function renderHomeEbookShelf(){
   subEl.textContent=n?'点击右侧进入书架':'进入书架导入第一本书';
 }
 
+let ebookFromLib = false;
+function ebookLibraryBack(){ ebookFromLib = false; closeEbookLibrary(); }
 function openEbookLibrary(){
   closeEbookLibrary();
+  ebookFromLib = true;
   const root=document.createElement('div'); root.id='ebookLibraryRoot'; root.className='ebook-overlay';
-  root.innerHTML=`<div class="ebook-head"><button onclick="closeEbookLibrary()">← 返回</button><strong>电子书库</strong><button onclick="document.getElementById('ebookImportInput').click()">＋ 导入</button></div>
+  root.innerHTML=`<div class="ebook-head"><button onclick="ebookLibraryBack()">← 返回</button><strong>电子书库</strong><button onclick="document.getElementById('ebookImportInput').click()">＋ 导入</button></div>
   <div class="ebook-body"><div class="ebook-intro"><small>OUR LITTLE LIBRARY</small><h3>留一页时间，和你一起读</h3><div style="font-size:12px;line-height:1.7">支持导入 PDF、EPUB、TXT、Markdown 和 BIN。打开书籍后，可以邀请梦角在一分钟内回应共读邀请。</div></div>
   <input id="ebookImportInput" type="file" accept=".pdf,.epub,.txt,.md,.markdown,.bin,application/pdf,application/epub+zip,text/plain,application/octet-stream" multiple hidden onchange="onEbookImport(event)">
   <div id="ebookList" class="ebook-list"></div></div>`;
@@ -16698,7 +17146,7 @@ async function renderEbookList(){
   const el=document.getElementById('ebookList');if(!el)return;
   await loadEbookLibrary();
   if(!ebookLibrary.length){el.innerHTML='<div class="ebook-empty">📚<br><br>书架还是空的<br><small>点击右上角「导入」，把喜欢的书放进来</small></div>';return;}
-  el.innerHTML=ebookLibrary.map(b=>`<article class="ebook-item"><div class="ebook-cover er-cover" style="${ebookCoverStyle(b)}"><b>${escapeHtml(b.title||b.name)}</b>${b.author?'<small>'+escapeHtml(b.author)+'</small>':''}</div><div class="ebook-meta">${String(b.type||'').toUpperCase()} · ${ebookBytes(b.size)}${b.pct?' · 读到 '+b.pct+'%':''}</div><div class="ebook-actions"><button class="btn" onclick="openEbookReaderById('${b.id}')">阅读</button><button class="btn outline" onclick="inviteEbookTogether('${b.id}')">♡ 共读</button><button class="btn outline" onclick="deleteEbook('${b.id}')">删除</button></div></article>`).join('');
+  el.innerHTML=ebookLibrary.map(b=>`<article class="ebook-item"><div class="ebook-cover er-cover" style="${ebookCoverStyle(b)}">${ebookCoverHtml(b)}</div><div class="ebook-meta">${String(b.type||'').toUpperCase()} · ${ebookBytes(b.size)}${b.pct?' · 读到 '+b.pct+'%':''}</div><div class="ebook-actions"><button class="btn" onclick="openEbookReaderById('${b.id}')">阅读</button><button class="btn outline" onclick="inviteEbookTogether('${b.id}')">♡ 共读</button><button class="btn outline" onclick="deleteEbook('${b.id}')">删除</button></div></article>`).join('');
 }
 async function onEbookImport(e){
   const files=Array.from(e.target.files||[]);e.target.value='';
@@ -16858,6 +17306,17 @@ function ebookExtractMeta(text){
     return m?m[1].trim().replace(/^《|》$/g,''):'';
   };
   return {title:pick('书名'),author:pick('作者')};
+}
+function ebookCoverInfo(b){
+  const raw = String(b.title||b.name||'').replace(/\.(epub|pdf|txt|md|bin)$/i,'');
+  const m = raw.match(/^(.*?)\s*[（(【\[]/);
+  const title = (m && m[1].trim()) ? m[1].trim() : raw;
+  return { title:title, author:b.author||'' };
+}
+function ebookCoverHtml(b){
+  const c = ebookCoverInfo(b);
+  const pct = Math.max(0, Math.min(100, Number(b.pct)||0));
+  return '<div class="bk-frame"><i class="bk-orn">❦</i><div class="bk-mid"><b'+(c.title.length>9?' class="sm"':'')+'>'+escapeHtml(c.title)+'</b><u class="bk-line"></u></div><small>'+escapeHtml(c.author)+'</small></div>'+(pct?'<i class="bk-prog" style="--p:'+pct+'%"></i>':'');
 }
 function ebookCoverStyle(b){
   let h=0;
@@ -17054,7 +17513,9 @@ function erEpubApplyStyle(){
     ER.rendition.themes.register('er',{
       'html':{'background':t.bg+' !important'},
       'body':{'color':t.ink+' !important','background':t.bg+' !important','line-height':erPrefs.lh+' !important','font-family':ff+' !important'},
-      'p':{'line-height':erPrefs.lh+' !important'},
+      'p':{'line-height':erPrefs.lh+' !important','text-align':'justify !important','text-indent':'2em !important','margin':'0 0 .55em !important'},
+      'h1,h2,h3,h4':{'text-align':'left !important','text-indent':'0 !important','font-weight':'700 !important','line-height':'1.4 !important'},
+      'img':{'max-width':'100% !important','height':'auto !important'},
       'body *':{'color':'inherit !important','-webkit-user-select':'none !important','user-select':'none !important','-webkit-touch-callout':'none !important'},
       'body.er-sel-on *':{'-webkit-user-select':'text !important','user-select':'text !important'},
       'a':{'color':'inherit !important'}
@@ -17275,7 +17736,15 @@ function erBindSlider(){
 }
 function erChapterStep(d){
   if(!ER)return;
-  if(ER.kind==='epub'){erStep(d);return;}
+  if(ER.kind==='epub'){
+    const toc=ER.epubToc||[];
+    if(!toc.length){erStep(d);return;}
+    const cur=ER.epubCur==null?-1:ER.epubCur;
+    const t=cur<0?(d>0?0:-1):cur+d;
+    if(t<0||t>=toc.length)return;
+    try{ER.rendition.display(toc[t].href);}catch(e){}
+    return;
+  }
   const to=ER.unit.ch+d;
   if(to<0||to>=ER.book.chapters.length)return;
   erLoadUnit(ER.book.chapters[to].unit,{page:0});
@@ -17328,7 +17797,7 @@ function erSettingsHtml(){
   const th=ER_THEMES.map(t=>'<button type="button" class="er-sw" data-k="theme" data-v="'+t.id+'" style="background:'+t.bg+';color:'+t.ink+'" onclick="erSet(\'theme\',\''+t.id+'\')" aria-label="'+t.name+'"><span>'+t.name+'</span></button>').join('');
   return '<h3>阅读设置</h3>'
     +'<div class="er-row"><label>字号</label><div class="er-size"><button type="button" class="er-step" onclick="erSet(\'size\','+'Math.max(14,erPrefs.size-1))">A-</button><input type="range" id="erSizeRange" min="14" max="28" step="1" value="'+erPrefs.size+'" oninput="erSet(\'size\',+this.value)"><button type="button" class="er-step" onclick="erSet(\'size\',Math.min(28,erPrefs.size+1))">A+</button></div></div>'
-    +(ER.kind==='epub'?'':'<div class="er-row"><label>行距</label><div class="er-chips">'+lh+'</div></div><div class="er-row"><label>字体</label><div class="er-chips">'+ff+'</div></div>')
+    +(false?'':'<div class="er-row"><label>行距</label><div class="er-chips">'+lh+'</div></div><div class="er-row"><label>字体</label><div class="er-chips">'+ff+'</div></div>')
     +'<div class="er-row"><label>背景</label><div class="er-sws">'+th+'</div></div>'
     +'<button type="button" class="er-close" onclick="erCloseSheet()">完成</button>';
 }
@@ -17909,9 +18378,66 @@ function erEpubRelocated(loc){
   const href=String((loc.start&&loc.start.href)||'').split('#')[0];
   const hit=(ER.epubToc||[]).filter(t=>String(t.href||'').split('#')[0]===href).pop();
   if(hit)ER.epubCur=hit.i;
-  const label=document.getElementById('erLabel');
-  if(label)label.textContent=hit?hit.label:'';
+  ER.epubCurLabel=hit?hit.label:(ER.epubCurLabel||'');
+  erEpubSyncChrome();
   erSaveProgressSoon();
+}
+function erEpubPct(){
+  try{
+    const loc=ER&&ER.epubLoc;
+    if(ER&&ER.epub&&ER.epub.locations&&ER.epub.locations.length()&&loc&&loc.start)return ER.epub.locations.percentageFromCfi(loc.start.cfi);
+  }catch(e){}
+  return null;
+}
+function erEpubSyncChrome(){
+  if(!ER||ER.kind!=='epub')return;
+  const loc=ER.epubLoc;
+  const pct=erEpubPct();
+  const slider=document.getElementById('erSlider');
+  if(slider&&!ER.sliding&&pct!=null){
+    slider.value=Math.round(pct*1000);
+    slider.style.setProperty('--p',(pct*100)+'%');
+  }
+  const d=loc&&loc.start&&loc.start.displayed;
+  const label=document.getElementById('erLabel');
+  if(label&&d){
+    const rem=d.total-d.page;
+    label.textContent=rem>0?'第 '+d.page+' 页 · 剩 '+rem+' 页本章':'第 '+d.page+' 页 · 本章最后一页';
+  }
+  const run=document.getElementById('erRunning');
+  if(run)run.textContent=ER.epubCurLabel||'';
+  const fl=document.getElementById('erFootL'),fr=document.getElementById('erFootR');
+  if(fl)fl.textContent=pct!=null?(pct*100).toFixed(1)+'%':'';
+  if(fr)fr.textContent=d?d.page+' / '+d.total:'';
+  const toc=ER.epubToc||[];
+  const cur=ER.epubCur==null?-1:ER.epubCur;
+  const prev=document.getElementById('erChPrev'),next=document.getElementById('erChNext');
+  if(prev)prev.disabled=!toc.length||cur<=0;
+  if(next)next.disabled=!toc.length||cur>=toc.length-1;
+}
+function erBindEpubSlider(){
+  const s=document.getElementById('erSlider'),bub=document.getElementById('erBubble');
+  if(!s)return;
+  s.addEventListener('input',()=>{
+    ER.sliding=true;
+    const pct=s.value/1000;
+    s.style.setProperty('--p',(pct*100)+'%');
+    bub.textContent=(pct*100).toFixed(1)+'%';
+    bub.style.left=Math.max(12,Math.min(88,pct*100))+'%';
+    bub.classList.add('show');
+  });
+  s.addEventListener('change',()=>{
+    ER.sliding=false;
+    bub.classList.remove('show');
+    try{
+      const loc=ER.epub.locations;
+      if(!loc.length()){ebookToast('正在计算页数，请稍后再拖动');return;}
+      ER.rendition.display(loc.cfiFromPercentage(s.value/1000));
+    }catch(e){}
+  });
+  const stop=()=>{if(ER)ER.sliding=false;bub.classList.remove('show');};
+  s.addEventListener('pointerup',stop);
+  s.addEventListener('pointercancel',stop);
 }
 function ebookLoadScript(urls){
   return new Promise(resolve=>{
@@ -18003,6 +18529,9 @@ async function erInitEpubCore(root,data,b){
       else rend.annotations.highlight(a.cfi,{annotationId:a.id},null,'er-epub-highlight',ER_EPUB_HL_STYLE);
     }catch(e){}
   });
+  erBindEpubSlider();
+  erEpubSyncChrome();
+  book.locations.generate(1200).then(()=>{ if(ER&&ER.epub===book)erEpubSyncChrome(); }).catch(()=>{});
 }
 
 async function openEbookReaderById(id,opts){
@@ -18012,11 +18541,12 @@ async function openEbookReaderById(id,opts){
   const data=await getEbookData(id);
   if(!data)return alert('没有找到这本书的本地文件，请重新导入。');
   try{await ebookSweepExpiredInvites();}catch(e){}
+  const libScroll=(document.querySelector('#ebookLibraryRoot .ebook-body')||{}).scrollTop||0;
   closeEbookLibrary();
-  closeEbookReader();
+  closeEbookReader(true);
   await erLoadPrefs();
   const kind=['txt','md','markdown','bin'].includes(b.type)?'text':b.type;
-  ER={id,cardIds:(opts&&opts.cardIds)||[],kind,bars:false,page:0,pages:1,stride:1,marks:[],ui:0,unit:null,book:null,sliding:false};
+  ER={id,fromLib:ebookFromLib,libScroll,cardIds:(opts&&opts.cardIds)||[],kind,bars:false,page:0,pages:1,stride:1,marks:[],ui:0,unit:null,book:null,sliding:false};
   let title=b.title||b.name||'未命名书籍';
   let text='';
   if(kind==='text'){
@@ -18038,7 +18568,7 @@ async function openEbookReaderById(id,opts){
   root.dataset.kind=kind;
   const content=kind==='text'
     ?'<div class="er-stage" id="erStage"><div class="er-running" id="erRunning"></div><div class="er-viewport" id="erViewport"><div class="er-flow" id="erFlow"></div></div><div class="er-foot"><span id="erFootL"></span><span id="erFootR"></span></div></div>'
-    :(kind==='epub'?'<div class="er-epub" id="erEpub"></div>':'<div class="er-pdf"><iframe title="PDF"></iframe></div>');
+    :(kind==='epub'?'<div class="er-epub" id="erEpub"></div><div class="er-running" id="erRunning"></div><div class="er-foot"><span id="erFootL"></span><span id="erFootR"></span></div>':'<div class="er-pdf"><iframe title="PDF"></iframe></div>');
   root.innerHTML=content
     +'<header class="er-topbar"><button type="button" class="er-tb" onclick="closeEbookReader()">返回</button><div class="er-tb-title">'+escapeHtml(title)+'</div><button type="button" class="er-tb er-npdf" onclick="erOpenToc()">目录</button><button type="button" class="er-tb er-npdf" onclick="erOpenSettings()">Aa</button><button type="button" class="er-tb er-npdf" onclick="erOpenNotes()">笔记</button><button type="button" class="er-tb er-tb-invite" onclick="erTogetherButton(\''+b.id+'\')">共读</button></header>'
     +'<footer class="er-bottombar"><button type="button" class="er-chbtn" id="erChPrev" onclick="erChapterStep(-1)" aria-label="上一章">‹</button><div class="er-slider-wrap"><input type="range" id="erSlider" min="0" max="1000" value="0"><div class="er-bubble" id="erBubble"></div></div><span class="er-pagelabel" id="erLabel"></span><button type="button" class="er-chbtn" id="erChNext" onclick="erChapterStep(1)" aria-label="下一章">›</button></footer>';
@@ -18107,8 +18637,10 @@ async function openEbookReaderById(id,opts){
     await erInitEpub(root,data,b);
   }
 }
-function closeEbookReader(){
+function closeEbookReader(skipLibrary){
   const r=erRoot();
+  const backToLib=!skipLibrary&&!!(ER&&ER.fromLib);
+  const libScroll=(ER&&ER.libScroll)||0;
   const endedCards=ER&&ER.cardIds?ER.cardIds.slice():[];
   if(ER){
     erSaveProgress();
@@ -18125,6 +18657,10 @@ function closeEbookReader(){
   ER=null;
   ebookCurrentId=null;
   endedCards.forEach(cid=>{try{updateInviteCardStatus(cid,'ended');}catch(e){}});
+  if(backToLib){
+    openEbookLibrary();
+    setTimeout(()=>{ const bd=document.querySelector('#ebookLibraryRoot .ebook-body'); if(bd) bd.scrollTop=libScroll; }, 150);
+  }
 }
 
 async function ebookSweepExpiredInvites(){
@@ -18371,6 +18907,64 @@ sup.er-ref{font-size:.62em;line-height:0;vertical-align:super;margin:0 1px;font-
 @keyframes erFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes erUp{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
 @media(max-width:390px){.er-tb{padding:10px 7px;font-size:14px}.er-pagelabel{font-size:11px}.er-card{padding:20px 16px 14px}}
+</style>
+<style id="ebook-polish">
+.ebook-overlay{background:radial-gradient(120% 60% at 50% 0%,#fff4ee 0,var(--paper) 55%,#f3e6df 100%)}
+.ebook-head{background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(210,178,168,.4);box-shadow:0 6px 18px rgba(120,70,60,.06)}
+.ebook-head strong{font:600 17px Georgia,"Noto Serif SC",serif;letter-spacing:3px}
+.ebook-head button,.ebook-action{border-radius:999px;border:1px solid rgba(210,178,168,.55);background:rgba(255,255,255,.88);box-shadow:0 3px 8px rgba(120,70,60,.08)}
+.ebook-intro{position:relative;overflow:hidden;border-radius:24px;padding:20px 18px;background:linear-gradient(135deg,#f6dcd8,#f1ebdd 55%,#d3e0cb);box-shadow:0 10px 26px rgba(120,80,70,.14),inset 0 0 0 1px rgba(255,255,255,.7)}
+.ebook-intro:after{content:"";position:absolute;right:18px;top:0;width:22px;height:46px;background:linear-gradient(#b56d75,#8f4652);clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%)}
+.ebook-intro h3{font:600 20px Georgia,"Noto Serif SC",serif;letter-spacing:1.5px}
+.ebook-list{gap:24px 16px}
+.ebook-item{position:relative;background:transparent;border:0;border-radius:0;padding:0 0 16px}
+.ebook-item:after{content:"";position:absolute;left:-6px;right:-6px;bottom:0;height:10px;border-radius:3px;background:linear-gradient(#cfa97e,#a6794d);box-shadow:0 6px 10px rgba(80,50,20,.22)}
+.ebook-item>*{position:relative;z-index:1}
+.ebook-cover{height:auto;aspect-ratio:3/4;border-radius:4px 10px 10px 4px;margin-bottom:10px;box-shadow:inset 7px 0 7px -5px rgba(0,0,0,.38),inset -2px 0 0 rgba(255,255,255,.25),4px 9px 14px rgba(60,40,30,.32)}
+.ebook-cover:before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;background:rgba(255,255,255,.3)}
+.ebook-title{font-family:Georgia,"Noto Serif SC",serif;font-size:13.5px}
+.ebook-cover.er-cover{padding:0;gap:0;overflow:hidden}
+.ebook-cover.er-cover .bk-frame{position:absolute;inset:10px 10px 10px 18px;border:1px solid rgba(255,255,255,.6);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 8px 10px;text-align:center}
+.ebook-cover.er-cover .bk-frame:before{content:"";position:absolute;inset:3px;border:1px solid rgba(255,255,255,.25);pointer-events:none}
+.bk-orn{font-style:normal;font-size:16px;opacity:.85}
+.bk-mid{display:flex;flex-direction:column;align-items:center}
+.ebook-cover.er-cover .bk-frame b{font:700 18px/1.5 Georgia,"Noto Serif SC",serif;letter-spacing:2px;-webkit-line-clamp:5;text-shadow:0 1px 3px rgba(0,0,0,.28)}
+.ebook-cover.er-cover .bk-frame b.sm{font-size:14.5px;letter-spacing:1px}
+.bk-line{display:block;width:30px;height:1px;background:rgba(255,255,255,.7);margin:10px auto 0}
+.ebook-cover.er-cover .bk-frame small{font-size:10.5px;letter-spacing:1.5px;opacity:.92;min-height:13px}
+.bk-prog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(0,0,0,.2)}
+.bk-prog:after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p);background:rgba(255,255,255,.85)}
+.ebook-meta{letter-spacing:.5px}
+.ebook-actions button{border-radius:999px;padding:6px 12px;box-shadow:0 2px 6px rgba(120,70,60,.1)}
+.ebook-actions .btn.outline{border:1px solid rgba(210,178,168,.55);background:rgba(255,255,255,.92);color:var(--ink)}
+.ebook-actions .btn:not(.outline){border:0;background:linear-gradient(135deg,#d96b78,var(--rouge));color:#fff}
+.ebook-empty{border-radius:22px;border:2px dashed rgba(180,140,130,.5);background:rgba(255,255,255,.55)}
+.er-topbar{box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.er-bottombar{box-shadow:0 -6px 20px rgba(0,0,0,.08)}
+.er-tb{min-width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%}
+.er-tb-title{font-family:Georgia,"Noto Serif SC",serif;letter-spacing:1px}
+.er-tb-invite.on{border-radius:999px;height:auto;padding:8px 12px}
+.er-pagelabel{padding:4px 10px;border-radius:999px;background:var(--hl)}
+#erSlider::-webkit-slider-runnable-track{height:6px}
+#erSlider::-webkit-slider-thumb{background:var(--accent);margin-top:-8px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.er-sheet{-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);background:rgba(20,16,14,.4)}
+.er-card{position:relative;padding-top:30px;border-radius:28px 28px 22px 22px}
+.er-card:before{content:"";position:absolute;left:50%;top:11px;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:var(--line2)}
+.er-card h3{font-family:Georgia,"Noto Serif SC",serif;letter-spacing:2px}
+.er-toc-row{position:relative;padding-left:22px;border-radius:12px;font-size:15px}
+.er-toc-row.on{color:var(--accent)}
+.er-toc-row.on:before{content:"";position:absolute;left:9px;top:50%;width:4px;height:18px;margin-top:-9px;border-radius:2px;background:var(--accent)}
+.er-sw.on{box-shadow:0 0 0 2px var(--accent)}
+.er-close{border:0;border-radius:999px;background:var(--hl);font-weight:600}
+.er-note-item{padding:14px 14px 38px 16px;border-radius:16px;border-left:4px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.er-note-item blockquote{font-family:Georgia,"Noto Serif SC",serif}
+.er-note-item blockquote:before{content:"\201C";font-size:26px;line-height:0;color:var(--accent);margin-right:3px;vertical-align:-8px}
+.er-selection-menu{border-radius:16px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.er-user-highlight,.er-epub-highlight{border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.er-reader[data-kind="epub"] .er-epub{left:calc(env(safe-area-inset-left,0px) + 24px);right:calc(env(safe-area-inset-right,0px) + 24px);top:calc(env(safe-area-inset-top,0px) + 38px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px)}
+.er-reader[data-kind="epub"] .er-slider-wrap{display:block}
+.er-reader[data-kind="epub"] .er-pagelabel{flex:0 0 auto;text-align:left}
+.ebook-toast{letter-spacing:.5px;box-shadow:0 8px 22px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 </style>
 <style id="daily-label-size">
 /* Daily 图标下的文字：按你的要求设为 10px */
